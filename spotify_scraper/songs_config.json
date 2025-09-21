@@ -1,0 +1,60 @@
+{
+  "songs": [
+    {
+      "name": "Song 1 - Artist 3CbYyyd8wH3RT6t0jwpdzC",
+      "url": "https://artists.spotify.com/c/artist/3CbYyyd8wH3RT6t0jwpdzC/song/43VXG87ajppI8mO1Mxo8vu/playlists",
+      "active": true,
+      "original_url": "https://artists.spotify.com/c/artist/3CbYyyd8wH3RT6t0jwpdzC/song/43VXG87ajppI8mO1Mxo8vu/stats"
+    },
+    {
+      "name": "Song 2 - Shadow feat. Crooked Bangs",
+      "url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/5cBGiXFf9S9RlAwQUv0g4g/playlists",
+      "active": true,
+      "original_url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/5cBGiXFf9S9RIAwQUv0g4g/stats"
+    },
+    {
+      "name": "Song 3 - Artist 746nA9NSKsqBDRk343UtkE",
+      "url": "https://artists.spotify.com/c/artist/746nA9NSKsqBDRk343UtkE/song/3uEYshQEWb2PVwyskNAxTR/playlists",
+      "active": true,
+      "original_url": "https://artists.spotify.com/c/artist/746nA9NSKsqBDRk343UtkE/song/3uEYshQEWb2PVwyskNAxTR/stats"
+    },
+    {
+      "name": "Song 4 - Artist 1NhyPfqf5SUNG25QOiZNF0",
+      "url": "https://artists.spotify.com/c/artist/1NhyPfqf5SUNG25QOiZNF0/song/2zC3ibrhNKgNV4U6Jnihok/playlists",
+      "active": true,
+      "original_url": "https://artists.spotify.com/c/artist/1NhyPfqf5SUNG25QOiZNF0/song/2zC3ibrhNKgNV4U6Jnihok/stats"
+    },
+    {
+      "name": "Song 5 - Artist 6DRsCnHwpy638sR8fO1PTD",
+      "url": "https://artists.spotify.com/c/artist/6DRsCnHwpy638sR8fO1PTD/song/3MemBcrWKrPmN2CSj9dqRg/playlists",
+      "active": true,
+      "original_url": "https://artists.spotify.com/c/artist/6DRsCnHwpy638sR8fO1PTD/song/3MemBcrWKrPmN2CSj9dqRg/stats"
+    },
+    {
+      "name": "Song 6 - Artist 7uh2PUXuQcaqqU0wzjm4yj",
+      "url": "https://artists.spotify.com/c/artist/7uh2PUXuQcaqqU0wzjm4yj/song/1Un2rwqvFb6CKBGOqOG3zA/playlists",
+      "active": true,
+      "original_url": "https://artists.spotify.com/c/artist/7uh2PUXuQcaqqU0wzjm4yj/song/1Un2rwqvFb6CKBGOqOG3zA/stats"
+    },
+    {
+      "name": "Song 7 - Artist 2eAml1qDYCL6t4AoboTe3V",
+      "url": "https://artists.spotify.com/c/artist/2eAml1qDYCL6t4AoboTe3V/song/5y74b7XiRwwejqWFi5H5FE/playlists",
+      "active": true,
+      "original_url": "https://artists.spotify.com/c/artist/2eAml1qDYCL6t4AoboTe3V/song/5y74b7XiRwwejqWFi5H5FE/stats"
+    },
+    {
+      "name": "Song 8 - Artist 2Iftoi7IM3hKePgIb85EqG",
+      "url": "https://artists.spotify.com/c/artist/2Iftoi7IM3hKePgIb85EqG/song/73vRJ0HtHI26ftfbgu8isu/playlists",
+      "active": true,
+      "original_url": "https://artists.spotify.com/c/artist/2Iftoi7IM3hKePgIb85EqG/song/73vRJ0HtHI26ftfbgu8isu/playlists",
+      "note": "This one was already in playlists format"
+    },
+    {
+      "name": "Song 9 - Artist 0NgWGGk9p04zLTeFbIdsVO (Ocean Born - Radio Edit)",
+      "url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/0LfS8z5VUqkD9WlMLOZskY/playlists",
+      "active": true,
+      "original_url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/0LfS8z5VUqkD9WlMLOZskY/stats",
+      "note": "Another song from the same artist as Song 2"
+    }
+  ]
+}

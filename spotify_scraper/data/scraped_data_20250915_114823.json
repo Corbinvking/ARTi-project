@@ -1,0 +1,678 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/5cBGiXFf9S9RIAwQUv0g4g/playlists?time-filter=28day",
+  "scraped_at": "2025-09-15T11:47:51.195032",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "name": "1",
+            "made_by": "Radio",
+            "streams": "",
+            "date_added": "25,614"
+          },
+          {
+            "name": "2",
+            "made_by": "Release Radar",
+            "streams": "",
+            "date_added": "25,410"
+          },
+          {
+            "name": "3",
+            "made_by": "Discover Weekly",
+            "streams": "",
+            "date_added": "13,258"
+          },
+          {
+            "name": "4",
+            "made_by": "Your DJ",
+            "streams": "",
+            "date_added": "2,917"
+          },
+          {
+            "name": "5",
+            "made_by": "Mixes",
+            "streams": "",
+            "date_added": "1,302"
+          },
+          {
+            "name": "6",
+            "made_by": "Smart Shuffle",
+            "streams": "",
+            "date_added": "217"
+          },
+          {
+            "name": "7",
+            "made_by": "Daylist",
+            "streams": "",
+            "date_added": "154"
+          },
+          {
+            "name": "8",
+            "made_by": "This Is NGHTMRE",
+            "streams": "",
+            "date_added": "135"
+          },
+          {
+            "name": "9",
+            "made_by": "New Jump Up & Heavy Drum and Bass 2025 (New DnB / DnB / D&B / Neurofunk DnB / Heavy Bass) | uBazz",
+            "streams": "",
+            "date_added": "120"
+          },
+          {
+            "name": "10",
+            "made_by": "On Repeat",
+            "streams": "",
+            "date_added": "120"
+          },
+          {
+            "name": "11",
+            "made_by": "AllTime Radio // Updated Weekly",
+            "streams": "",
+            "date_added": "88"
+          },
+          {
+            "name": "12",
+            "made_by": "YleX - DJ Orion 💥 Perjantai-illan yhteisön playlist-paratiisi",
+            "streams": "",
+            "date_added": "75"
+          },
+          {
+            "name": "13",
+            "made_by": "Edmtrain's New Music Weekly",
+            "streams": "",
+            "date_added": "73"
+          },
+          {
+            "name": "14",
+            "made_by": "Brand New Drum And Bass 🦀",
+            "streams": "",
+            "date_added": "65"
+          },
+          {
+            "name": "15",
+            "made_by": "GYM DNB BANGERS 2025 | WORKOUT DRUM & BASS",
+            "streams": "",
+            "date_added": "57"
+          },
+          {
+            "name": "16",
+            "made_by": "GAMING DNB 2025 | DRUM & BASS FOR GAMERS",
+            "streams": "",
+            "date_added": "44"
+          },
+          {
+            "name": "17",
+            "made_by": "DJ Orion - 30 X Fresh - YleX:n Perjantai-ilta",
+            "streams": "",
+            "date_added": "32"
+          },
+          {
+            "name": "18",
+            "made_by": "Body bagarre 2025 / 2026",
+            "streams": "",
+            "date_added": "30"
+          },
+          {
+            "name": "19",
+            "made_by": "DNB ALLSTARS 2025",
+            "streams": "",
+            "date_added": "25"
+          },
+          {
+            "name": "20",
+            "made_by": "Suomi EDM 2025",
+            "streams": "",
+            "date_added": "18"
+          },
+          {
+            "name": "21",
+            "made_by": "Drumm&basss",
+            "streams": "",
+            "date_added": "18"
+          },
+          {
+            "name": "22",
+            "made_by": "Blend",
+            "streams": "",
+            "date_added": "17"
+          },
+          {
+            "name": "23",
+            "made_by": "DRUM AND BASS BANGERS",
+            "streams": "",
+            "date_added": "15"
+          },
+          {
+            "name": "24",
+            "made_by": "Get HUMPY!",
+            "streams": "",
+            "date_added": "14"
+          },
+          {
+            "name": "25",
+            "made_by": "Bassizm Warmup!",
+            "streams": "",
+            "date_added": "13"
+          },
+          {
+            "name": "26",
+            "made_by": "Vocal Drum&Bass 2025 by Julian Florent",
+            "streams": "",
+            "date_added": "12"
+          },
+          {
+            "name": "27",
+            "made_by": "Gym",
+            "streams": "",
+            "date_added": "11"
+          },
+          {
+            "name": "28",
+            "made_by": "Weekly Dancefloor DnB Releases",
+            "streams": "",
+            "date_added": "10"
+          },
+          {
+            "name": "29",
+            "made_by": "Subelo",
+            "streams": "",
+            "date_added": "9"
+          },
+          {
+            "name": "30",
+            "made_by": "DRUM & BASS 2025",
+            "streams": "",
+            "date_added": "9"
+          },
+          {
+            "name": "31",
+            "made_by": "DRUM & BASS",
+            "streams": "",
+            "date_added": "8"
+          },
+          {
+            "name": "32",
+            "made_by": "future gym",
+            "streams": "",
+            "date_added": "7"
+          },
+          {
+            "name": "33",
+            "made_by": "DNB",
+            "streams": "",
+            "date_added": "6"
+          },
+          {
+            "name": "34",
+            "made_by": "BASS INFERNO",
+            "streams": "",
+            "date_added": "5"
+          },
+          {
+            "name": "35",
+            "made_by": "VIBE CHECK",
+            "streams": "",
+            "date_added": "4"
+          },
+          {
+            "name": "36",
+            "made_by": "DJ Orion - 30 X Drum'n'bass - YleX:n Perjantai-ilta",
+            "streams": "",
+            "date_added": "3"
+          },
+          {
+            "name": "37",
+            "made_by": "edm",
+            "streams": "",
+            "date_added": "3"
+          },
+          {
+            "name": "38",
+            "made_by": "swaggiest new edm friday",
+            "streams": "",
+            "date_added": "3"
+          },
+          {
+            "name": "39",
+            "made_by": "D&B Release Radar",
+            "streams": "",
+            "date_added": "3"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "39",
+          "total": "2,505"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "name": "1",
+            "made_by": "Release Radar",
+            "streams": "",
+            "date_added": "11,195"
+          },
+          {
+            "name": "2",
+            "made_by": "Radio",
+            "streams": "",
+            "date_added": "7,423"
+          },
+          {
+            "name": "3",
+            "made_by": "Discover Weekly",
+            "streams": "",
+            "date_added": "2,802"
+          },
+          {
+            "name": "4",
+            "made_by": "Your DJ",
+            "streams": "",
+            "date_added": "1,280"
+          },
+          {
+            "name": "5",
+            "made_by": "Mixes",
+            "streams": "",
+            "date_added": "702"
+          },
+          {
+            "name": "6",
+            "made_by": "Daylist",
+            "streams": "",
+            "date_added": "115"
+          },
+          {
+            "name": "7",
+            "made_by": "Smart Shuffle",
+            "streams": "",
+            "date_added": "115"
+          },
+          {
+            "name": "8",
+            "made_by": "This Is NGHTMRE",
+            "streams": "",
+            "date_added": "88"
+          },
+          {
+            "name": "9",
+            "made_by": "On Repeat",
+            "streams": "",
+            "date_added": "70"
+          },
+          {
+            "name": "10",
+            "made_by": "New Jump Up & Heavy Drum and Bass 2025 (New DnB / DnB / D&B / Neurofunk DnB / Heavy Bass) | uBazz",
+            "streams": "",
+            "date_added": "46"
+          },
+          {
+            "name": "11",
+            "made_by": "GYM DNB BANGERS 2025 | WORKOUT DRUM & BASS",
+            "streams": "",
+            "date_added": "25"
+          },
+          {
+            "name": "12",
+            "made_by": "GAMING DNB 2025 | DRUM & BASS FOR GAMERS",
+            "streams": "",
+            "date_added": "25"
+          },
+          {
+            "name": "13",
+            "made_by": "AllTime Radio // Updated Weekly",
+            "streams": "",
+            "date_added": "22"
+          },
+          {
+            "name": "14",
+            "made_by": "DJ Orion - 30 X Fresh - YleX:n Perjantai-ilta",
+            "streams": "",
+            "date_added": "18"
+          },
+          {
+            "name": "15",
+            "made_by": "YleX - DJ Orion 💥 Perjantai-illan yhteisön playlist-paratiisi",
+            "streams": "",
+            "date_added": "16"
+          },
+          {
+            "name": "16",
+            "made_by": "DNB ALLSTARS 2025",
+            "streams": "",
+            "date_added": "13"
+          },
+          {
+            "name": "17",
+            "made_by": "Vocal Drum&Bass 2025 by Julian Florent",
+            "streams": "",
+            "date_added": "12"
+          },
+          {
+            "name": "18",
+            "made_by": "Blend",
+            "streams": "",
+            "date_added": "12"
+          },
+          {
+            "name": "19",
+            "made_by": "Subelo",
+            "streams": "",
+            "date_added": "9"
+          },
+          {
+            "name": "20",
+            "made_by": "Suomi EDM 2025",
+            "streams": "",
+            "date_added": "7"
+          },
+          {
+            "name": "21",
+            "made_by": "Bassizm Warmup!",
+            "streams": "",
+            "date_added": "7"
+          },
+          {
+            "name": "22",
+            "made_by": "DRUM AND BASS BANGERS",
+            "streams": "",
+            "date_added": "5"
+          },
+          {
+            "name": "23",
+            "made_by": "VIBE CHECK",
+            "streams": "",
+            "date_added": "4"
+          },
+          {
+            "name": "24",
+            "made_by": "DJ Orion - 30 X Drum'n'bass - YleX:n Perjantai-ilta",
+            "streams": "",
+            "date_added": "3"
+          },
+          {
+            "name": "25",
+            "made_by": "Brand New Drum And Bass 🦀",
+            "streams": "",
+            "date_added": "3"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "25",
+          "total": "1,570"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "name": "1",
+            "made_by": "Radio",
+            "streams": "",
+            "date_added": "25,614"
+          },
+          {
+            "name": "2",
+            "made_by": "Release Radar",
+            "streams": "",
+            "date_added": "25,410"
+          },
+          {
+            "name": "3",
+            "made_by": "Discover Weekly",
+            "streams": "",
+            "date_added": "13,258"
+          },
+          {
+            "name": "4",
+            "made_by": "Your DJ",
+            "streams": "",
+            "date_added": "2,917"
+          },
+          {
+            "name": "5",
+            "made_by": "Mixes",
+            "streams": "",
+            "date_added": "1,302"
+          },
+          {
+            "name": "6",
+            "made_by": "Smart Shuffle",
+            "streams": "",
+            "date_added": "217"
+          },
+          {
+            "name": "7",
+            "made_by": "Daylist",
+            "streams": "",
+            "date_added": "154"
+          },
+          {
+            "name": "8",
+            "made_by": "This Is NGHTMRE",
+            "streams": "",
+            "date_added": "135"
+          },
+          {
+            "name": "9",
+            "made_by": "New Jump Up & Heavy Drum and Bass 2025 (New DnB / DnB / D&B / Neurofunk DnB / Heavy Bass) | uBazz",
+            "streams": "",
+            "date_added": "120"
+          },
+          {
+            "name": "10",
+            "made_by": "On Repeat",
+            "streams": "",
+            "date_added": "120"
+          },
+          {
+            "name": "11",
+            "made_by": "AllTime Radio // Updated Weekly",
+            "streams": "",
+            "date_added": "88"
+          },
+          {
+            "name": "12",
+            "made_by": "YleX - DJ Orion 💥 Perjantai-illan yhteisön playlist-paratiisi",
+            "streams": "",
+            "date_added": "75"
+          },
+          {
+            "name": "13",
+            "made_by": "Edmtrain's New Music Weekly",
+            "streams": "",
+            "date_added": "73"
+          },
+          {
+            "name": "14",
+            "made_by": "Brand New Drum And Bass 🦀",
+            "streams": "",
+            "date_added": "65"
+          },
+          {
+            "name": "15",
+            "made_by": "GYM DNB BANGERS 2025 | WORKOUT DRUM & BASS",
+            "streams": "",
+            "date_added": "57"
+          },
+          {
+            "name": "16",
+            "made_by": "GAMING DNB 2025 | DRUM & BASS FOR GAMERS",
+            "streams": "",
+            "date_added": "44"
+          },
+          {
+            "name": "17",
+            "made_by": "DJ Orion - 30 X Fresh - YleX:n Perjantai-ilta",
+            "streams": "",
+            "date_added": "32"
+          },
+          {
+            "name": "18",
+            "made_by": "Body bagarre 2025 / 2026",
+            "streams": "",
+            "date_added": "30"
+          },
+          {
+            "name": "19",
+            "made_by": "DNB ALLSTARS 2025",
+            "streams": "",
+            "date_added": "25"
+          },
+          {
+            "name": "20",
+            "made_by": "Suomi EDM 2025",
+            "streams": "",
+            "date_added": "18"
+          },
+          {
+            "name": "21",
+            "made_by": "Drumm&basss",
+            "streams": "",
+            "date_added": "18"
+          },
+          {
+            "name": "22",
+            "made_by": "Blend",
+            "streams": "",
+            "date_added": "17"
+          },
+          {
+            "name": "23",
+            "made_by": "DRUM AND BASS BANGERS",
+            "streams": "",
+            "date_added": "15"
+          },
+          {
+            "name": "24",
+            "made_by": "Get HUMPY!",
+            "streams": "",
+            "date_added": "14"
+          },
+          {
+            "name": "25",
+            "made_by": "Bassizm Warmup!",
+            "streams": "",
+            "date_added": "13"
+          },
+          {
+            "name": "26",
+            "made_by": "Vocal Drum&Bass 2025 by Julian Florent",
+            "streams": "",
+            "date_added": "12"
+          },
+          {
+            "name": "27",
+            "made_by": "Gym",
+            "streams": "",
+            "date_added": "11"
+          },
+          {
+            "name": "28",
+            "made_by": "Weekly Dancefloor DnB Releases",
+            "streams": "",
+            "date_added": "10"
+          },
+          {
+            "name": "29",
+            "made_by": "Subelo",
+            "streams": "",
+            "date_added": "9"
+          },
+          {
+            "name": "30",
+            "made_by": "DRUM & BASS 2025",
+            "streams": "",
+            "date_added": "9"
+          },
+          {
+            "name": "31",
+            "made_by": "DRUM & BASS",
+            "streams": "",
+            "date_added": "8"
+          },
+          {
+            "name": "32",
+            "made_by": "future gym",
+            "streams": "",
+            "date_added": "7"
+          },
+          {
+            "name": "33",
+            "made_by": "DNB",
+            "streams": "",
+            "date_added": "6"
+          },
+          {
+            "name": "34",
+            "made_by": "BASS INFERNO",
+            "streams": "",
+            "date_added": "5"
+          },
+          {
+            "name": "35",
+            "made_by": "VIBE CHECK",
+            "streams": "",
+            "date_added": "4"
+          },
+          {
+            "name": "36",
+            "made_by": "DJ Orion - 30 X Drum'n'bass - YleX:n Perjantai-ilta",
+            "streams": "",
+            "date_added": "3"
+          },
+          {
+            "name": "37",
+            "made_by": "edm",
+            "streams": "",
+            "date_added": "3"
+          },
+          {
+            "name": "38",
+            "made_by": "swaggiest new edm friday",
+            "streams": "",
+            "date_added": "3"
+          },
+          {
+            "name": "39",
+            "made_by": "D&B Release Radar",
+            "streams": "",
+            "date_added": "3"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "39",
+          "total": "2,505"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

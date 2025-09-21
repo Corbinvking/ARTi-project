@@ -1,0 +1,212 @@
+{
+  "url": "https://artists.spotify.com/c/artist/7uh2PUXuQcaqqU0wzjm4yj/song/1Un2rwqvFb6CKBGOqOG3zA/playlists",
+  "scraped_at": "2025-09-16T18:15:09.140284",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Mode bantai🥶",
+            "made_by": "—",
+            "streams": "1,036",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "741",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "720",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Músicas que provavelmente vc está procurando",
+            "made_by": "—",
+            "streams": "111",
+            "date_added": "Sep 11, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "33"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Mode bantai🥶",
+            "made_by": "—",
+            "streams": "1,036",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "741",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "720",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Músicas que provavelmente vc está procurando",
+            "made_by": "—",
+            "streams": "111",
+            "date_added": "Sep 11, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "30"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Mode bantai🥶",
+            "made_by": "—",
+            "streams": "1,036",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "741",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "720",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Músicas que provavelmente vc está procurando",
+            "made_by": "—",
+            "streams": "111",
+            "date_added": "Sep 11, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "33"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  },
+  "song_metadata": {
+    "config_name": "Song 6 - Artist 7uh2PUXuQcaqqU0wzjm4yj",
+    "scrape_order": 6,
+    "filename": "song_1Un2rwqvFb6CKBGOqOG3zA_20250916_181538.json"
+  }
+}

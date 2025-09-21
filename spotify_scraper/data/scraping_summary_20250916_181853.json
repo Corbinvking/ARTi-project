@@ -1,0 +1,73 @@
+{
+  "scraping_session": {
+    "timestamp": "2025-09-16T18:18:53.893743",
+    "total_songs": 9,
+    "successful": 7,
+    "failed": 2
+  },
+  "songs": [
+    {
+      "song_name": "Song 1 - Artist 3CbYyyd8wH3RT6t0jwpdzC",
+      "song_url": "https://artists.spotify.com/c/artist/3CbYyyd8wH3RT6t0jwpdzC/song/43VXG87ajppI8mO1Mxo8vu/playlists",
+      "success": true,
+      "filepath": "data\\song_43VXG87ajppI8mO1Mxo8vu_20250916_181005.json",
+      "timestamp": "2025-09-16T18:10:05.580861"
+    },
+    {
+      "song_name": "Song 2 - Shadow feat. Crooked Bangs",
+      "song_url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/5cBGiXFf9S9RlAwQUv0g4g/playlists",
+      "success": false,
+      "filepath": null,
+      "timestamp": "2025-09-16T18:10:58.360249"
+    },
+    {
+      "song_name": "Song 3 - Artist 746nA9NSKsqBDRk343UtkE",
+      "song_url": "https://artists.spotify.com/c/artist/746nA9NSKsqBDRk343UtkE/song/3uEYshQEWb2PVwyskNAxTR/playlists",
+      "success": true,
+      "filepath": "data\\song_3uEYshQEWb2PVwyskNAxTR_20250916_181211.json",
+      "timestamp": "2025-09-16T18:12:11.385724"
+    },
+    {
+      "song_name": "Song 4 - Artist 1NhyPfqf5SUNG25QOiZNF0",
+      "song_url": "https://artists.spotify.com/c/artist/1NhyPfqf5SUNG25QOiZNF0/song/2zC3ibrhNKgNV4U6Jnihok/playlists",
+      "success": true,
+      "filepath": "data\\song_2zC3ibrhNKgNV4U6Jnihok_20250916_181320.json",
+      "timestamp": "2025-09-16T18:13:20.217866"
+    },
+    {
+      "song_name": "Song 5 - Artist 6DRsCnHwpy638sR8fO1PTD",
+      "song_url": "https://artists.spotify.com/c/artist/6DRsCnHwpy638sR8fO1PTD/song/3MemBcrWKrPmN2CSj9dqRg/playlists",
+      "success": true,
+      "filepath": "data\\song_3MemBcrWKrPmN2CSj9dqRg_20250916_181429.json",
+      "timestamp": "2025-09-16T18:14:29.532101"
+    },
+    {
+      "song_name": "Song 6 - Artist 7uh2PUXuQcaqqU0wzjm4yj",
+      "song_url": "https://artists.spotify.com/c/artist/7uh2PUXuQcaqqU0wzjm4yj/song/1Un2rwqvFb6CKBGOqOG3zA/playlists",
+      "success": true,
+      "filepath": "data\\song_1Un2rwqvFb6CKBGOqOG3zA_20250916_181538.json",
+      "timestamp": "2025-09-16T18:15:38.146384"
+    },
+    {
+      "song_name": "Song 7 - Artist 2eAml1qDYCL6t4AoboTe3V",
+      "song_url": "https://artists.spotify.com/c/artist/2eAml1qDYCL6t4AoboTe3V/song/5y74b7XiRwwejqWFi5H5FE/playlists",
+      "success": true,
+      "filepath": "data\\song_5y74b7XiRwwejqWFi5H5FE_20250916_181648.json",
+      "timestamp": "2025-09-16T18:16:48.730183"
+    },
+    {
+      "song_name": "Song 8 - Artist 2Iftoi7IM3hKePgIb85EqG",
+      "song_url": "https://artists.spotify.com/c/artist/2Iftoi7IM3hKePgIb85EqG/song/73vRJ0HtHI26ftfbgu8isu/playlists",
+      "success": false,
+      "filepath": null,
+      "timestamp": "2025-09-16T18:17:42.212897"
+    },
+    {
+      "song_name": "Song 9 - Artist 0NgWGGk9p04zLTeFbIdsVO (Ocean Born - Radio Edit)",
+      "song_url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/0LfS8z5VUqkD9WlMLOZskY/playlists",
+      "success": true,
+      "filepath": "data\\song_0LfS8z5VUqkD9WlMLOZskY_20250916_181853.json",
+      "timestamp": "2025-09-16T18:18:53.892738"
+    }
+  ]
+}

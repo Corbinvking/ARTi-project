@@ -1,0 +1,324 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2eAml1qDYCL6t4AoboTe3V/song/5y74b7XiRwwejqWFi5H5FE/playlists",
+  "scraped_at": "2025-09-15T12:46:35.220521",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "2,836",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,102",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "255",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "236",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "230",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "106",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "55",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "This Is Paapi Muzik",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Trancewave ⚡Trance Trap",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jun 29, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "nus cali v2",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 5, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "462"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,586",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "224",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "58",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "45",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Trancewave ⚡Trance Trap",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 29, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "202"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "28,503",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5,262",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "2,604",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "1,441",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "598",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "319",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "270",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "This Is Paapi Muzik",
+            "made_by": "Spotify",
+            "streams": "116",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "88",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Trancewave ⚡Trance Trap",
+            "made_by": "—",
+            "streams": "60",
+            "date_added": "Jun 29, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Ethereal Electronic",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Jul 6, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "nus cali v2",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Electric Land",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jul 8, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Soothing Beats",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 2, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Upbeat/BeatUp-Playlist",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "7/24 👊🏻",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 24, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "17",
+          "total": "721"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  },
+  "song_metadata": {
+    "config_name": "Song 7 - Artist 2eAml1qDYCL6t4AoboTe3V",
+    "scrape_order": 7,
+    "filename": "song_5y74b7XiRwwejqWFi5H5FE_20250915_124706.json"
+  }
+}

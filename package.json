@@ -1,0 +1,50 @@
+{
+  "name": "arti-marketing-ops",
+  "version": "1.0.0",
+  "description": "Multi-tenant marketing operations platform with AI-powered insights",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:frontend\"",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "build": "npm run build --workspaces",
+    "build:api": "npm run build --workspace=apps/api",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "clean": "npm run clean --workspaces",
+    "deploy:api": "npm run deploy --workspace=apps/api",
+    "setup": "npm install && npm run setup --workspaces",
+    "db:migrate": "npm run db:migrate --workspace=apps/api",
+    "db:seed": "npm run db:seed --workspace=apps/api"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.0.3",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "eslint": "^8.50.0",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username/arti-marketing-ops.git"
+  },
+  "keywords": [
+    "marketing",
+    "saas",
+    "multi-tenant",
+    "ai-insights",
+    "automation"
+  ],
+  "author": "ARTi Team",
+  "license": "MIT"
+}

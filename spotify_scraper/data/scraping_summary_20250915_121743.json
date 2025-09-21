@@ -1,0 +1,17 @@
+{
+  "scraping_session": {
+    "timestamp": "2025-09-15T12:17:43.095761",
+    "total_songs": 1,
+    "successful": 0,
+    "failed": 1
+  },
+  "songs": [
+    {
+      "song_name": "Shadow - feat. Crooked Bangs",
+      "song_url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/5cBGiXFf9S9RlAwQUv0g4g/playlists",
+      "success": false,
+      "filepath": null,
+      "timestamp": "2025-09-15T12:17:43.095761"
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+Spotify for Artists (S4A) — Cloud Scraper Plan
+Goal (Outcome)
+
+Automate S4A CSV exports (Songs / Playlists / Audience), parse, and store in Postgres via a FastAPI service, running on a DigitalOcean droplet in Docker. Reuse a persistent login session; daily schedule; artifacts for debugging; data can be pushed via webhook or pulled via API.
+
+Stack (Minimal)
+
+Orchestrator/API: FastAPI + Uvicorn
+
+Scraper: Playwright (Python) in official Playwright Docker image
+
+DB: PostgreSQL + SQLAlchemy + Alembic
+
+Scheduling: APScheduler (inside API)
+
+Runtime: Docker Compose on DigitalOcean (Caddy/Nginx optional)
+
+Guardrails
+
+Use your own S4A account; respect ToS.
+
+Persistent user data dir to avoid re-logins.
+
+Single stable IP (droplet), low concurrency, human-paced waits.
+
+Save screenshot + trace on failure.
+
+Secrets in .env/DO secrets; never commit.
+
+Phases, Tasks, Deliverables
+Phase 0 — Repo Seed & Env
+
+Tasks
+
+Initialize repo (backend-only).
+
+Create api/, runner/, infra/, migrations/, data/.
+
+Add .env.example.
+
+Deliverables
+
+Repo with skeleton directories.
+
+.env.example containing DB + runtime vars.
+
+Phase 1 — Infra & DB
+
+Tasks
+
+Write infra/compose.yaml with db, api, runner.
+
+Dockerfiles: Dockerfile.api (FastAPI), Dockerfile.runner (Playwright Python).
+
+Define models: runs, artists, tracks, metrics.
+
+Alembic migrations.
+
+Deliverables
+
+docker compose up -d db api works.
+
+alembic upgrade head succeeds.
+
+Tables created.
+
+Phase 2 — Auth Session (First-Time Login)
+
+Tasks
+
+Implement runner/login.py to open S4A headed via xvfb-run.
+
+Persist user data dir at data/s4a-context/.
+
+Document one-time interactive login (handles 2FA).
+
+Deliverables
+
+make s4a:login populates data/s4a-context/.
+
+Subsequent jobs can run headless.
+
+Phase 3 — Export Automation (Core)
+
+Tasks
+
+Implement runner/export.py:
+
+Navigate to S4A tab (Songs/Playlists/Audience) using persisted session.
+
+Click Download, capture CSV via Playwright download event to data/downloads/.
+
+Parse CSV → normalize rows → upsert (metrics, tracks, artists).
+
+On error, save data/artifacts/<run_id>/{screenshot.png,trace.zip}.
+
+Deliverables
+
+Local run downloads CSV and inserts rows idempotently.
+
+Failed run writes artifacts.
+
+Phase 4 — API Endpoints
+
+Tasks
+
+POST /jobs/s4a/export (body: {artist_url, export_type, window}) → create run, execute export, return {run_id}.
+
+GET /runs/{id} → status + artifact paths.
+
+GET /tracks/{spotify_track_id}/metrics?since=YYYY-MM-DD → latest metrics.
+
+GET /healthz → DB ping + version.
+
+Deliverables
+
+Endpoints functional; simple OpenAPI docs available at /docs.
+
+Phase 5 — Scheduling & Webhooks
+
+Tasks
+
+APScheduler daily job(s) per configured artist(s).
+
+Optional WEBHOOK_URL: POST normalized payload on success (with retry/backoff).
+
+Deliverables
+
+Daily cron triggers export.
+
+Successful runs POST to webhook when configured.
+
+Phase 6 — Deployment & Ops
+
+Tasks
+
+Provision DO droplet; install Docker + Compose.
+
+Set environment via .env or DO secrets.
+
+Reverse proxy (Caddy/Nginx) if public exposure is needed.
+
+Logging in JSON; rotate data/ volumes.
+
+Deliverables
+
+Scraper live on droplet.
+
+POST /jobs/s4a/export completes end-to-end.
+
+Metrics visible via API and/or delivered via webhook.
+
+Acceptance Checklist
+
+One-time login flow works; session persists.
+
+CSVs for target tabs download and ingest without manual steps.
+
+Re-runs are idempotent (no dupes).
+
+Failures produce screenshot + trace.
+
+Daily schedule executes; webhook (if set) receives payload.
+
+Security: no secrets in repo; only necessary ports open.
+
+Kickoff Seeds (Optional)
+
+Base from FastAPI Full-Stack template (backend only).
+
+Use official Playwright Python Docker image to avoid browser-dep pain.
+
+Hand-off Notes
+
+Non-goals for MVP: proxies, multi-account rotation, frontend UI.
+
+Future: add proxy pool for public web, add metrics dashboards, multi-tenant auth.

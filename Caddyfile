@@ -1,0 +1,56 @@
+# API Backend
+api.yourdomain.com {
+    reverse_proxy api:3001
+    
+    header {
+        # Security headers
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        
+        # CORS headers
+        Access-Control-Allow-Origin "https://app.yourdomain.com https://*.vercel.app http://localhost:3000"
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With"
+        Access-Control-Allow-Credentials "true"
+    }
+    
+    # Handle preflight requests
+    @options {
+        method OPTIONS
+    }
+    respond @options 204
+    
+    # Rate limiting
+    rate_limit {
+        zone api {
+            key {remote_host}
+            events 100
+            window 1m
+        }
+    }
+}
+
+# n8n Automation Platform  
+n8n.yourdomain.com {
+    reverse_proxy n8n:5678
+    
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+    }
+    
+    # Basic auth for n8n (optional)
+    # basicauth {
+    #     admin $2a$14$hashed_password_here
+    # }
+}
+
+# Health check endpoint (no auth required)
+health.yourdomain.com {
+    respond /healthz 200
+    respond * "Not Found" 404
+}

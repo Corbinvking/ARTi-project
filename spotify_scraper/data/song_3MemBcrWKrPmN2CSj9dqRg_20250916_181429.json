@@ -1,0 +1,387 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6DRsCnHwpy638sR8fO1PTD/song/3MemBcrWKrPmN2CSj9dqRg/playlists",
+  "scraped_at": "2025-09-16T18:13:58.955028",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,186",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "622",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "499",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "356",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "119",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "This Is Xstitch",
+            "made_by": "Spotify",
+            "streams": "46",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Splash.mp3 - Official playlist",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Mar 5, 2023"
+          },
+          {
+            "rank": "9",
+            "name": "Anime MC Walking Through the Gym",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jan 27, 2023"
+          },
+          {
+            "rank": "10",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Demon Arc",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jan 27, 2023"
+          },
+          {
+            "rank": "12",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Keep the moss farm",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 13, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "13",
+          "total": "334"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "370",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "179",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "106",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "85",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "This Is Xstitch",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Splash.mp3 - Official playlist",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Mar 5, 2023"
+          },
+          {
+            "rank": "9",
+            "name": "Demon Arc",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jan 27, 2023"
+          },
+          {
+            "rank": "10",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "144"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "11,511",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3,788",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "2,057",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,039",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "679",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "This Is Xstitch",
+            "made_by": "Spotify",
+            "streams": "473",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "422",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Splash.mp3 - Official playlist",
+            "made_by": "—",
+            "streams": "417",
+            "date_added": "Mar 5, 2023"
+          },
+          {
+            "rank": "9",
+            "name": "Anime MC Walking Through the Gym",
+            "made_by": "—",
+            "streams": "330",
+            "date_added": "Jan 27, 2023"
+          },
+          {
+            "rank": "10",
+            "name": "Demon Arc",
+            "made_by": "—",
+            "streams": "230",
+            "date_added": "Jan 27, 2023"
+          },
+          {
+            "rank": "11",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "71",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "OXOX",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Jan 26, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "It’s giving Idgas",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "45",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Keep the moss farm",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 13, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Trap core",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jan 28, 2023"
+          },
+          {
+            "rank": "18",
+            "name": "Mental boost",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Your Top Songs 2023",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Kokot umrdá ti to uši",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Motivation",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Mar 10, 2023"
+          },
+          {
+            "rank": "23",
+            "name": "Dark Trap Metal",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 25, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "23",
+          "total": "1,185"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  },
+  "song_metadata": {
+    "config_name": "Song 5 - Artist 6DRsCnHwpy638sR8fO1PTD",
+    "scrape_order": 5,
+    "filename": "song_3MemBcrWKrPmN2CSj9dqRg_20250916_181429.json"
+  }
+}

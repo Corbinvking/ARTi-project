@@ -1,0 +1,83 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'apps/api/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Deploy to DigitalOcean
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.DO_HOST }}
+        username: ${{ secrets.DO_USERNAME }}
+        key: ${{ secrets.DO_SSH_KEY }}
+        port: ${{ secrets.DO_PORT || 22 }}
+        script: |
+          # Navigate to app directory
+          cd /root/arti-marketing-ops
+          
+          # Pull latest images
+          docker-compose pull api
+          
+          # Health check before deployment
+          if curl -f http://localhost:3001/healthz; then
+            echo "Current API is healthy, proceeding with deployment"
+          else
+            echo "Current API is not healthy, but proceeding anyway"
+          fi
+          
+          # Deploy with zero-downtime strategy
+          docker-compose up -d --no-deps api
+          
+          # Wait for new container to be ready
+          echo "Waiting for API to be ready..."
+          for i in {1..30}; do
+            if curl -f http://localhost:3001/readyz; then
+              echo "API is ready after $i attempts"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "API failed to become ready after 30 attempts"
+              # Rollback
+              docker-compose restart api
+              exit 1
+            fi
+            sleep 2
+          done
+          
+          # Clean up old images
+          docker image prune -f
+          
+          echo "API deployment completed successfully"
+
+    - name: Post-deployment health check
+      run: |
+        sleep 10
+        curl -f https://api.yourdomain.com/healthz || exit 1
+        curl -f https://api.yourdomain.com/readyz || exit 1
+        echo "Post-deployment health checks passed"
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "Deployment failed. Manual intervention may be required."
+        # Add Slack/Discord notification here if needed

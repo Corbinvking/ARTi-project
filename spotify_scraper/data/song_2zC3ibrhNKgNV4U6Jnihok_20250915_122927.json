@@ -1,0 +1,345 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1NhyPfqf5SUNG25QOiZNF0/song/2zC3ibrhNKgNV4U6Jnihok/playlists",
+  "scraped_at": "2025-09-15T12:28:58.031600",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Logically Delicious Hits",
+            "made_by": "—",
+            "streams": "3,562",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "2,528",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,439",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Logically Delicious Artists",
+            "made_by": "—",
+            "streams": "1,788",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "1,505",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,379",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "607",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "394",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "140",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "97",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "95",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Ibiza Vibes",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Aug 11, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Sonic Fusion on Stream Culture Radio",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 2, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "89"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Logically Delicious Hits",
+            "made_by": "—",
+            "streams": "585",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "509",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "395",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "295",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "130",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "87",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "28",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Ibiza Vibes",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Sonic Fusion on Stream Culture Radio",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 2, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "47"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Logically Delicious Hits",
+            "made_by": "—",
+            "streams": "4,958",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4,247",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Logically Delicious Artists",
+            "made_by": "—",
+            "streams": "2,766",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "2,528",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "1,962",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,379",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "757",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "394",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "153",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "148",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "122",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Ibiza Vibes",
+            "made_by": "—",
+            "streams": "61",
+            "date_added": "Aug 11, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "58",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Sonic Fusion on Stream Culture Radio",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 2, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "104"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  },
+  "song_metadata": {
+    "config_name": "Song 4 - Artist 1NhyPfqf5SUNG25QOiZNF0",
+    "scrape_order": 4,
+    "filename": "song_2zC3ibrhNKgNV4U6Jnihok_20250915_122927.json"
+  }
+}

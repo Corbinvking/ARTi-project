@@ -1,0 +1,429 @@
+`{
+  "url": "https://artists.spotify.com/c/artist/2Iftoi7IM3hKePgIb85EqG/song/73vRJ0HtHI26ftfbgu8isu/playlists",
+  "scraped_at": "2025-09-15T12:47:48.346950",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "2,100",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "389",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "316",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "This Is Oscar N",
+            "made_by": "—",
+            "streams": "158",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Deep House Hits",
+            "made_by": "—",
+            "streams": "91",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Tech House Top 100 | Hypeddit",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 10, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Tech House & Clubbing 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 10, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "110"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "1,420",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "226",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "88",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "This Is Oscar N",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Deep House Hits",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "52"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "15,303",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "2,567",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,994",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "NRJ Radio France 2025 - NRJ Top 100 - NRJ Hits",
+            "made_by": "—",
+            "streams": "1,763",
+            "date_added": "May 18, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Deep House Hits",
+            "made_by": "—",
+            "streams": "622",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "This Is Oscar N",
+            "made_by": "—",
+            "streams": "194",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "134",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "85",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Tech House Anthems",
+            "made_by": "—",
+            "streams": "79",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "78",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "76",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "House Party 2025",
+            "made_by": "—",
+            "streams": "62",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Party night essentials",
+            "made_by": "—",
+            "streams": "60",
+            "date_added": "May 17, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Kiss FM Radio Station - KISS FM",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "May 18, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "BIG FM Radio 2025 TOP 200 Radio Hits",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "May 18, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Tech House & Clubbing 2025",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "The Festival Queen 🪩",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "European Hit Radio 2025 - GLOBAL DANCE CHART TOP 40 - Dance Hits - EHR 104.3 FM",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "May 18, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "House Blaster",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "May 27, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "House 2025 | 🎧Devotion",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Ibiza House 🏝️🌴🌞 Summer Mix 2025",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 22, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "House of Ed",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Tech House Top 100 | Hypeddit",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 10, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "The Groove Lounge | 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "28",
+            "name": "BEST MINIMAL / DEEP TECH 🔥( September 2025 / Week 2 )",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 19, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Beatport Top 100 - Minimal / Deep Tech",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 19, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Best Tech House and Electronic Dance Music 2025 #Party #Club #Festival #Music",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 17, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "H.E.T.T.",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 26, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Henry Hacking ‘Selects’ House : Tech : Groove : Melodic",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 16, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "32",
+          "total": "243"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  },
+  "song_metadata": {
+    "config_name": "Song 8 - Artist 2Iftoi7IM3hKePgIb85EqG",
+    "scrape_order": 8,
+    "filename": "song_73vRJ0HtHI26ftfbgu8isu_20250915_124818.json"
+  }
+}

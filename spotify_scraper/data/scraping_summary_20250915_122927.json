@@ -1,0 +1,38 @@
+{
+  "scraping_session": {
+    "timestamp": "2025-09-15T12:29:27.888432",
+    "total_songs": 4,
+    "successful": 3,
+    "failed": 1
+  },
+  "songs": [
+    {
+      "song_name": "Song 1 - Artist 3CbYyyd8wH3RT6t0jwpdzC",
+      "song_url": "https://artists.spotify.com/c/artist/3CbYyyd8wH3RT6t0jwpdzC/song/43VXG87ajppI8mO1Mxo8vu/playlists",
+      "success": true,
+      "filepath": "data\\song_43VXG87ajppI8mO1Mxo8vu_20250915_122616.json",
+      "timestamp": "2025-09-15T12:26:16.610909"
+    },
+    {
+      "song_name": "Song 2 - Shadow feat. Crooked Bangs",
+      "song_url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/5cBGiXFf9S9RlAwQUv0g4g/playlists",
+      "success": false,
+      "filepath": null,
+      "timestamp": "2025-09-15T12:27:09.712207"
+    },
+    {
+      "song_name": "Song 3 - Artist 746nA9NSKsqBDRk343UtkE",
+      "song_url": "https://artists.spotify.com/c/artist/746nA9NSKsqBDRk343UtkE/song/3uEYshQEWb2PVwyskNAxTR/playlists",
+      "success": true,
+      "filepath": "data\\song_3uEYshQEWb2PVwyskNAxTR_20250915_122818.json",
+      "timestamp": "2025-09-15T12:28:18.187080"
+    },
+    {
+      "song_name": "Song 4 - Artist 1NhyPfqf5SUNG25QOiZNF0",
+      "song_url": "https://artists.spotify.com/c/artist/1NhyPfqf5SUNG25QOiZNF0/song/2zC3ibrhNKgNV4U6Jnihok/playlists",
+      "success": true,
+      "filepath": "data\\song_2zC3ibrhNKgNV4U6Jnihok_20250915_122927.json",
+      "timestamp": "2025-09-15T12:29:27.888432"
+    }
+  ]
+}
