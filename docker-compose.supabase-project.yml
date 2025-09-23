@@ -52,7 +52,7 @@ services:
     container_name: supabase_api_arti-marketing-ops
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "3002:3001"
     environment:
       - NODE_ENV=development
       - PORT=3001

@@ -4,9 +4,17 @@ import { createClient } from '@supabase/supabase-js'
 export interface User {
   id: string
   email: string
-  role: "admin" | "manager" | "analyst" | "creator"
+  role: "admin" | "manager" | "sales" | "vendor" | "analyst" | "creator"
   tenantId: string
   name: string
+  permissions?: Permission[]
+}
+
+export interface Permission {
+  platform: string
+  can_read: boolean
+  can_write: boolean
+  can_delete: boolean
 }
 
 export interface AuthState {

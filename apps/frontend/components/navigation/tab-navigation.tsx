@@ -9,16 +9,17 @@ interface Tab {
   id: string
   label: string
   href: string
-  roles?: string[]
+  platform?: string
+  adminOnly?: boolean
 }
 
 const tabs: Tab[] = [
-  { id: "dashboard", label: "Dashboard", href: "/dashboard" },
-  { id: "spotify", label: "Spotify", href: "/spotify" },
-  { id: "instagram", label: "Instagram", href: "/instagram" },
-  { id: "youtube", label: "YouTube", href: "/youtube" },
-  { id: "soundcloud", label: "SoundCloud", href: "/soundcloud" },
-  { id: "admin", label: "Admin", href: "/admin", roles: ["admin"] },
+  { id: "dashboard", label: "Dashboard", href: "/dashboard", platform: "dashboard" },
+  { id: "spotify", label: "Spotify", href: "/spotify", platform: "spotify" },
+  { id: "instagram", label: "Instagram", href: "/instagram", platform: "instagram" },
+  { id: "youtube", label: "YouTube", href: "/youtube", platform: "youtube" },
+  { id: "soundcloud", label: "SoundCloud", href: "/soundcloud", platform: "soundcloud" },
+  { id: "admin", label: "Admin", href: "/admin", adminOnly: true },
 ]
 
 export function TabNavigation() {
@@ -26,8 +27,21 @@ export function TabNavigation() {
   const { user } = useAuth()
 
   const visibleTabs = tabs.filter((tab) => {
-    if (!tab.roles) return true
-    return user && tab.roles.includes(user.role)
+    if (!user) return false
+    
+    // Admin-only tabs
+    if (tab.adminOnly) {
+      return user.role === 'admin'
+    }
+    
+    // Platform-based tabs - check permissions
+    if (tab.platform && user.permissions) {
+      const permission = user.permissions.find(p => p.platform === tab.platform)
+      return permission?.can_read || false
+    }
+    
+    // Fallback for users without permissions loaded
+    return true
   })
 
   return (

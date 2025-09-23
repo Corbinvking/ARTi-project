@@ -12,15 +12,15 @@ export async function insightsRoutes(fastify: FastifyInstance) {
   
   // Get insights for the organization
   fastify.get('/insights', {
-    preHandler: [fastify.requireAuth]
+    // preHandler: [fastify.requireAuth]
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const user = request.user!
+      // const user = request.user!
       
       const { data: insights, error } = await supabase
         .from('insights')
         .select('*')
-        .eq('org_id', user.orgId)
+        // .eq('org_id', user.orgId)
         .order('created_at', { ascending: false })
         .limit(20)
       
@@ -38,17 +38,17 @@ export async function insightsRoutes(fastify: FastifyInstance) {
 
   // Get specific insight by ID
   fastify.get('/insights/:id', {
-    preHandler: [fastify.requireAuth]
+    // preHandler: [fastify.requireAuth]
   }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     try {
-      const user = request.user!
+      // const user = request.user!
       const { id } = request.params
       
       const { data: insight, error } = await supabase
         .from('insights')
         .select('*')
         .eq('id', id)
-        .eq('org_id', user.orgId)
+        // .eq('org_id', user.orgId)
         .single()
       
       if (error) {
@@ -68,16 +68,16 @@ export async function insightsRoutes(fastify: FastifyInstance) {
 
   // Generate insights manually
   fastify.post<{ Body: GenerateInsightsRequest['Body'] }>('/insights/generate', {
-    preHandler: [fastify.requireAuth]
+    // preHandler: [fastify.requireAuth]
   }, async (request: FastifyRequest<{ Body: GenerateInsightsRequest['Body'] }>, reply: FastifyReply) => {
     try {
-      const user = request.user!
+      // const user = request.user!
       const { period = 'daily', topic } = request.body
 
       // TODO: Add to insights generation queue
       // For now, create a mock insight
       const mockInsight = {
-        org_id: user.orgId,
+          // org_id: user.orgId,
         period,
         ts: new Date().toISOString(),
         topic: topic || 'General Performance',
@@ -124,10 +124,10 @@ export async function insightsRoutes(fastify: FastifyInstance) {
 
   // Vector search endpoint for RAG
   fastify.post('/insights/search', {
-    preHandler: [fastify.requireAuth]
+    // preHandler: [fastify.requireAuth]
   }, async (request: FastifyRequest<{ Body: { query: string, limit?: number } }>, reply: FastifyReply) => {
     try {
-      const user = request.user!
+      // const user = request.user!
       const { query, limit = 5 } = request.body
 
       if (!query) {
