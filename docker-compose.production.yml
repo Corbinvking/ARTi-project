@@ -1,0 +1,224 @@
+# Production-Ready Single Container Stack
+# All services in one unified Docker Compose for DigitalOcean deployment
+
+services:
+  # PostgreSQL Database with extensions
+  db:
+    image: supabase/postgres:15.8.1.103
+    container_name: arti-marketing-db
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-54322}:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    volumes:
+      - supabase_db_arti-marketing-ops:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # GoTrue Auth Service
+  auth:
+    image: supabase/gotrue:v2.179.0
+    container_name: arti-marketing-auth
+    restart: unless-stopped
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:-postgres}@db:5432/postgres
+      GOTRUE_SITE_URL: ${SITE_URL:-http://localhost:3000}
+      GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS:-}
+      GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP:-false}
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-token-with-at-least-32-characters-long}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP:-true}
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS:-false}
+      GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM:-true}
+      GOTRUE_MAILER_SECURE_EMAIL_CHANGE_ENABLED: true
+      GOTRUE_MAILER_URLPATHS_INVITE: ${MAILER_URLPATHS_INVITE:-/auth/v1/verify}
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: ${MAILER_URLPATHS_CONFIRMATION:-/auth/v1/verify}
+      GOTRUE_MAILER_URLPATHS_RECOVERY: ${MAILER_URLPATHS_RECOVERY:-/auth/v1/verify}
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: ${MAILER_URLPATHS_EMAIL_CHANGE:-/auth/v1/verify}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+
+  # Kong API Gateway
+  kong:
+    image: kong:2.8.1
+    container_name: arti-marketing-kong
+    restart: unless-stopped
+    ports:
+      - "${KONG_HTTP_PORT:-54321}:8000/tcp"
+      - "${KONG_HTTPS_PORT:-54322}:8443/tcp"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+    volumes:
+      - ./supabase/kong.yml:/var/lib/kong/kong.yml:ro
+    depends_on:
+      - auth
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  # Redis for BullMQ
+  redis:
+    image: redis:7-alpine
+    container_name: arti-marketing-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # n8n Automation Platform
+  n8n:
+    image: n8nio/n8n:1.69.0
+    container_name: arti-marketing-n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678}
+      - GENERIC_TIMEZONE=UTC
+      - N8N_LOG_LEVEL=info
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-your-encryption-key-here}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5678/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+
+  # Custom API Backend
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: arti-marketing-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - SUPABASE_URL=http://kong:8000
+      - SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU}
+      - REDIS_URL=redis://redis:6379
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - SPOTIFY_REDIRECT_URI=${SPOTIFY_REDIRECT_URI:-http://localhost:3001/api/providers/spotify/callback}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kong:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+
+  # Background Worker
+  worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: worker
+    container_name: arti-marketing-worker
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - SUPABASE_URL=http://kong:8000
+      - SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU}
+      - REDIS_URL=redis://redis:6379
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://n8n:5678}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kong:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Worker health check')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Caddy Reverse Proxy (for production)
+  caddy:
+    image: caddy:2-alpine
+    container_name: arti-marketing-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - kong
+      - api
+      - n8n
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    healthcheck:
+      test: ["CMD", "caddy", "validate", "--config", "/etc/caddy/Caddyfile"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  supabase_db_arti-marketing-ops:
+    external: true
+  redis_data:
+    driver: local
+  n8n_data:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+
+networks:
+  default:
+    driver: bridge

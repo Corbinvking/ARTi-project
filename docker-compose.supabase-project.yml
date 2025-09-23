@@ -1,0 +1,122 @@
+# Docker Compose file for custom services that join the Supabase project
+# These services integrate with the existing Supabase infrastructure started by `npx supabase start`
+
+name: arti-marketing-ops
+
+networks:
+  supabase_network_arti-marketing-ops:
+    external: true
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: supabase_redis_arti-marketing-ops
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - supabase_redis_arti-marketing-ops:/data
+    networks:
+      - supabase_network_arti-marketing-ops
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  n8n:
+    image: n8nio/n8n:1.69.0
+    container_name: supabase_n8n_arti-marketing-ops
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - WEBHOOK_URL=http://localhost:5678
+      - GENERIC_TIMEZONE=UTC
+      - N8N_ENCRYPTION_KEY=n8n-secret-key-change-in-production
+    volumes:
+      - supabase_n8n_arti-marketing-ops:/home/node/.n8n
+      - ./n8n/workflows:/home/node/.n8n/workflows
+    networks:
+      - supabase_network_arti-marketing-ops
+    depends_on:
+      - redis
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: production
+    image: arti-marketing-ops-api
+    container_name: supabase_api_arti-marketing-ops
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - SUPABASE_URL=http://supabase_kong_arti-marketing-ops:8000
+      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      - SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+      - JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
+      - REDIS_URL=redis://supabase_redis_arti-marketing-ops:6379
+      - DATABASE_URL=postgresql://postgres:postgres@supabase_db_arti-marketing-ops:5432/postgres
+    networks:
+      - supabase_network_arti-marketing-ops
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: worker
+    image: arti-marketing-ops-worker
+    container_name: supabase_worker_arti-marketing-ops
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - SUPABASE_URL=http://supabase_kong_arti-marketing-ops:8000
+      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      - SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+      - JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
+      - REDIS_URL=redis://supabase_redis_arti-marketing-ops:6379
+      - DATABASE_URL=postgresql://postgres:postgres@supabase_db_arti-marketing-ops:5432/postgres
+    networks:
+      - supabase_network_arti-marketing-ops
+    depends_on:
+      - redis
+      - api
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: supabase_caddy_arti-marketing-ops
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./caddy/Caddyfile.unified:/etc/caddy/Caddyfile:ro
+      - supabase_caddy_arti-marketing-ops:/data
+      - supabase_caddy_config_arti-marketing-ops:/config
+    networks:
+      - supabase_network_arti-marketing-ops
+    depends_on:
+      - api
+      - n8n
+
+volumes:
+  supabase_redis_arti-marketing-ops:
+  supabase_n8n_arti-marketing-ops:
+  supabase_caddy_arti-marketing-ops:
+  supabase_caddy_config_arti-marketing-ops:

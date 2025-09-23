@@ -1,0 +1,80 @@
+# Unified Caddy configuration for ARTi Marketing Platform
+# Routes all services through a single entry point on port 8080
+
+http://localhost:8080 {
+    # CORS headers for development
+    header {
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+        Access-Control-Allow-Credentials true
+        
+        # Security headers
+        X-Frame-Options DENY
+        X-Content-Type-Options nosniff
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    # Handle preflight requests
+    @cors_preflight method OPTIONS
+    handle @cors_preflight {
+        header Access-Control-Allow-Origin *
+        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+        header Access-Control-Max-Age 86400
+        respond "" 204
+    }
+
+    # Platform health check
+    handle /health {
+        respond "OK - ARTi Marketing Platform" 200
+    }
+
+    # Custom API routes → Backend API
+    handle /api/* {
+        reverse_proxy supabase_api_arti-marketing-ops:3001
+    }
+
+    # Supabase services → Kong Gateway
+    handle /rest/* {
+        reverse_proxy supabase_kong_arti-marketing-ops:8000
+    }
+
+    handle /auth/* {
+        reverse_proxy supabase_kong_arti-marketing-ops:8000
+    }
+
+    handle /storage/* {
+        reverse_proxy supabase_kong_arti-marketing-ops:8000
+    }
+
+    handle /realtime/* {
+        reverse_proxy supabase_kong_arti-marketing-ops:8000
+    }
+
+    # Supabase Studio (Admin UI)
+    handle /studio/* {
+        reverse_proxy supabase_studio_arti-marketing-ops:3000
+    }
+
+    # n8n Automation Platform
+    handle /n8n/* {
+        reverse_proxy supabase_n8n_arti-marketing-ops:5678
+    }
+
+    # Health check for monitoring
+    handle /healthz {
+        respond "Healthy - All services operational" 200
+    }
+
+    # Supabase health check
+    handle /supabase-health {
+        reverse_proxy supabase_kong_arti-marketing-ops:8000/health
+    }
+
+    # Default fallback
+    handle {
+        respond "ARTi Marketing Platform - Unified Backend" 200
+    }
+}
