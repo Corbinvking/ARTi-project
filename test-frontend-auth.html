@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Auth Test</title>
+</head>
+<body>
+    <h1>Frontend Authentication Test</h1>
+    
+    <div id="status">Loading...</div>
+    
+    <div id="login-form">
+        <h3>Login Test</h3>
+        <input type="email" id="email" value="admin@arti-demo.com" placeholder="Email">
+        <input type="password" id="password" value="Password123!" placeholder="Password">
+        <button onclick="testLogin()">Test Login</button>
+    </div>
+    
+    <div id="result"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'http://127.0.0.1:54321'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOEhxiMp1wqUmYZdx3kMCgkGRMHGdSTTG4YQ'
+        
+        const { createClient } = supabase
+        const supabaseClient = createClient(supabaseUrl, supabaseKey)
+        
+        document.getElementById('status').innerHTML = '✅ Supabase client connected'
+        
+        async function testLogin() {
+            const email = document.getElementById('email').value
+            const password = document.getElementById('password').value
+            const result = document.getElementById('result')
+            
+            result.innerHTML = '🔄 Testing login...'
+            
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email,
+                    password
+                })
+                
+                if (error) {
+                    result.innerHTML = `❌ ERROR: ${error.message}`
+                    console.error('Auth error:', error)
+                } else {
+                    result.innerHTML = `✅ SUCCESS! Logged in as ${data.user.email}`
+                    console.log('Auth success:', data)
+                    
+                    // Sign out after test
+                    await supabaseClient.auth.signOut()
+                    result.innerHTML += '<br>🚪 Signed out after test'
+                }
+            } catch (err) {
+                result.innerHTML = `❌ EXCEPTION: ${err.message}`
+                console.error('Exception:', err)
+            }
+        }
+        
+        // Test current session
+        supabaseClient.auth.getSession().then(({ data: { session }, error }) => {
+            if (error) {
+                console.error('Session error:', error)
+            } else if (session) {
+                console.log('Existing session:', session.user.email)
+            } else {
+                console.log('No existing session')
+            }
+        })
+    </script>
+</body>
+</html>

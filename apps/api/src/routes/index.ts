@@ -2,16 +2,29 @@ import { FastifyInstance } from 'fastify';
 import { healthRoutes } from './health';
 import { authRoutes } from './auth';
 import { webhookRoutes } from './webhooks';
+import { providersRoutes } from './providers';
+import { adminRoutes } from './admin';
+import { insightsRoutes } from './insights';
 
 export async function setupRoutes(server: FastifyInstance) {
-  // Health check routes (no auth required)
+  // Health check routes (no auth required) - available at both / and /api
   await server.register(healthRoutes);
+  await server.register(healthRoutes, { prefix: '/api' });
 
   // Auth routes
   await server.register(authRoutes, { prefix: '/auth' });
 
   // Webhook routes  
   await server.register(webhookRoutes, { prefix: '/webhooks' });
+
+  // Provider routes (Spotify OAuth, metrics, etc.)
+  await server.register(providersRoutes, { prefix: '/api' });
+
+  // Admin routes (user management, jobs, etc.)
+  await server.register(adminRoutes, { prefix: '/api' });
+
+  // Insights routes (LLM, RAG, vector search)
+  await server.register(insightsRoutes, { prefix: '/api' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {

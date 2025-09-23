@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, createContext, useContext } from "react"
-import { type User, authService } from "@/lib/auth"
+import { type User, authService, onAuthStateChange } from "@/lib/auth"
 
 interface AuthContextType {
   user: User | null
@@ -19,9 +19,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const currentUser = authService.getCurrentUser()
-    setUser(currentUser)
-    setLoading(false)
+    const initializeAuth = async () => {
+      try {
+        const currentUser = await authService.getCurrentUser()
+        setUser(currentUser)
+      } catch (error) {
+        console.error('Auth initialization error:', error)
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    initializeAuth()
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = onAuthStateChange((user) => {
+      console.log('🔄 Auth state changed:', user?.email, user?.role)
+      setUser(user)
+      setLoading(false)
+    })
+    
+    return () => {
+      subscription?.unsubscribe()
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {

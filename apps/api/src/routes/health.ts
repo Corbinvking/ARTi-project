@@ -3,7 +3,17 @@ import { supabase } from '@/lib/supabase';
 import { redis } from '@/lib/redis';
 
 export async function healthRoutes(server: FastifyInstance) {
-  // Basic health check - always returns 200
+  // Standard health endpoint
+  server.get('/health', async () => {
+    return { 
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '1.0.0',
+      service: 'arti-marketing-api'
+    };
+  });
+
+  // Kubernetes-style health check
   server.get('/healthz', async () => {
     return { 
       status: 'ok',

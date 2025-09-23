@@ -44,11 +44,11 @@ INSERT INTO documents (id, org_id, source, title, content, meta) VALUES
 INSERT INTO chunks (id, document_id, idx, content) VALUES 
 ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 1, 'Our music label focuses on discovering and promoting emerging artists in the pop and indie genres.'),
 ('ffffffff-ffff-ffff-ffff-ffffffffffff', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 2, 'We prioritize digital-first marketing strategies, leveraging social media platforms and streaming services to build audience engagement.'),
-('gggggggg-gggg-gggg-gggg-gggggggggggg', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 1, 'Artist development involves multiple phases: discovery, signing, recording, promotion, and tour support.');
+('77777777-7777-7777-7777-777777777777', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 1, 'Artist development involves multiple phases: discovery, signing, recording, promotion, and tour support.');
 
 -- Create a sample insight
 INSERT INTO insights (id, org_id, period, ts, topic, summary, details_json, source_refs) VALUES 
-('iiiiiiii-iiii-iiii-iiii-iiiiiiiiiiii', '00000000-0000-0000-0000-000000000001', 'daily', NOW() - INTERVAL '1 day', 
+('88888888-8888-8888-8888-888888888888', '00000000-0000-0000-0000-000000000001', 'daily', NOW() - INTERVAL '1 day', 
 'Spotify Performance', 
 'Harry Styles tracks showing strong performance with Watermelon Sugar maintaining 85 popularity score and 125K daily streams. Artist followers grew by 0.5% in the last 24 hours.',
 '{"metrics_analyzed": 4, "trend": "positive", "recommendations": ["Continue playlist push", "Increase social media activity"]}',

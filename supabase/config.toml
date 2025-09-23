@@ -25,7 +25,6 @@ pop3_port = 54326
 
 [storage]
 enabled = true
-port = 54327
 file_size_limit = "50MiB"
 
 [auth]
@@ -33,10 +32,7 @@ enabled = true
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["https://app.yourdomain.com"]
 jwt_expiry = 3600
-refresh_token_rotation_enabled = true
-security_update_password_require_reauthentication = true
 enable_signup = true
-enable_confirmations = false
 
 [auth.email]
 enable_signup = true
@@ -49,7 +45,7 @@ enable_confirmations = false
 
 [realtime]
 enabled = true
-ip_version = "ipv4"
+ip_version = "IPv4"
 
 [analytics]
 enabled = false
