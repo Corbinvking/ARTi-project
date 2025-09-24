@@ -77,32 +77,6 @@ services:
       timeout: 10s
       retries: 3
 
-  worker:
-    build:
-      context: ./apps/api
-      dockerfile: Dockerfile
-      target: worker
-    image: arti-marketing-ops-worker
-    container_name: supabase_worker_arti-marketing-ops
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-      - SUPABASE_URL=http://supabase_kong_arti-marketing-ops:8000
-      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-      - SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
-      - JWT_SECRET=@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw
-      - REDIS_URL=redis://supabase_redis_arti-marketing-ops:6379
-      - DATABASE_URL=postgresql://postgres:postgres@supabase_db_arti-marketing-ops:5432/postgres
-    networks:
-      - supabase_network_arti-marketing-ops
-    depends_on:
-      - redis
-      - api
-    healthcheck:
-      test: ["CMD", "node", "-e", "process.exit(0)"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   caddy:
     image: caddy:2.7.6-alpine

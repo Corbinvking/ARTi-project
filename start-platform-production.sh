@@ -14,7 +14,7 @@ fi
 
 # Step 1: Start Supabase services first
 echo "📦 Starting Supabase services..."
-npx supabase start
+supabase start
 
 if [ $? -ne 0 ]; then
     echo "❌ Failed to start Supabase services"
@@ -34,7 +34,7 @@ docker compose -p arti-marketing-ops -f docker-compose.supabase-project.yml up -
 if [ $? -ne 0 ]; then
     echo "❌ Failed to start custom services"
     echo "🛑 Stopping Supabase services..."
-    npx supabase stop
+    supabase stop
     exit 1
 fi
 
@@ -68,7 +68,7 @@ echo "📋 Management Commands:"
 echo "   • View logs:          docker compose -p arti-marketing-ops logs -f"
 echo "   • Stop platform:      ./stop-platform-production.sh"
 echo "   • Check status:       docker compose -p arti-marketing-ops ps"
-echo "   • Supabase status:    npx supabase status"
+echo "   • Supabase status:    supabase status"
 echo ""
 echo "🌐 DNS Requirements:"
 echo "   • api.artistinfluence.com  → $(curl -s ifconfig.me)"

@@ -17,7 +17,7 @@ echo "✅ Custom services stopped"
 
 # Step 2: Stop Supabase services
 echo "📦 Stopping Supabase services..."
-npx supabase stop
+supabase stop
 
 if [ $? -ne 0 ]; then
     echo "⚠️  Warning: Failed to stop some Supabase services"
