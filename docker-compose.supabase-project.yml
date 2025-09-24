@@ -30,11 +30,16 @@ services:
     ports:
       - "5678:5678"
     environment:
-      - N8N_HOST=0.0.0.0
+      - N8N_HOST=link.artistinfluence.com
       - N8N_PORT=5678
-      - WEBHOOK_URL=http://localhost:5678
-      - GENERIC_TIMEZONE=UTC
-      - N8N_ENCRYPTION_KEY=n8n-secret-key-change-in-production
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://link.artistinfluence.com/
+      - GENERIC_TIMEZONE=America/New_York
+      - N8N_ENCRYPTION_KEY=9Zq)M3bhw[3!{6d]roc/}_uF9wMpL=5C
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=%]OGvn7/YO>JCGQQ
+      - NODE_ENV=production
     volumes:
       - supabase_n8n_arti-marketing-ops:/home/node/.n8n
       - ./n8n/workflows:/home/node/.n8n/workflows
@@ -59,7 +64,7 @@ services:
       - SUPABASE_URL=http://supabase_kong_arti-marketing-ops:8000
       - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
       - SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
-      - JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
+      - JWT_SECRET=@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw
       - REDIS_URL=redis://supabase_redis_arti-marketing-ops:6379
       - DATABASE_URL=postgresql://postgres:postgres@supabase_db_arti-marketing-ops:5432/postgres
     networks:
@@ -85,7 +90,7 @@ services:
       - SUPABASE_URL=http://supabase_kong_arti-marketing-ops:8000
       - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
       - SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
-      - JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
+      - JWT_SECRET=@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw
       - REDIS_URL=redis://supabase_redis_arti-marketing-ops:6379
       - DATABASE_URL=postgresql://postgres:postgres@supabase_db_arti-marketing-ops:5432/postgres
     networks:
@@ -100,20 +105,28 @@ services:
       retries: 3
 
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2.7.6-alpine
     container_name: supabase_caddy_arti-marketing-ops
     restart: unless-stopped
     ports:
+      - "80:80"
+      - "443:443"
       - "8080:8080"
     volumes:
-      - ./caddy/Caddyfile.unified:/etc/caddy/Caddyfile:ro
+      - ./caddy/Caddyfile.production:/etc/caddy/Caddyfile:ro
       - supabase_caddy_arti-marketing-ops:/data
       - supabase_caddy_config_arti-marketing-ops:/config
+      - /var/log/caddy:/var/log/caddy
     networks:
       - supabase_network_arti-marketing-ops
     depends_on:
       - api
       - n8n
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   supabase_redis_arti-marketing-ops:
