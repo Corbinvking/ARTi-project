@@ -10,8 +10,6 @@ api.artistinfluence.com {
     reverse_proxy localhost:3001 {
         header_up Host {host}
         header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
-        header_up X-Forwarded-Proto {scheme}
         
         # Health check
         health_uri /healthz
@@ -42,14 +40,6 @@ api.artistinfluence.com {
     header Permissions-Policy "geolocation=(), microphone=(), camera=()"
     header Strict-Transport-Security "max-age=31536000; includeSubDomains"
     
-    # Rate limiting
-    rate_limit {
-        zone api_zone
-        key {remote_host}
-        events 1000
-        window 1m
-    }
-    
     # Logging
     log {
         output file /var/log/caddy/api.log {
@@ -67,8 +57,6 @@ link.artistinfluence.com {
     reverse_proxy localhost:5678 {
         header_up Host {host}
         header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
-        header_up X-Forwarded-Proto {scheme}
         
         # Health check for n8n
         health_uri /healthz
@@ -81,19 +69,6 @@ link.artistinfluence.com {
     header X-Content-Type-Options "nosniff"
     header Referrer-Policy "strict-origin-when-cross-origin"
     header Strict-Transport-Security "max-age=31536000; includeSubDomains"
-    
-    # Basic authentication for n8n (optional)
-    # basicauth {
-    #     admin $2a$14$hashed_password_here
-    # }
-    
-    # Rate limiting for n8n
-    rate_limit {
-        zone n8n_zone
-        key {remote_host}
-        events 500
-        window 1m
-    }
     
     # Logging
     log {
@@ -112,8 +87,6 @@ db.artistinfluence.com {
     reverse_proxy localhost:3010 {
         header_up Host {host}
         header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
-        header_up X-Forwarded-Proto {scheme}
         
         # Health check for Studio
         health_uri /
@@ -125,19 +98,6 @@ db.artistinfluence.com {
     header X-Frame-Options "SAMEORIGIN"
     header X-Content-Type-Options "nosniff"
     header Strict-Transport-Security "max-age=31536000; includeSubDomains"
-    
-    # Basic authentication for additional security (optional)
-    # basicauth {
-    #     admin $2a$14$hashed_password_here
-    # }
-    
-    # Rate limiting for Studio
-    rate_limit {
-        zone studio_zone
-        key {remote_host}
-        events 200
-        window 1m
-    }
     
     # Logging
     log {
