@@ -103,7 +103,7 @@ link.artistinfluence.com {
 
 # Supabase Studio (Self-Hosted Admin Panel)
 db.artistinfluence.com {
-    reverse_proxy localhost:3010 {
+    reverse_proxy host.docker.internal:54323 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         
