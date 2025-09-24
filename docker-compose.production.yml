@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database with pgvector
   postgres:
@@ -9,9 +7,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: "MySecurePass123!"
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -19,7 +17,7 @@ services:
     networks:
       - arti-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -31,14 +29,16 @@ services:
     restart: unless-stopped
     ports:
       - "9999:9999"
+    env_file:
+      - ./apps/api/.env
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:MySecurePass123!@postgres:5432/postgres
       GOTRUE_SITE_URL: https://app.artistinfluence.com
       GOTRUE_URI_ALLOW_LIST: https://app.artistinfluence.com
-      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_SECRET: "@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw"
       GOTRUE_JWT_EXP: 3600
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
       GOTRUE_JWT_ADMIN_ROLES: service_role
@@ -52,6 +52,7 @@ services:
       GOTRUE_SMTP_SENDER_NAME: ARTi Platform
       GOTRUE_DISABLE_SIGNUP: false
       GOTRUE_PASSWORD_MIN_LENGTH: 6
+      API_EXTERNAL_URL: https://api.artistinfluence.com
     depends_on:
       postgres:
         condition: service_healthy
