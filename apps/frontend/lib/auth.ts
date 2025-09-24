@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 export interface User {
   id: string
   email: string
-  role: "admin" | "manager" | "sales" | "vendor" | "analyst" | "creator"
+  role: "admin" | "manager" | "sales" | "vendor"
   tenantId: string
   name: string
   permissions?: Permission[]
@@ -25,13 +25,23 @@ export interface AuthState {
 // Supabase configuration
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOEhxiMp1wqUmYZdx3kMCgkGRMHGdSTTG4YQ'
+const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabaseService = createClient(supabaseUrl, supabaseServiceKey)
 
-// Auth state change listener
+// Auth state change listener with debounce
+let authChangeTimeout: NodeJS.Timeout | null = null
 export function onAuthStateChange(callback: (user: User | null) => void) {
   return supabase.auth.onAuthStateChange(async (event, session) => {
     console.log('🔄 Supabase auth event:', event, session?.user?.email)
+    
+    // Debounce auth changes to prevent loops
+    if (authChangeTimeout) {
+      clearTimeout(authChangeTimeout)
+    }
+    
+    authChangeTimeout = setTimeout(async () => {
     
     if (session?.user) {
       try {
@@ -46,12 +56,39 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
           console.warn('⚠️ Profile not found, using metadata:', error)
         }
         
+        // Get user permissions via secure API endpoint
+        let permissions: Permission[] = []
+        try {
+          console.log('🔍 Loading permissions for user:', session.user.id)
+          
+          // Use fetch to call our secure API endpoint
+          const response = await fetch('/api/auth/permissions', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            permissions = data.permissions || []
+            console.log('✅ Loaded permissions for user:', session.user.email, permissions.length, 'permissions')
+            permissions.forEach(p => console.log('  -', p.platform, 'read:', p.can_read))
+          } else {
+            console.warn('⚠️ Failed to load permissions via API:', response.status, response.statusText)
+          }
+        } catch (error) {
+          console.warn('⚠️ Permission loading failed, continuing without permissions:', error instanceof Error ? error.message : String(error))
+        }
+        
         const user: User = {
           id: session.user.id,
           email: session.user.email!,
           role: (profile?.role || session.user.user_metadata?.role || 'creator') as User['role'],
           tenantId: profile?.org_id || session.user.user_metadata?.org_id || '00000000-0000-0000-0000-000000000001',
           name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+          permissions: permissions
         }
         
         callback(user)
@@ -62,15 +99,45 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
     } else {
       callback(null)
     }
+    }, 500) // 500ms debounce
   })
 }
 
-// Role permissions
+// Role permissions (legacy - now using database permissions)
 const ROLE_PERMISSIONS = {
   admin: ["read", "write", "delete", "manage_users", "manage_settings"],
   manager: ["read", "write", "manage_campaigns"],
-  analyst: ["read", "create_reports"],
-  creator: ["read", "create_content"],
+  sales: ["read", "write", "create_campaigns"],
+  vendor: ["read", "create_content"],
+}
+
+// Function to refresh permissions for current user
+export async function refreshUserPermissions(): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session?.access_token) {
+    try {
+      const response = await fetch('/api/auth/permissions', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('🔄 Refreshed permissions:', data.permissions?.length || 0)
+        
+        // Trigger auth state change to update UI
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          supabase.auth.onAuthStateChange(() => {}) // Trigger refresh
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to refresh permissions:', error)
+    }
+  }
 }
 
 export const authService = {
@@ -99,12 +166,16 @@ export const authService = {
       const role = metadata.role || 'creator'
       const fullName = metadata.full_name || data.user.email?.split('@')[0] || 'User'
       
+      // Permissions will be loaded separately via onAuthStateChange
+      let permissions: Permission[] = []
+      
       const user: User = {
         id: data.user.id,
         email: data.user.email!,
         role: role as User['role'],
         tenantId: metadata.org_id || '00000000-0000-0000-0000-000000000001',
-        name: fullName
+        name: fullName,
+        permissions: permissions
       }
       
       console.log('👤 Created user object:', user)
@@ -176,16 +247,22 @@ export const authService = {
   canAccessPlatform(user: User | null, platform: string): boolean {
     if (!user) return false
     
-    // Role-based platform access
+    // Use database permissions if available
+    if (user.permissions && user.permissions.length > 0) {
+      const permission = user.permissions.find(p => p.platform === platform)
+      return permission?.can_read || false
+    }
+    
+    // Fallback role-based platform access (legacy)
     switch (user.role) {
       case "admin":
         return true // Admin can access everything
       case "manager":
-        return ["spotify", "soundcloud", "youtube", "instagram"].includes(platform)
-      case "analyst":
-        return ["spotify", "soundcloud"].includes(platform)
-      case "creator":
-        return platform === "spotify"
+        return ["dashboard", "spotify", "soundcloud", "youtube", "instagram"].includes(platform)
+      case "sales":
+        return ["dashboard", "spotify", "youtube", "instagram"].includes(platform)
+      case "vendor":
+        return ["dashboard", "spotify", "soundcloud"].includes(platform)
       default:
         return false
     }

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { Settings, Save, X } from "lucide-react"
 import { toast } from "sonner"
+import { refreshUserPermissions } from "@/lib/auth"
 
 interface Permission {
   platform: string
@@ -101,6 +102,9 @@ export function PermissionMatrix({ users, onUpdatePermissions, onRefresh }: Perm
       toast.success(`Updated permissions for ${editingUser.name}`)
       setEditingUser(null)
       onRefresh()
+      
+      // Refresh permissions for all users to update navigation
+      await refreshUserPermissions()
     } catch (error) {
       console.error('Failed to update permissions:', error)
       toast.error('Failed to update permissions')

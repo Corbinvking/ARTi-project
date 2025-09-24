@@ -26,6 +26,12 @@ export function TabNavigation() {
   const pathname = usePathname()
   const { user } = useAuth()
 
+  // Debug logging
+  console.log('🔍 TabNavigation - User:', user?.email, 'Role:', user?.role, 'Permissions:', user?.permissions?.length || 0)
+  if (user?.permissions) {
+    user.permissions.forEach(p => console.log('  -', p.platform, 'read:', p.can_read))
+  }
+
   const visibleTabs = tabs.filter((tab) => {
     if (!user) return false
     
@@ -35,13 +41,33 @@ export function TabNavigation() {
     }
     
     // Platform-based tabs - check permissions
-    if (tab.platform && user.permissions) {
-      const permission = user.permissions.find(p => p.platform === tab.platform)
-      return permission?.can_read || false
+    if (tab.platform) {
+      // Prefer database permissions if available
+      if (user.permissions && user.permissions.length > 0) {
+        const permission = user.permissions.find(p => p.platform === tab.platform)
+        const hasAccess = permission?.can_read || false
+        console.log(`🔍 Permission check for ${tab.platform}: ${hasAccess} (from database)`)
+        return hasAccess
+      }
+      
+      // Fallback to role-based access when permissions haven't loaded
+      console.log('⚠️ No permissions loaded, using role fallback for:', tab.platform)
+      switch (user.role) {
+        case 'admin':
+          return true // Admin can see all tabs
+        case 'manager':
+          return ['dashboard', 'instagram', 'spotify', 'soundcloud', 'youtube'].includes(tab.platform)
+        case 'sales':
+          return ['dashboard', 'instagram', 'spotify', 'youtube'].includes(tab.platform)
+        case 'vendor':
+          return ['dashboard', 'spotify', 'soundcloud'].includes(tab.platform)
+        default:
+          return false
+      }
     }
     
-    // Fallback for users without permissions loaded
-    return true
+    // Non-platform tabs (shouldn't happen with current setup)
+    return false
   })
 
   return (

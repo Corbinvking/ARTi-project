@@ -117,7 +117,8 @@ export async function POST(request: NextRequest) {
           return [
             { platform: 'dashboard', can_read: true, can_write: true, can_delete: false },
             { platform: 'instagram', can_read: true, can_write: true, can_delete: false },
-            { platform: 'spotify', can_read: true, can_write: true, can_delete: false }
+            { platform: 'spotify', can_read: true, can_write: true, can_delete: false },
+            { platform: 'youtube', can_read: true, can_write: true, can_delete: false }
           ]
         case 'vendor':
           return [
@@ -127,8 +128,7 @@ export async function POST(request: NextRequest) {
           ]
         default:
           return [
-            { platform: 'dashboard', can_read: true, can_write: false, can_delete: false },
-            { platform: 'spotify', can_read: true, can_write: false, can_delete: false }
+            { platform: 'dashboard', can_read: true, can_write: false, can_delete: false }
           ]
       }
     }

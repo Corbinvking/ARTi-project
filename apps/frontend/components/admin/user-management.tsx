@@ -44,7 +44,8 @@ const getDefaultPermissions = (role: string) => {
       return [
         { platform: 'dashboard', can_read: true, can_write: true, can_delete: false },
         { platform: 'instagram', can_read: true, can_write: true, can_delete: false },
-        { platform: 'spotify', can_read: true, can_write: true, can_delete: false }
+        { platform: 'spotify', can_read: true, can_write: true, can_delete: false },
+        { platform: 'youtube', can_read: true, can_write: true, can_delete: false }
       ]
     case 'vendor':
       return [
@@ -64,7 +65,7 @@ interface AdminUser {
   id: string
   email: string
   name: string
-  role: "admin" | "manager" | "sales" | "vendor" | "analyst" | "creator"
+  role: "admin" | "manager" | "sales" | "vendor"
   org_id: string
   created_at: string
   last_sign_in_at?: string
@@ -143,38 +144,23 @@ export function UserManagement() {
     try {
       console.log('🔄 Updating permissions for user:', userId, permissions)
       
-      // Use Supabase client directly for production-standard approach
-      const { error: deleteError } = await supabase
-        .from('user_permissions')
-        .delete()
-        .eq('user_id', userId)
+      // Use secure API route with service role key
+      const response = await fetch(`/api/admin/users/${userId}/permissions`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(permissions)
+      })
 
-      if (deleteError) {
-        console.error('❌ Delete error:', deleteError)
-        throw new Error(`Failed to delete existing permissions: ${deleteError.message}`)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `Failed to update permissions: ${response.status}`)
       }
 
-      console.log('✅ Deleted existing permissions')
-
-      // Insert new permissions
-      const { error: insertError } = await supabase
-        .from('user_permissions')
-        .insert(
-          permissions.map(perm => ({
-            user_id: userId,
-            platform: perm.platform,
-            can_read: perm.can_read,
-            can_write: perm.can_write,
-            can_delete: perm.can_delete
-          }))
-        )
-
-      if (insertError) {
-        console.error('❌ Insert error:', insertError)
-        throw new Error(`Failed to insert new permissions: ${insertError.message}`)
-      }
-
-      console.log('✅ Inserted new permissions')
+      const data = await response.json()
+      console.log('✅ Permissions updated:', data.permissions_count, 'permissions')
 
       // Refresh users to show updated permissions
       await loadUsers()
