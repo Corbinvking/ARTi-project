@@ -1,4 +1,4 @@
-# ARTi Marketing Platform - Core Functionality Roadmap
+n8n# ARTi Marketing Platform - Core Functionality Roadmap
 
 ## 🎯 **Vision Statement**
 Establish the foundational backend infrastructure and communication lanes for a unified marketing intelligence platform before building application-specific abstractions.

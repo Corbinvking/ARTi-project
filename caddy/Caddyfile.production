@@ -1,0 +1,157 @@
+# ARTi Platform Production Caddyfile
+# Domain: artistinfluence.com
+
+# NOTE: artistinfluence.com and www.artistinfluence.com are NOT managed here
+# These domains remain with the existing live site
+# Our droplet only handles the subdomains: api.* and link.*
+
+# Backend API
+api.artistinfluence.com {
+    reverse_proxy localhost:3001 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # Health check
+        health_uri /healthz
+        health_interval 30s
+        health_timeout 10s
+    }
+    
+    # CORS headers for production
+    header Access-Control-Allow-Origin "https://app.artistinfluence.com"
+    header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, X-User-Agent"
+    header Access-Control-Allow-Credentials "true"
+    
+    # Handle preflight requests
+    @options method OPTIONS
+    handle @options {
+        header Access-Control-Allow-Origin "https://app.artistinfluence.com"
+        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, X-User-Agent"
+        header Access-Control-Max-Age "86400"
+        respond "" 204
+    }
+    
+    # Security headers
+    header X-Frame-Options "DENY"
+    header X-Content-Type-Options "nosniff"
+    header Referrer-Policy "strict-origin-when-cross-origin"
+    header Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    
+    # Rate limiting
+    rate_limit {
+        zone api_zone
+        key {remote_host}
+        events 1000
+        window 1m
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/api.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+        format json
+        level INFO
+    }
+}
+
+# n8n Automation Platform
+link.artistinfluence.com {
+    reverse_proxy localhost:5678 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # Health check for n8n
+        health_uri /healthz
+        health_interval 30s
+        health_timeout 10s
+    }
+    
+    # Security headers for n8n
+    header X-Frame-Options "SAMEORIGIN"
+    header X-Content-Type-Options "nosniff"
+    header Referrer-Policy "strict-origin-when-cross-origin"
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    
+    # Basic authentication for n8n (optional)
+    # basicauth {
+    #     admin $2a$14$hashed_password_here
+    # }
+    
+    # Rate limiting for n8n
+    rate_limit {
+        zone n8n_zone
+        key {remote_host}
+        events 500
+        window 1m
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/n8n.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+        format json
+        level INFO
+    }
+}
+
+# Supabase Dashboard Proxy (Optional)
+db.artistinfluence.com {
+    # Option 1: Proxy to Supabase Cloud
+    reverse_proxy https://{env.SUPABASE_PROJECT_ID}.supabase.co {
+        header_up Host {env.SUPABASE_PROJECT_ID}.supabase.co
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # Option 2: Redirect to Supabase Cloud (uncomment if preferred)
+    # redir https://{env.SUPABASE_PROJECT_ID}.supabase.co{uri} permanent
+    
+    # Security headers
+    header X-Frame-Options "SAMEORIGIN"
+    header X-Content-Type-Options "nosniff"
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    
+    # Logging
+    log {
+        output file /var/log/caddy/supabase.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+        format json
+        level INFO
+    }
+}
+
+# Global options
+{
+    # Email for Let's Encrypt certificates
+    email admin@artistinfluence.com
+    
+    # Enable automatic HTTPS
+    auto_https on
+    
+    # Log errors
+    log {
+        level ERROR
+        output file /var/log/caddy/error.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+    }
+}

@@ -18,23 +18,26 @@ export async function setupPlugins(server: FastifyInstance) {
   // CORS configuration
   await server.register(cors, {
     origin: (origin, callback) => {
-      // Production domains (UPDATE THESE WHEN DEPLOYING)
-      const productionFrontend = process.env.FRONTEND_URL || 'https://your-app.vercel.app';
-      const productionDomain = process.env.PRODUCTION_DOMAIN || 'https://api.yourdomain.com';
-      
-      const allowedOrigins = [
-        // Production URLs (update when deploying)
-        productionFrontend,
-        productionDomain,
-        
-        // Vercel preview deployments
-        /^https:\/\/.*\.vercel\.app$/,
-        
-        // Local development
-        'http://localhost:3000',    // Frontend dev server
-        'http://localhost:3001',    // API dev server
-        'http://localhost:8080',    // Caddy unified endpoint
-      ];
+          // Production domains for artistinfluence.com
+          const productionFrontend = process.env.FRONTEND_URL || 'https://app.artistinfluence.com';
+          const productionDomain = process.env.PRODUCTION_DOMAIN || 'https://api.artistinfluence.com';
+
+          const allowedOrigins = [
+            // Production URLs
+            'https://app.artistinfluence.com',
+            'https://artistinfluence.com',
+            'https://api.artistinfluence.com',
+            productionFrontend,
+            productionDomain,
+
+            // Vercel preview deployments
+            /^https:\/\/.*\.vercel\.app$/,
+
+            // Local development
+            'http://localhost:3000',    // Frontend dev server
+            'http://localhost:3001',    // API dev server
+            'http://localhost:8080',    // Caddy unified endpoint
+          ];
 
       // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
