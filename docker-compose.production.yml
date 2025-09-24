@@ -29,8 +29,6 @@ services:
     restart: unless-stopped
     ports:
       - "9999:9999"
-    env_file:
-      - ./apps/api/.env
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
@@ -70,12 +68,12 @@ services:
       PORT: 4000
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      DB_NAME: ${POSTGRES_DB}
+      DB_USER: postgres
+      DB_PASSWORD: "MySecurePass123!"
+      DB_NAME: postgres
       DB_SSL: false
-      SECRET_KEY_BASE: ${JWT_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: "@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw"
+      JWT_SECRET: "@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw"
       REPLICATION_MODE: RLS
       REPLICATION_POLL_INTERVAL: 100
       SECURE_CHANNELS: true
@@ -95,11 +93,11 @@ services:
     ports:
       - "5000:5000"
     environment:
-      ANON_KEY: ${SUPABASE_ANON_KEY}
-      SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
       POSTGREST_URL: http://rest:3000
-      PGRST_JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PGRST_JWT_SECRET: "@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw"
+      DATABASE_URL: postgres://postgres:MySecurePass123!@postgres:5432/postgres
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
       FILE_STORAGE_BACKEND_PATH: /var/lib/storage
@@ -124,12 +122,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      PGRST_DB_URI: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PGRST_DB_URI: postgres://postgres:MySecurePass123!@postgres:5432/postgres
       PGRST_DB_SCHEMAS: public,storage,graphql_public
       PGRST_DB_ANON_ROLE: anon
-      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_JWT_SECRET: "@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw"
       PGRST_DB_USE_LEGACY_GUCS: false
-      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_SECRET: "@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw"
       PGRST_APP_SETTINGS_JWT_EXP: 3600
     depends_on:
       postgres:
@@ -146,13 +144,13 @@ services:
       - "3010:3000"
     environment:
       STUDIO_PG_META_URL: http://meta:8080
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: "MySecurePass123!"
       DEFAULT_ORGANIZATION_NAME: ARTi Platform
       DEFAULT_PROJECT_NAME: ARTi Marketing Ops
       SUPABASE_URL: http://kong:8000
       SUPABASE_REST_URL: http://rest:3000
-      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
-      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SUPABASE_SERVICE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
     depends_on:
       meta:
         condition: service_started
@@ -170,9 +168,9 @@ services:
       PG_META_PORT: 8080
       PG_META_DB_HOST: postgres
       PG_META_DB_PORT: 5432
-      PG_META_DB_NAME: ${POSTGRES_DB}
-      PG_META_DB_USER: ${POSTGRES_USER}
-      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: postgres
+      PG_META_DB_PASSWORD: "MySecurePass123!"
     depends_on:
       postgres:
         condition: service_healthy
@@ -242,14 +240,13 @@ services:
       - redis_data:/data
     networks:
       - arti-network
-    command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # n8n Automation Platform
+  # n8n Automation
   n8n:
     image: n8nio/n8n:latest
     container_name: arti-n8n-prod
@@ -257,21 +254,16 @@ services:
     ports:
       - "5678:5678"
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
-      - N8N_HOST=link.artistinfluence.com
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=https
-      - WEBHOOK_URL=https://link.artistinfluence.com
-      - GENERIC_TIMEZONE=America/New_York
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=${SUPABASE_HOST}
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      N8N_HOST: link.artistinfluence.com
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      WEBHOOK_URL: https://link.artistinfluence.com/
+      N8N_BASIC_AUTH_ACTIVE: true
+      N8N_BASIC_AUTH_USER: admin
+      N8N_BASIC_AUTH_PASSWORD: "%]OGvn7/YO>JCGQQ"
+      N8N_ENCRYPTION_KEY: "9Zq)M3bhw[3!{6d]roc/}_uF9wMpL=5C"
+      NODE_ENV: production
+      GENERIC_TIMEZONE: America/New_York
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
@@ -279,15 +271,15 @@ services:
     depends_on:
       - redis
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5678/healthz"]
+      test: ["CMD", "curl", "-f", "http://localhost:5678"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 30s
 
   # Caddy Reverse Proxy
   caddy:
-    image: caddy:2.7-alpine
+    image: caddy:2.7.6-alpine
     container_name: arti-caddy-prod
     restart: unless-stopped
     ports:
@@ -303,8 +295,7 @@ services:
     depends_on:
       - api
       - n8n
-    environment:
-      - SUPABASE_PROJECT_ID=${SUPABASE_PROJECT_ID}
+      - studio
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
       interval: 30s
