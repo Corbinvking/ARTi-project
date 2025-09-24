@@ -1,0 +1,306 @@
+{
+  "orgs": {
+    "status": "success",
+    "count": 2,
+    "hasData": true,
+    "sampleRecord": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "name": "Acme Music Label",
+      "slug": "acme-music",
+      "settings": {
+        "currency": "USD",
+        "timezone": "UTC"
+      },
+      "created_at": "2025-09-23T19:59:32.15254+00:00",
+      "updated_at": "2025-09-23T19:59:32.15254+00:00"
+    }
+  },
+  "profiles": {
+    "status": "error",
+    "error": "Could not find the table 'public.profiles' in the schema cache"
+  },
+  "memberships": {
+    "status": "success",
+    "count": 9,
+    "hasData": true,
+    "sampleRecord": {
+      "id": "471c6821-dab3-4dd2-a3cc-07c619f0b2fd",
+      "user_id": "11111111-1111-1111-1111-111111111111",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "role": "admin",
+      "status": "active",
+      "invited_by": null,
+      "joined_at": "2025-09-23T19:59:32.15254+00:00",
+      "created_at": "2025-09-23T19:59:32.15254+00:00"
+    }
+  },
+  "user_permissions": {
+    "status": "success",
+    "count": 31,
+    "hasData": true,
+    "sampleRecord": {
+      "id": "79b0a128-99b3-4a82-ba0b-4cac3608e050",
+      "user_id": "45f19974-9ba3-4501-864c-1f114f07d537",
+      "platform": "dashboard",
+      "can_read": true,
+      "can_write": true,
+      "can_delete": true,
+      "created_at": "2025-09-24T15:26:00.272966+00:00",
+      "updated_at": "2025-09-24T15:26:00.272966+00:00"
+    }
+  },
+  "connected_accounts": {
+    "status": "success",
+    "count": 0,
+    "hasData": false,
+    "sampleRecord": null
+  },
+  "spotify_campaigns": {
+    "status": "success",
+    "count": 2149,
+    "hasData": true,
+    "sampleRecord": {
+      "id": 1,
+      "campaign": null,
+      "client": "Pharaoh Phonix",
+      "goal": "20000",
+      "salesperson": "Jared",
+      "remaining": "",
+      "daily": "",
+      "weekly": "",
+      "url": "TBA",
+      "sale_price": "$310.00",
+      "start_date": "12/7/2025",
+      "status": "Unreleased",
+      "invoice": "Sent",
+      "vendor": "",
+      "paid_vendor": "",
+      "curator_status": "",
+      "playlists": "",
+      "sfa": "checked",
+      "notify_vendor": "",
+      "ask_for_sfa": "",
+      "update_client": "",
+      "client_email": "thomas@homeproductions.cc",
+      "vendor_email": "",
+      "notes": "TBA (Dec 7)”",
+      "last_modified": "",
+      "sp_vendor_updates": "",
+      "spotify_campaign_from_sp_vendor_updates": "",
+      "created_at": "2025-09-23T21:39:18.593081+00:00",
+      "updated_at": "2025-09-23T21:39:18.593081+00:00"
+    }
+  },
+  "soundcloud_campaigns": {
+    "status": "success",
+    "count": 1981,
+    "hasData": true,
+    "sampleRecord": {
+      "id": 1,
+      "track_info": null,
+      "client": "DVRKSTAR",
+      "service_type": "Reposts",
+      "goal": "40000000.0",
+      "remaining": "40000000.0",
+      "status": "Unreleased",
+      "url": "https://open.spotify.com/track/1vOJxx5YTpxbadKxSMaT09?si=07d03e09dd9d4e2c&nd=1&dlsi=7e94e047e9a74d2a",
+      "submit_date": "",
+      "start_date": "",
+      "receipts": "",
+      "salesperson": "Jared/Katt",
+      "invoice": "Sent",
+      "sale_price": "$1000",
+      "confirm_start_date": "",
+      "notes": "",
+      "send_receipts": "",
+      "ask_client_for_playlist": "",
+      "last_modified": "9/20/2025 1:53pm",
+      "salesperson_email": "katt@artistinfluence.com",
+      "created_at": "2025-09-23T21:39:18.761771+00:00",
+      "updated_at": "2025-09-23T21:39:18.761771+00:00"
+    }
+  },
+  "youtube_campaigns": {
+    "status": "success",
+    "count": 820,
+    "hasData": true,
+    "sampleRecord": {
+      "id": 1,
+      "campaign": null,
+      "clients": "Dim Mak",
+      "service_type": "LATAM Display",
+      "goal": "25000",
+      "remaining": "",
+      "desired_daily": "600",
+      "url": "https://www.youtube.com/watch?v=yvNTPr50SUc",
+      "start_date": "9/19/2025",
+      "status": "Active",
+      "confirm_start_date": "",
+      "ask_for_access": "",
+      "ask_client_for_yt_ss": "",
+      "views_stalled": "",
+      "paid_r": "Yes",
+      "sale_price": "$150",
+      "invoice": "Pending",
+      "comments": "",
+      "in_fixer": "",
+      "client_notes": "",
+      "created_at": "2025-09-23T21:39:18.885697+00:00",
+      "updated_at": "2025-09-23T21:39:18.885697+00:00"
+    }
+  },
+  "instagram_campaigns": {
+    "status": "success",
+    "count": 161,
+    "hasData": true,
+    "sampleRecord": {
+      "id": 1,
+      "campaign": null,
+      "clients": "Bijan M",
+      "start_date": "9/19/2025",
+      "price": "$600.00",
+      "spend": "$245.00",
+      "remaining": "",
+      "sound_url": "https://www.dropbox.com/scl/fo/883ylxmmroone62nrzj4d/AAGivvVWytdh7tYFP72xGbM?rlkey=mmaf11pvq9e3qgolpb8fqljr7&st=yaq8dca7&dl=0",
+      "status": "Unreleased",
+      "tracker": "",
+      "campaign_started": "",
+      "send_tracker": "",
+      "send_final_report": "",
+      "invoice": "Sent",
+      "salespeople": "Jared",
+      "report_notes": "",
+      "client_notes": "",
+      "paid_ops": "",
+      "created_at": "2025-09-23T21:39:18.948113+00:00",
+      "updated_at": "2025-09-23T21:39:18.948113+00:00"
+    }
+  },
+  "insights": {
+    "status": "success",
+    "count": 1,
+    "hasData": true,
+    "sampleRecord": {
+      "id": "88888888-8888-8888-8888-888888888888",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "period": "daily",
+      "ts": "2025-09-22T19:59:32.15254+00:00",
+      "topic": "Spotify Performance",
+      "summary": "Harry Styles tracks showing strong performance with Watermelon Sugar maintaining 85 popularity score and 125K daily streams. Artist followers grew by 0.5% in the last 24 hours.",
+      "details_json": {
+        "trend": "positive",
+        "recommendations": [
+          "Continue playlist push",
+          "Increase social media activity"
+        ],
+        "metrics_analyzed": 4
+      },
+      "source_refs": [
+        "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+      ],
+      "model": null,
+      "created_at": "2025-09-23T19:59:32.15254+00:00"
+    }
+  },
+  "documents": {
+    "status": "success",
+    "count": 2,
+    "hasData": true,
+    "sampleRecord": {
+      "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "source": "manual",
+      "title": "Acme Music Strategy 2024",
+      "content": "Our music label focuses on discovering and promoting emerging artists in the pop and indie genres. We prioritize digital-first marketing strategies, leveraging social media platforms and streaming services to build audience engagement. Key performance indicators include monthly listeners, follower growth, and playlist placements.",
+      "url": null,
+      "meta": {
+        "type": "strategy",
+        "year": 2024
+      },
+      "processed_at": null,
+      "created_at": "2025-09-23T19:59:32.15254+00:00",
+      "updated_at": "2025-09-23T19:59:32.15254+00:00"
+    }
+  },
+  "chunks": {
+    "status": "success",
+    "count": 3,
+    "hasData": true,
+    "sampleRecord": {
+      "id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+      "document_id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+      "idx": 1,
+      "content": "Our music label focuses on discovering and promoting emerging artists in the pop and indie genres.",
+      "meta": {},
+      "created_at": "2025-09-23T19:59:32.15254+00:00"
+    }
+  },
+  "embeddings": {
+    "status": "success",
+    "count": 0,
+    "hasData": false,
+    "sampleRecord": null
+  },
+  "jobs": {
+    "status": "success",
+    "count": 0,
+    "hasData": false,
+    "sampleRecord": null
+  },
+  "webhook_events": {
+    "status": "success",
+    "count": 0,
+    "hasData": false,
+    "sampleRecord": null
+  },
+  "auth_users": {
+    "status": "success",
+    "count": 7,
+    "hasData": true,
+    "users": [
+      {
+        "id": "8e18cddd-e8df-406f-8f2c-d6ebdad00d52",
+        "email": "vendor@arti-demo.com",
+        "role": "vendor",
+        "created": "2025-09-24T15:41:58.677649Z"
+      },
+      {
+        "id": "45f19974-9ba3-4501-864c-1f114f07d537",
+        "email": "rbac@arti-demo.com",
+        "role": "admin",
+        "created": "2025-09-23T22:40:32.489557Z"
+      },
+      {
+        "id": "1d4b4582-92f7-4bfe-af19-ca8624b28e72",
+        "email": "sales@arti-demo.com",
+        "role": "sales",
+        "created": "2025-09-23T20:22:37.259922Z"
+      },
+      {
+        "id": "23df74e8-54b4-42e5-bf09-10600fb6a584",
+        "email": "creator@arti-demo.com",
+        "role": "vendor",
+        "created": "2025-09-23T19:59:56.536111Z"
+      },
+      {
+        "id": "4fe9280d-7821-499d-8b38-9ee65b6d834c",
+        "email": "analyst@arti-demo.com",
+        "role": "sales",
+        "created": "2025-09-23T19:59:56.47607Z"
+      },
+      {
+        "id": "25736961-61e8-4648-9534-7935d19d6a4e",
+        "email": "manager@arti-demo.com",
+        "role": "manager",
+        "created": "2025-09-23T19:59:56.414815Z"
+      },
+      {
+        "id": "ca91b7bf-1c47-4763-a07d-a41a7d9fcb27",
+        "email": "admin@arti-demo.com",
+        "role": "admin",
+        "created": "2025-09-23T19:59:56.348653Z"
+      }
+    ]
+  }
+}
