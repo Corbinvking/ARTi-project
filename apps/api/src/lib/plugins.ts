@@ -18,13 +18,25 @@ export async function setupPlugins(server: FastifyInstance) {
   // CORS configuration
   await server.register(cors, {
     origin: (origin, callback) => {
+      // Production domains (UPDATE THESE WHEN DEPLOYING)
+      const productionFrontend = process.env.FRONTEND_URL || 'https://your-app.vercel.app';
+      const productionDomain = process.env.PRODUCTION_DOMAIN || 'https://api.yourdomain.com';
+      
       const allowedOrigins = [
-        'https://app.yourdomain.com',
-        'http://localhost:3000',
+        // Production URLs (update when deploying)
+        productionFrontend,
+        productionDomain,
+        
+        // Vercel preview deployments
         /^https:\/\/.*\.vercel\.app$/,
+        
+        // Local development
+        'http://localhost:3000',    // Frontend dev server
+        'http://localhost:3001',    // API dev server
+        'http://localhost:8080',    // Caddy unified endpoint
       ];
 
-      // Allow requests with no origin (mobile apps, etc.)
+      // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
 
       // Check if origin matches allowed patterns
@@ -38,12 +50,19 @@ export async function setupPlugins(server: FastifyInstance) {
       if (isAllowed) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'), false);
+        server.log.warn({ origin }, 'CORS: Origin not allowed');
+        callback(new Error(`CORS: Origin '${origin}' not allowed`), false);
       }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: [
+      'Content-Type', 
+      'Authorization', 
+      'X-Requested-With',
+      'Cache-Control',
+      'X-User-Agent'
+    ],
   });
 
   // Rate limiting

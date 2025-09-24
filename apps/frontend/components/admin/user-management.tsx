@@ -110,7 +110,9 @@ export function UserManagement() {
       // Use secure API route for admin operations
       console.log('🔄 Loading users via secure API...')
       
-      const response = await fetch('/api/admin/list-users', {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+      
+      const response = await fetch(`${apiBaseUrl}/api/admin/users`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -145,13 +147,15 @@ export function UserManagement() {
       console.log('🔄 Updating permissions for user:', userId, permissions)
       
       // Use secure API route with service role key
-      const response = await fetch(`/api/admin/users/${userId}/permissions`, {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+      
+      const response = await fetch(`${apiBaseUrl}/api/admin/users/${userId}/permissions`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(permissions)
+        body: JSON.stringify({ permissions })
       })
 
       if (!response.ok) {
@@ -213,7 +217,9 @@ export function UserManagement() {
         permissions: useCustomPermissions ? customPermissions : getDefaultPermissions(newUser.role)
       }
 
-      const response = await fetch('/api/admin/users', {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+      
+      const response = await fetch(`${apiBaseUrl}/api/admin/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -258,7 +264,9 @@ export function UserManagement() {
     try {
       setIsDeleting(userId)
       
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+      
+      const response = await fetch(`${apiBaseUrl}/api/admin/users/${userId}`, {
         method: 'DELETE',
         credentials: 'include'
       })

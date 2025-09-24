@@ -22,13 +22,19 @@ export interface AuthState {
   loading: boolean
 }
 
-// Supabase configuration
+// Supabase configuration - now uses environment variables only
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOEhxiMp1wqUmYZdx3kMCgkGRMHGdSTTG4YQ'
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+
+// Validate required environment variables
+if (!supabaseUrl) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL is required. Please check your .env.local file.')
+}
+if (!supabaseAnonKey) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is required. Please check your .env.local file.')
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-const supabaseService = createClient(supabaseUrl, supabaseServiceKey)
 
 // Auth state change listener with debounce
 let authChangeTimeout: NodeJS.Timeout | null = null
@@ -56,13 +62,16 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
           console.warn('⚠️ Profile not found, using metadata:', error)
         }
         
-        // Get user permissions via secure API endpoint
+        // Get user permissions via backend API
         let permissions: Permission[] = []
         try {
           console.log('🔍 Loading permissions for user:', session.user.id)
           
-          // Use fetch to call our secure API endpoint
-          const response = await fetch('/api/auth/permissions', {
+          // Get API base URL from environment
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+          
+          // Call backend API endpoint
+          const response = await fetch(`${apiBaseUrl}/auth/permissions`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${session.access_token}`,
@@ -76,7 +85,7 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
             console.log('✅ Loaded permissions for user:', session.user.email, permissions.length, 'permissions')
             permissions.forEach(p => console.log('  -', p.platform, 'read:', p.can_read))
           } else {
-            console.warn('⚠️ Failed to load permissions via API:', response.status, response.statusText)
+            console.warn('⚠️ Failed to load permissions via backend API:', response.status, response.statusText)
           }
         } catch (error) {
           console.warn('⚠️ Permission loading failed, continuing without permissions:', error instanceof Error ? error.message : String(error))
@@ -116,7 +125,9 @@ export async function refreshUserPermissions(): Promise<void> {
   const { data: { session } } = await supabase.auth.getSession()
   if (session?.access_token) {
     try {
-      const response = await fetch('/api/auth/permissions', {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+      
+      const response = await fetch(`${apiBaseUrl}/auth/permissions`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,

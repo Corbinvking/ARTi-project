@@ -1,0 +1,68 @@
+# ARTi Marketing Platform - Backend Environment Template
+# Copy this to .env and update values for your environment
+
+# =============================================================================
+# Application Configuration
+# =============================================================================
+NODE_ENV=development
+PORT=3001
+
+# =============================================================================
+# CORS Configuration (UPDATE FOR PRODUCTION)
+# =============================================================================
+# Frontend URL for CORS - UPDATE WHEN DEPLOYING
+FRONTEND_URL=http://localhost:3000
+
+# Production domain - UPDATE WHEN DEPLOYING  
+PRODUCTION_DOMAIN=https://api.yourdomain.com
+
+# =============================================================================
+# Supabase Configuration
+# =============================================================================
+# Local development Supabase
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOEhxiMp1wqUmYZdx3kMCgkGRMHGdSTTG4YQ
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+
+# PRODUCTION VALUES (UPDATE WHEN DEPLOYING):
+# SUPABASE_URL=https://your-project.supabase.co
+# SUPABASE_ANON_KEY=your-production-anon-key
+# SUPABASE_SERVICE_ROLE_KEY=your-production-service-role-key
+
+# =============================================================================
+# Database & Redis
+# =============================================================================
+# Redis connection
+REDIS_URL=redis://localhost:6379
+
+# Database URL (optional, uses Supabase by default)
+DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
+
+# =============================================================================
+# External Integrations
+# =============================================================================
+# Spotify API (optional)
+SPOTIFY_CLIENT_ID=your-spotify-client-id
+SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
+SPOTIFY_REDIRECT_URI=http://localhost:3001/api/providers/spotify/callback
+
+# OpenAI API (optional)
+OPENAI_API_KEY=your-openai-api-key
+
+# =============================================================================
+# Security
+# =============================================================================
+JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
+
+# =============================================================================
+# PRODUCTION MIGRATION NOTES:
+# =============================================================================
+# When deploying to DigitalOcean, update these environment variables:
+# 1. NODE_ENV=production
+# 2. FRONTEND_URL=https://your-app.vercel.app
+# 3. PRODUCTION_DOMAIN=https://your-digitalocean-domain.com
+# 4. SUPABASE_URL=https://your-project.supabase.co
+# 5. SUPABASE_ANON_KEY=your-production-anon-key
+# 6. SUPABASE_SERVICE_ROLE_KEY=your-production-service-role-key
+# 7. REDIS_URL=redis://redis:6379 (Docker internal)
+# 8. Add real API keys for Spotify, OpenAI, etc.

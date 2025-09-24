@@ -144,6 +144,129 @@ export async function adminRoutes(fastify: FastifyInstance) {
     }
   })
 
+  // Update user permissions
+  fastify.put<{ Params: { id: string }, Body: { permissions: Permission[] } }>('/admin/users/:id/permissions', {
+    // preHandler: [fastify.requireAuth]
+  }, async (request: FastifyRequest<{ Params: { id: string }, Body: { permissions: Permission[] } }>, reply: FastifyReply) => {
+    try {
+      const { id: userId } = request.params
+      const { permissions } = request.body
+
+      if (!userId || !permissions || !Array.isArray(permissions)) {
+        return reply.code(400).send({ error: 'User ID and permissions array are required' })
+      }
+
+      // TODO: Add admin role check when auth is restored
+      // if (user.role !== 'admin') {
+      //   return reply.code(403).send({ error: 'Admin access required' })
+      // }
+
+      // Verify user exists
+      const { data: existingUser, error: userError } = await supabase.auth.admin.getUserById(userId)
+      if (userError || !existingUser.user) {
+        return reply.code(404).send({ error: 'User not found' })
+      }
+
+      // Delete existing permissions
+      const { error: deleteError } = await supabase
+        .from('user_permissions')
+        .delete()
+        .eq('user_id', userId)
+
+      if (deleteError) {
+        request.log.error(deleteError, 'Error deleting existing permissions')
+        return reply.code(500).send({ error: 'Failed to update permissions' })
+      }
+
+      // Insert new permissions
+      if (permissions.length > 0) {
+        const { error: insertError } = await supabase
+          .from('user_permissions')
+          .insert(
+            permissions.map(perm => ({
+              user_id: userId,
+              platform: perm.platform,
+              can_read: perm.can_read,
+              can_write: perm.can_write,
+              can_delete: perm.can_delete
+            }))
+          )
+
+        if (insertError) {
+          request.log.error(insertError, 'Error inserting new permissions')
+          return reply.code(500).send({ error: 'Failed to update permissions' })
+        }
+      }
+
+      request.log.info({ userId, permissionCount: permissions.length }, 'Updated user permissions')
+      
+      return reply.code(200).send({ 
+        message: 'Permissions updated successfully',
+        userId,
+        permissionCount: permissions.length
+      })
+
+    } catch (error) {
+      request.log.error(error, 'Error updating user permissions')
+      return reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
+
+  // Delete a user
+  fastify.delete<{ Params: { id: string } }>('/admin/users/:id', {
+    // preHandler: [fastify.requireAuth]
+  }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    try {
+      const { id: userId } = request.params
+
+      if (!userId) {
+        return reply.code(400).send({ error: 'User ID is required' })
+      }
+
+      // TODO: Add admin role check when auth is restored
+      // if (user.role !== 'admin') {
+      //   return reply.code(403).send({ error: 'Admin access required' })
+      // }
+
+      // Verify user exists
+      const { data: existingUser, error: userError } = await supabase.auth.admin.getUserById(userId)
+      if (userError || !existingUser.user) {
+        return reply.code(404).send({ error: 'User not found' })
+      }
+
+      // Delete user permissions first
+      const { error: permError } = await supabase
+        .from('user_permissions')
+        .delete()
+        .eq('user_id', userId)
+
+      if (permError) {
+        request.log.warn(permError, 'Error deleting user permissions')
+        // Continue with user deletion even if permission cleanup fails
+      }
+
+      // Delete user from Supabase Auth
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(userId)
+      
+      if (deleteError) {
+        request.log.error(deleteError, 'Error deleting user')
+        return reply.code(500).send({ error: deleteError.message })
+      }
+
+      request.log.info({ userId, email: existingUser.user.email }, 'Deleted user')
+      
+      return reply.code(200).send({ 
+        message: 'User deleted successfully',
+        userId,
+        email: existingUser.user.email
+      })
+
+    } catch (error) {
+      request.log.error(error, 'Error deleting user')
+      return reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
+
   // Create a new user
   fastify.post<{ Body: CreateUserRequest['Body'] }>('/admin/users', {
     // Temporarily disable auth for development
@@ -228,90 +351,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     }
   })
 
-  // Update user permissions
-  console.log('🔧 Registering PUT /admin/users/:id/permissions route...');
-  fastify.put('/admin/users/:id/permissions', {
-    // Temporarily disable auth for development
-    // preHandler: [fastify.requireAuth]
-  }, async (request: FastifyRequest<{ Params: { id: string }, Body: { permissions: Permission[] } }>, reply: FastifyReply) => {
-    try {
-      const userId = request.params.id
-      const { permissions } = request.body
 
-      if (!permissions || !Array.isArray(permissions)) {
-        return reply.code(400).send({ error: 'Permissions array is required' })
-      }
-
-      // Delete existing permissions for this user
-      const { error: deleteError } = await supabase
-        .from('user_permissions')
-        .delete()
-        .eq('user_id', userId)
-
-      if (deleteError) {
-        request.log.error(deleteError, 'Error deleting existing permissions')
-        return reply.code(500).send({ error: 'Failed to update permissions' })
-      }
-
-      // Insert new permissions
-      const { error: insertError } = await supabase
-        .from('user_permissions')
-        .insert(
-          permissions.map(perm => ({
-            user_id: userId,
-            platform: perm.platform,
-            can_read: perm.can_read,
-            can_write: perm.can_write,
-            can_delete: perm.can_delete
-          }))
-        )
-
-      if (insertError) {
-        request.log.error(insertError, 'Error inserting new permissions')
-        return reply.code(500).send({ error: 'Failed to update permissions' })
-      }
-
-      return reply.send({
-        message: 'Permissions updated successfully',
-        permissions: permissions
-      })
-
-    } catch (error) {
-      request.log.error(error, 'Error updating user permissions')
-      return reply.code(500).send({ error: 'Internal server error' })
-    }
-  })
-
-  // Delete a user
-  fastify.delete('/admin/users/:id', {
-    // preHandler: [fastify.requireAuth]
-  }, async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-    try {
-      // const user = request.user!
-      const { id } = request.params
-
-      // TODO: Add admin role check
-      // if (user.role !== 'admin') {
-      //   return reply.code(403).send({ error: 'Admin access required' })
-      // }
-
-      // if (id === user.id) {
-      //   return reply.code(400).send({ error: 'Cannot delete your own account' })
-      // }
-
-      const { error: deleteError } = await supabase.auth.admin.deleteUser(id)
-
-      if (deleteError) {
-        request.log.error(deleteError, 'Error deleting auth user')
-        return reply.code(500).send({ error: deleteError.message })
-      }
-
-      return reply.send({ message: 'User deleted successfully' })
-    } catch (error) {
-      request.log.error(error, 'Error deleting user')
-      return reply.code(500).send({ error: 'Internal server error' })
-    }
-  })
 
   // Get insights for the organization
   fastify.get('/admin/insights', {

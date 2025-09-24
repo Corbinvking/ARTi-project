@@ -39,4 +39,43 @@ export async function authRoutes(server: FastifyInstance) {
       isolation: data.length <= 1 ? 'SECURE' : 'BREACH',
     };
   });
+
+  // Get user permissions - moved from frontend API route
+  server.get('/permissions', {
+    preHandler: [requireAuth],
+  }, async (request, reply) => {
+    try {
+      const userId = request.user!.id;
+      
+      const { supabase } = await import('@/lib/supabase');
+      
+      // Get user permissions from database
+      const { data: permissions, error } = await supabase
+        .from('user_permissions')
+        .select('platform, can_read, can_write, can_delete')
+        .eq('user_id', userId);
+
+      if (error) {
+        request.log.error({ error, userId }, 'Failed to load user permissions');
+        return reply.status(500).send({
+          error: 'Failed to load permissions',
+          details: error.message,
+        });
+      }
+
+      request.log.info({ userId, permissionCount: permissions?.length || 0 }, 'Loaded user permissions');
+
+      return {
+        permissions: permissions || [],
+        userId,
+        timestamp: new Date().toISOString(),
+      };
+      
+    } catch (error) {
+      request.log.error({ error }, 'Error in permissions endpoint');
+      return reply.status(500).send({
+        error: 'Internal server error',
+      });
+    }
+  });
 }
