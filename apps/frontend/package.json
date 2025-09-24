@@ -1,5 +1,5 @@
 {
-  "name": "arti-marketing-frontend",
+  "name": "@arti/frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {

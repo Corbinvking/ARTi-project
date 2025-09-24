@@ -30,22 +30,31 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+    - name: Install API dependencies
+      run: cd apps/api && npm ci
 
-    - name: Lint code
-      run: npm run lint
+    - name: Install Frontend dependencies  
+      run: cd apps/frontend && npm ci
 
-    - name: Run tests
-      run: npm run test
+    - name: Lint API code
+      run: cd apps/api && npm run lint
+
+    - name: Lint Frontend code
+      run: cd apps/frontend && npm run lint
+
+    - name: Run API tests
+      run: cd apps/api && npm run test
       env:
         REDIS_URL: redis://localhost:6379
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
 
-    - name: Security audit
-      run: npm audit --audit-level high
+    - name: Security audit API
+      run: cd apps/api && npm audit --audit-level high
+
+    - name: Security audit Frontend
+      run: cd apps/frontend && npm audit --audit-level high
 
   build-api:
     runs-on: ubuntu-latest

@@ -4,10 +4,29 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // Temporarily disable until chart types are fixed
   },
   images: {
-    unoptimized: true,
+    unoptimized: false, // Enable image optimization for production
+    domains: [], // Add your image domains here when needed
+  },
+  output: 'standalone', // Better for containerization and Vercel
+  experimental: {
+    // Handle monorepo correctly
+    outputFileTracingRoot: '../../',
+  },
+  // Optimize for production
+  swcMinify: true,
+  compress: true,
+  // Configure redirects if needed
+  async redirects() {
+    return [
+      // Add redirects here if needed
+    ]
+  },
+  // Environment variables validation
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 }
 

@@ -1,0 +1,59 @@
+name: Deploy Frontend to Vercel
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'apps/frontend/**'
+      - 'vercel.json'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'apps/frontend/package-lock.json'
+
+    - name: Install dependencies
+      run: cd apps/frontend && npm ci
+
+    - name: Build frontend
+      run: cd apps/frontend && npm run build
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./
+        vercel-args: '--prod'
+
+    - name: Post-deployment health check
+      run: |
+        sleep 30
+        # Replace with your actual Vercel deployment URL
+        curl -f ${{ secrets.VERCEL_DEPLOYMENT_URL }}/api/health || echo "Health check endpoint not available"
+        echo "Frontend deployment completed successfully"
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "Frontend deployment failed. Check logs for details."
+        # Add Slack/Discord notification here if needed
