@@ -82,17 +82,12 @@ services:
     image: caddy:2.7.6-alpine
     container_name: supabase_caddy_arti-marketing-ops
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+    network_mode: host
     volumes:
       - ./caddy/Caddyfile.production:/etc/caddy/Caddyfile:ro
       - supabase_caddy_arti-marketing-ops:/data
       - supabase_caddy_config_arti-marketing-ops:/config
       - /var/log/caddy:/var/log/caddy
-    networks:
-      - supabase_network_arti-marketing-ops
     depends_on:
       - api
       - n8n
