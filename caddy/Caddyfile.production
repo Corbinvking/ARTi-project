@@ -26,7 +26,7 @@
 
 # Backend API
 api.artistinfluence.com {
-    reverse_proxy supabase_api_arti-marketing-ops:3001 {
+    reverse_proxy localhost:3002 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         
@@ -73,7 +73,7 @@ api.artistinfluence.com {
 
 # n8n Automation Platform
 link.artistinfluence.com {
-    reverse_proxy supabase_n8n_arti-marketing-ops:5678 {
+    reverse_proxy localhost:5678 {
         header_up Host {host}
         header_up X-Real-IP {remote}
         
