@@ -1,0 +1,140 @@
+[
+  {
+    "id": "8e18cddd-e8df-406f-8f2c-d6ebdad00d52",
+    "email": "vendor@arti-demo.com",
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "vendor",
+      "name": "vendor",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "org_name": "ARTi Marketing Demo",
+      "role": "vendor"
+    },
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "created_at": "2025-09-24T15:41:58.677649Z",
+    "email_confirmed_at": "2025-09-24T15:41:58.682192Z"
+  },
+  {
+    "id": "45f19974-9ba3-4501-864c-1f114f07d537",
+    "email": "rbac@arti-demo.com",
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "rbac",
+      "name": "rbac",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "org_name": "ARTi Marketing Demo",
+      "role": "admin"
+    },
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "created_at": "2025-09-23T22:40:32.489557Z",
+    "email_confirmed_at": "2025-09-23T22:40:32.492232Z"
+  },
+  {
+    "id": "1d4b4582-92f7-4bfe-af19-ca8624b28e72",
+    "email": "sales@arti-demo.com",
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "sales",
+      "name": "sales",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "org_name": "ARTi Marketing Demo",
+      "role": "sales"
+    },
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "created_at": "2025-09-23T20:22:37.259922Z",
+    "email_confirmed_at": "2025-09-23T20:22:37.262834Z"
+  },
+  {
+    "id": "23df74e8-54b4-42e5-bf09-10600fb6a584",
+    "email": "creator@arti-demo.com",
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "creator",
+      "name": "creator",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "org_name": "ARTi Marketing Demo",
+      "role": "vendor"
+    },
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "created_at": "2025-09-23T19:59:56.536111Z",
+    "email_confirmed_at": "2025-09-23T19:59:56.538494Z"
+  },
+  {
+    "id": "4fe9280d-7821-499d-8b38-9ee65b6d834c",
+    "email": "analyst@arti-demo.com",
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "analyst",
+      "name": "analyst",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "org_name": "ARTi Marketing Demo",
+      "role": "sales"
+    },
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "created_at": "2025-09-23T19:59:56.47607Z",
+    "email_confirmed_at": "2025-09-23T19:59:56.478458Z"
+  },
+  {
+    "id": "25736961-61e8-4648-9534-7935d19d6a4e",
+    "email": "manager@arti-demo.com",
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "Manager User",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "org_name": "ARTi Marketing Demo",
+      "role": "manager"
+    },
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "created_at": "2025-09-23T19:59:56.414815Z",
+    "email_confirmed_at": "2025-09-23T19:59:56.417295Z"
+  },
+  {
+    "id": "ca91b7bf-1c47-4763-a07d-a41a7d9fcb27",
+    "email": "admin@arti-demo.com",
+    "user_metadata": {
+      "email_verified": true,
+      "full_name": "Admin User",
+      "org_id": "00000000-0000-0000-0000-000000000001",
+      "org_name": "ARTi Marketing Demo",
+      "role": "admin"
+    },
+    "app_metadata": {
+      "provider": "email",
+      "providers": [
+        "email"
+      ]
+    },
+    "created_at": "2025-09-23T19:59:56.348653Z",
+    "email_confirmed_at": "2025-09-23T19:59:56.353534Z"
+  }
+]

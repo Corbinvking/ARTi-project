@@ -1,0 +1,3 @@
+id,name,slug,settings,created_at,updated_at
+00000000-0000-0000-0000-000000000001,Acme Music Label,acme-music,"{""currency"":""USD"",""timezone"":""UTC""}",2025-09-23T19:59:32.15254+00:00,2025-09-23T19:59:32.15254+00:00
+00000000-0000-0000-0000-000000000002,Indie Records,indie-records,"{""currency"":""USD"",""timezone"":""PST""}",2025-09-23T19:59:32.15254+00:00,2025-09-23T19:59:32.15254+00:00
