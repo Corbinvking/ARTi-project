@@ -82,7 +82,7 @@ export class SpotifyScraperService {
 
       // Execute your Python scraper
       const command = `cd ${this.scraperPath} && python run_multi_scraper_config.py --config ${configPath}`;
-      const { stdout, stderr } = await execAsync(command, {
+      const { stdout } = await execAsync(command, {
         timeout: 30 * 60 * 1000, // 30 minutes timeout
         maxBuffer: 1024 * 1024 * 10 // 10MB buffer
       });
@@ -237,7 +237,7 @@ export class SpotifyScraperService {
       completedJobs,
       failedJobs,
       averageExecutionTime,
-      lastSuccessfulRun
+      lastSuccessfulRun: lastSuccessfulRun || undefined
     };
   }
 

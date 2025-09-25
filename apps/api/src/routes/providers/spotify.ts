@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { SpotifyScraperService } from '../../providers/spotify/scraper.js';
-import { requireAuth } from '../../lib/auth.js';
+import { requireAuth } from '../../middleware/auth.js';
 import { logger } from '../../lib/logger.js';
 
 const spotify: FastifyPluginAsync = async (fastify) => {
@@ -29,7 +29,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
     }
   }, async (request, reply) => {
     const { songUrls } = request.body as { songUrls: string[] };
-    const { org_id } = request.user;
+    const { orgId } = request.user;
 
     try {
       // Validate URLs
@@ -48,15 +48,15 @@ const spotify: FastifyPluginAsync = async (fastify) => {
         logger.warn('Some URLs were filtered out', {
           total: songUrls.length,
           valid: validUrls.length,
-          orgId: org_id
+          orgId: orgId
         });
       }
 
-      const jobId = await scraperService.startScrapingJob(org_id, validUrls);
+      const jobId = await scraperService.startScrapingJob(orgId, validUrls);
 
       logger.info('Spotify scraping job started', {
         jobId,
-        orgId: org_id,
+        orgId: orgId,
         songCount: validUrls.length
       });
 
@@ -69,7 +69,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
 
     } catch (error: any) {
       logger.error('Failed to start scraping job', {
-        orgId: org_id,
+        orgId: orgId,
         error: error.message
       });
 
@@ -95,7 +95,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
     }
   }, async (request, reply) => {
     const { jobId } = request.params as { jobId: string };
-    const { org_id } = request.user;
+    const { orgId } = request.user;
 
     try {
       const job = scraperService.getJobStatus(jobId);
@@ -108,7 +108,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
       }
 
       // Ensure user can only access their org's jobs
-      if (job.orgId !== org_id) {
+      if (job.orgId !== orgId) {
         return reply.code(403).send({
           error: 'Access denied',
           message: 'You can only access jobs from your organization'
@@ -135,7 +135,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
     } catch (error: any) {
       logger.error('Failed to get job status', {
         jobId,
-        orgId: org_id,
+        orgId: orgId,
         error: error.message
       });
 
@@ -164,10 +164,10 @@ const spotify: FastifyPluginAsync = async (fastify) => {
       limit?: number; 
       status?: 'pending' | 'running' | 'completed' | 'failed' 
     };
-    const { org_id } = request.user;
+    const { orgId } = request.user;
 
     try {
-      let jobs = scraperService.getOrgJobs(org_id);
+      let jobs = scraperService.getOrgJobs(orgId);
 
       // Filter by status if provided
       if (status) {
@@ -196,7 +196,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
 
     } catch (error: any) {
       logger.error('Failed to get organization jobs', {
-        orgId: org_id,
+        orgId: orgId,
         error: error.message
       });
 
@@ -211,13 +211,13 @@ const spotify: FastifyPluginAsync = async (fastify) => {
    * Get scraper health metrics
    */
   fastify.get('/health', async (request, reply) => {
-    const { org_id } = request.user;
+    const { orgId } = request.user;
 
     try {
       const health = await scraperService.getHealthMetrics();
 
       logger.info('Scraper health check requested', {
-        orgId: org_id,
+        orgId: orgId,
         status: health.status
       });
 
@@ -235,7 +235,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
 
     } catch (error: any) {
       logger.error('Failed to get scraper health', {
-        orgId: org_id,
+        orgId: orgId,
         error: error.message
       });
 
@@ -261,7 +261,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
     }
   }, async (request, reply) => {
     const { jobId } = request.params as { jobId: string };
-    const { org_id, role } = request.user;
+    const { orgId, role } = request.user;
 
     // Only admins can cancel jobs
     if (role !== 'admin') {
@@ -281,7 +281,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
         });
       }
 
-      if (job.orgId !== org_id) {
+      if (job.orgId !== orgId) {
         return reply.code(403).send({
           error: 'Access denied',
           message: 'You can only cancel jobs from your organization'
@@ -303,8 +303,8 @@ const spotify: FastifyPluginAsync = async (fastify) => {
 
       logger.info('Scraping job cancelled', {
         jobId,
-        orgId: org_id,
-        cancelledBy: request.user.sub
+        orgId: orgId,
+        cancelledBy: request.user.id
       });
 
       return reply.send({
@@ -315,7 +315,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
     } catch (error: any) {
       logger.error('Failed to cancel job', {
         jobId,
-        orgId: org_id,
+        orgId: orgId,
         error: error.message
       });
 
@@ -340,7 +340,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
     }
   }, async (request, reply) => {
     const { olderThanDays = 7 } = request.body as { olderThanDays?: number };
-    const { org_id, role } = request.user;
+    const { orgId, role } = request.user;
 
     if (role !== 'admin') {
       return reply.code(403).send({
@@ -353,9 +353,9 @@ const spotify: FastifyPluginAsync = async (fastify) => {
       await scraperService.cleanup(olderThanDays);
 
       logger.info('Scraper cleanup completed', {
-        orgId: org_id,
+        orgId: orgId,
         olderThanDays,
-        requestedBy: request.user.sub
+        requestedBy: request.user.id
       });
 
       return reply.send({
@@ -365,7 +365,7 @@ const spotify: FastifyPluginAsync = async (fastify) => {
 
     } catch (error: any) {
       logger.error('Failed to cleanup scraper data', {
-        orgId: org_id,
+        orgId: orgId,
         error: error.message
       });
 
