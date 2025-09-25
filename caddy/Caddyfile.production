@@ -26,6 +26,31 @@
 
 # Backend API
 api.artistinfluence.com {
+    # Supabase auth routes - proxy to Kong
+    handle_path /auth/* {
+        reverse_proxy localhost:54321 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+        }
+    }
+    
+    # Supabase REST API routes - proxy to Kong  
+    handle_path /rest/* {
+        reverse_proxy localhost:54321 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+        }
+    }
+    
+    # Supabase Storage routes - proxy to Kong
+    handle_path /storage/* {
+        reverse_proxy localhost:54321 {
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+        }
+    }
+    
+    # Custom API routes - proxy to our Node.js API
     reverse_proxy localhost:3002 {
         header_up Host {host}
         header_up X-Real-IP {remote}
