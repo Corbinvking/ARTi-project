@@ -135,3 +135,14 @@ spotify_scraper/**/__pycache__/
 # Python specific
 spotify_scraper/test/browser_data/
 spotify_scraper/test/downloads/
+
+# Auth credentials
+ Studio: https://db.artistinfluence.com
+  Username: admin
+  Password: Ybvqh1VsG4XWkTk8THfkIqqaB
+
+• n8n: https://link.artistinfluence.com
+  Username: admin
+  Password: qerjHeApyQSA7jYH8eJmAjREi
+
+  
