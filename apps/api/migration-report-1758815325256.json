@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-09-25T15:48:45.255Z",
+  "migration_summary": {
+    "total_tables_migrated": 0,
+    "total_records_migrated": 0,
+    "auth_users_migrated": 0,
+    "status": "completed"
+  },
+  "details": {}
+}
