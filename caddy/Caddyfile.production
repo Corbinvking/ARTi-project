@@ -62,22 +62,7 @@ api.artistinfluence.com {
     }
     
     # CORS headers removed - let Kong handle CORS for Supabase routes
-    # Custom API routes may need specific CORS handling
-    
-    # Handle preflight requests only for custom API routes (not Supabase routes)
-    @options_custom {
-        method OPTIONS
-        not path /auth/*
-        not path /rest/*
-        not path /storage/*
-    }
-    handle @options_custom {
-        header Access-Control-Allow-Origin "https://app.artistinfluence.com"
-        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, X-User-Agent"
-        header Access-Control-Max-Age "86400"
-        respond "" 204
-    }
+    # Backend API handles CORS for custom routes
     
     # Security headers
     header X-Frame-Options "DENY"

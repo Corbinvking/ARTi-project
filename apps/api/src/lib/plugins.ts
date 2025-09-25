@@ -15,63 +15,63 @@ export async function setupPlugins(server: FastifyInstance) {
     },
   });
 
-  // CORS configuration - Disabled since Caddy handles CORS
-  // await server.register(cors, {
-  //   origin: (origin, callback) => {
-  //         // Production domains for artistinfluence.com
-  //         const productionFrontend = process.env.FRONTEND_URL || 'https://app.artistinfluence.com';
-  //         const productionDomain = process.env.PRODUCTION_DOMAIN || 'https://api.artistinfluence.com';
+  // CORS configuration - Re-enabled for custom API routes
+  await server.register(cors, {
+    origin: (origin, callback) => {
+          // Production domains for artistinfluence.com
+          const productionFrontend = process.env.FRONTEND_URL || 'https://app.artistinfluence.com';
+          const productionDomain = process.env.PRODUCTION_DOMAIN || 'https://api.artistinfluence.com';
 
-  //         const allowedOrigins = [
-  //           // Production URLs
-  //           'https://app.artistinfluence.com',
-  //           'https://artistinfluence.com',
-  //           'https://api.artistinfluence.com',
-  //           productionFrontend,
-  //           productionDomain,
+          const allowedOrigins = [
+            // Production URLs
+            'https://app.artistinfluence.com',
+            'https://artistinfluence.com',
+            'https://api.artistinfluence.com',
+            productionFrontend,
+            productionDomain,
 
-  //           // Vercel preview deployments
-  //           /^https:\/\/.*\.vercel\.app$/,
+            // Vercel preview deployments
+            /^https:\/\/.*\.vercel\.app$/,
 
-  //           // Local development
-  //           'http://localhost:3000',    // Frontend dev server
-  //           'http://localhost:3001',    // API dev server
-  //           'http://localhost:8080',    // Caddy unified endpoint
-  //         ];
+            // Local development
+            'http://localhost:3000',    // Frontend dev server
+            'http://localhost:3001',    // API dev server
+            'http://localhost:8080',    // Caddy unified endpoint
+          ];
 
-  //     // Allow requests with no origin (mobile apps, curl, etc.)
-  //     if (!origin) return callback(null, true);
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
 
-  //     // Check if origin matches allowed patterns
-  //     const isAllowed = allowedOrigins.some(allowed => {
-  //       if (typeof allowed === 'string') {
-  //         return allowed === origin;
-  //       }
-  //       return allowed.test(origin);
-  //     });
+      // Check if origin matches allowed patterns
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (typeof allowed === 'string') {
+          return allowed === origin;
+        }
+        return allowed.test(origin);
+      });
 
-  //     if (isAllowed) {
-  //       callback(null, true);
-  //     } else {
-  //       server.log.warn({ origin }, 'CORS: Origin not allowed');
-  //       callback(new Error(`CORS: Origin '${origin}' not allowed`), false);
-  //     }
-  //   },
-  //   credentials: true,
-  //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  //   allowedHeaders: [
-  //     'Content-Type', 
-  //     'Authorization', 
-  //     'X-Requested-With',
-  //     'Cache-Control',
-  //     'X-User-Agent',
-  //     // Supabase specific headers
-  //     'x-supabase-api-version',
-  //     'x-client-info',
-  //     'apikey',
-  //     'x-supabase-auth-token'
-  //   ],
-  // });
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        server.log.warn({ origin }, 'CORS: Origin not allowed');
+        callback(new Error(`CORS: Origin '${origin}' not allowed`), false);
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type', 
+      'Authorization', 
+      'X-Requested-With',
+      'Cache-Control',
+      'X-User-Agent',
+      // Supabase specific headers
+      'x-supabase-api-version',
+      'x-client-info',
+      'apikey',
+      'x-supabase-auth-token'
+    ],
+  });
 
   // Rate limiting
   await server.register(rateLimit, {
