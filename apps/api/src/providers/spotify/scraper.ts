@@ -206,7 +206,7 @@ export class SpotifyScraperService {
     completedJobs: number;
     failedJobs: number;
     averageExecutionTime: number;
-    lastSuccessfulRun?: Date;
+    lastSuccessfulRun: Date | undefined;
   }> {
     const jobs = Array.from(this.activeJobs.values());
     const activeJobs = jobs.filter(j => j.status === 'running').length;
