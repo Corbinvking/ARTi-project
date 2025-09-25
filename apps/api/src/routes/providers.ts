@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { supabase } from '../lib/supabase.js'
-import spotify from './providers/spotify.js'
+import spotify from './spotify.js'
 
 // interface ConnectRequest {
 //   Body: {
