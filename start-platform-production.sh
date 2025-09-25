@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # ARTi Marketing Platform - Production Start Script
-# For DigitalOcean droplet deployment
+# For DigitalOcean droplet deployment (Updated for upgraded droplet)
 
 echo "🚀 Starting ARTi Marketing Platform (Production)..."
+echo "💪 Optimized for upgraded droplet specs"
+echo ""
 
 # Check if we're in the right directory
 if [ ! -f "docker-compose.supabase-project.yml" ]; then
@@ -11,6 +13,26 @@ if [ ! -f "docker-compose.supabase-project.yml" ]; then
     echo "Please run this script from the project root directory"
     exit 1
 fi
+
+# Show system resources
+echo "💻 System Resources:"
+echo "   CPU Cores: $(nproc)"
+echo "   Memory: $(free -h | awk '/^Mem:/ {print $2}') total"
+echo "   Available: $(free -h | awk '/^Mem:/ {print $7}')"
+echo ""
+
+# Check Docker daemon
+if ! docker info >/dev/null 2>&1; then
+    echo "🔧 Starting Docker daemon..."
+    sudo systemctl start docker
+    sleep 3
+fi
+
+# Stop any existing services cleanly
+echo "🧹 Cleaning up any existing services..."
+docker compose -p arti-marketing-ops -f docker-compose.supabase-project.yml down >/dev/null 2>&1 || true
+supabase stop >/dev/null 2>&1 || true
+sleep 2
 
 # Step 1: Start Supabase services first
 echo "📦 Starting Supabase services..."
