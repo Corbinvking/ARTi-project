@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
-import { SpotifyScraperService } from '../../providers/spotify/scraper.js';
-import { requireAuth } from '../../middleware/auth.js';
-import { logger } from '../../lib/logger.js';
+import { SpotifyScraperService } from '../providers/spotify/scraper.js';
+import { requireAuth } from '../middleware/auth.js';
+import { logger } from '../lib/logger.js';
 
 const spotify: FastifyPluginAsync = async (fastify) => {
   const scraperService = new SpotifyScraperService();
@@ -124,8 +124,8 @@ const spotify: FastifyPluginAsync = async (fastify) => {
           startedAt: job.startedAt,
           completedAt: job.completedAt,
           results: job.results ? {
-            successful: job.results.filter(r => r.success).length,
-            failed: job.results.filter(r => !r.success).length,
+            successful: job.results.filter((r: any) => r.success).length,
+            failed: job.results.filter((r: any) => !r.success).length,
             details: job.results
           } : null,
           errorMessage: job.errorMessage
@@ -171,20 +171,20 @@ const spotify: FastifyPluginAsync = async (fastify) => {
 
       // Filter by status if provided
       if (status) {
-        jobs = jobs.filter(job => job.status === status);
+        jobs = jobs.filter((job: any) => job.status === status);
       }
 
       // Apply limit
       jobs = jobs.slice(0, limit);
 
-      const jobSummaries = jobs.map(job => ({
+      const jobSummaries = jobs.map((job: any) => ({
         id: job.id,
         status: job.status,
         songCount: job.songUrls.length,
         startedAt: job.startedAt,
         completedAt: job.completedAt,
-        successCount: job.results?.filter(r => r.success).length || 0,
-        failureCount: job.results?.filter(r => !r.success).length || 0,
+        successCount: job.results?.filter((r: any) => r.success).length || 0,
+        failureCount: job.results?.filter((r: any) => !r.success).length || 0,
         errorMessage: job.errorMessage
       }));
 
