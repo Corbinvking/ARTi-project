@@ -237,7 +237,7 @@ export class SpotifyScraperService {
       completedJobs,
       failedJobs,
       averageExecutionTime,
-      lastSuccessfulRun: lastSuccessfulRun || undefined
+      lastSuccessfulRun
     };
   }
 
