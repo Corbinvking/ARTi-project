@@ -64,7 +64,12 @@ export async function setupPlugins(server: FastifyInstance) {
       'Authorization', 
       'X-Requested-With',
       'Cache-Control',
-      'X-User-Agent'
+      'X-User-Agent',
+      // Supabase specific headers
+      'x-supabase-api-version',
+      'x-client-info',
+      'apikey',
+      'x-supabase-auth-token'
     ],
   });
 

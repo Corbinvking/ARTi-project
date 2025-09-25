@@ -39,7 +39,7 @@ api.artistinfluence.com {
     # CORS headers for production
     header Access-Control-Allow-Origin "https://app.artistinfluence.com"
     header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, X-User-Agent"
+    header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, X-User-Agent, x-supabase-api-version, x-client-info, apikey, x-supabase-auth-token"
     header Access-Control-Allow-Credentials "true"
     
     # Handle preflight requests
@@ -47,7 +47,7 @@ api.artistinfluence.com {
     handle @options {
         header Access-Control-Allow-Origin "https://app.artistinfluence.com"
         header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, X-User-Agent"
+        header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, X-User-Agent, x-supabase-api-version, x-client-info, apikey, x-supabase-auth-token"
         header Access-Control-Max-Age "86400"
         respond "" 204
     }
