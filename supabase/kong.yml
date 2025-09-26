@@ -42,8 +42,6 @@ services:
     strip_path: true
     paths:
     - /auth/v1/verify
-  plugins:
-  - name: cors
 
 - name: auth-v1-open-callback
   url: http://arti-auth-prod:9999/callback
@@ -52,8 +50,6 @@ services:
     strip_path: true
     paths:
     - /auth/v1/callback
-  plugins:
-  - name: cors
 
 - name: auth-v1-open-authorize
   url: http://arti-auth-prod:9999/authorize
@@ -62,8 +58,6 @@ services:
     strip_path: true
     paths:
     - /auth/v1/authorize
-  plugins:
-  - name: cors
 
 ## Secure API Routes
 - name: auth-v1
@@ -75,7 +69,6 @@ services:
     paths:
     - /auth/v1/
   plugins:
-  - name: cors
   - name: key-auth
     config:
       hide_credentials: false
@@ -95,7 +88,6 @@ services:
     paths:
     - /rest/v1/
   plugins:
-  - name: cors
   - name: key-auth
     config:
       hide_credentials: true
@@ -115,7 +107,6 @@ services:
     paths:
     - /realtime/v1/
   plugins:
-  - name: cors
   - name: key-auth
     config:
       hide_credentials: false
@@ -135,7 +126,6 @@ services:
     paths:
     - /storage/v1/
   plugins:
-  - name: cors
   - name: key-auth
     config:
       hide_credentials: false
@@ -171,8 +161,7 @@ services:
   - name: health
     paths:
     - /health
-  plugins:
-  - name: cors
+  plugins: []
 
 ###
 ### Global Plugins
@@ -181,6 +170,8 @@ plugins:
 - name: cors
   config:
     origins:
+    - "https://app.artistinfluence.com"
+    - "http://localhost:3000"
     - "*"
     methods:
     - GET
@@ -203,7 +194,11 @@ plugins:
     - apikey
     - x-client-info
     - x-supabase-api-version
+    - Cache-Control
+    - X-User-Agent
     exposed_headers:
     - X-Auth-Token
+    - Authorization
     credentials: true
+    preflight_continue: false
     max_age: 3600
