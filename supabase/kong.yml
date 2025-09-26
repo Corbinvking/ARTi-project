@@ -1,4 +1,7 @@
 _format_version: "2.1"
+_info:
+  select_tags:
+  - supabase_local_dev
 
 ###
 ### Consumers / Users
@@ -21,7 +24,7 @@ acls:
 ###
 ### API Keys / JWT
 ###
-keyauth_credentials:
+key_auths:
 - consumer: anon
   key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
 - consumer: service_role  
