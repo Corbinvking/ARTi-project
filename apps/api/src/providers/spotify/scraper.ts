@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs/promises';
 import { logger } from '../../lib/logger.js';
+import { supabase } from '../../lib/supabase.js';
 
 const execAsync = promisify(exec);
 
@@ -93,6 +94,22 @@ export class SpotifyScraperService {
       const results = await this.parseScrapingResults(jobId);
       job.results = results;
       job.completedAt = new Date();
+
+      // Store successful results in database
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+        if (result.success && result.data && job.songUrls[i]) {
+          try {
+            await this.storeScrapedData(job.orgId, job.songUrls[i], result);
+          } catch (error: any) {
+            logger.error('Failed to store scraped data for song', {
+              jobId,
+              songUrl: job.songUrls[i],
+              error: error.message
+            });
+          }
+        }
+      }
 
       this.updateJobStatus(jobId, 'completed');
 
@@ -315,6 +332,66 @@ export class SpotifyScraperService {
       }
     } catch (error: any) {
       logger.error('Failed to cleanup old files', { error: error.message });
+    }
+  }
+
+  /**
+   * Store scraped data in the database
+   */
+  async storeScrapedData(orgId: string, songUrl: string, scrapedData: any): Promise<void> {
+    try {
+      // Extract relevant data from the scraped result
+      const songData = scrapedData.data?.song || scrapedData.data;
+      
+      if (!songData) {
+        logger.warn('No song data found in scraped result', { songUrl });
+        return;
+      }
+
+      const insertData = {
+        org_id: orgId,
+        platform: 'spotify',
+        song_url: songUrl,
+        artist_name: songData.artist_name || songData.artist,
+        song_title: songData.song_title || songData.title || songData.name,
+        album_name: songData.album_name || songData.album,
+        release_date: songData.release_date ? new Date(songData.release_date) : null,
+        duration_ms: songData.duration_ms || songData.duration,
+        popularity: songData.popularity,
+        explicit: songData.explicit,
+        genres: songData.genres || [],
+        external_urls: songData.external_urls || {},
+        raw_data: scrapedData.data,
+        scraped_at: new Date()
+      };
+
+      const { error } = await supabase
+        .from('scraped_data')
+        .insert(insertData);
+
+      if (error) {
+        logger.error('Failed to store scraped data', { 
+          orgId, 
+          songUrl, 
+          error: error.message 
+        });
+        throw error;
+      }
+
+      logger.info('Successfully stored scraped data', { 
+        orgId, 
+        songUrl, 
+        artist: insertData.artist_name,
+        song: insertData.song_title 
+      });
+
+    } catch (error: any) {
+      logger.error('Error storing scraped data', { 
+        orgId, 
+        songUrl, 
+        error: error.message 
+      });
+      throw error;
     }
   }
 }
