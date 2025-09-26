@@ -170,8 +170,6 @@ plugins:
 - name: cors
   config:
     origins:
-    - "https://app.artistinfluence.com"
-    - "http://localhost:3000"
     - "*"
     methods:
     - GET
@@ -194,11 +192,7 @@ plugins:
     - apikey
     - x-client-info
     - x-supabase-api-version
-    - Cache-Control
-    - X-User-Agent
     exposed_headers:
     - X-Auth-Token
-    - Authorization
     credentials: true
-    preflight_continue: false
     max_age: 3600
