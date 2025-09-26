@@ -62,11 +62,88 @@ async function runScraperAndSync() {
 
     console.log('✅ Scraper directory and config found');
 
-    // Step 3: Run the Python scraper
-    console.log('\n3️⃣ Running Python scraper...');
+    // Step 3: Check and setup Python environment
+    console.log('\n3️⃣ Setting up Python environment...');
+    
+    // Check if virtual environment exists
+    const venvPath = path.join(scraperDir, 'venv');
+    if (!fs.existsSync(venvPath)) {
+      console.log('   📦 Creating Python virtual environment...');
+      const venvProcess = spawn('python', ['-m', 'venv', 'venv'], {
+        cwd: scraperDir,
+        stdio: 'inherit',
+        shell: true
+      });
+
+      await new Promise((resolve, reject) => {
+        venvProcess.on('close', (code) => {
+          if (code === 0) {
+            console.log('✅ Virtual environment created');
+            resolve();
+          } else {
+            reject(new Error(`Failed to create virtual environment with code ${code}`));
+          }
+        });
+      });
+    } else {
+      console.log('✅ Virtual environment found');
+    }
+
+    // Install requirements
+    console.log('   📦 Installing Python dependencies...');
+    const pipPath = process.platform === 'win32' 
+      ? path.join(venvPath, 'Scripts', 'pip.exe')
+      : path.join(venvPath, 'bin', 'pip');
+    
+    const installProcess = spawn(pipPath, ['install', '-r', 'requirements.txt'], {
+      cwd: scraperDir,
+      stdio: 'inherit',
+      shell: true
+    });
+
+    await new Promise((resolve, reject) => {
+      installProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log('✅ Dependencies installed');
+          resolve();
+        } else {
+          reject(new Error(`Failed to install dependencies with code ${code}`));
+        }
+      });
+    });
+
+    // Install Playwright browsers
+    console.log('   🎭 Installing Playwright browsers...');
+    const playwrightPath = process.platform === 'win32'
+      ? path.join(venvPath, 'Scripts', 'playwright.exe')
+      : path.join(venvPath, 'bin', 'playwright');
+    
+    const playwrightInstallProcess = spawn(playwrightPath, ['install', 'chromium'], {
+      cwd: scraperDir,
+      stdio: 'inherit',
+      shell: true
+    });
+
+    await new Promise((resolve, reject) => {
+      playwrightInstallProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log('✅ Playwright browsers installed');
+          resolve();
+        } else {
+          reject(new Error(`Failed to install Playwright browsers with code ${code}`));
+        }
+      });
+    });
+
+    // Step 4: Run the Python scraper
+    console.log('\n4️⃣ Running Python scraper...');
     console.log('   🎭 This will open a browser window - you can watch it work!');
     
-    const scraperProcess = spawn('python', ['run_multi_scraper_config.py'], {
+    const pythonPath = process.platform === 'win32'
+      ? path.join(venvPath, 'Scripts', 'python.exe')
+      : path.join(venvPath, 'bin', 'python');
+    
+    const scraperProcess = spawn(pythonPath, ['run_multi_scraper_config.py'], {
       cwd: scraperDir,
       stdio: 'inherit',
       shell: true
@@ -90,8 +167,8 @@ async function runScraperAndSync() {
       });
     });
 
-    // Step 4: Read and process scraped data
-    console.log('\n4️⃣ Processing scraped data...');
+    // Step 5: Read and process scraped data
+    console.log('\n5️⃣ Processing scraped data...');
     const dataDir = path.join(scraperDir, 'data');
     
     if (!fs.existsSync(dataDir)) {
@@ -112,8 +189,8 @@ async function runScraperAndSync() {
 
     console.log(`✅ Found ${songFiles.length} scraped data files`);
 
-    // Step 5: Create or get default organization
-    console.log('\n5️⃣ Setting up organization...');
+    // Step 6: Create or get default organization
+    console.log('\n6️⃣ Setting up organization...');
     const defaultOrgId = '00000000-0000-0000-0000-000000000001';
     
     const { data: org, error: orgError } = await supabase
@@ -133,8 +210,8 @@ async function runScraperAndSync() {
 
     console.log('✅ Organization ready');
 
-    // Step 6: Sync data to local Supabase
-    console.log('\n6️⃣ Syncing data to local Supabase...');
+    // Step 7: Sync data to local Supabase
+    console.log('\n7️⃣ Syncing data to local Supabase...');
     let successCount = 0;
     let errorCount = 0;
 
@@ -148,29 +225,50 @@ async function runScraperAndSync() {
         const songId = file.match(/song_([^_]+)_/)?.[1];
         const songUrl = `https://artists.spotify.com/song/${songId}`;
 
-        // Parse the scraped data
-        const songData = scrapedData.song || scrapedData.data?.song || scrapedData;
+        // Parse the scraped data - this is playlist data, not song metadata
+        // Extract playlist statistics from the data
+        const playlistData = scrapedData.time_ranges || {};
+        const stats28day = playlistData['28day']?.stats || {};
+        const stats7day = playlistData['7day']?.stats || {};
+        const stats12months = playlistData['12months']?.stats || {};
         
-        if (!songData) {
-          console.log(`⚠️  Skipping ${file}: No song data found`);
-          continue;
-        }
+        // Calculate total playlists across all time ranges
+        const totalPlaylists = (stats28day.playlists?.length || 0) + 
+                              (stats7day.playlists?.length || 0) + 
+                              (stats12months.playlists?.length || 0);
+        
+        // Calculate total streams across all time ranges
+        const totalStreams = (stats28day.streams || 0) + 
+                            (stats7day.streams || 0) + 
+                            (stats12months.streams || 0);
 
         // Prepare data for insertion
         const insertData = {
           org_id: defaultOrgId,
           platform: 'spotify',
           song_url: songUrl,
-          artist_name: songData.artist_name || songData.artist,
-          song_title: songData.song_title || songData.title || songData.name,
-          album_name: songData.album_name || songData.album,
-          release_date: songData.release_date ? new Date(songData.release_date) : null,
-          duration_ms: songData.duration_ms || songData.duration,
-          popularity: songData.popularity,
-          explicit: songData.explicit,
-          genres: songData.genres || [],
-          external_urls: songData.external_urls || {},
-          raw_data: scrapedData,
+          artist_name: null, // Not available in playlist data
+          song_title: null,  // Not available in playlist data
+          album_name: null,  // Not available in playlist data
+          release_date: null,
+          duration_ms: null,
+          popularity: totalPlaylists, // Use playlist count as popularity metric
+          explicit: null,
+          genres: [],
+          external_urls: {},
+          raw_data: {
+            ...scrapedData,
+            summary: {
+              total_playlists: totalPlaylists,
+              total_streams: totalStreams,
+              playlists_28day: stats28day.playlists?.length || 0,
+              playlists_7day: stats7day.playlists?.length || 0,
+              playlists_12months: stats12months.playlists?.length || 0,
+              streams_28day: stats28day.streams || 0,
+              streams_7day: stats7day.streams || 0,
+              streams_12months: stats12months.streams || 0
+            }
+          },
           scraped_at: new Date()
         };
 
@@ -183,7 +281,7 @@ async function runScraperAndSync() {
           console.error(`❌ Error inserting ${file}:`, insertError.message);
           errorCount++;
         } else {
-          console.log(`✅ Synced: ${insertData.artist_name} - ${insertData.song_title}`);
+          console.log(`✅ Synced: ${songId} (${totalPlaylists} playlists, ${totalStreams} streams)`);
           successCount++;
         }
 
@@ -193,14 +291,14 @@ async function runScraperAndSync() {
       }
     }
 
-    // Step 7: Show results
+    // Step 8: Show results
     console.log('\n📊 Sync Results:');
     console.log(`   ✅ Successfully synced: ${successCount} songs`);
     console.log(`   ❌ Errors: ${errorCount} songs`);
     console.log(`   📁 Files processed: ${songFiles.length}`);
 
-    // Step 8: Show recent data
-    console.log('\n7️⃣ Recent scraped data in local Supabase:');
+    // Step 9: Show recent data
+    console.log('\n9️⃣ Recent scraped data in local Supabase:');
     const { data: recentData, error: recentError } = await supabase
       .from('scraped_data')
       .select('*')
@@ -216,9 +314,14 @@ async function runScraperAndSync() {
     if (recentData.length > 0) {
       console.log('\n🎵 Latest scraped songs:');
       recentData.forEach((record, index) => {
-        console.log(`   ${index + 1}. ${record.artist_name} - ${record.song_title}`);
-        console.log(`      📊 Popularity: ${record.popularity || 'N/A'}`);
-        console.log(`      ⏱️  Duration: ${record.duration_ms ? Math.round(record.duration_ms / 1000) + 's' : 'N/A'}`);
+        const songId = record.song_url?.split('/').pop() || 'Unknown';
+        const summary = record.raw_data?.summary;
+        console.log(`   ${index + 1}. Song ID: ${songId}`);
+        console.log(`      📊 Total Playlists: ${record.popularity || 'N/A'}`);
+        console.log(`      📈 Total Streams: ${summary?.total_streams || 'N/A'}`);
+        console.log(`      📅 28-day: ${summary?.playlists_28day || 0} playlists`);
+        console.log(`      📅 7-day: ${summary?.playlists_7day || 0} playlists`);
+        console.log(`      📅 12-month: ${summary?.playlists_12months || 0} playlists`);
         console.log(`      📅 Scraped: ${new Date(record.scraped_at).toLocaleString()}`);
         console.log('');
       });

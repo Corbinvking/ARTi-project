@@ -1,0 +1,240 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/0LfS8z5VUqkD9WlMLOZskY/playlists",
+  "scraped_at": "2025-09-26T13:38:08.118367",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "10,674",
+            "date_added": "Aug 25, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "474",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "353",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "59",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Brand New Drum And Bass 🦀",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "51"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "2,392",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "21"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "14,797",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "477",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "355",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "353",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "304",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Brand New Drum And Bass 🦀",
+            "made_by": "—",
+            "streams": "39",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Siimi Approves",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "pink planet",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 9, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "71"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  },
+  "song_metadata": {
+    "config_name": "Song 9 - Artist 0NgWGGk9p04zLTeFbIdsVO (Ocean Born - Radio Edit)",
+    "scrape_order": 9,
+    "filename": "song_0LfS8z5VUqkD9WlMLOZskY_20250926_133839.json"
+  }
+}
