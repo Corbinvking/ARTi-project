@@ -200,6 +200,9 @@ plugins:
     - X-Auth-Token
     - Authorization
     - X-Requested-With
+    - apikey
+    - x-client-info
+    - x-supabase-api-version
     exposed_headers:
     - X-Auth-Token
     credentials: true
