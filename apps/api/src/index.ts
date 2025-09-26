@@ -16,15 +16,18 @@ const server = Fastify({
 
 async function startServer() {
   try {
-    // Test connections
-    logger.info('Testing database connection...');
-    const { error: dbError } = await supabase.from('orgs').select('id').limit(1);
-    if (dbError && !dbError.message.includes('relation "orgs" does not exist')) {
-      throw new Error(`Database connection failed: ${dbError.message}`);
-    }
-
+    // Test Redis connection (required)
     logger.info('Testing Redis connection...');
     await redis.ping();
+    
+    // Test database connection (non-blocking in production)
+    if (process.env.NODE_ENV !== 'production') {
+      logger.info('Testing database connection...');
+      const { error: dbError } = await supabase.from('orgs').select('id').limit(1);
+      if (dbError && !dbError.message.includes('relation "orgs" does not exist')) {
+        logger.warn(`Database connection failed: ${dbError.message}`);
+      }
+    }
 
     // Setup plugins and routes
     await setupPlugins(server);

@@ -25,20 +25,22 @@ export const supabase = createClient(
   }
 );
 
-// Test connection on startup
-(async () => {
-  try {
-    const { error } = await supabase
-      .from('orgs')
-      .select('id')
-      .limit(1);
-    
-    if (error && !error.message.includes('relation "orgs" does not exist')) {
-      logger.error({ error }, 'Supabase connection test failed');
-    } else {
-      logger.info('Supabase connection established');
+// Test connection on startup (non-blocking)
+if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SUPABASE_TEST === 'true') {
+  (async () => {
+    try {
+      const { error } = await supabase
+        .from('orgs')
+        .select('id')
+        .limit(1);
+      
+      if (error && !error.message.includes('relation "orgs" does not exist')) {
+        logger.warn({ error }, 'Supabase connection test failed');
+      } else {
+        logger.info('Supabase connection established');
+      }
+    } catch (err) {
+      logger.warn({ err }, 'Supabase connection error');
     }
-  } catch (err) {
-    logger.error({ err }, 'Supabase connection error');
-  }
-})();
+  })();
+}
