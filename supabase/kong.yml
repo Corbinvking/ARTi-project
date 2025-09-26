@@ -36,7 +36,7 @@ key_auths:
 services:
 ## Open API Routes
 - name: auth-v1-open
-  url: http://auth:9999/verify
+  url: http://arti-auth-prod:9999/verify
   routes:
   - name: auth-v1-open
     strip_path: true
@@ -46,7 +46,7 @@ services:
   - name: cors
 
 - name: auth-v1-open-callback
-  url: http://auth:9999/callback
+  url: http://arti-auth-prod:9999/callback
   routes:
   - name: auth-v1-open-callback
     strip_path: true
@@ -56,7 +56,7 @@ services:
   - name: cors
 
 - name: auth-v1-open-authorize
-  url: http://auth:9999/authorize
+  url: http://arti-auth-prod:9999/authorize
   routes:
   - name: auth-v1-open-authorize
     strip_path: true
@@ -68,7 +68,7 @@ services:
 ## Secure API Routes
 - name: auth-v1
   _comment: "GoTrue: /auth/v1/* -> http://auth:9999/*"
-  url: http://auth:9999/
+  url: http://arti-auth-prod:9999/
   routes:
   - name: auth-v1-all
     strip_path: true
@@ -88,7 +88,7 @@ services:
 
 - name: rest-v1
   _comment: "PostgREST: /rest/v1/* -> http://rest:3000/*"
-  url: http://rest:3000/
+  url: http://arti-rest-prod:3000/
   routes:
   - name: rest-v1-all
     strip_path: true
@@ -108,7 +108,7 @@ services:
 
 - name: realtime-v1
   _comment: "Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*"
-  url: http://realtime:4000/socket/
+  url: http://arti-realtime-prod:4000/socket/
   routes:
   - name: realtime-v1-all
     strip_path: true
@@ -128,7 +128,7 @@ services:
 
 - name: storage-v1
   _comment: "Storage: /storage/v1/* -> http://storage:5000/*"
-  url: http://storage:5000/
+  url: http://arti-storage-prod:5000/
   routes:
   - name: storage-v1-all
     strip_path: true
@@ -148,7 +148,7 @@ services:
 
 - name: pg-meta
   _comment: "pg-meta: /pg/* -> http://meta:8080/*"
-  url: http://meta:8080/
+  url: http://arti-meta-prod:8080/
   routes:
   - name: pg-meta-all
     strip_path: true
@@ -166,7 +166,7 @@ services:
 
 ## Health check endpoint
 - name: health
-  url: http://kong:8001/status
+  url: http://arti-kong-prod:8001/status
   routes:
   - name: health
     paths:
