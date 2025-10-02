@@ -1,21 +1,17 @@
-import { PlatformPlaceholder } from "@/components/platform/platform-placeholder"
-import { Music } from "lucide-react"
+"use client"
+
+import { StreamStrategistApp } from "./stream-strategist/components/StreamStrategistApp"
+import { ProtectedRoute } from "./stream-strategist/components/ProtectedRoute"
+import Index from "./stream-strategist/pages/Index"
 
 export default function SpotifyPage() {
   return (
-    <PlatformPlaceholder
-      platform="Spotify"
-      icon={Music}
-      status="connected"
-      description="Manage your music streaming and artist analytics"
-      features={[
-        "Track streaming analytics",
-        "Playlist management",
-        "Artist insights and demographics",
-        "Release scheduling",
-        "Fan engagement metrics",
-        "Revenue tracking",
-      ]}
-    />
+    <div className="h-full w-full">
+      <StreamStrategistApp>
+        <ProtectedRoute requiredRoles={['admin', 'manager']}>
+          <Index />
+        </ProtectedRoute>
+      </StreamStrategistApp>
+    </div>
   )
 }

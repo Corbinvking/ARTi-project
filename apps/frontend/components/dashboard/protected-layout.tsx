@@ -5,7 +5,7 @@ import type React from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
-import { TabNavigation } from "@/components/navigation/tab-navigation"
+import { PlatformNavigation } from "@/components/navigation/platform-navigation"
 import { UserMenu } from "@/components/navigation/user-menu"
 
 interface ProtectedLayoutProps {
@@ -72,7 +72,7 @@ export function ProtectedLayout({
           </div>
         </header>
       )}
-      {!hideNavigation && <TabNavigation />}
+      {!hideNavigation && <PlatformNavigation />}
       <main className="container mx-auto px-4 py-6">{children}</main>
     </div>
   )
