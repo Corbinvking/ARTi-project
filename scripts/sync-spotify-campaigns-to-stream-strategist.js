@@ -92,12 +92,13 @@ async function syncCampaigns() {
     
     console.log(`📊 Found ${spotifyCampaigns.length} spotify campaigns\n`);
     
-    // Clear existing stream_strategist_campaigns (optional - comment out to append instead)
-    console.log('🧹 Clearing existing stream_strategist_campaigns...');
+    // Clear existing campaigns with our source (optional - comment out to append instead)
+    console.log('🧹 Clearing existing campaigns with source "artist_influence_spotify_campaigns"...');
     const { error: deleteError } = await supabase
-      .from('stream_strategist_campaigns')
+      .from('campaigns')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      .eq('source', 'artist_influence_spotify_campaigns')
+      .eq('campaign_type', 'artist_influence_spotify_promotion');
       
     if (deleteError && !deleteError.message.includes('0 rows')) {
       console.log(`⚠️  Warning: Could not clear existing campaigns: ${deleteError.message}`);
@@ -129,8 +130,8 @@ async function syncCampaigns() {
         duration_days: 90,
         start_date: parseDate(campaign.start_date) || new Date().toISOString().split('T')[0],
         status: mapStatus(campaign.status),
-        source: 'airtable_import',
-        campaign_type: 'artist_influence_spotify_promotion',
+        source: 'artist_influence_spotify_campaigns', // Match Stream Strategist constants
+        campaign_type: 'artist_influence_spotify_promotion', // Match Stream Strategist constants
         salesperson: campaign.salesperson || '',
         selected_playlists: [],
         vendor_allocations: {},
@@ -145,7 +146,7 @@ async function syncCampaigns() {
       };
       
       const { error: insertError } = await supabase
-        .from('stream_strategist_campaigns')
+        .from('campaigns')
         .insert([streamStrategistCampaign]);
         
       if (insertError) {
@@ -166,8 +167,10 @@ async function syncCampaigns() {
     // Verify the sync
     console.log('\n🔍 Verifying sync...');
     const { data: syncedCampaigns, error: verifyError } = await supabase
-      .from('stream_strategist_campaigns')
+      .from('campaigns')
       .select('id, name, stream_goal, status')
+      .eq('source', 'artist_influence_spotify_campaigns')
+      .eq('campaign_type', 'artist_influence_spotify_promotion')
       .limit(5);
       
     if (verifyError) {
