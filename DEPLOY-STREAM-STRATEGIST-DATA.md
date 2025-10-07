@@ -17,14 +17,17 @@ git pull origin main
 # 4. Apply missing column migration
 docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres < supabase/migrations/018_add_missing_stream_strategist_columns.sql
 
-# 5. Sync campaign data (1000+ campaigns)
+# 5. Create campaigns view (connects frontend to data)
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres < supabase/migrations/019_create_campaigns_view.sql
+
+# 6. Sync campaign data (1000+ campaigns)
 node scripts/sync-spotify-campaigns-to-stream-strategist.js --production
 
-# 6. Verify the sync worked
-docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "SELECT COUNT(*) as total_campaigns FROM stream_strategist_campaigns;"
+# 7. Verify the sync worked
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "SELECT COUNT(*) as total_campaigns FROM campaigns WHERE source = 'artist_influence_spotify_campaigns';"
 
-# 7. Check sample campaigns
-docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "SELECT name, stream_goal, status FROM stream_strategist_campaigns LIMIT 5;"
+# 8. Check sample campaigns
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "SELECT name, stream_goal, status FROM campaigns WHERE source = 'artist_influence_spotify_campaigns' LIMIT 5;"
 ```
 
 ## ✅ Expected Results
@@ -32,9 +35,10 @@ docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "S
 After running these commands, you should see:
 
 1. **Migration 018**: `ALTER TABLE` confirmations
-2. **Sync Script**: Progress updates every 100 campaigns
-3. **Final Count**: Should match your spotify_campaigns count (~2,149 campaigns)
-4. **Sample Data**: 5 campaigns with names, goals, and statuses
+2. **Migration 019**: `DROP TABLE` and `CREATE VIEW` confirmations
+3. **Sync Script**: Progress updates every 100 campaigns
+4. **Final Count**: Should match your spotify_campaigns count (~2,149 campaigns)
+5. **Sample Data**: 5 campaigns with names, goals, and statuses
 
 ## 🎯 Success Indicators
 
@@ -59,8 +63,9 @@ echo $SUPABASE_SERVICE_ROLE_KEY
 
 ### Issue: "Column not found"
 ```bash
-# Re-run migration 018
+# Re-run migrations 018 and 019
 docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres < supabase/migrations/018_add_missing_stream_strategist_columns.sql
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres < supabase/migrations/019_create_campaigns_view.sql
 ```
 
 ## 📊 After Deployment
