@@ -53,9 +53,13 @@ export async function healthRoutes(server: FastifyInstance) {
 
     try {
       // Test Redis connection
-      const pong = await redis.ping();
-      checks.redis = pong === 'PONG' ? 'ok' : 'error';
-      if (checks.redis === 'error') allHealthy = false;
+      if (redis) {
+        const pong = await redis.ping();
+        checks.redis = pong === 'PONG' ? 'ok' : 'error';
+        if (checks.redis === 'error') allHealthy = false;
+      } else {
+        checks.redis = 'not configured';
+      }
     } catch (err) {
       request.log.error({ err }, 'Redis health check failed');
       checks.redis = 'error';

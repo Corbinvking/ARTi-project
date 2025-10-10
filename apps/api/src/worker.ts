@@ -2,45 +2,83 @@ import { Worker, Queue } from 'bullmq'
 import Redis from 'ioredis'
 import { logger } from './lib/logger.js'
 import { supabase } from './lib/supabase.js'
+import { redis } from './lib/redis.js'
 
-// Initialize Redis connection
-const redis = new Redis(process.env.REDIS_URL || 'redis://redis:6379', {
-  maxRetriesPerRequest: null, // Set to null for BullMQ compatibility
-})
+// Only initialize BullMQ if Redis is available
+let metricsQueue: Queue | null = null
+let insightsQueue: Queue | null = null
+let metricsWorker: Worker | null = null
 
-// Initialize job queues
-const metricsQueue = new Queue('metrics', { connection: redis })
-const insightsQueue = new Queue('insights', { connection: redis })
+if (redis) {
+  // Initialize Redis connection for BullMQ
+  const bullRedis = new Redis(process.env.REDIS_URL || 'redis://redis:6379', {
+    maxRetriesPerRequest: null, // Set to null for BullMQ compatibility
+  })
 
-// Create worker for metrics sync jobs
-const metricsWorker = new Worker(
-  'metrics',
-  async (job) => {
-    logger.info(`Processing metrics job: ${job.name}`, { jobId: job.id, data: job.data })
-    
-    switch (job.name) {
-      case 'spotify-sync':
-        await syncSpotifyMetrics(job.data)
-        break
-      case 'soundcloud-sync':
-        await syncSoundCloudMetrics(job.data)
-        break
-      case 'youtube-sync':
-        await syncYouTubeMetrics(job.data)
-        break
-      case 'instagram-sync':
-        await syncInstagramMetrics(job.data)
-        break
-      case 'health-check':
-        logger.info('Performing hourly health check...')
-        // TODO: Implement actual health check logic
-        break
-      default:
-        logger.warn(`Unknown job type: ${job.name}`)
-    }
-  },
-  { connection: redis }
-)
+  // Initialize job queues
+  metricsQueue = new Queue('metrics', { connection: bullRedis })
+  insightsQueue = new Queue('insights', { connection: bullRedis })
+
+  // Create worker for metrics sync jobs
+  metricsWorker = new Worker(
+    'metrics',
+    async (job) => {
+      logger.info(`Processing metrics job: ${job.name}`, { jobId: job.id, data: job.data })
+
+      switch (job.name) {
+        case 'spotify-sync':
+          await syncSpotifyMetrics(job.data)
+          break
+        case 'soundcloud-sync':
+          await syncSoundCloudMetrics(job.data)
+          break
+        case 'youtube-sync':
+          await syncYouTubeMetrics(job.data)
+          break
+        case 'instagram-sync':
+          await syncInstagramMetrics(job.data)
+          break
+        case 'health-check':
+          logger.info('Performing hourly health check...')
+          // TODO: Implement actual health check logic
+          break
+        default:
+          logger.warn(`Unknown job type: ${job.name}`)
+      }
+    },
+    { connection: bullRedis }
+  )
+
+  // Event handlers
+  metricsWorker.on('completed', (job) => {
+    logger.info(`Job ${job.id} completed successfully`)
+  })
+
+  metricsWorker.on('failed', (job, failedReason) => {
+    logger.error(`Job ${job?.id} failed: ${failedReason}`)
+  })
+
+  // Handle graceful shutdown
+  process.on('SIGTERM', async () => {
+    logger.info('Received SIGTERM, shutting down worker...')
+    await metricsWorker?.close()
+    await bullRedis.quit()
+    process.exit(0)
+  })
+
+  process.on('SIGINT', async () => {
+    logger.info('Received SIGINT, shutting down worker...')
+    await metricsWorker?.close()
+    await bullRedis.quit()
+    process.exit(0)
+  })
+} else {
+  logger.warn('Redis not available, skipping BullMQ worker initialization')
+}
+
+// Initialize job queues (already done above if Redis is available)
+
+// Worker is already created above if Redis is available
 
 // Job implementations - Real Spotify metrics sync
 async function syncSpotifyMetrics(data: any) {
@@ -131,38 +169,45 @@ async function syncInstagramMetrics(data: any) {
   // TODO: Implement Instagram metrics fetching
 }
 
-// Event handlers
-metricsWorker.on('completed', (job) => {
-  logger.info(`Job ${job.id} completed successfully`)
-})
+// Event handlers (only if worker exists)
+if (metricsWorker) {
+  metricsWorker.on('completed', (job) => {
+    logger.info(`Job ${job.id} completed successfully`)
+  })
 
-metricsWorker.on('failed', (job, failedReason) => {
-  logger.error(`Job ${job?.id} failed: ${failedReason}`)
-})
+  metricsWorker.on('failed', (job, failedReason) => {
+    logger.error(`Job ${job?.id} failed: ${failedReason}`)
+  })
 
-// Handle graceful shutdown
-process.on('SIGTERM', async () => {
-  logger.info('Received SIGTERM, shutting down worker...')
-  await metricsWorker.close()
-  await redis.quit()
-  process.exit(0)
-})
+  // Handle graceful shutdown
+  process.on('SIGTERM', async () => {
+    logger.info('Received SIGTERM, shutting down worker...')
+    await metricsWorker.close()
+    if (redis) await redis.quit()
+    process.exit(0)
+  })
 
-process.on('SIGINT', async () => {
-  logger.info('Received SIGINT, shutting down worker...')
-  await metricsWorker.close()
-  await redis.quit()
-  process.exit(0)
-})
+  process.on('SIGINT', async () => {
+    logger.info('Received SIGINT, shutting down worker...')
+    await metricsWorker.close()
+    if (redis) await redis.quit()
+    process.exit(0)
+  })
+}
 
 // Setup cron schedules - aligned with architecture diagram
 async function setupCronSchedules() {
+  if (!redis) {
+    logger.info('📅 Skipping cron schedules - Redis not available')
+    return
+  }
+
   logger.info('📅 Setting up cron schedules...')
-  
+
   try {
     // Daily metrics sync at 2:00 AM UTC (per 4-day roadmap)
-    await metricsQueue.add(
-      'spotify-sync', 
+    await metricsQueue!.add(
+      'spotify-sync',
       { org_id: '00000000-0000-0000-0000-000000000001' }, // Demo org
       {
         repeat: { pattern: '0 2 * * *' }, // Daily at 2:00 AM
@@ -170,9 +215,9 @@ async function setupCronSchedules() {
         removeOnFail: 5,
       }
     )
-    
+
     // Hourly health check and token refresh
-    await metricsQueue.add(
+    await metricsQueue!.add(
       'health-check',
       {},
       {
@@ -181,9 +226,9 @@ async function setupCronSchedules() {
         removeOnFail: 3,
       }
     )
-    
+
     // Daily insights generation at 2:30 AM UTC
-    await insightsQueue.add(
+    await insightsQueue!.add(
       'daily-insights',
       { org_id: '00000000-0000-0000-0000-000000000001' },
       {
@@ -192,9 +237,9 @@ async function setupCronSchedules() {
         removeOnFail: 5,
       }
     )
-    
+
     logger.info('✅ Cron schedules configured successfully')
-    
+
   } catch (error) {
     logger.error('❌ Failed to setup cron schedules:', error)
   }
@@ -203,6 +248,11 @@ async function setupCronSchedules() {
 // Start the worker
 async function startWorker() {
   try {
+    if (!redis) {
+      logger.info('🚀 Skipping metrics worker - Redis not available')
+      return
+    }
+
     logger.info('🚀 Starting metrics worker...')
     await setupCronSchedules()
     logger.info('✅ Metrics worker started successfully')

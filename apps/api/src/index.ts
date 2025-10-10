@@ -5,6 +5,7 @@ import { setupPlugins } from '@/lib/plugins';
 import { setupRoutes } from '@/routes';
 import { supabase } from '@/lib/supabase';
 import { redis } from '@/lib/redis';
+import { initializeEmbeddingModel } from '@/lib/query-embeddings';
 import { randomUUID } from 'crypto';
 
 const server = Fastify({
@@ -16,10 +17,22 @@ const server = Fastify({
 
 async function startServer() {
   try {
-    // Test Redis connection (required)
-    logger.info('Testing Redis connection...');
-    await redis.ping();
-    
+    // Initialize embedding model
+    await initializeEmbeddingModel();
+
+    // Test Redis connection (optional)
+    if (redis) {
+      logger.info('Testing Redis connection...');
+      try {
+        await redis.ping();
+        logger.info('Redis connection successful');
+      } catch (redisError) {
+        logger.warn('Redis connection failed, continuing without Redis');
+      }
+    } else {
+      logger.info('Redis not configured, continuing without Redis');
+    }
+
     // Test database connection (non-blocking in production)
     if (process.env.NODE_ENV !== 'production') {
       logger.info('Testing database connection...');
@@ -54,14 +67,18 @@ async function startServer() {
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
   await server.close();
-  await redis.disconnect();
+  if (redis) {
+    await redis.disconnect();
+  }
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
   await server.close();
-  await redis.disconnect();
+  if (redis) {
+    await redis.disconnect();
+  }
   process.exit(0);
 });
 

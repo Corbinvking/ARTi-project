@@ -98,9 +98,9 @@ export class SpotifyScraperService {
       // Store successful results in database
       for (let i = 0; i < results.length; i++) {
         const result = results[i];
-        if (result.success && result.data && job.songUrls[i]) {
+        if (result && result.success && result.data && job.songUrls[i]) {
           try {
-            await this.storeScrapedData(job.orgId, job.songUrls[i], result);
+            await this.storeScrapedData(job.orgId, job.songUrls[i]!, result);
           } catch (error: any) {
             logger.error('Failed to store scraped data for song', {
               jobId,

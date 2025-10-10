@@ -181,23 +181,33 @@ def main():
     """Main execution function."""
     import argparse
     parser = argparse.ArgumentParser(description='Generate embeddings for content')
-    parser.add_argument('--content-type', choices=['campaign', 'playlist'], required=True,
+    parser.add_argument('--content-type', choices=['campaign', 'playlist'],
                       help='Type of content to generate embeddings for')
     parser.add_argument('--content-id', help='ID of specific content to process')
     parser.add_argument('--generate-all', action='store_true',
                       help='Generate embeddings for all content of specified type')
+    parser.add_argument('--query', help='Text query to generate embedding for (for search)')
     args = parser.parse_args()
 
     print('🤖 Local Embedding Generator')
     print('========================')
 
     try:
-        if args.generate_all:
+        if args.query:
+            # Generate embedding for a query
+            query_embedding = generate_embedding(args.query)
+            print(f'✅ Generated embedding for query: "{args.query[:50]}{"..." if len(args.query) > 50 else ""}"')
+            print(f'📊 Embedding length: {len(query_embedding)}')
+            print(f'🎯 Embedding: [{", ".join([f"{x:.4f}" for x in query_embedding[:5]])}, ...]')
+
+        elif args.generate_all and args.content_type:
             generate_all_embeddings(args.content_type)
-        elif args.content_id:
+
+        elif args.content_id and args.content_type:
             generate_embedding_for_content(args.content_type, args.content_id)
+
         else:
-            print('❌ Either --content-id or --generate-all is required')
+            print('❌ Either --query, or --content-id with --content-type, or --generate-all with --content-type is required')
             parser.print_help()
             exit(1)
 
