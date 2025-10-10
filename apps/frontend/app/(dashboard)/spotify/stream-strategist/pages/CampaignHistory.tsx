@@ -41,9 +41,10 @@ import {
   DialogTitle,
 } from "../components/ui/dialog";
 import { Label } from "../components/ui/label";
-import { 
-  Plus, 
-  Search, 
+import { AISearch } from "../components/AISearch";
+import {
+  Plus,
+  Search,
   Filter,
   MoreHorizontal,
   Eye,
@@ -652,6 +653,14 @@ export default function CampaignHistory() {
 
   return (
     <div className="space-y-8">
+      {/* AI Search Section */}
+      <AISearch
+        onCampaignSelect={(campaign) => {
+          // Navigate to campaign details or highlight in table
+          console.log('Selected campaign:', campaign);
+        }}
+      />
+
       {/* Hero Section */}
       <section className="text-center pt-8 pb-4">
         <h1 className="text-3xl font-bold gradient-primary bg-clip-text text-transparent">

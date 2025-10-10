@@ -1,6 +1,12 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { supabase } from '../lib/supabase.js'
 
+// OpenRouter configuration
+const openrouter = {
+  apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
+  baseURL: 'https://openrouter.ai/api/v1',
+}
+
 interface GenerateInsightsRequest {
   Body: {
     period?: 'daily' | 'weekly' | 'monthly'
@@ -43,7 +49,7 @@ export async function insightsRoutes(fastify: FastifyInstance) {
     try {
       // const user = request.user!
       const { id } = request.params
-      
+
       const { data: insight, error } = await supabase
         .from('insights')
         .select('*')
@@ -155,10 +161,216 @@ export async function insightsRoutes(fastify: FastifyInstance) {
         query,
         results: mockResults.slice(0, limit)
       })
-      
+
     } catch (error) {
       request.log.error(error, 'Error performing vector search')
       return reply.code(500).send({ error: 'Failed to perform search' })
+    }
+  })
+
+  // AI-powered semantic search for campaigns
+  fastify.post('/ai-search/similar-campaigns', {
+    // preHandler: [fastify.requireAuth]
+  }, async (request: FastifyRequest<{
+    Body: {
+      query: string
+      contentType?: string
+      threshold?: number
+      maxResults?: number
+    }
+  }>, reply: FastifyReply) => {
+    try {
+      const { query, contentType = 'campaign', threshold = 0.7, maxResults = 10 } = request.body
+
+      if (!query || typeof query !== 'string') {
+        return reply.code(400).send({ error: 'Query text is required' })
+      }
+
+      // Generate embedding for the query using OpenRouter
+      const embeddingResponse = await fetch(`${openrouter.baseURL}/embeddings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openrouter.apiKey}`,
+          'HTTP-Referer': 'https://api.artistinfluence.com',
+          'X-Title': 'ARTi Platform API',
+        },
+        body: JSON.stringify({
+          model: 'openai/text-embedding-ada-002',
+          input: query,
+          encoding_format: 'float',
+        }),
+      })
+
+      if (!embeddingResponse.ok) {
+        const errorData = await embeddingResponse.text()
+        throw new Error(`OpenRouter API error (${embeddingResponse.status}): ${errorData}`)
+      }
+
+      const embeddingData = await embeddingResponse.json()
+      const queryEmbedding = embeddingData.data[0].embedding
+
+      // Search for similar content using the database function
+      const { data: results, error } = await supabase.rpc('search_similar_content', {
+        query_embedding: queryEmbedding,
+        content_type_filter: contentType,
+        similarity_threshold: threshold,
+        max_results: maxResults,
+      })
+
+      if (error) {
+        request.log.error(error, 'Error searching similar content')
+        return reply.code(500).send({ error: 'Failed to search similar content' })
+      }
+
+      // Format results with campaign data
+      const formattedResults = await Promise.all(
+        results.map(async (result: any) => {
+          const { data: campaign, error: campaignError } = await supabase
+            .from('campaigns')
+            .select('*')
+            .eq('id', result.content_id)
+            .single()
+
+          if (campaignError) {
+            request.log.error(campaignError, 'Error fetching campaign')
+            return null
+          }
+
+          return {
+            ...campaign,
+            similarity: result.similarity,
+            search_content: result.content,
+          }
+        })
+      )
+
+      // Filter out null results
+      const validResults = formattedResults.filter(Boolean)
+
+      return reply.send({
+        query,
+        results: validResults,
+        total: validResults.length,
+      })
+
+    } catch (error) {
+      request.log.error(error, 'Error in similar campaigns search')
+      return reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
+
+  // Generate and store embedding for specific content
+  fastify.post('/ai-search/generate-embedding', {
+    // preHandler: [fastify.requireAuth]
+  }, async (request: FastifyRequest<{
+    Body: {
+      contentType: string
+      contentId: string
+      content: string
+      metadata?: any
+    }
+  }>, reply: FastifyReply) => {
+    try {
+      const { contentType, contentId, content, metadata = {} } = request.body
+
+      if (!contentType || !contentId || !content) {
+        return reply.code(400).send({
+          error: 'contentType, contentId, and content are required'
+        })
+      }
+
+      // Generate embedding using OpenRouter
+      const embeddingResponse = await fetch(`${openrouter.baseURL}/embeddings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openrouter.apiKey}`,
+          'HTTP-Referer': 'https://api.artistinfluence.com',
+          'X-Title': 'ARTi Platform API',
+        },
+        body: JSON.stringify({
+          model: 'openai/text-embedding-ada-002',
+          input: content,
+          encoding_format: 'float',
+        }),
+      })
+
+      if (!embeddingResponse.ok) {
+        const errorData = await embeddingResponse.text()
+        throw new Error(`OpenRouter API error (${embeddingResponse.status}): ${errorData}`)
+      }
+
+      const embeddingData = await embeddingResponse.json()
+      const embedding = embeddingData.data[0].embedding
+
+      // Store in database
+      const { data, error } = await supabase
+        .from('content_embeddings')
+        .upsert({
+          content_type: contentType,
+          content_id: contentId,
+          content: content,
+          embedding: embedding,
+          metadata: metadata,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        request.log.error(error, 'Error storing embedding')
+        return reply.code(500).send({ error: 'Failed to store embedding' })
+      }
+
+      return reply.send({
+        success: true,
+        embeddingId: data.id,
+        contentType,
+        contentId,
+      })
+
+    } catch (error) {
+      request.log.error(error, 'Error generating embedding')
+      return reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
+
+  // Generate embeddings for all content of a specific type
+  fastify.post('/ai-search/generate-all-embeddings', {
+    // preHandler: [fastify.requireAuth]
+  }, async (request: FastifyRequest<{
+    Body: {
+      contentType: string
+    }
+  }>, reply: FastifyReply) => {
+    try {
+      const { contentType } = request.body
+
+      if (!contentType) {
+        return reply.code(400).send({ error: 'contentType is required' })
+      }
+
+      // This would typically trigger the generate-embeddings.js script
+      // For now, we'll do it synchronously (consider using a job queue in production)
+      const { exec } = require('child_process')
+      const scriptPath = require('path').join(__dirname, '../../scripts/generate-embeddings.js')
+
+      exec(`node ${scriptPath} --generate-all --content-type ${contentType}`, (error, stdout, stderr) => {
+        if (error) {
+          request.log.error(error, 'Error running embedding generation')
+          return reply.code(500).send({ error: 'Failed to generate embeddings' })
+        }
+
+        return reply.send({
+          success: true,
+          message: 'Embedding generation started',
+          output: stdout,
+        })
+      })
+
+    } catch (error) {
+      request.log.error(error, 'Error in generate all embeddings')
+      return reply.code(500).send({ error: 'Internal server error' })
     }
   })
 }
