@@ -40,8 +40,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Plus, X, Trash2, Calendar, DollarSign, RefreshCw } from 'lucide-react';
-import { useUpdateClient, useClientCredits, useAddClientCredit } from '../hooks/useClients';
-import { useCampaignsForClient, useAllCampaigns, useAssignCampaignToClient, useUnassignCampaignFromClient } from '../hooks/useCampaigns';
+import { useUpdateClient, useClientCredits, useAddClientCredit, useClient } from '../hooks/useClients';
+import { useAllCampaigns, useAssignCampaignToClient, useUnassignCampaignFromClient } from '../hooks/useCampaigns';
 import { clearBrowserCache } from '../utils/debugUtils';
 import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_TYPE } from '../lib/constants';
 import { Client } from '../types';
@@ -73,18 +73,25 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
   const unassignCampaign = useUnassignCampaignFromClient();
 
   const { data: clientCredits = [] } = useClientCredits(client?.id || '');
-  const { data: clientCampaigns = [] } = useCampaignsForClient(client?.id || '');
+  const { data: clientData } = useClient(client?.id || '');
   const { data: allCampaigns = [], refetch: refetchAllCampaigns } = useAllCampaigns();
+
+  // Extract campaigns from client data
+  const clientCampaigns = clientData?.campaigns || [];
+  const clientWithCampaigns = clientData;
 
   // Debug logging when modal opens
   useEffect(() => {
     if (isOpen && client) {
       console.log('🔧 ClientDetailsModal opened for:', client.name);
+      console.log('🔧 Client ID:', client.id);
+      console.log('🔧 Client data:', clientData);
+      console.log('🔧 Client campaigns:', clientCampaigns);
       console.log('🔧 All campaigns:', allCampaigns);
       console.log('🔧 Filtering for:', { source: APP_CAMPAIGN_SOURCE, type: APP_CAMPAIGN_TYPE });
       refetchAllCampaigns(); // Force fresh fetch
     }
-  }, [isOpen, client]);
+  }, [isOpen, client, clientData, clientCampaigns]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -203,7 +210,7 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
     if (selectedCampaignData.client_id && selectedCampaignData.client_id !== client.id) {
       setConfirmReassign({
         campaignId: selectedCampaign,
-        campaignName: selectedCampaignData.name,
+        campaignName: selectedCampaignData.campaign,
         currentClientName: selectedCampaignData.clients?.name || 'Unknown Client'
       });
       return;
@@ -486,7 +493,7 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                                     {isAssignedToOtherClient && "🔄"}
                                     {isAssignedToCurrentClient && "✓"}
                                   </span>
-                                  <span>{campaign.name}</span>
+                                  <span>{campaign.campaign}</span>
                                   {isAssignedToOtherClient && (
                                     <span className="text-xs text-muted-foreground">
                                       (assigned to {campaign.clients?.name || 'Unknown'})
@@ -548,7 +555,7 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                   <TableBody>
                     {clientCampaigns.map((campaign) => (
                       <TableRow key={campaign.id}>
-                        <TableCell className="font-medium">{campaign.name}</TableCell>
+                        <TableCell className="font-medium">{campaign.campaign}</TableCell>
                         <TableCell>
                           <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>
                             {campaign.status}
@@ -560,7 +567,7 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                             {format(new Date(campaign.start_date), 'MMM dd, yyyy')}
                           </div>
                         </TableCell>
-                        <TableCell>${campaign.budget?.toLocaleString()}</TableCell>
+                        <TableCell>${campaign.sale_price?.toLocaleString()}</TableCell>
                         <TableCell>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -572,7 +579,7 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Unassign Campaign</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to unassign "{campaign.name}" from this client?
+                                  Are you sure you want to unassign "{campaign.campaign}" from this client?
                                   The campaign will remain in the system but won't be associated with any client.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>

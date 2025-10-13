@@ -8,19 +8,18 @@ import { logger } from './logger'
 export async function generateQueryEmbedding(query: string): Promise<number[]> {
   try {
     // Create a deterministic hash-based embedding
-    const hash = createHash('sha256').update(query.toLowerCase()).digest('hex')
+    const hash = createHash('sha256').update(query.toLowerCase()).digest()
 
-    // Convert hex string to float values between -1 and 1
+    // Convert hash bytes to float values between -1 and 1
     const embedding = new Array(1536).fill(0)
 
     for (let i = 0; i < 1536; i++) {
-      // Use hex characters to generate pseudo-random values
-      const charIndex = i % hash.length
-      const hexChar = hash.charAt(charIndex)
-      const byteValue = parseInt(hexChar, 16)
+      // Use hash bytes to generate pseudo-random values
+      const byteIndex = i % hash.length
+      const byteValue = hash.readUInt8(byteIndex)
 
-      // Convert hex digit (0-15) to float (-1 to 1)
-      embedding[i] = (byteValue - 7.5) / 7.5
+      // Convert byte (0-255) to float (-1 to 1)
+      embedding[i] = (byteValue - 128) / 128
     }
 
     // Add some query-specific features

@@ -10,41 +10,73 @@ export function useClients() {
   return useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get all clients
+      const { data: clients, error: clientsError } = await supabase
         .from('clients')
         .select('*')
         .order('name');
-      
-      if (error) throw error;
-      return data;
+
+      if (clientsError) throw clientsError;
+
+      // Then get campaign counts for each client
+      const clientsWithCounts = await Promise.all(
+        clients.map(async (client) => {
+          const { data: campaigns, error: campaignsError } = await supabase
+            .from('spotify_campaigns')
+            .select('id, status')
+            .eq('client_id', client.id);
+
+          if (campaignsError) {
+            console.error('Error fetching campaigns for client:', client.id, campaignsError);
+            return {
+              ...client,
+              activeCampaignsCount: 0,
+              totalCampaignsCount: 0,
+            };
+          }
+
+          return {
+            ...client,
+            activeCampaignsCount: campaigns?.filter((c: any) => c.status === 'Active').length || 0,
+            totalCampaignsCount: campaigns?.length || 0,
+          };
+        })
+      );
+
+      return clientsWithCounts;
     },
   });
 }
 
 export function useClient(clientId: string) {
   return useQuery({
-    queryKey: ['client', clientId, APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_TYPE],
+    queryKey: ['client', clientId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get the client
+      const { data: client, error: clientError } = await supabase
         .from('clients')
-        .select(`
-          *,
-          campaigns:campaigns!client_id(*)
-        `)
+        .select('*')
         .eq('id', clientId)
         .single();
-      
-      if (error) throw error;
-      
-      // Filter campaigns to only include relevant ones
-      if (data.campaigns) {
-        data.campaigns = data.campaigns.filter((c: any) => 
-          c.source === APP_CAMPAIGN_SOURCE && 
-          c.campaign_type === APP_CAMPAIGN_TYPE
-        );
-      }
-      
-      return data;
+
+      if (clientError) throw clientError;
+
+      // Then get their campaigns (NO filtering by source/type for now)
+      const { data: campaigns, error: campaignsError } = await supabase
+        .from('spotify_campaigns')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false });
+
+      if (campaignsError) throw campaignsError;
+
+      console.log(`✅ Client ${client.name} has ${campaigns?.length || 0} campaigns`);
+      console.log('Sample campaigns:', campaigns?.slice(0, 3));
+
+      return {
+        ...client,
+        campaigns: campaigns || []
+      };
     },
     enabled: !!clientId,
   });

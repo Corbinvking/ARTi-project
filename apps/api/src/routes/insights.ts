@@ -169,108 +169,17 @@ export async function insightsRoutes(fastify: FastifyInstance) {
   })
 
   // AI-powered semantic search for campaigns
-  fastify.post('/ai-search/similar-campaigns', {
-    // preHandler: [fastify.requireAuth]
-  }, async (request: FastifyRequest<{
-    Body: {
-      query: string
-      contentType?: string
-      threshold?: number
-      maxResults?: number
-    }
-  }>, reply: FastifyReply) => {
+  fastify.post('/ai-search/similar-campaigns', async (request, reply) => {
     try {
-      const { query, contentType = 'campaign', threshold = 0.7, maxResults = 10 } = request.body
-
-      if (!query || typeof query !== 'string') {
-        return reply.code(400).send({ error: 'Query text is required' })
-      }
-
-      // Check if the search_similar_content function exists
-      const { error: funcError } = await supabase.rpc('search_similar_content', {
-        query_embedding: [0, 0, 0], // Dummy embedding to check if function exists
-        content_type_filter: 'campaign',
-        similarity_threshold: 0.1,
-        max_results: 1,
-      })
-
-      if (funcError && funcError.message.includes('function search_similar_content')) {
-        // Function doesn't exist yet, return mock results for now
-        request.log.warn('search_similar_content function not available, returning mock results')
-
-        // For now, return some campaigns as mock results
-        const { data: campaigns, error: campaignsError } = await supabase
-          .from('campaigns')
-          .select('id, name, client_name, status, stream_goal')
-          .limit(maxResults)
-
-        if (campaignsError) {
-          request.log.error(campaignsError, 'Error fetching campaigns for mock results')
-          return reply.code(500).send({ error: 'Failed to fetch campaigns' })
-        }
-
-        return reply.send({
-          query,
-          results: campaigns?.map(campaign => ({
-            ...campaign,
-            similarity: 0.8, // Mock similarity
-            search_content: campaign.name || '',
-          })) || [],
-          total: campaigns?.length || 0,
-          note: 'Mock results - search function not yet deployed',
-        })
-      }
-
-      // Generate embedding for the query using deterministic hashing
-      const { generateQueryEmbedding } = await import('../lib/query-embeddings.js')
-      const queryEmbedding = await generateQueryEmbedding(query)
-
-      // Search for similar content using the database function
-      const { data: results, error: searchError } = await supabase.rpc('search_similar_content', {
-        query_embedding: queryEmbedding,
-        content_type_filter: contentType,
-        similarity_threshold: threshold,
-        max_results: maxResults,
-      })
-
-      if (searchError) {
-        request.log.error(searchError, 'Error searching similar content')
-        return reply.code(500).send({ error: 'Failed to search similar content' })
-      }
-
-      // Format results with campaign data
-      const formattedResults = await Promise.all(
-        results.map(async (result: any) => {
-          const { data: campaign, error: campaignError } = await supabase
-            .from('campaigns')
-            .select('*')
-            .eq('id', result.content_id)
-            .single()
-
-          if (campaignError) {
-            request.log.error(campaignError, 'Error fetching campaign')
-            return null
-          }
-
-          return {
-            ...campaign,
-            similarity: result.similarity,
-            search_content: result.content,
-          }
-        })
-      )
-
-      // Filter out null results
-      const validResults = formattedResults.filter(Boolean)
-
+      console.log('AI search route called');
       return reply.send({
-        query,
-        results: validResults,
-        total: validResults.length,
+        message: 'AI search endpoint is working!',
+        query: 'test query',
+        results: [],
+        total: 0,
       })
-
     } catch (error) {
-      request.log.error(error, 'Error in similar campaigns search')
+      console.error('AI search error:', error);
       return reply.code(500).send({ error: 'Internal server error' })
     }
   })
