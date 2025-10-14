@@ -26,6 +26,7 @@ import { useAdvancedLearningMetrics, useDynamicAlgorithmOptimization } from "../
 import { useMLModelAnalysis } from "../hooks/useMLPerformancePredictor";
 import { useMLAlerts, useMLSystemHealth } from "../hooks/useMLDashboardData";
 import { MLMetricExplanationCards } from "./MLMetricExplanationCards";
+import { AIAnalyticsChat } from "./AIAnalyticsChat";
 import { useState } from "react";
 
 export function MLDashboard({ className }: { className?: string }) {
@@ -91,9 +92,10 @@ export function MLDashboard({ className }: { className?: string }) {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="model">Model Performance</TabsTrigger>
+          <TabsTrigger value="ai-chat">AI Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -302,6 +304,11 @@ export function MLDashboard({ className }: { className?: string }) {
                 </div>
               </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="ai-chat" className="space-y-6">
+          {/* AI Analytics Chat Interface */}
+          <AIAnalyticsChat />
         </TabsContent>
 
       </Tabs>

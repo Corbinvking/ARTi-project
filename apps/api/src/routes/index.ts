@@ -5,6 +5,7 @@ import { webhookRoutes } from './webhooks';
 import { providersRoutes } from './providers';
 import { adminRoutes } from './admin';
 import { insightsRoutes } from './insights';
+import aiAnalyticsRoutes from './ai-analytics';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -25,6 +26,9 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // Insights routes (LLM, RAG, vector search)
   await server.register(insightsRoutes, { prefix: '/api' });
+
+  // AI Analytics routes (RAG-based analytics chat)
+  await server.register(aiAnalyticsRoutes, { prefix: '/api' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {
