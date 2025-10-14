@@ -313,10 +313,12 @@ export default function CampaignHistory() {
   // Sort and filter campaigns
   const sortedAndFilteredCampaigns = (() => {
     let filtered = campaigns?.filter(campaign => {
-      const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           campaign.client.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = campaign.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           campaign.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           campaign.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           campaign.salesperson?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === "all" || 
-                           campaign.status.toLowerCase() === statusFilter.toLowerCase();
+                           campaign.status?.toLowerCase() === statusFilter.toLowerCase();
       
       // SFA Status filtering
       const matchesSFA = sfaFilter === "all" || getSFAStatus(campaign) === sfaFilter;
