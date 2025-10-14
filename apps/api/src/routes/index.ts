@@ -5,7 +5,7 @@ import { webhookRoutes } from './webhooks';
 import { providersRoutes } from './providers';
 import { adminRoutes } from './admin';
 import { insightsRoutes } from './insights';
-import aiAnalyticsRoutes from './ai-analytics';
+import aiAnalyticsRoutes from './ai-analytics-simple'; // Using simple version for now
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
