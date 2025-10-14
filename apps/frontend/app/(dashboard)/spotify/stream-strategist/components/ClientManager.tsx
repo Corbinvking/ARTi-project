@@ -321,18 +321,18 @@ export function ClientManager() {
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-hidden">
         {filteredClients.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             {searchTerm ? 'No clients found matching your search.' : 'No clients found. Create your first client to get started.'}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="overflow-x-auto w-full">
+            <Table className="w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead 
-                    className="cursor-pointer select-none hover:bg-muted/50"
+                    className="cursor-pointer select-none hover:bg-muted/50 min-w-[200px] max-w-[300px]"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center">
@@ -341,7 +341,7 @@ export function ClientManager() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer select-none hover:bg-muted/50"
+                    className="cursor-pointer select-none hover:bg-muted/50 w-[100px]"
                     onClick={() => handleSort('emails')}
                   >
                     <div className="flex items-center">
@@ -350,7 +350,7 @@ export function ClientManager() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer select-none hover:bg-muted/50"
+                    className="cursor-pointer select-none hover:bg-muted/50 w-[120px]"
                     onClick={() => handleSort('credit_balance')}
                   >
                     <div className="flex items-center">
@@ -359,7 +359,7 @@ export function ClientManager() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer select-none hover:bg-muted/50"
+                    className="cursor-pointer select-none hover:bg-muted/50 w-[150px]"
                     onClick={() => handleSort('active_campaigns')}
                   >
                     <div className="flex items-center">
@@ -368,7 +368,7 @@ export function ClientManager() {
                     </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer select-none hover:bg-muted/50"
+                    className="cursor-pointer select-none hover:bg-muted/50 w-[120px]"
                     onClick={() => handleSort('created_at')}
                   >
                     <div className="flex items-center">
@@ -386,7 +386,11 @@ export function ClientManager() {
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => handleClientClick(client)}
                   >
-                    <TableCell className="font-medium">{client.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="truncate max-w-[280px]" title={client.name}>
+                        {client.name}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <TooltipProvider>
                         <Tooltip>
