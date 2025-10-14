@@ -166,12 +166,17 @@ export default function PlaylistsPage() {
   const { data: vendors, isLoading: vendorsLoading } = useQuery({
     queryKey: ['vendors'],
     queryFn: async (): Promise<Vendor[]> => {
+      console.log('🔍 Fetching vendors...');
       const { data, error } = await supabase
         .from('vendors')
         .select('*')
         .order('name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching vendors:', error);
+        throw error;
+      }
+      console.log('✅ Vendors fetched:', data?.length, data);
       return data || [];
     }
   });
@@ -212,10 +217,19 @@ export default function PlaylistsPage() {
   });
 
   // Filter data based on current view
-  const filteredVendors = vendors?.filter(vendor =>
-    vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (showInactive || vendor.is_active !== false) // Show inactive only if toggle is on, default to active
-  ) || [];
+  const filteredVendors = vendors?.filter(vendor => {
+    const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesActiveFilter = (showInactive || vendor.is_active !== false);
+    return matchesSearch && matchesActiveFilter;
+  }) || [];
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 Vendors:', vendors?.length);
+    console.log('🔍 Filtered vendors:', filteredVendors.length);
+    console.log('🔍 Show inactive:', showInactive);
+    console.log('🔍 Search term:', searchTerm);
+  }, [vendors, filteredVendors, showInactive, searchTerm]);
 
   const filteredPlaylists = viewMode === 'table' 
     ? allPlaylists?.filter(playlist => {
@@ -900,6 +914,17 @@ export default function PlaylistsPage() {
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="h-48 bg-muted/30 rounded-lg animate-pulse" />
                 ))}
+              </div>
+            ) : filteredVendors.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">
+                  {vendors?.length === 0 
+                    ? 'No vendors found. Click "Add Vendor" to create one.' 
+                    : 'No vendors match your search criteria.'}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Total vendors: {vendors?.length || 0} | Filtered: {filteredVendors.length}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
