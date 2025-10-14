@@ -33,6 +33,14 @@ function parseStreamCount(str) {
 }
 
 /**
+ * Sum all playlist streams for a time range
+ */
+function sumPlaylistStreams(playlists) {
+  if (!playlists || !Array.isArray(playlists)) return 0;
+  return playlists.reduce((sum, p) => sum + parseStreamCount(p.streams), 0);
+}
+
+/**
  * Process a single scraped song file
  */
 async function processScrapedSong(filePath, trackId) {
@@ -44,35 +52,18 @@ async function processScrapedSong(filePath, trackId) {
     scraped_at: data.scraped_at,
     
     // 7-day metrics
-    plays_last_7d: data.time_ranges?.['7day']?.stats?.playlists?.[0]?.streams 
-      ? parseStreamCount(data.time_ranges['7day'].stats.playlists.reduce((sum, p) => 
-          sum + parseStreamCount(p.streams), 0))
-      : 0,
+    plays_last_7d: sumPlaylistStreams(data.time_ranges?.['7day']?.stats?.playlists),
     
-    // 28-day metrics  
-    plays_last_28d: data.time_ranges?.['28day']?.stats?.playlists?.[0]?.streams
-      ? parseStreamCount(data.time_ranges['28day'].stats.playlists.reduce((sum, p) => 
-          sum + parseStreamCount(p.streams), 0))
-      : 0,
+    // 28-day metrics (using as proxy for 3 months)
+    plays_last_28d: sumPlaylistStreams(data.time_ranges?.['28day']?.stats?.playlists),
     
     // 12-month metrics
-    plays_last_12m: data.time_ranges?.['12months']?.stats?.playlists?.[0]?.streams
-      ? parseStreamCount(data.time_ranges['12months'].stats.playlists.reduce((sum, p) => 
-          sum + parseStreamCount(p.streams), 0))
-      : 0,
+    plays_last_12m: sumPlaylistStreams(data.time_ranges?.['12months']?.stats?.playlists),
     
-    // Playlist metrics
-    playlist_count_7d: data.time_ranges?.['7day']?.stats?.playlist_stats?.total 
-      ? parseInt(data.time_ranges['7day'].stats.playlist_stats.total.replace(/,/g, '')) 
-      : 0,
-    
-    playlist_count_28d: data.time_ranges?.['28day']?.stats?.playlist_stats?.total
-      ? parseInt(data.time_ranges['28day'].stats.playlist_stats.total.replace(/,/g, ''))
-      : 0,
-    
-    playlist_count_12m: data.time_ranges?.['12months']?.stats?.playlist_stats?.total
-      ? parseInt(data.time_ranges['12months'].stats.playlist_stats.total.replace(/,/g, ''))
-      : 0,
+    // Playlist counts
+    playlist_count_7d: parseInt(data.time_ranges?.['7day']?.stats?.playlist_stats?.total?.replace(/,/g, '') || '0') || 0,
+    playlist_count_28d: parseInt(data.time_ranges?.['28day']?.stats?.playlist_stats?.total?.replace(/,/g, '') || '0') || 0,
+    playlist_count_12m: parseInt(data.time_ranges?.['12months']?.stats?.playlist_stats?.total?.replace(/,/g, '') || '0') || 0,
     
     // Top playlists (from 28-day data)
     top_playlists: data.time_ranges?.['28day']?.stats?.playlists
