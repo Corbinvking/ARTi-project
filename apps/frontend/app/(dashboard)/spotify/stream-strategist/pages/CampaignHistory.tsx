@@ -164,35 +164,84 @@ export default function CampaignHistory() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch campaigns with enhanced data - Support both campaign sources
+  // Fetch campaigns with enhanced data - Now using campaign_groups
   const { data: campaigns, isLoading } = useQuery({
     queryKey: ['campaigns-enhanced'],
     queryFn: async (): Promise<Campaign[]> => {
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .in('source', [APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_SOURCE_INTAKE, 'campaign_manager']) // Support all known sources
-        .eq('campaign_type', APP_CAMPAIGN_TYPE)
-        .order('created_at', { ascending: false });
+      // Fetch campaign groups
+      const { data: campaignGroups, error } = await supabase
+        .from('campaign_groups')
+        .select(`
+          *,
+          clients:client_id (
+            id,
+            name,
+            emails
+          )
+        `)
+        .order('start_date', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching campaign groups:', error);
+        throw error;
+      }
       
-      // Enhance campaigns with calculated fields
-      const enhancedCampaigns = (data || []).map(campaign => {
-        const streamsCompleted = campaign.stream_goal - (campaign.remaining_streams || campaign.stream_goal);
-        const progressPercentage = Math.round((streamsCompleted / campaign.stream_goal) * 100);
-        
-        return {
-          ...campaign,
-          progress_percentage: progressPercentage,
-          daily_streams: campaign.daily_streams || 0,
-          weekly_streams: campaign.weekly_streams || 0,
-          remaining_streams: campaign.remaining_streams || campaign.stream_goal,
-          // These will be calculated by the database functions we created
-          invoice_status: 'not_invoiced', // Will be replaced by actual query later
-          performance_status: 'pending' // Will be replaced by actual query later
-        };
-      });
+      // For each campaign group, fetch songs and calculate metrics
+      const enhancedCampaigns = await Promise.all(
+        (campaignGroups || []).map(async (group: any) => {
+          const { data: songs, error: songsError } = await supabase
+            .from('spotify_campaigns')
+            .select('*')
+            .eq('campaign_group_id', group.id);
+
+          if (songsError) {
+            console.error(`Error fetching songs for campaign ${group.id}:`, songsError);
+          }
+
+          // Calculate totals from songs
+          const total_remaining = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.remaining) || 0), 0);
+          const total_daily = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.daily) || 0), 0);
+          const total_weekly = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.weekly) || 0), 0);
+          const progress_percentage = group.total_goal > 0 
+            ? Math.round(((group.total_goal - total_remaining) / group.total_goal) * 100)
+            : 0;
+
+          // Map to Campaign interface expected by the UI
+          return {
+            id: group.id,
+            name: group.name,
+            artist_name: group.artist_name,
+            client: group.clients?.name || group.client_id,
+            client_name: group.clients?.name || group.client_id,
+            client_id: group.client_id,
+            track_url: (songs && songs[0]?.url) || '',
+            track_name: group.name,
+            stream_goal: group.total_goal,
+            remaining_streams: total_remaining,
+            budget: group.total_budget,
+            sub_genre: '',
+            start_date: group.start_date,
+            duration_days: 90,
+            status: group.status,
+            created_at: group.created_at,
+            updated_at: group.updated_at,
+            daily_streams: total_daily,
+            weekly_streams: total_weekly,
+            progress_percentage,
+            invoice_status: group.invoice_status || 'not_invoiced',
+            performance_status: 'pending',
+            salesperson: group.salesperson || '',
+            music_genres: [],
+            territory_preferences: [],
+            content_types: [],
+            selected_playlists: null,
+            vendor_allocations: null,
+            totals: null,
+            algorithm_recommendations: null,
+            songs: songs || []
+          };
+        })
+      );
       
       return enhancedCampaigns;
     }

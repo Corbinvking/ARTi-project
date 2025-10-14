@@ -37,6 +37,14 @@ CREATE TABLE IF NOT EXISTS public.campaign_groups (
 ALTER TABLE public.spotify_campaigns 
 ADD COLUMN IF NOT EXISTS campaign_group_id UUID REFERENCES public.campaign_groups(id) ON DELETE SET NULL;
 
+-- Add song stream data points for real-time metrics
+ALTER TABLE public.spotify_campaigns
+ADD COLUMN IF NOT EXISTS plays_last_7d INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS plays_last_3m INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS plays_last_12m INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS playlist_adds INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS saves INTEGER DEFAULT 0;
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_campaign_groups_client_id ON public.campaign_groups(client_id);
 CREATE INDEX IF NOT EXISTS idx_campaign_groups_status ON public.campaign_groups(status);
@@ -121,7 +129,12 @@ BEGIN
         'status', sc.status,
         'curator_status', sc.curator_status,
         'playlists', sc.playlists,
-        'notes', sc.notes
+        'notes', sc.notes,
+        'plays_last_7d', sc.plays_last_7d,
+        'plays_last_3m', sc.plays_last_3m,
+        'plays_last_12m', sc.plays_last_12m,
+        'playlist_adds', sc.playlist_adds,
+        'saves', sc.saves
       )
     ) as songs
   FROM public.campaign_groups cg

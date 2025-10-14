@@ -18,16 +18,16 @@ export function useClients() {
 
       if (clientsError) throw clientsError;
 
-      // Then get campaign counts for each client
+      // Then get campaign group counts for each client
       const clientsWithCounts = await Promise.all(
         clients.map(async (client) => {
-          const { data: campaigns, error: campaignsError } = await supabase
-            .from('spotify_campaigns')
+          const { data: campaignGroups, error: campaignsError } = await supabase
+            .from('campaign_groups')
             .select('id, status')
             .eq('client_id', client.id);
 
           if (campaignsError) {
-            console.error('Error fetching campaigns for client:', client.id, campaignsError);
+            console.error('Error fetching campaign groups for client:', client.id, campaignsError);
             return {
               ...client,
               activeCampaignsCount: 0,
@@ -37,8 +37,8 @@ export function useClients() {
 
           return {
             ...client,
-            activeCampaignsCount: campaigns?.filter((c: any) => c.status === 'Active').length || 0,
-            totalCampaignsCount: campaigns?.length || 0,
+            activeCampaignsCount: campaignGroups?.filter((c: any) => c.status === 'Active').length || 0,
+            totalCampaignsCount: campaignGroups?.length || 0,
           };
         })
       );
@@ -61,21 +61,42 @@ export function useClient(clientId: string) {
 
       if (clientError) throw clientError;
 
-      // Then get their campaigns (NO filtering by source/type for now)
-      const { data: campaigns, error: campaignsError } = await supabase
-        .from('spotify_campaigns')
+      // Then get their campaign groups (grouped campaigns, not individual songs)
+      const { data: campaignGroups, error: campaignsError } = await supabase
+        .from('campaign_groups')
         .select('*')
         .eq('client_id', clientId)
-        .order('created_at', { ascending: false });
+        .order('start_date', { ascending: false });
 
       if (campaignsError) throw campaignsError;
 
-      console.log(`✅ Client ${client.name} has ${campaigns?.length || 0} campaigns`);
-      console.log('Sample campaigns:', campaigns?.slice(0, 3));
+      // For each campaign group, fetch songs and calculate totals
+      const campaignsWithMetrics = await Promise.all(
+        (campaignGroups || []).map(async (group: any) => {
+          const { data: songs } = await supabase
+            .from('spotify_campaigns')
+            .select('*')
+            .eq('campaign_group_id', group.id);
+
+          const total_remaining = (songs || []).reduce((sum: number, s: any) => sum + (parseInt(s.remaining) || 0), 0);
+          const total_daily = (songs || []).reduce((sum: number, s: any) => sum + (parseInt(s.daily) || 0), 0);
+          const total_weekly = (songs || []).reduce((sum: number, s: any) => sum + (parseInt(s.weekly) || 0), 0);
+
+          return {
+            ...group,
+            remaining_streams: total_remaining,
+            daily_streams: total_daily,
+            weekly_streams: total_weekly,
+            song_count: songs?.length || 0
+          };
+        })
+      );
+
+      console.log(`✅ Client ${client.name} has ${campaignGroups?.length || 0} campaign groups`);
 
       return {
         ...client,
-        campaigns: campaigns || []
+        campaigns: campaignsWithMetrics || []
       };
     },
     enabled: !!clientId,
