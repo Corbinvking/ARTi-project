@@ -116,6 +116,12 @@ interface Campaign {
   progress_percentage?: number;
   sfa_status?: 'connected' | 'no_access' | 'pending';
   playlist_status?: 'has_playlists' | 'no_playlists' | 'pending';
+  // Scraped real data fields
+  plays_last_7d?: number;
+  plays_last_3m?: number;
+  plays_last_12m?: number;
+  playlist_adds?: number;
+  saves?: number;
 }
 
 type SortField = 'name' | 'client' | 'budget' | 'stream_goal' | 'daily_streams' | 'weekly_streams' | 'remaining_streams' | 'start_date' | 'progress' | 'status' | 'invoice_status' | 'performance_status';
@@ -197,10 +203,17 @@ export default function CampaignHistory() {
             console.error(`Error fetching songs for campaign ${group.id}:`, songsError);
           }
 
-          // Calculate totals from songs
+          // Calculate totals from songs (promised metrics)
           const total_remaining = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.remaining) || 0), 0);
           const total_daily = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.daily) || 0), 0);
           const total_weekly = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.weekly) || 0), 0);
+          
+          // Calculate REAL metrics from scraped data
+          const real_plays_7d = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.plays_last_7d) || 0), 0);
+          const real_plays_3m = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.plays_last_3m) || 0), 0);
+          const real_plays_12m = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.plays_last_12m) || 0), 0);
+          const total_playlists = (songs || []).reduce((sum: number, song: any) => Math.max(sum, parseInt(song.playlist_adds) || 0), 0);
+          
           const progress_percentage = group.total_goal > 0 
             ? Math.round(((group.total_goal - total_remaining) / group.total_goal) * 100)
             : 0;
@@ -224,8 +237,14 @@ export default function CampaignHistory() {
             status: group.status,
             created_at: group.created_at,
             updated_at: group.updated_at,
+            // Promised metrics (from vendor promises)
             daily_streams: total_daily,
             weekly_streams: total_weekly,
+            // REAL metrics (from scraped data) - prioritize these for display
+            plays_last_7d: real_plays_7d,
+            plays_last_3m: real_plays_3m,
+            plays_last_12m: real_plays_12m,
+            playlist_adds: total_playlists,
             progress_percentage,
             invoice_status: group.invoice_status || 'not_invoiced',
             performance_status: 'pending',
