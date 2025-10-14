@@ -555,19 +555,35 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                   <TableBody>
                     {clientCampaigns.map((campaign) => (
                       <TableRow key={campaign.id}>
-                        <TableCell className="font-medium">{campaign.campaign}</TableCell>
+                        <TableCell className="font-medium">
+                          <div>
+                            <div>{campaign.name}</div>
+                            {campaign.song_count > 1 && (
+                              <div className="text-xs text-muted-foreground">
+                                {campaign.song_count} songs
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>
-                          <Badge variant={campaign.status === 'active' ? 'default' : 'secondary'}>
+                          <Badge variant={campaign.status?.toLowerCase() === 'active' ? 'default' : 'secondary'}>
                             {campaign.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
-                            {format(new Date(campaign.start_date), 'MMM dd, yyyy')}
+                            {campaign.start_date ? format(new Date(campaign.start_date), 'MMM dd, yyyy') : 'N/A'}
                           </div>
                         </TableCell>
-                        <TableCell>${campaign.sale_price?.toLocaleString()}</TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">${campaign.total_budget?.toFixed(2) || '0.00'}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Goal: {campaign.total_goal?.toLocaleString() || '0'}
+                            </div>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -579,7 +595,7 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Unassign Campaign</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to unassign "{campaign.campaign}" from this client?
+                                  Are you sure you want to unassign "{campaign.name}" from this client?
                                   The campaign will remain in the system but won't be associated with any client.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
