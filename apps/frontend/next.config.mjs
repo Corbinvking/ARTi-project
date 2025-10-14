@@ -24,6 +24,15 @@ const nextConfig = {
       // Add redirects here if needed
     ]
   },
+  // API proxy for development
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3002/api/:path*', // Proxy to backend API
+      },
+    ]
+  },
   // Environment variables validation
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
