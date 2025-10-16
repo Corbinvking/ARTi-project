@@ -48,6 +48,7 @@ import { useCampaignVendorResponses } from '../hooks/useCampaignVendorResponses'
 import { useIsVendorManager } from '../hooks/useIsVendorManager';
 import { useAuth } from '../hooks/useAuth';
 import { useSalespeople } from '../hooks/useSalespeople';
+import { useQuery } from '@tanstack/react-query';
 import { VendorGroupedPlaylistView } from './VendorGroupedPlaylistView';
 import { VendorPerformanceChart } from './VendorPerformanceChart';
 import { useCampaignPerformanceData, useCampaignOverallPerformance } from '../hooks/useCampaignPerformanceData';
@@ -100,6 +101,35 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   // Fetch performance data for admin view
   const { data: performanceData, isLoading: performanceLoading } = useCampaignPerformanceData(campaign?.id);
   const { data: overallPerformance } = useCampaignOverallPerformance(campaign?.id);
+  
+  // Fetch campaign playlists (real scraped data)
+  const { data: campaignPlaylists = [], isLoading: playlistsLoading } = useQuery({
+    queryKey: ['campaign-playlists', campaign?.id],
+    queryFn: async () => {
+      if (!campaign?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('campaign_playlists')
+        .select(`
+          *,
+          vendors (
+            id,
+            name,
+            cost_per_1k_streams
+          )
+        `)
+        .eq('campaign_id', campaign.id)
+        .order('streams_28d', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching campaign playlists:', error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: !!campaign?.id && open
+  });
   
   const canEditCampaign = hasRole('admin') || hasRole('manager');
 
@@ -548,9 +578,13 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         </DialogHeader>
         
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               Campaign Details
+            </TabsTrigger>
+            <TabsTrigger value="playlists" className="flex items-center gap-2">
+              <Music className="h-4 w-4" />
+              Playlists
             </TabsTrigger>
             <TabsTrigger value="performance" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -974,6 +1008,162 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               <p>{campaignData?.updated_at ? formatDate(campaignData.updated_at) : 'Unknown'}</p>
             </div>
           </div>
+          </TabsContent>
+
+          <TabsContent value="playlists" className="space-y-6">
+            {playlistsLoading ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : campaignPlaylists.length === 0 ? (
+              <div className="text-center p-8 text-muted-foreground">
+                <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">No Playlist Data Yet</p>
+                <p className="text-sm">
+                  Playlist placement data will appear here once the Spotify scraper runs for this campaign.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Summary Stats */}
+                <div className="grid grid-cols-4 gap-4">
+                  <Card className="p-4">
+                    <div className="text-sm text-muted-foreground mb-1">Total Playlists</div>
+                    <div className="text-2xl font-bold">{campaignPlaylists.length}</div>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="text-sm text-muted-foreground mb-1">Total Streams (28d)</div>
+                    <div className="text-2xl font-bold">
+                      {campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()}
+                    </div>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="text-sm text-muted-foreground mb-1">Avg Daily Streams</div>
+                    <div className="text-2xl font-bold">
+                      {Math.round(campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0) / 28).toLocaleString()}
+                    </div>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="text-sm text-muted-foreground mb-1">Unique Vendors</div>
+                    <div className="text-2xl font-bold">
+                      {new Set(campaignPlaylists.map((p: any) => p.vendor_id)).size}
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Playlists Table */}
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Playlist Name</TableHead>
+                        <TableHead>Vendor</TableHead>
+                        <TableHead>Curator</TableHead>
+                        <TableHead className="text-right">Streams (7d)</TableHead>
+                        <TableHead className="text-right">Streams (28d)</TableHead>
+                        <TableHead className="text-right">Streams (12m)</TableHead>
+                        <TableHead>Date Added</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {campaignPlaylists.map((playlist: any) => (
+                        <TableRow key={playlist.id}>
+                          <TableCell className="font-medium max-w-[250px]">
+                            <div className="truncate" title={playlist.playlist_name}>
+                              {playlist.playlist_name}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {playlist.vendors?.name || 'Unknown'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {playlist.playlist_curator || '—'}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {(playlist.streams_7d || 0).toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-medium">
+                            {(playlist.streams_28d || 0).toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {(playlist.streams_12m || 0).toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {playlist.date_added || 'Unknown'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Vendor Performance Breakdown */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Vendor Performance Breakdown
+                  </h3>
+                  {Object.entries(
+                    campaignPlaylists.reduce((acc: any, playlist: any) => {
+                      const vendorName = playlist.vendors?.name || 'Unknown';
+                      if (!acc[vendorName]) {
+                        acc[vendorName] = {
+                          playlists: [],
+                          totalStreams7d: 0,
+                          totalStreams28d: 0,
+                          totalStreams12m: 0,
+                          costPer1k: playlist.vendors?.cost_per_1k_streams || 0
+                        };
+                      }
+                      acc[vendorName].playlists.push(playlist);
+                      acc[vendorName].totalStreams7d += playlist.streams_7d || 0;
+                      acc[vendorName].totalStreams28d += playlist.streams_28d || 0;
+                      acc[vendorName].totalStreams12m += playlist.streams_12m || 0;
+                      return acc;
+                    }, {})
+                  ).map(([vendorName, data]: [string, any]) => (
+                    <Card key={vendorName} className="p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="font-semibold text-lg">{vendorName}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {data.playlists.length} playlist{data.playlists.length !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                        <Badge variant="secondary" className="text-lg px-3 py-1">
+                          ${data.costPer1k}/1k
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <div className="text-sm text-muted-foreground">Last 7 Days</div>
+                          <div className="text-xl font-bold">{data.totalStreams7d.toLocaleString()}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {Math.round(data.totalStreams7d / 7).toLocaleString()}/day
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-muted-foreground">Last 28 Days</div>
+                          <div className="text-xl font-bold">{data.totalStreams28d.toLocaleString()}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {Math.round(data.totalStreams28d / 28).toLocaleString()}/day
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-muted-foreground">Last 12 Months</div>
+                          <div className="text-xl font-bold">{data.totalStreams12m.toLocaleString()}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {Math.round(data.totalStreams12m / 365).toLocaleString()}/day
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">
