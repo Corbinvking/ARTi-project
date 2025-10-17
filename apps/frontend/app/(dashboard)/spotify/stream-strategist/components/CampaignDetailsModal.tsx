@@ -106,9 +106,29 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const { data: campaignPlaylists = [], isLoading: playlistsLoading } = useQuery({
     queryKey: ['campaign-playlists', campaign?.id],
     queryFn: async () => {
-      if (!campaign?.id) return [];
+      if (!campaign?.id) {
+        return [];
+      }
       
-      const { data, error } = await supabase
+      // First, get all spotify_campaigns (songs) in this campaign group
+      const { data: songs, error: songsError } = await supabase
+        .from('spotify_campaigns')
+        .select('id')
+        .eq('campaign_group_id', campaign.id);
+      
+      if (songsError) {
+        console.error('Error fetching campaign songs:', songsError);
+        return [];
+      }
+      
+      if (!songs || songs.length === 0) {
+        return [];
+      }
+      
+      const songIds = songs.map(s => s.id);
+      
+      // Fetch playlists for all songs
+      let query = supabase
         .from('campaign_playlists')
         .select(`
           *,
@@ -117,9 +137,16 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
             name,
             cost_per_1k_streams
           )
-        `)
-        .eq('campaign_id', campaign.id)
-        .order('streams_28d', { ascending: false });
+        `);
+      
+      // Use .eq() for single songs, .in() for multiple
+      if (songIds.length === 1) {
+        query = query.eq('campaign_id', songIds[0]);
+      } else {
+        query = query.in('campaign_id', songIds);
+      }
+      
+      const { data, error } = await query.order('streams_28d', { ascending: false });
       
       if (error) {
         console.error('Error fetching campaign playlists:', error);
@@ -564,7 +591,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {campaignData?.name || campaign?.name}

@@ -216,6 +216,106 @@ export function useUnassignCampaignFromClient() {
   });
 }
 
+export interface CreateCampaignData {
+  client_id: string;
+  campaign_group_name: string;
+  artist_name: string;
+  start_date: string;
+  songs: Array<{
+    track_url?: string;
+    sfa_link?: string;
+    campaign_name: string;
+    goal: string;
+    budget: string;
+    vendor_id?: string;
+  }>;
+  total_budget: string;
+  genre?: string;
+  salesperson?: string;
+  notes?: string;
+}
+
+export function useCreateCampaign() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (campaignData: CreateCampaignData) => {
+      // Step 1: Create the campaign group
+      const { data: campaignGroup, error: groupError } = await supabase
+        .from('campaign_groups')
+        .insert({
+          client_id: campaignData.client_id,
+          name: campaignData.campaign_group_name,
+          artist_name: campaignData.artist_name,
+          start_date: campaignData.start_date,
+          total_budget: parseFloat(campaignData.total_budget),
+          total_goal: campaignData.songs.reduce((sum, song) => sum + parseInt(song.goal), 0),
+          status: 'Active',
+          salesperson: campaignData.salesperson || null,
+        })
+        .select()
+        .single();
+
+      if (groupError) {
+        console.error('Error creating campaign group:', groupError);
+        throw groupError;
+      }
+
+      // Step 2: Create all songs linked to this campaign group
+      const songInserts = campaignData.songs.map(song => ({
+        campaign_group_id: campaignGroup.id,
+        client_id: campaignData.client_id,
+        campaign: `${campaignData.campaign_group_name} - ${song.campaign_name}`, // Combined campaign and song name
+        url: song.track_url || null,
+        sfa: song.sfa_link || null,
+        vendor: song.vendor_id || null,
+        goal: song.goal.toString(), // Keep as string
+        remaining: song.goal.toString(), // Initially, remaining = goal (as string)
+        sale_price: song.budget.toString(), // Use sale_price column (as string)
+        start_date: campaignData.start_date,
+        daily: '0', // Keep as string
+        weekly: '0', // Keep as string
+        notes: campaignData.notes || null,
+        source: APP_CAMPAIGN_SOURCE,
+        campaign_type: APP_CAMPAIGN_TYPE,
+      }));
+
+      const { data: songs, error: songsError } = await supabase
+        .from('spotify_campaigns')
+        .insert(songInserts)
+        .select();
+
+      if (songsError) {
+        console.error('Error creating campaign songs:', songsError);
+        // Rollback: delete the campaign group
+        await supabase.from('campaign_groups').delete().eq('id', campaignGroup.id);
+        throw songsError;
+      }
+
+      return { campaignGroup, songs };
+    },
+    onSuccess: (data) => {
+      // Invalidate all relevant queries
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns', 'client', data.campaignGroup.client_id] });
+      
+      toast({ 
+        title: 'Campaign created successfully!',
+        description: `${data.songs.length} song(s) added to the campaign.`
+      });
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Error creating campaign', 
+        description: error.message,
+        variant: 'destructive'
+      });
+    },
+  });
+}
+
 
 
 

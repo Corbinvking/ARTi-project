@@ -13,6 +13,7 @@ import { Checkbox } from "../components/ui/checkbox";
 import { useToast } from "../hooks/use-toast";
 import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_SOURCE_INTAKE, APP_CAMPAIGN_TYPE } from "../lib/constants";
 import { StatusBadge } from "../components/ui/status-badge";
+import { InteractiveStatusBadge } from "../components/ui/interactive-status-badge";
 import {
   Table,
   TableBody,
@@ -78,6 +79,7 @@ import { EditCampaignModal } from "../components/EditCampaignModal";
 import CampaignImportModal from "../components/CampaignImportModal";
 import { CampaignDetailsModal } from "../components/CampaignDetailsModal";
 import { DraftCampaignReviewModal } from "../components/DraftCampaignReviewModal";
+import { CreateCampaignWizard } from "../components/CreateCampaignWizard";
 import { CampaignSubmissionsManager } from "../components/CampaignSubmissionsManager";
 import { VendorPayoutManager } from "../components/VendorPayoutManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
@@ -163,6 +165,7 @@ export default function CampaignHistory() {
   const [editModal, setEditModal] = useState<{ open: boolean; campaign?: Campaign }>({ open: false });
   const [draftReviewModal, setDraftReviewModal] = useState<{ open: boolean; campaign?: Campaign }>({ open: false });
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
   const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<SortField>('start_date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -269,11 +272,9 @@ export default function CampaignHistory() {
   const updateCampaignMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Campaign> }) => {
       const { data, error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .update(updates)
         .eq('id', id)
-        .eq('source', APP_CAMPAIGN_SOURCE)
-        .eq('campaign_type', APP_CAMPAIGN_TYPE)
         .select()
         .single();
 
@@ -282,6 +283,7 @@ export default function CampaignHistory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
     }
   });
@@ -289,16 +291,15 @@ export default function CampaignHistory() {
   const deleteCampaignMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .delete()
-        .eq('id', id)
-        .eq('source', APP_CAMPAIGN_SOURCE)
-        .eq('campaign_type', APP_CAMPAIGN_TYPE);
+        .eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast({
         title: "Campaign Deleted",
@@ -310,11 +311,9 @@ export default function CampaignHistory() {
   const bulkDeleteMutation = useMutation({
     mutationFn: async (campaignIds: string[]) => {
       const { error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .delete()
-        .in('id', campaignIds)
-        .eq('source', APP_CAMPAIGN_SOURCE)
-        .eq('campaign_type', APP_CAMPAIGN_TYPE);
+        .in('id', campaignIds);
 
       if (error) throw error;
     },
@@ -869,6 +868,14 @@ export default function CampaignHistory() {
                   <Upload className="w-4 h-4" />
                   Import Campaigns
                 </Button>
+                <Button
+                  onClick={() => setCreateCampaignOpen(true)}
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Campaign
+                </Button>
               </div>
 
             {/* Campaigns Table */}
@@ -1006,7 +1013,10 @@ export default function CampaignHistory() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <StatusBadge status={campaign.status} />
+                            <InteractiveStatusBadge 
+                              status={campaign.status}
+                              onStatusChange={(newStatus) => handleStatusChange(campaign.id, newStatus as Campaign['status'])}
+                            />
                           </TableCell>
                           <TableCell>
                             <div className="text-center">
@@ -1155,6 +1165,11 @@ export default function CampaignHistory() {
         <CampaignImportModal
           open={importModalOpen}
           onOpenChange={setImportModalOpen}
+        />
+
+        <CreateCampaignWizard
+          open={createCampaignOpen}
+          onOpenChange={setCreateCampaignOpen}
         />
       </div>
     </div>

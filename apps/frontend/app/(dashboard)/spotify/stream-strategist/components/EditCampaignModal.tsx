@@ -223,39 +223,22 @@ export function EditCampaignModal({ campaign, open, onClose, onSuccess }: EditCa
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('campaigns')
+      // Update campaign_groups table (for campaign-level data)
+      const { error: groupError } = await supabase
+        .from('campaign_groups')
         .update({
           name: formData.name,
           client_id: formData.client_id || null,
-          client_name: formData.client_name,
-          track_url: formData.track_url,
           status: formData.status,
-          stream_goal: formData.stream_goal,
-          budget: formData.budget,
-          sub_genre: formData.sub_genre,
+          total_goal: formData.stream_goal,
+          total_budget: formData.budget,
           start_date: formData.start_date,
-          duration_days: formData.duration_days,
-          daily_streams: formData.daily_streams,
-          weekly_streams: formData.weekly_streams,
-          remaining_streams: formData.remaining_streams,
           salesperson: formData.salesperson,
-          selected_playlists: formData.playlists.map(playlist => ({
-            id: playlist.id,
-            name: playlist.name,
-            url: playlist.url,
-            vendor_name: playlist.vendor_name || playlist.vendor?.name,
-            follower_count: playlist.follower_count || 0,
-            avg_daily_streams: playlist.avg_daily_streams || 0,
-            genres: playlist.genres,
-            status: playlist.status || 'Pending'
-          }))
+          notes: formData.sub_genre, // Store genre in notes for now
         })
-        .eq('id', campaign.id)
-        .eq('source', APP_CAMPAIGN_SOURCE)
-        .eq('campaign_type', APP_CAMPAIGN_TYPE);
+        .eq('id', campaign.id);
 
-      if (error) throw error;
+      if (groupError) throw groupError;
 
       toast({
         title: "Success",
@@ -264,6 +247,7 @@ export function EditCampaignModal({ campaign, open, onClose, onSuccess }: EditCa
       onSuccess();
       onClose();
     } catch (error) {
+      console.error('Error updating campaign:', error);
       toast({
         title: "Error",
         description: "Failed to update campaign",
