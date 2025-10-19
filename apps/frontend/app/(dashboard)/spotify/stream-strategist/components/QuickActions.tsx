@@ -28,10 +28,8 @@ export function QuickActions() {
     queryFn: async () => {
       const [campaignsRes, vendorsRes, clientsRes] = await Promise.all([
         supabase
-          .from('campaigns')
-          .select('status, created_at')
-          .eq('source', APP_CAMPAIGN_SOURCE)
-          .eq('campaign_type', APP_CAMPAIGN_TYPE),
+          .from('campaign_groups')
+          .select('status, created_at'),
         supabase
           .from('vendors')
           .select('id, is_active'),

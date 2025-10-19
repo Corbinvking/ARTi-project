@@ -10,7 +10,7 @@ export function useDraftCampaigns() {
     queryKey: ['draft-campaigns'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .select(`
           *,
           submission:campaign_submissions!submission_id(*)
@@ -59,10 +59,10 @@ export function useApproveDraftCampaign() {
   return useMutation({
     mutationFn: async (campaignId: string) => {
       const { error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .update({ 
           pending_operator_review: false,
-          status: 'built',
+          status: 'Active',
           updated_at: new Date().toISOString()
         })
         .eq('id', campaignId);
@@ -97,9 +97,9 @@ export function useRejectDraftCampaign() {
     mutationFn: async ({ campaignId, reason }: { campaignId: string; reason: string }) => {
       // Update the campaign with rejection notes
       const { error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .update({ 
-          status: 'draft',
+          status: 'Draft',
           pending_operator_review: true,
           // Store rejection reason in algorithm_recommendations for now
           algorithm_recommendations: {

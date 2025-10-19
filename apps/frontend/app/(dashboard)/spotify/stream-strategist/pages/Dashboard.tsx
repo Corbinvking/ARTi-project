@@ -54,7 +54,7 @@ export default function Dashboard() {
     queryKey: ['dashboard-stats'],
     queryFn: async (): Promise<DashboardStats> => {
       const [campaignsRes, vendorsRes, playlistsRes] = await Promise.all([
-        supabase.from('campaigns').select('status, stream_goal, budget').eq('source', APP_CAMPAIGN_SOURCE).eq('campaign_type', APP_CAMPAIGN_TYPE),
+        supabase.from('campaign_groups').select('status, total_goal, total_budget'),
         supabase.from('vendors').select('id').eq('is_active', true),
         supabase.from('playlists').select('id, avg_daily_streams, vendors!inner(is_active)').eq('vendors.is_active', true)
       ]);
@@ -67,10 +67,10 @@ export default function Dashboard() {
 
       return {
         totalCampaigns: campaigns.length,
-        activeCampaigns: campaigns.filter(c => c.status === 'active').length,
-        completedCampaigns: campaigns.filter(c => c.status === 'completed').length,
-        totalStreamsGoal: campaigns.reduce((sum, c) => sum + (c.stream_goal || 0), 0),
-        totalBudget: campaigns.reduce((sum, c) => sum + (c.budget || 0), 0),
+        activeCampaigns: campaigns.filter(c => c.status === 'Active').length,
+        completedCampaigns: campaigns.filter(c => c.status === 'Completed').length,
+        totalStreamsGoal: campaigns.reduce((sum, c) => sum + (c.total_goal || 0), 0),
+        totalBudget: campaigns.reduce((sum, c) => sum + (c.total_budget || 0), 0),
         totalVendors: vendors.length,
         totalPlaylists: playlists.length,
         totalReach: totalReach,

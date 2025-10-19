@@ -41,16 +41,15 @@ export const useVendorPayouts = () => {
 
       // Also fetch active/completed campaigns with vendor allocations that may not be in allocations table yet
       const { data: campaigns, error: campaignsError } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .select(`
           id,
           name,
           status,
           start_date,
-          duration_days,
           vendor_allocations
         `)
-        .in('status', ['active', 'completed'])
+        .in('status', ['Active', 'Completed'])
         .not('vendor_allocations', 'is', null);
 
       // Fetch all vendors to get cost_per_1k_streams rates
@@ -203,7 +202,8 @@ export const useVendorPayouts = () => {
 
         const startDate = new Date(campaign.start_date);
         const completionDate = new Date(startDate);
-        completionDate.setDate(completionDate.getDate() + (campaign.duration_days || 0));
+        // Default to 30 days if duration not specified
+        completionDate.setDate(completionDate.getDate() + 30);
 
         const payoutData: VendorPayout = {
           vendor_id: vendor.id,

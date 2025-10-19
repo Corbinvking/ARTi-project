@@ -124,7 +124,7 @@ export function EditCampaignModal({ campaign, open, onClose, onSuccess }: EditCa
     try {
       // Fetch the full campaign record to get selected_playlists
       const { data: campaignData, error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .select('selected_playlists, algorithm_recommendations')
         .eq('id', campaign.id)
         .single();

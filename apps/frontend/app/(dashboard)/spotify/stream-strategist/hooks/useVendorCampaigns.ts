@@ -77,7 +77,7 @@ export function useVendorCampaigns() {
 
       // Fetch campaigns; RLS ensures vendors see only campaigns where they have assigned playlists
       const { data: campaigns, error: campaignError } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .select('*');
 
       if (campaignError) throw campaignError;
@@ -192,7 +192,7 @@ export function useUpdatePlaylistAllocation() {
     }) => {
       // Get current campaign
       const { data: campaign, error: fetchError } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .select('selected_playlists')
         .eq('id', campaignId)
         .single();
@@ -214,7 +214,7 @@ export function useUpdatePlaylistAllocation() {
 
       // Update campaign with new playlist allocation
       const { data, error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .update({ 
           selected_playlists: updatedPlaylists,
           updated_at: new Date().toISOString()
