@@ -185,7 +185,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .select('*')
         .eq('id', campaign.id)
         .single();
@@ -314,7 +314,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     
     try {
       const { error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .update({ 
           selected_playlists: updatedPlaylists as any,
           updated_at: new Date().toISOString()
@@ -345,7 +345,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     
     try {
       const { error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .update({ 
           selected_playlists: updatedPlaylists as any,
           updated_at: new Date().toISOString()
@@ -385,7 +385,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
 
     try {
       const { error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .update({ 
           selected_playlists: updatedPlaylists as any,
           updated_at: new Date().toISOString()
@@ -413,7 +413,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const updateSalesperson = async (newSalesperson: string) => {
     try {
       const { error } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .update({ 
           salesperson: newSalesperson,
           updated_at: new Date().toISOString()
