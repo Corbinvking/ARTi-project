@@ -1,0 +1,760 @@
+{
+  "url": "https://artists.spotify.com/c/artist/47oNSHfwymN7Gg2IftahRA/song/2g2hGPtrBgpjlHzh021DeI/stats",
+  "scraped_at": "2025-10-18T17:28:09.985008",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "ENTER THE BANK 2.0",
+            "made_by": "—",
+            "streams": "1,745",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "FISHER 2025 UNVRS IBIZA",
+            "made_by": "—",
+            "streams": "197",
+            "date_added": "Jun 26, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Zara House Music Bangers 2025",
+            "made_by": "—",
+            "streams": "183",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Circoloco 2025 DC10 Ibiza  - Best Ibiza House Music",
+            "made_by": "—",
+            "streams": "125",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "75",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Living Room House",
+            "made_by": "—",
+            "streams": "74",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Best House Music & Tech House 2025 🎉 BASS",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "MICHAEL BIBI SETLIST",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "FISHER SETLIST",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "MINIMAL HOUSE ♓️",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jun 26, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Hits Remixes 2024🔺2025",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 25, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "228"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "ENTER THE BANK 2.0",
+            "made_by": "—",
+            "streams": "307",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Zara House Music Bangers 2025",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "FISHER 2025 UNVRS IBIZA",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Jun 26, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Best House Music & Tech House 2025 🎉 BASS",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "FISHER SETLIST",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "MICHAEL BIBI SETLIST",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "MINIMAL HOUSE ♓️",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 26, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "83"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "ENTER THE BANK 2.0",
+            "made_by": "—",
+            "streams": "13,714",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "13,470",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5,423",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "NRJ Radio France 2025 - NRJ Top 100 - NRJ Hits",
+            "made_by": "—",
+            "streams": "2,463",
+            "date_added": "Jun 21, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "2,136",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Afro House 2025 🌴 (Top 100) - Weekly Updated",
+            "made_by": "—",
+            "streams": "1,966",
+            "date_added": "Jun 19, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Circoloco 2025 DC10 Ibiza  - Best Ibiza House Music",
+            "made_by": "—",
+            "streams": "1,943",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Festival Music 2025",
+            "made_by": "—",
+            "streams": "1,909",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Mulheres 🏋🏻‍♀️  para treinos pesados",
+            "made_by": "—",
+            "streams": "1,737",
+            "date_added": "Jun 29, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "1,425",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "FISHER 2025 UNVRS IBIZA",
+            "made_by": "—",
+            "streams": "973",
+            "date_added": "Jun 26, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Zara House Music Bangers 2025",
+            "made_by": "—",
+            "streams": "954",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Living Room House",
+            "made_by": "—",
+            "streams": "722",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "DEEP HOUSE 2025 🔥 CAR MUSIC",
+            "made_by": "—",
+            "streams": "623",
+            "date_added": "Jun 19, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "ELETRÔNICA 🫀 CARDIO",
+            "made_by": "—",
+            "streams": "505",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "458",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "417",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Tech House Remixes of Popular Songs 2025",
+            "made_by": "—",
+            "streams": "368",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "DJ Levi Music - Afrohouse playlist | Afro House | Tech House | KeineMusik | Black Coffee | Adam Port",
+            "made_by": "—",
+            "streams": "362",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "DANCE FLOOR ESSENTIALS",
+            "made_by": "—",
+            "streams": "348",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Best House Music & Tech House 2025 🎉 BASS",
+            "made_by": "—",
+            "streams": "284",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Filthy Tech House 2025 🎧✨",
+            "made_by": "—",
+            "streams": "283",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "274",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Melodic Techno House by Ben C",
+            "made_by": "—",
+            "streams": "251",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "BASS BOOST YOUR SMILE",
+            "made_by": "—",
+            "streams": "224",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Discoteca Italiana 2025 Musica Dance Italiana 🕺 Italian Party Music: Musica Dance del Momento 2025",
+            "made_by": "—",
+            "streams": "219",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "214",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "28",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "211",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "29",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "207",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "30",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "201",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "31",
+            "name": "TECH SNEK",
+            "made_by": "—",
+            "streams": "183",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "FISHER SETLIST",
+            "made_by": "—",
+            "streams": "173",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Melodic techno vibes",
+            "made_by": "—",
+            "streams": "169",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "DANCE BANGERS 🔺🔺",
+            "made_by": "—",
+            "streams": "165",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "🦁️ The Lion's Street",
+            "made_by": "—",
+            "streams": "151",
+            "date_added": "Jun 29, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "MICHAEL BIBI SETLIST",
+            "made_by": "—",
+            "streams": "117",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "BASS HOUSE 2025",
+            "made_by": "—",
+            "streams": "115",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "114",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "39",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "113",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "40",
+            "name": "Hypnotic House",
+            "made_by": "—",
+            "streams": "111",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "ibiza house",
+            "made_by": "—",
+            "streams": "88",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "Kiss FM Radio Station - KISS FM",
+            "made_by": "—",
+            "streams": "80",
+            "date_added": "Jun 21, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "Tech House Gems 💎",
+            "made_by": "—",
+            "streams": "77",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "BIG FM Radio 2025 TOP 200 Radio Hits",
+            "made_by": "—",
+            "streams": "65",
+            "date_added": "Jun 21, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "MINIMAL HOUSE ♓️",
+            "made_by": "—",
+            "streams": "59",
+            "date_added": "Jun 26, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Party Hits 2025 🥳 Techno, House and Dance Pop DJ Mix: Upcoming Winter  and New Summer Songs",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "tech house & grooves",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "Car Music 🔥 Carros Música 2025 Car EDM Hits perfect for driving 🔈 Die beste Dance Automusik Playlist",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "melodic lounge🍹deep house  🌊 afro & chill🌴",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "Ride the Bassline 🔥 The Best Club Burner 2025 Trending Club Hits: House, Techno, Rave, Tech House",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Clubbing 2025 Best EDM, Rave, Hard Techno & Festival Anthems 💎 Berlin DJ Mix: Greatest Club Hits!",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "PANCADA 19",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "European Hit Radio 2025 - GLOBAL DANCE CHART TOP 40 - Dance Hits - EHR 104.3 FM",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Jun 21, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "Sundle Radio | All Releases",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Jun 19, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "G House & Dope Bassline",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "Hits Remixes 2024🔺2025",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jun 25, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "🏠**",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "New EDM",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "Dance Hits 2025 EDM Mainstage Party Bangers & Viral DJ Set 🔥 Massive Energy Hits",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "ENTER THE BANK",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jul 7, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "Ibeefa",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "Unser Sound",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 16, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "Terapia:House",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "Future Sounds - Tech House / Melodic Techno",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "House Room | DJ Club Hits 2025",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 19, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "Glastonbury 25",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 2, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "128+ BPM",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "Tech House",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 12, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "Shit List",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "70",
+            "name": "ACADEMIA START • Centro de Atividade Física • 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "71",
+            "name": "CIRCOLOCO HALLOWEEN NYC 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "72",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "73",
+            "name": "Deep vocal progressive house",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "74",
+            "name": "ENTER THE BANK🏦",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 23, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "74",
+          "total": "645"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

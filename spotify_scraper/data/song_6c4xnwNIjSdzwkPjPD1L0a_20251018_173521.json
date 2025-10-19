@@ -1,0 +1,431 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1NhyPfqf5SUNG25QOiZNF0/song/6c4xnwNIjSdzwkPjPD1L0a/stats",
+  "scraped_at": "2025-10-18T17:34:50.985622",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "STADIUM JAKARTA INSOMNIA🔥",
+            "made_by": "—",
+            "streams": "2,940",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Logically Delicious Hits",
+            "made_by": "—",
+            "streams": "2,802",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,605",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "1,194",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "1,050",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Logically Delicious Artists",
+            "made_by": "—",
+            "streams": "975",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "447",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "205",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "105",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "103",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "98",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "75",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "73",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Ibiza Vibes",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Noah",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "The Alfitude A-List",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "This Is 7KY",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "System Breach II Ultra Music Festival",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 13, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "19",
+          "total": "85"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Logically Delicious Hits",
+            "made_by": "—",
+            "streams": "1,119",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "STADIUM JAKARTA INSOMNIA🔥",
+            "made_by": "—",
+            "streams": "774",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "694",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Logically Delicious Artists",
+            "made_by": "—",
+            "streams": "360",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "320",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "109",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "103",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "76",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Ibiza Vibes",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "System Breach II Ultra Music Festival",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 13, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "43"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "STADIUM JAKARTA INSOMNIA🔥",
+            "made_by": "—",
+            "streams": "2,940",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Logically Delicious Hits",
+            "made_by": "—",
+            "streams": "2,882",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,607",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "1,194",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "1,050",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Logically Delicious Artists",
+            "made_by": "—",
+            "streams": "975",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "447",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "205",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "127",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "105",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "98",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "77",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "75",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Ibiza Vibes",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Noah",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "The Alfitude A-List",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "This Is 7KY",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "System Breach II Ultra Music Festival",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 13, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "19",
+          "total": "86"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

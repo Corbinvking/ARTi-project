@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-10-17T15:20:00.000Z",
+  "source": "ARTI0-local-supabase",
+  "version": "1.0",
+  "description": "Complete Supabase database export for ARTI platform",
+  "includes": [
+    "Complete schema (tables, functions, policies)",
+    "All table data",
+    "Auth configuration",
+    "Storage configuration"
+  ],
+  "database": {
+    "host": "localhost",
+    "port": 54322,
+    "database": "postgres"
+  },
+  "export_file": "complete-export-1758817145392.json",
+  "total_tables": 12,
+  "estimated_records": 50000
+}
+

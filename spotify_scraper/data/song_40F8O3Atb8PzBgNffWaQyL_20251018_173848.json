@@ -1,0 +1,228 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2eAml1qDYCL6t4AoboTe3V/song/40F8O3Atb8PzBgNffWaQyL/stats",
+  "scraped_at": "2025-10-18T17:38:16.784487",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,562",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "2,467",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "399",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "155",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "137",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Trancewave ⚡Trance Trap",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "85"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,559",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "1,550",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "379",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "155",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "137",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Trancewave ⚡Trance Trap",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "84"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,562",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "2,467",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "399",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "155",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "137",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Trancewave ⚡Trance Trap",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "85"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

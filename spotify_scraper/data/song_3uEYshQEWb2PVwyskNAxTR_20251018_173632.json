@@ -1,0 +1,1159 @@
+{
+  "url": "https://artists.spotify.com/c/artist/746nA9NSKsqBDRk343UtkE/song/3uEYshQEWb2PVwyskNAxTR/stats",
+  "scraped_at": "2025-10-18T17:35:57.543401",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "30,369",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4,044",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "2,120",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "LowkeyPersonalized",
+            "made_by": "Spotify",
+            "streams": "2,065",
+            "date_added": "Mar 28, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,456",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "380",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "315",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "262",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "underground rnb",
+            "made_by": "—",
+            "streams": "135",
+            "date_added": "Sep 23, 2023"
+          },
+          {
+            "rank": "10",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "101",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "This Is chromonicci",
+            "made_by": "Spotify",
+            "streams": "90",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Beautiful",
+            "made_by": "—",
+            "streams": "70",
+            "date_added": "Sep 7, 2023"
+          },
+          {
+            "rank": "13",
+            "name": "Brent Faiyaz Instrumentals",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "SOAKHAUS",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Mar 8, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "a long day's escape.",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Dec 24, 2024"
+          },
+          {
+            "rank": "17",
+            "name": "velvet touch",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Jul 25, 2024"
+          },
+          {
+            "rank": "18",
+            "name": "Space Travel 🚀 ✨ 🪐 (Soul/R&B)",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "May 30, 2024"
+          },
+          {
+            "rank": "19",
+            "name": "brb, healing",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Mzansi Neo Soul",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jul 15, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Chill Weed Music",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Mar 7, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "Between Keys",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Dec 4, 2024"
+          },
+          {
+            "rank": "24",
+            "name": "8:00-10:00",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Platonic or Whateva ✨🦏",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "modern groove",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jan 14, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Drawing Playlist 02 — R&B",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jan 25, 2024"
+          },
+          {
+            "rank": "28",
+            "name": "supa chill",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 7, 2023"
+          },
+          {
+            "rank": "29",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "30",
+            "name": "The Sound of Future Bass",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 21, 2023"
+          },
+          {
+            "rank": "31",
+            "name": "7esthetics Skin Studio Playlist",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jan 5, 2024"
+          },
+          {
+            "rank": "32",
+            "name": "have a nice trip",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 16, 2023"
+          },
+          {
+            "rank": "33",
+            "name": "Something's cooking 💨",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 29, 2024"
+          },
+          {
+            "rank": "34",
+            "name": "soft and delicious",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Mar 8, 2024"
+          },
+          {
+            "rank": "35",
+            "name": "Love Bomb.",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Dec 27, 2024"
+          },
+          {
+            "rank": "36",
+            "name": "Vibes",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 7, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Sammy's Fresh Tunes",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Dec 13, 2024"
+          },
+          {
+            "rank": "38",
+            "name": "breakfast",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Dec 9, 2024"
+          },
+          {
+            "rank": "39",
+            "name": "Lowkey Moody",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 28, 2023"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "39",
+          "total": "4,166"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "8,561",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,037",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "604",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "LowkeyPersonalized",
+            "made_by": "Spotify",
+            "streams": "475",
+            "date_added": "Mar 28, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "324",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "81",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "59",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "44",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "underground rnb",
+            "made_by": "—",
+            "streams": "39",
+            "date_added": "Sep 23, 2023"
+          },
+          {
+            "rank": "10",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "This Is chromonicci",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Beautiful",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Sep 7, 2023"
+          },
+          {
+            "rank": "13",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Brent Faiyaz Instrumentals",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Between Keys",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Dec 4, 2024"
+          },
+          {
+            "rank": "16",
+            "name": "velvet touch",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 25, 2024"
+          },
+          {
+            "rank": "17",
+            "name": "Mzansi Neo Soul",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 15, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "supa chill",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 7, 2023"
+          },
+          {
+            "rank": "19",
+            "name": "brb, healing",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "19",
+          "total": "1,513"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "718,640",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "149,166",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "21,803",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "16,128",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "LowkeyPersonalized",
+            "made_by": "Spotify",
+            "streams": "16,084",
+            "date_added": "Mar 28, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "7,471",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5,530",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3,121",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "2,420",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "underground rnb",
+            "made_by": "—",
+            "streams": "2,417",
+            "date_added": "Sep 23, 2023"
+          },
+          {
+            "rank": "11",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "2,101",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Between Keys",
+            "made_by": "—",
+            "streams": "1,599",
+            "date_added": "Dec 4, 2024"
+          },
+          {
+            "rank": "13",
+            "name": "This Is chromonicci",
+            "made_by": "Spotify",
+            "streams": "1,472",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "The Indie Artist Experience",
+            "made_by": "—",
+            "streams": "728",
+            "date_added": "Oct 9, 2024"
+          },
+          {
+            "rank": "15",
+            "name": "Caught in My Feelings",
+            "made_by": "—",
+            "streams": "698",
+            "date_added": "Jan 19, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "R&B for the Soul",
+            "made_by": "—",
+            "streams": "552",
+            "date_added": "Jan 19, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "396",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "SOAKHAUS",
+            "made_by": "—",
+            "streams": "390",
+            "date_added": "Mar 8, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "RITUAL GEMS: JANUARY 2025",
+            "made_by": "—",
+            "streams": "389",
+            "date_added": "Dec 27, 2024"
+          },
+          {
+            "rank": "20",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "374",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Your Music Evolution 2024",
+            "made_by": "Spotify",
+            "streams": "371",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Beautiful",
+            "made_by": "—",
+            "streams": "278",
+            "date_added": "Sep 7, 2023"
+          },
+          {
+            "rank": "23",
+            "name": "velvet touch",
+            "made_by": "—",
+            "streams": "244",
+            "date_added": "Jul 25, 2024"
+          },
+          {
+            "rank": "24",
+            "name": "wanna sleep again",
+            "made_by": "—",
+            "streams": "213",
+            "date_added": "Jun 8, 2024"
+          },
+          {
+            "rank": "25",
+            "name": "(Pagi-Sore) Mattea Daily #1",
+            "made_by": "—",
+            "streams": "166",
+            "date_added": "Oct 21, 2024"
+          },
+          {
+            "rank": "26",
+            "name": "Space Travel 🚀 ✨ 🪐 (Soul/R&B)",
+            "made_by": "—",
+            "streams": "163",
+            "date_added": "May 30, 2024"
+          },
+          {
+            "rank": "27",
+            "name": "Calm Spa",
+            "made_by": "—",
+            "streams": "161",
+            "date_added": "May 25, 2024"
+          },
+          {
+            "rank": "28",
+            "name": "Slow Flow to Making Me Whole",
+            "made_by": "—",
+            "streams": "151",
+            "date_added": "May 31, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Archives.vii",
+            "made_by": "—",
+            "streams": "132",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "VAULT OF MY HEART",
+            "made_by": "—",
+            "streams": "126",
+            "date_added": "Oct 3, 2024"
+          },
+          {
+            "rank": "31",
+            "name": "Drawing Playlist 02 — R&B",
+            "made_by": "—",
+            "streams": "126",
+            "date_added": "Jan 25, 2024"
+          },
+          {
+            "rank": "32",
+            "name": "brb, healing",
+            "made_by": "—",
+            "streams": "121",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "The chilled ones",
+            "made_by": "—",
+            "streams": "117",
+            "date_added": "Aug 28, 2024"
+          },
+          {
+            "rank": "34",
+            "name": "Work flow",
+            "made_by": "—",
+            "streams": "117",
+            "date_added": "Dec 8, 2024"
+          },
+          {
+            "rank": "35",
+            "name": "Chill Weed Music",
+            "made_by": "—",
+            "streams": "112",
+            "date_added": "Mar 7, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "The Lighthouse",
+            "made_by": "—",
+            "streams": "107",
+            "date_added": "Sep 30, 2024"
+          },
+          {
+            "rank": "37",
+            "name": "Indie R&B",
+            "made_by": "—",
+            "streams": "104",
+            "date_added": "Nov 23, 2024"
+          },
+          {
+            "rank": "38",
+            "name": "a long day's escape.",
+            "made_by": "—",
+            "streams": "102",
+            "date_added": "Dec 24, 2024"
+          },
+          {
+            "rank": "39",
+            "name": "for the soul",
+            "made_by": "—",
+            "streams": "101",
+            "date_added": "Nov 7, 2024"
+          },
+          {
+            "rank": "40",
+            "name": "♪🎼♪",
+            "made_by": "—",
+            "streams": "100",
+            "date_added": "Dec 8, 2024"
+          },
+          {
+            "rank": "41",
+            "name": "The Sound of Future Bass",
+            "made_by": "—",
+            "streams": "96",
+            "date_added": "Oct 21, 2023"
+          },
+          {
+            "rank": "42",
+            "name": "OutOfIt",
+            "made_by": "—",
+            "streams": "95",
+            "date_added": "Jan 1, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "Cozy R&B",
+            "made_by": "—",
+            "streams": "92",
+            "date_added": "Jan 1, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "affirmitive vibes and vibes",
+            "made_by": "—",
+            "streams": "89",
+            "date_added": "Dec 6, 2024"
+          },
+          {
+            "rank": "45",
+            "name": "Let It Flow",
+            "made_by": "—",
+            "streams": "84",
+            "date_added": "Nov 7, 2024"
+          },
+          {
+            "rank": "46",
+            "name": "Love Bomb.",
+            "made_by": "—",
+            "streams": "78",
+            "date_added": "Dec 27, 2024"
+          },
+          {
+            "rank": "47",
+            "name": "modern groove",
+            "made_by": "—",
+            "streams": "78",
+            "date_added": "Jan 14, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "have a nice trip",
+            "made_by": "—",
+            "streams": "77",
+            "date_added": "Oct 16, 2023"
+          },
+          {
+            "rank": "49",
+            "name": "𝕋𝕙𝕖 𝕁𝕒𝕫𝕫 𝔽𝕖𝕧𝕖𝕣...",
+            "made_by": "—",
+            "streams": "71",
+            "date_added": "Dec 12, 2024"
+          },
+          {
+            "rank": "50",
+            "name": "Relax",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Jan 26, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Chill Pilates Workout",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Oct 21, 2024"
+          },
+          {
+            "rank": "52",
+            "name": "Mzansi Neo Soul",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Jul 15, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "La Culebra Meditation",
+            "made_by": "—",
+            "streams": "63",
+            "date_added": "Oct 24, 2024"
+          },
+          {
+            "rank": "54",
+            "name": "Mellow//NEOSOUL2025",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Dec 19, 2024"
+          },
+          {
+            "rank": "55",
+            "name": "Sevyn",
+            "made_by": "—",
+            "streams": "57",
+            "date_added": "Oct 26, 2024"
+          },
+          {
+            "rank": "56",
+            "name": "New School Rnb",
+            "made_by": "—",
+            "streams": "56",
+            "date_added": "Aug 3, 2024"
+          },
+          {
+            "rank": "57",
+            "name": "🤙",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "Feb 24, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "yuh",
+            "made_by": "—",
+            "streams": "54",
+            "date_added": "Dec 9, 2024"
+          },
+          {
+            "rank": "59",
+            "name": "7esthetics Skin Studio Playlist",
+            "made_by": "—",
+            "streams": "54",
+            "date_added": "Jan 5, 2024"
+          },
+          {
+            "rank": "60",
+            "name": "Your Top Songs 2023",
+            "made_by": "Spotify",
+            "streams": "54",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "61",
+            "name": "velvet dreams",
+            "made_by": "—",
+            "streams": "53",
+            "date_added": "Jan 8, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "kicka’s livingroom",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Sep 13, 2024"
+          },
+          {
+            "rank": "63",
+            "name": "Eargasm🤫😌",
+            "made_by": "—",
+            "streams": "51",
+            "date_added": "Nov 13, 2024"
+          },
+          {
+            "rank": "64",
+            "name": "Like Butter",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "Oct 17, 2024"
+          },
+          {
+            "rank": "65",
+            "name": "Soft Tunes 🤞🏾",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "Dec 1, 2024"
+          },
+          {
+            "rank": "66",
+            "name": "Rae Khalil Mix",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "Oct 11, 2024"
+          },
+          {
+            "rank": "67",
+            "name": "Brent Faiyaz Instrumentals",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "Lowkey Moody",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Sep 28, 2023"
+          },
+          {
+            "rank": "69",
+            "name": "Flow State",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Oct 17, 2024"
+          },
+          {
+            "rank": "70",
+            "name": "Marigold",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Jan 11, 2025"
+          },
+          {
+            "rank": "71",
+            "name": "South african neo souls",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "Jul 29, 2024"
+          },
+          {
+            "rank": "72",
+            "name": "2025 🔮",
+            "made_by": "—",
+            "streams": "42",
+            "date_added": "Jan 1, 2025"
+          },
+          {
+            "rank": "73",
+            "name": "⚜️ Rising ⚜️",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Oct 19, 2024"
+          },
+          {
+            "rank": "74",
+            "name": "PFJ60-11",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Apr 18, 2024"
+          },
+          {
+            "rank": "75",
+            "name": "swwwwt",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Oct 1, 2024"
+          },
+          {
+            "rank": "76",
+            "name": "Good Vibes",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Jan 13, 2025"
+          },
+          {
+            "rank": "77",
+            "name": "Outta sight outta mind",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Aug 1, 2024"
+          },
+          {
+            "rank": "78",
+            "name": "⚗️🫀🥃",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Dec 26, 2024"
+          },
+          {
+            "rank": "79",
+            "name": "Easy Ride Music",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "May 25, 2025"
+          },
+          {
+            "rank": "80",
+            "name": "Sweet & Mellow for Melo",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Nov 24, 2024"
+          },
+          {
+            "rank": "81",
+            "name": "Marquise 2",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Oct 29, 2024"
+          },
+          {
+            "rank": "82",
+            "name": "THERAPY",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Jun 5, 2024"
+          },
+          {
+            "rank": "83",
+            "name": "LUCID SKIES ☁️",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Apr 22, 2024"
+          },
+          {
+            "rank": "84",
+            "name": "HASHTAG : MORNING & LUNCH 3",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Jan 5, 2025"
+          },
+          {
+            "rank": "85",
+            "name": "What is my music taste?",
+            "made_by": "—",
+            "streams": "34",
+            "date_added": "Jan 6, 2025"
+          },
+          {
+            "rank": "86",
+            "name": "Green Street",
+            "made_by": "—",
+            "streams": "34",
+            "date_added": "Oct 6, 2024"
+          },
+          {
+            "rank": "87",
+            "name": "🌸silver's mind 🌸",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Jan 5, 2025"
+          },
+          {
+            "rank": "88",
+            "name": "supa chill",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Sep 7, 2023"
+          },
+          {
+            "rank": "89",
+            "name": "Slow Flow V",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Nov 13, 2024"
+          },
+          {
+            "rank": "90",
+            "name": "New finds '24",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Jan 17, 2024"
+          },
+          {
+            "rank": "91",
+            "name": "Babygirl Killa K",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Jul 9, 2024"
+          },
+          {
+            "rank": "92",
+            "name": "🍂",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Nov 5, 2024"
+          },
+          {
+            "rank": "93",
+            "name": "Two AirPods only 🫧",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Mar 21, 2025"
+          },
+          {
+            "rank": "94",
+            "name": "Mangosteen clean",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Feb 3, 2025"
+          },
+          {
+            "rank": "95",
+            "name": "Steven Othello - We Are Alive! (Playlist 26)",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Sep 19, 2023"
+          },
+          {
+            "rank": "96",
+            "name": "💫💫",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "May 19, 2024"
+          },
+          {
+            "rank": "97",
+            "name": "morning cup ꨄ︎",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Jan 12, 2024"
+          },
+          {
+            "rank": "98",
+            "name": "Trust in US ♥️",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "99",
+            "name": "Summer Cruise",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Jan 22, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "99",
+          "total": "20,402"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

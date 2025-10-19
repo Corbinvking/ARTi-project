@@ -1,0 +1,113 @@
+{
+  "url": "https://artists.spotify.com/c/artist/76ziG275ddgZim4fKbnAw5/song/5BApKNNNTxry10YeyJWF9q/stats",
+  "scraped_at": "2025-10-18T17:49:03.183921",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "jasontheweenie",
+            "made_by": "—",
+            "streams": "53",
+            "date_added": "Sep 15, 2023"
+          },
+          {
+            "rank": "2",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "33",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "32",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "🔥Pure Vibes🔥",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Oct 11, 2023"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Nasty Rap",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Sep 20, 2023"
+          },
+          {
+            "rank": "8",
+            "name": "FEEL FREE <3",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Mar 7, 2024"
+          },
+          {
+            "rank": "9",
+            "name": "West Coast Classics",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jan 7, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "427"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

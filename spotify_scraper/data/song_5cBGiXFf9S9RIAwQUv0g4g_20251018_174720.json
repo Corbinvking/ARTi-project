@@ -1,0 +1,1152 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/5cBGiXFf9S9RIAwQUv0g4g/stats",
+  "scraped_at": "2025-10-18T17:46:48.657787",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "10,418",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "10,226",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,958",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "1,738",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,729",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,620",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "WORKOUT ELETRÔNICA 2025🔥 Academia | Crossfit | Treino",
+            "made_by": "—",
+            "streams": "514",
+            "date_added": "Sep 25, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "364",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "363",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "This Is NGHTMRE",
+            "made_by": "Spotify",
+            "streams": "286",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Vocal Drum&Bass 2025 by Julian Florent",
+            "made_by": "—",
+            "streams": "158",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "145",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "GYM DNB BANGERS 2025 | WORKOUT DRUM & BASS",
+            "made_by": "—",
+            "streams": "135",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "GAMING DNB 2025 | DRUM & BASS FOR GAMERS",
+            "made_by": "—",
+            "streams": "72",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "71",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "YleX - DJ Orion 💥 Perjantai-illan yhteisön playlist-paratiisi",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Premier Neurofunk by EATBRAIN",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "New Jump Up & Heavy Drum and Bass 2025 (New DnB / DnB / D&B / Neurofunk DnB / Heavy Bass) | uBazz",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "DNB ALLSTARS 2025",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "DJ Orion - 30 X Fresh - YleX:n Perjantai-ilta",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "DRUM AND BASS BANGERS",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "D&B Release Radar [MIXED]",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "fucking HAM",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Dnb All Day",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Nasty Slopes",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "tmrwland thurs 3",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "New Suomi EDM",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "EDM",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "My Distorted Mind IV Redemption Saga",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "trap vs tech house TU",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "konečně nový drumový playlist",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "The Buffer",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Zinger Pinger Jaw Swinger",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "Fresh fall DnB  '25 🍂",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "36",
+            "name": "Brand New Drum And Bass 🦀",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Embers of September 25",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Deep Wubs EDM",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "RAMPAGE 2025",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "LEÑATRIP",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "DUB 25",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "DJ Orion - 30 X Drum'n'bass - YleX:n Perjantai-ilta",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 18, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "EDM/Drum and Bass Bangers",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "NEW HOUSE MUSIC FRIDAY (by FTO)",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Monthly Rinse Pack",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Wild-Card",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "Fan vad blandat då 🤷‍♀️🍻",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 18, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "THE DRUM & BASS BUNKER",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "slander sd",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "DnB Stankface",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 1, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Gym",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "This Is hayve",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "53",
+            "name": "SLANDER Voyager Tour",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 1, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "53",
+          "total": "3,306"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,747",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "368",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "360",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "272",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "244",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "WORKOUT ELETRÔNICA 2025🔥 Academia | Crossfit | Treino",
+            "made_by": "—",
+            "streams": "201",
+            "date_added": "Sep 25, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "This Is NGHTMRE",
+            "made_by": "Spotify",
+            "streams": "79",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "74",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Vocal Drum&Bass 2025 by Julian Florent",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "38",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "GYM DNB BANGERS 2025 | WORKOUT DRUM & BASS",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "GAMING DNB 2025 | DRUM & BASS FOR GAMERS",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "DNB ALLSTARS 2025",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "New Jump Up & Heavy Drum and Bass 2025 (New DnB / DnB / D&B / Neurofunk DnB / Heavy Bass) | uBazz",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "DRUM AND BASS BANGERS",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "New Suomi EDM",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "YleX - DJ Orion 💥 Perjantai-illan yhteisön playlist-paratiisi",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 11, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "slander sd",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "konečně nový drumový playlist",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "SLANDER Voyager Tour",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 1, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "22",
+          "total": "1,207"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "44,380",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "41,116",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "15,346",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5,193",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3,406",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "2,109",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "690",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "542",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "WORKOUT ELETRÔNICA 2025🔥 Academia | Crossfit | Treino",
+            "made_by": "—",
+            "streams": "514",
+            "date_added": "Sep 25, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "This Is NGHTMRE",
+            "made_by": "Spotify",
+            "streams": "479",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "GYM DNB BANGERS 2025 | WORKOUT DRUM & BASS",
+            "made_by": "—",
+            "streams": "220",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Vocal Drum&Bass 2025 by Julian Florent",
+            "made_by": "—",
+            "streams": "209",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "187",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "175",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "New Jump Up & Heavy Drum and Bass 2025 (New DnB / DnB / D&B / Neurofunk DnB / Heavy Bass) | uBazz",
+            "made_by": "—",
+            "streams": "162",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "GAMING DNB 2025 | DRUM & BASS FOR GAMERS",
+            "made_by": "—",
+            "streams": "126",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "YleX - DJ Orion 💥 Perjantai-illan yhteisön playlist-paratiisi",
+            "made_by": "—",
+            "streams": "119",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "DJ Orion - 30 X Fresh - YleX:n Perjantai-ilta",
+            "made_by": "—",
+            "streams": "75",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Brand New Drum And Bass 🦀",
+            "made_by": "—",
+            "streams": "74",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "73",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "DNB ALLSTARS 2025",
+            "made_by": "—",
+            "streams": "57",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Premier Neurofunk by EATBRAIN",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Body bagarre 2025 / 2026",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "DRUM AND BASS BANGERS",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "New Suomi EDM",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "fucking HAM",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Drumm&basss",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "My Distorted Mind IV Redemption Saga",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Bassizm Warmup!",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Sep 1, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "D&B Release Radar [MIXED]",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "konečně nový drumový playlist",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "EDM",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "The Buffer",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "Dnb All Day",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "2025 Drum & Bass / DnB BEST BEATS & BANGERS",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "Nasty Slopes",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Gym",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "tmrwland thurs 3",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "Get HUMPY!",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "TOUGE DRIFTING",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "BASS INFERNO",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "Monthly Rinse Pack",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "VIBE CHECK",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Sep 11, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "45",
+            "name": "DnB/Techno/Goa",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "trap vs tech house TU",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "future gym",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "New dnb (winter)",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Sep 11, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "DRUM & BASS 2025",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "Top tier list DnB",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Sep 10, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Weekly Dancefloor DnB Releases",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Sep 1, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "DRUM & BASS",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "RAMPAGE 2025",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "Wild-Card",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "Subelo",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "Fresh fall DnB  '25 🍂",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "DJ Orion - 30 X Drum'n'bass - YleX:n Perjantai-ilta",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 11, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "LEÑATRIP",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "edm",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "Zinger Pinger Jaw Swinger",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "DUB 25",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "EDM/Drum and Bass Bangers",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "dnb September 2025",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 7, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "Mythic",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 10, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "This Is hayve",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "66",
+            "name": "DNB",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "Embers of September 25",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "Deep Wubs EDM",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "DnB Stankface",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 1, 2025"
+          },
+          {
+            "rank": "70",
+            "name": "The Aviary",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "71",
+            "name": "9/15 pL",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "72",
+            "name": "NEW HOUSE MUSIC FRIDAY (by FTO)",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "73",
+            "name": "FULL ENERGY WORKOUT PLAYLIST ⚡",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "74",
+            "name": "edm💫",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "75",
+            "name": "Fan vad blandat då 🤷‍♀️🍻",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 18, 2025"
+          },
+          {
+            "rank": "76",
+            "name": "THE DRUM & BASS BUNKER",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "77",
+            "name": "slander sd",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "78",
+            "name": "Rum & Ass",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "79",
+            "name": "swaggiest new edm friday",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "80",
+            "name": "SLANDER Voyager Tour",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "81",
+            "name": "D&B Release Radar",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 29, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "81",
+          "total": "4,707"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}
