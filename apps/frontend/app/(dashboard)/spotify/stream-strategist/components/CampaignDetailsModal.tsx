@@ -102,12 +102,12 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const { data: performanceData, isLoading: performanceLoading } = useCampaignPerformanceData(campaign?.id);
   const { data: overallPerformance } = useCampaignOverallPerformance(campaign?.id);
   
-  // Fetch campaign playlists (real scraped data)
-  const { data: campaignPlaylists = [], isLoading: playlistsLoading } = useQuery({
+  // Fetch campaign playlists (real scraped data) - separated into vendor and algorithmic
+  const { data: campaignPlaylistsData = { vendor: [], algorithmic: [] }, isLoading: playlistsLoading } = useQuery({
     queryKey: ['campaign-playlists', campaign?.id],
     queryFn: async () => {
       if (!campaign?.id) {
-        return [];
+        return { vendor: [], algorithmic: [] };
       }
       
       // First, get all spotify_campaigns (songs) in this campaign group
@@ -118,16 +118,16 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       
       if (songsError) {
         console.error('Error fetching campaign songs:', songsError);
-        return [];
+        return { vendor: [], algorithmic: [] };
       }
       
       if (!songs || songs.length === 0) {
-        return [];
+        return { vendor: [], algorithmic: [] };
       }
       
       const songIds = songs.map(s => s.id);
       
-      // Fetch playlists for all songs
+      // Fetch ALL playlists for all songs
       let query = supabase
         .from('campaign_playlists')
         .select(`
@@ -150,13 +150,26 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       
       if (error) {
         console.error('Error fetching campaign playlists:', error);
-        return [];
+        return { vendor: [], algorithmic: [] };
       }
       
-      return data || [];
+      // Separate vendor playlists from algorithmic playlists
+      const vendorPlaylists = (data || []).filter((p: any) => !p.is_algorithmic);
+      const algorithmicPlaylists = (data || []).filter((p: any) => p.is_algorithmic);
+      
+      console.log('✅ Found playlists - Vendor:', vendorPlaylists.length, 'Algorithmic:', algorithmicPlaylists.length);
+      
+      return {
+        vendor: vendorPlaylists,
+        algorithmic: algorithmicPlaylists
+      };
     },
     enabled: !!campaign?.id && open
   });
+  
+  // Extract for easier access
+  const campaignPlaylists = campaignPlaylistsData.vendor || [];
+  const algorithmicPlaylists = campaignPlaylistsData.algorithmic || [];
   
   const canEditCampaign = hasRole('admin') || hasRole('manager');
 
@@ -1042,7 +1055,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            ) : campaignPlaylists.length === 0 ? (
+            ) : campaignPlaylists.length === 0 && algorithmicPlaylists.length === 0 ? (
               <div className="text-center p-8 text-muted-foreground">
                 <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium mb-2">No Playlist Data Yet</p>
@@ -1052,8 +1065,57 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Summary Stats */}
-                <div className="grid grid-cols-4 gap-4">
+                {/* Spotify Algorithmic Playlists Section */}
+                {algorithmicPlaylists.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b">
+                      <Radio className="h-5 w-5 text-green-600" />
+                      <h3 className="text-lg font-semibold">Spotify Algorithmic Playlists</h3>
+                      <Badge variant="secondary">{algorithmicPlaylists.length}</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {algorithmicPlaylists.map((playlist: any) => (
+                        <Card key={playlist.id} className="p-4">
+                          <div className="flex items-start gap-2">
+                            <Radio className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate" title={playlist.playlist_name}>
+                                {playlist.playlist_name}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Spotify Official
+                              </div>
+                              <div className="mt-2 text-lg font-bold">
+                                {(playlist.streams_28d || 0).toLocaleString()}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                streams (28d)
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="text-sm text-green-800 dark:text-green-200">
+                        <strong>Total Algorithmic Streams (28d):</strong>{' '}
+                        {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Vendor Playlists Section */}
+                {campaignPlaylists.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b">
+                      <Music className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">Vendor Playlists</h3>
+                      <Badge variant="secondary">{campaignPlaylists.length}</Badge>
+                    </div>
+
+                    {/* Summary Stats */}
+                    <div className="grid grid-cols-4 gap-4">
                   <Card className="p-4">
                     <div className="text-sm text-muted-foreground mb-1">Total Playlists</div>
                     <div className="text-2xl font-bold">{campaignPlaylists.length}</div>
@@ -1189,6 +1251,8 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     </Card>
                   ))}
                 </div>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>

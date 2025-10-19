@@ -201,3 +201,4 @@ This directory contains a complete export of the ARTI platform Supabase database
 // Run the export
 exportDatabase();
 
+
