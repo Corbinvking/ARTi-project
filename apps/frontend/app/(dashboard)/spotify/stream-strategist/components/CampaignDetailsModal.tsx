@@ -182,6 +182,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const fetchCampaignDetails = async () => {
     if (!campaign?.id) return;
     
+    console.log('🔄 [v1.0.1] Fetching campaign details from campaign_groups table');
     setLoading(true);
     try {
       const { data, error } = await supabase
