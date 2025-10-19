@@ -129,9 +129,9 @@ export function useCampaignOverallPerformance(campaignId: string) {
     queryFn: async () => {
       if (!campaignId) return null;
 
-      // Get campaign details
+      // Get campaign details from campaign_groups
       const { data: campaign, error: campaignError } = await supabase
-        .from('campaigns')
+        .from('campaign_groups')
         .select('*')
         .eq('id', campaignId)
         .single();
@@ -151,11 +151,11 @@ export function useCampaignOverallPerformance(campaignId: string) {
       const totalAllocated = allocations?.reduce((sum, a) => sum + a.allocated_streams, 0) || 0;
 
       return {
-        campaign_goal: campaign.stream_goal,
+        campaign_goal: campaign.total_goal || 0,
         total_actual: totalActual,
         total_predicted: totalPredicted,
         total_allocated: totalAllocated,
-        progress_percentage: campaign.stream_goal > 0 ? (totalActual / campaign.stream_goal) * 100 : 0,
+        progress_percentage: (campaign.total_goal || 0) > 0 ? (totalActual / (campaign.total_goal || 1)) * 100 : 0,
         prediction_accuracy: totalPredicted > 0 ? (totalActual / totalPredicted) * 100 : 0
       };
     },

@@ -82,6 +82,12 @@ const PLAYLIST_STATUSES = [
 ];
 
 export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetailsModalProps) {
+  console.log('🔧 [v1.0.1-DEBUG] Modal rendered:', { 
+    open, 
+    campaignId: campaign?.id,
+    campaignName: campaign?.name 
+  });
+  
   const [campaignData, setCampaignData] = useState<any>(null);
   const [playlists, setPlaylists] = useState<PlaylistWithStatus[]>([]);
   const [loading, setLoading] = useState(false);
@@ -92,6 +98,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const { toast } = useToast();
   
   // Fetch vendor responses for this campaign
+  console.log('🔧 [v1.0.1-DEBUG] About to call useCampaignVendorResponses with ID:', campaign?.id);
   const { data: vendorResponses = [], isLoading: vendorResponsesLoading } = useCampaignVendorResponses(campaign?.id);
   const { data: isVendorManager = false } = useIsVendorManager();
   const { hasRole } = useAuth();
