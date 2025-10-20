@@ -15,11 +15,18 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Check if Caddy is running
-if ! docker ps | grep -q caddy; then
+# Find Caddy container automatically
+CADDY_CONTAINER=$(docker ps --format '{{.Names}}' | grep -i caddy | head -1)
+
+if [ -z "$CADDY_CONTAINER" ]; then
     echo "❌ Caddy container not found. Is it running?"
+    echo "Available containers:"
+    docker ps --format "  - {{.Names}}"
     exit 1
 fi
+
+echo "✅ Found Caddy container: $CADDY_CONTAINER"
+echo ""
 
 echo "📝 Step 1: Set Admin Password"
 echo ""
@@ -46,7 +53,7 @@ if [ ${#STUDIO_PASSWORD} -lt 12 ]; then
 fi
 
 echo "🔒 Generating password hash..."
-HASHED_PASSWORD=$(docker exec caddy caddy hash-password --plaintext "$STUDIO_PASSWORD")
+HASHED_PASSWORD=$(docker exec $CADDY_CONTAINER caddy hash-password --plaintext "$STUDIO_PASSWORD")
 
 if [ -z "$HASHED_PASSWORD" ]; then
     echo "❌ Failed to generate password hash"
@@ -134,13 +141,13 @@ echo ""
 
 # Reload Caddy
 echo "🔄 Reloading Caddy configuration..."
-if docker exec caddy caddy reload --config /etc/caddy/Caddyfile; then
+if docker exec $CADDY_CONTAINER caddy reload --config /etc/caddy/Caddyfile; then
     echo "✅ Caddy reloaded successfully"
 else
     echo "❌ Failed to reload Caddy"
     echo "📝 Restoring backup..."
     cp "$BACKUP_PATH" "$CADDYFILE_PATH"
-    docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+    docker exec $CADDY_CONTAINER caddy reload --config /etc/caddy/Caddyfile
     echo "❌ Setup failed. Original configuration restored."
     exit 1
 fi
@@ -169,6 +176,6 @@ echo "   4. Enter the password you just set"
 echo ""
 echo "🔄 To remove auth wall (if needed):"
 echo "   1. Restore backup: cp $BACKUP_PATH $CADDYFILE_PATH"
-echo "   2. Reload Caddy: docker exec caddy caddy reload --config /etc/caddy/Caddyfile"
+echo "   2. Reload Caddy: docker exec $CADDY_CONTAINER caddy reload --config /etc/caddy/Caddyfile"
 echo ""
 
