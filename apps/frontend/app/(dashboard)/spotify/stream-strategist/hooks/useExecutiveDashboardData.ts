@@ -111,13 +111,9 @@ export const useExecutiveDashboardData = () => {
         ? playlistData.reduce((sum, playlist) => sum + (playlist.streams_28d || 0), 0) 
         : 0;
 
-      // Calculate campaign efficiency (based on goal completion)
-      const completedCampaigns = Array.isArray(campaigns) 
-        ? campaigns.filter(c => c.status === 'Completed')
-        : [];
-      
-      const campaignEfficiency = totalCampaigns > 0 
-        ? (completedCampaigns.length / totalCampaigns) * 100 
+      // Calculate campaign efficiency (goal achievement rate - how close are we to hitting goals?)
+      const campaignEfficiency = totalStreamGoals > 0 
+        ? Math.min((totalActualStreams / totalStreamGoals) * 100, 100)
         : 0;
 
       // Calculate average cost per stream
@@ -125,20 +121,20 @@ export const useExecutiveDashboardData = () => {
         ? totalRevenue / totalActualStreams 
         : 0;
 
-      // Calculate streams from past 30 days (all playlists created in last 30 days)
-      const totalStreamsPast30Days = Array.isArray(playlistData)
-        ? playlistData
-            .filter(p => new Date(p.created_at) >= past30Days)
-            .reduce((sum, p) => sum + (p.streams_28d || 0), 0)
-        : 0;
+      // Calculate streams from past 30 days (use total streams - streams_28d is already "past 28 days")
+      // This represents current active streaming performance across all campaigns
+      const totalStreamsPast30Days = totalActualStreams;
 
       // Calculate campaigns added in past 30 days
       const campaignsAddedPast30Days = Array.isArray(campaigns) 
         ? campaigns.filter(c => new Date(c.created_at) >= past30Days).length 
         : 0;
 
-      // Calculate average cost per 1k streams
-      const averageCostPer1kStreams = averageCostPerStream * 1000;
+      // Calculate average cost per 1k streams (based on budget vs goals for realistic pricing)
+      // This shows the budgeted cost to achieve 1K streams, not actual cost
+      const averageCostPer1kStreams = totalStreamGoals > 0
+        ? (totalRevenue / (totalStreamGoals / 1000))
+        : 0;
 
       // Calculate top performing vendors from playlist data
       const topPerformingVendors = Array.isArray(vendors) 
