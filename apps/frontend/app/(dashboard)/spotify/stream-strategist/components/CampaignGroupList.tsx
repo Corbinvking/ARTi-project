@@ -335,8 +335,11 @@ export function CampaignGroupList() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{campaign.name}</div>
+                      <div className="font-medium">{campaign.artist_name || campaign.name}</div>
                       <div className="text-sm text-muted-foreground">
+                        {campaign.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
                         Budget: ${campaign.total_budget?.toFixed(2) || '0.00'} | Goal: {campaign.total_goal?.toLocaleString() || '0'}
                       </div>
                       {campaign.start_date && (

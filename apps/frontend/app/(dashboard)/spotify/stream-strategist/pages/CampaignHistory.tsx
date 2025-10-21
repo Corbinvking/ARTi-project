@@ -87,6 +87,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 interface Campaign {
   id: string;
   name: string;
+  artist_name?: string;
   client: string;
   client_name?: string;
   track_url: string;
@@ -993,7 +994,10 @@ export default function CampaignHistory() {
                           </TableCell>
                           <TableCell className="font-medium">
                             <div>
-                              <div className="font-medium">{campaign.name}</div>
+                              <div className="font-medium">{campaign.artist_name || campaign.name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {campaign.name}
+                              </div>
                               {campaign.salesperson && (
                                 <div className="text-xs text-muted-foreground">
                                   by {campaign.salesperson}
