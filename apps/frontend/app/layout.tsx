@@ -7,9 +7,16 @@ import { Suspense } from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Marketing Operations Dashboard",
-  description: "Multi-tenant marketing operations dashboard for social media management",
+  title: "Artist Influence - Marketing Operations",
+  description: "Spotify campaign management and marketing operations dashboard",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/logo.png', type: 'image/png' },
+    ],
+    apple: '/logo.png',
+  },
 }
 
 export default function RootLayout({
