@@ -189,18 +189,92 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const fetchCampaignDetails = async () => {
     if (!campaign?.id) return;
     
-    console.log('🔄 [v1.0.1] Fetching campaign details from campaign_groups table');
+    console.log('🔄 [v1.0.2] Fetching comprehensive campaign details');
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch campaign group data
+      const { data: campaignGroup, error: groupError } = await supabase
         .from('campaign_groups')
-        .select('*')
+        .select(`
+          *,
+          clients (
+            id,
+            name,
+            emails
+          )
+        `)
         .eq('id', campaign.id)
         .single();
 
-      if (error) throw error;
+      if (groupError) throw groupError;
 
-      setCampaignData(data as any);
+      // Fetch all songs (spotify_campaigns) in this campaign group
+      const { data: songs, error: songsError } = await supabase
+        .from('spotify_campaigns')
+        .select('*')
+        .eq('campaign_group_id', campaign.id);
+      
+      if (songsError) throw songsError;
+
+      // Calculate totals from songs
+      const totalDaily = songs?.reduce((sum, song) => sum + (parseInt(song.daily) || song.daily_streams || 0), 0) || 0;
+      const totalWeekly = songs?.reduce((sum, song) => sum + (parseInt(song.weekly) || song.weekly_streams || 0), 0) || 0;
+      const totalRemaining = songs?.reduce((sum, song) => sum + (parseInt(song.remaining) || 0), 0) || 0;
+
+      // Fetch algorithmic playlists for this campaign to calculate external streams
+      const songIds = songs?.map(s => s.id) || [];
+      let radioStreams = 0;
+      let discoverWeeklyStreams = 0;
+      
+      if (songIds.length > 0) {
+        const { data: algorithmicPlaylists } = await supabase
+          .from('campaign_playlists')
+          .select('playlist_name, streams_28d')
+          .in('campaign_id', songIds)
+          .eq('is_algorithmic', true);
+        
+        if (algorithmicPlaylists) {
+          radioStreams = algorithmicPlaylists
+            .filter(p => p.playlist_name?.toLowerCase().includes('radio'))
+            .reduce((sum, p) => sum + (p.streams_28d || 0), 0);
+          
+          discoverWeeklyStreams = algorithmicPlaylists
+            .filter(p => p.playlist_name?.toLowerCase().includes('discover weekly'))
+            .reduce((sum, p) => sum + (p.streams_28d || 0), 0);
+        }
+      }
+
+      // Calculate duration from start_date to end_date or use a default
+      let durationDays = 0;
+      if (campaignGroup.start_date && campaignGroup.end_date) {
+        const start = new Date(campaignGroup.start_date);
+        const end = new Date(campaignGroup.end_date);
+        durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      } else if (campaignGroup.start_date) {
+        // Calculate from start_date to now
+        const start = new Date(campaignGroup.start_date);
+        const now = new Date();
+        durationDays = Math.ceil((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      }
+
+      // Merge all data into campaignData
+      const enrichedData = {
+        ...campaignGroup,
+        client_name: campaignGroup.clients?.name || campaignGroup.client_id,
+        budget: parseFloat(campaignGroup.total_budget) || 0,
+        stream_goal: campaignGroup.total_goal || 0,
+        remaining_streams: totalRemaining || campaignGroup.total_goal || 0,
+        sub_genre: campaignGroup.notes || 'Not specified', // Genre stored in notes
+        duration_days: durationDays,
+        daily_streams: totalDaily,
+        weekly_streams: totalWeekly,
+        radio_streams: radioStreams,
+        discover_weekly_streams: discoverWeeklyStreams,
+        track_url: songs?.[0]?.url || null, // First song's URL
+        songs: songs || [],
+      };
+
+      setCampaignData(enrichedData as any);
       
       // Fetch vendor data with cost information
       const { data: vendorInfo } = await supabase
