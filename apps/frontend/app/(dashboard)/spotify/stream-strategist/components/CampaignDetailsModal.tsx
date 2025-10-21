@@ -612,7 +612,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-[1400px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {campaignData?.name || campaign?.name}
