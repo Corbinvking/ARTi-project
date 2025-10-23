@@ -43,7 +43,7 @@ Fast-forward
 ```bash
 # Install roster scraper dependencies
 cd roster_scraper
-pip3 install -r requirements.txt
+pip3  install-r requirements.txt
 
 # Install spotify scraper dependencies
 cd ../spotify_scraper

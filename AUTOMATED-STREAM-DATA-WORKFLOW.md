@@ -16,12 +16,42 @@ This workflow automates the entire process of:
 
 ## 🚀 Quick Start (Manual Run)
 
-### Run Complete Pipeline
+### Method 1: Local Scrape → Upload → Production Import (RECOMMENDED)
+
+**Best for production - avoids long-running scrapers on production server**
+
 ```bash
-# 1. Navigate to project root
+# LOCAL MACHINE:
+# 1. Run scraper locally (one-time or as needed)
+cd /path/to/ARTi-project
+python scripts/run_full_stream_data_pipeline.py
+
+# 2. Upload scraped data to production
+scp spotify_scraper/data/roster_*.json root@YOUR_SERVER_IP:~/arti-marketing-ops/spotify_scraper/data/
+
+# PRODUCTION SERVER:
+# 3. Import to production database
+cd ~/arti-marketing-ops
+node scripts/import-roster-scraped-data.js
+```
+
+**Benefits:**
+- ✅ No 2-3 hour scraping on production
+- ✅ Scrape once, deploy to multiple environments
+- ✅ Production runs only quick import (~30 seconds)
+- ✅ Can test locally before deploying
+
+---
+
+### Method 2: Run Complete Pipeline on Server
+
+**For automated cron jobs or if scraping directly on production**
+
+```bash
+# Navigate to project root
 cd /path/to/ARTi-project
 
-# 2. Run the complete workflow
+# Run the complete workflow
 python scripts/run_full_stream_data_pipeline.py
 ```
 
@@ -295,26 +325,64 @@ FROM campaign_playlists;
 
 ## 🚀 Production Deployment
 
-### Prerequisites
+### Recommended Workflow: Local Scrape → Upload → Production Import
 
-1. **Environment Variables** (production)
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://your-production-url.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+**This is the preferred method for production:**
+
+1. **Scrape locally** (your machine, controlled environment)
+2. **Upload data files** to production
+3. **Import** to production database
+
+**Benefits:**
+- ⚡ **Fast**: Only 30-second import on production
+- 🔒 **Safe**: Test locally before deploying
+- 💰 **Efficient**: No 2-3 hour scraper on production server
+- ♻️ **Reusable**: Deploy same data to multiple environments
+
+### Quick Upload Commands
+
+**Using PowerShell (Windows):**
+```powershell
+# Upload with helper script
+.\scripts\upload_to_production.ps1 -ServerIP "164.90.129.146"
+
+# Or manual scp
+scp spotify_scraper/data/roster_*.json root@164.90.129.146:~/arti-marketing-ops/spotify_scraper/data/
 ```
 
-2. **CSV File** in production server
+**Using Bash (Linux/Mac):**
 ```bash
-/path/to/production/Spotify Playlisting-Active Campaigns.csv
+# Upload with helper script
+bash scripts/upload_to_production.sh 164.90.129.146
+
+# Or manual scp
+scp spotify_scraper/data/roster_*.json root@164.90.129.146:~/arti-marketing-ops/spotify_scraper/data/
 ```
 
-3. **Playwright Browser**
+### Production Import Only
+
+**On production server:**
 ```bash
-cd roster_scraper
-playwright install chromium
+# 1. SSH into production
+ssh root@164.90.129.146
+
+# 2. Navigate to project
+cd ~/arti-marketing-ops
+
+# 3. Activate venv (if using)
+source venv/bin/activate
+
+# 4. Import data
+node scripts/import-roster-scraped-data.js
+
+# Expected: ~30 seconds, processes 79 files, creates 1000+ playlist records
 ```
 
-### Deploy Commands
+---
+
+### Alternative: Run Complete Pipeline on Production
+
+**For automated cron jobs or scheduled updates:**
 
 ```bash
 # 1. SSH into production server
@@ -326,15 +394,15 @@ cd /path/to/ARTi-project
 # 3. Pull latest code
 git pull origin main
 
-# 4. Install dependencies (if needed)
+# 4. Install dependencies (first time only)
 cd roster_scraper && pip install -r requirements.txt
 cd ../spotify_scraper && pip install -r requirements.txt
 cd ..
 
-# 5. Test run manually
+# 5. Run complete pipeline (takes 2-3 hours)
 python scripts/run_full_stream_data_pipeline.py
 
-# 6. Set up cron job
+# 6. Set up cron job for weekly updates
 crontab -e
 # Add: 0 2 * * 0 cd /path/to/ARTi-project && python3 scripts/run_full_stream_data_pipeline.py >> logs/stream_data_workflow.log 2>&1
 ```
