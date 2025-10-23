@@ -286,7 +286,8 @@ class RosterPage:
     
     async def get_artist_songs(self, artist_info: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
-        Get all songs for an artist from their page
+        Get all songs for an artist from their Songs page
+        Returns ALL songs (we'll match specific ones later)
         
         Args:
             artist_info: Artist info dict from find_artist()
@@ -297,53 +298,61 @@ class RosterPage:
         # Navigate to the artist's page first
         await self.navigate_to_artist(artist_info)
         
-        print(f"🎵 Scraping songs for: {artist_info['name']}")
+        print(f"🎵 Getting all songs for: {artist_info['name']}")
         
         songs = []
         
-        # Scroll to load all songs
-        await self.scroll_to_bottom()
+        # We're now on the Songs page - let's extract all song links
+        # The songs are in table rows with links to /song/
+        await asyncio.sleep(2)  # Let page settle
         
-        # Find song elements (try multiple selectors for table rows)
-        selectors_to_try = [
-            'tr',  # Table rows
-            '[data-testid="song-row"]',
-            '[data-testid*="track"]',
-            'tr[data-testid*="song"]',
-            'a[href*="/song/"]'
-        ]
+        # Find all song links on the page
+        song_links = await self.page.query_selector_all('a[href*="/song/"]')
         
-        song_elements = []
-        for selector in selectors_to_try:
+        print(f"   Found {len(song_links)} song links on page")
+        
+        seen_urls = set()
+        
+        for link_element in song_links:
             try:
-                elements = await self.page.query_selector_all(selector)
-                if elements and len(elements) > 0:
-                    song_elements = elements
-                    print(f"   Found {len(elements)} song elements with selector: {selector}")
-                    break
-            except:
-                continue
-        
-        if not song_elements:
-            # Fallback: find all links containing /song/
-            song_elements = await self.page.query_selector_all('a[href*="/song/"]')
-            print(f"   Fallback: Found {len(song_elements)} song links")
-        
-        for element in song_elements:
-            try:
-                # Extract song name
+                # Extract song SFA URL
+                song_url = await link_element.get_attribute('href')
+                
+                if not song_url or song_url in seen_urls:
+                    continue
+                
+                seen_urls.add(song_url)
+                
+                # Extract song name - try to get the text from the link or parent row
                 song_name = None
-                text = await element.text_content()
-                if text and text.strip():
+                
+                # Method 1: Direct link text
+                text = await link_element.text_content()
+                if text and text.strip() and len(text.strip()) > 2:
                     song_name = text.strip()
                 
-                if not song_name:
-                    name_element = await element.query_selector('[class*="title"], [class*="name"], h3, h4')
-                    if name_element:
-                        song_name = await name_element.text_content()
-                
-                # Extract song SFA URL
-                song_url = await element.get_attribute('href')
+                # Method 2: Look for title in the same row
+                if not song_name or len(song_name) < 2:
+                    try:
+                        # Try to find the parent table row and get clean text
+                        row = await link_element.evaluate_handle('element => element.closest("tr")')
+                        if row:
+                            # Get all text from the row
+                            row_text = await row.as_element().text_content()
+                            if row_text:
+                                # Split by newlines and numbers, get the meaningful part
+                                parts = row_text.split('\n')
+                                for part in parts:
+                                    part = part.strip()
+                                    # Skip if it's just a number or too short
+                                    if part and len(part) > 2 and not part.isdigit():
+                                        # Remove leading numbers (like "1", "2", etc.)
+                                        part = re.sub(r'^\d+', '', part).strip()
+                                        if part and len(part) > 2:
+                                            song_name = part
+                                            break
+                    except:
+                        pass
                 
                 if song_name and song_url:
                     # Construct full SFA URL
@@ -359,10 +368,14 @@ class RosterPage:
                     # Extract track ID from URL
                     track_id = self.extract_track_id_from_sfa_url(sfa_url)
                     
-                    # Clean song name
+                    # Clean song name (remove extra whitespace, numbers, etc.)
                     song_name = song_name.strip()
                     
-                    # Skip duplicates
+                    # Skip if song name is just a number or too short
+                    if len(song_name) < 2 or song_name.isdigit():
+                        continue
+                    
+                    # Skip duplicates by name
                     if any(s['name'] == song_name for s in songs):
                         continue
                     
@@ -370,12 +383,19 @@ class RosterPage:
                         'name': song_name,
                         'sfa_url': sfa_url,
                         'track_id': track_id,
-                        'element': element
+                        'element': link_element
                     })
             except Exception as e:
                 continue
         
-        print(f"   ✅ Found {len(songs)} songs")
+        print(f"   ✅ Extracted {len(songs)} unique songs")
+        
+        # Debug: show first few songs
+        if songs:
+            print(f"   📝 Sample songs:")
+            for song in songs[:5]:
+                print(f"      • {song['name']}")
+        
         return songs
     
     def extract_track_id_from_sfa_url(self, sfa_url: str) -> Optional[str]:
