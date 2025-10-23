@@ -122,10 +122,10 @@ async function upsertVendor(vendorData, dryRun = false) {
       return { action: 'update', id: existing.id, dryRun: true };
     }
     
+    // Vendors table doesn't have email column, just update timestamp
     const { data, error } = await supabase
       .from('vendors')
       .update({
-        email: vendorData.email || existing.email,
         updated_at: new Date().toISOString()
       })
       .eq('id', existing.id)
@@ -145,11 +145,11 @@ async function upsertVendor(vendorData, dryRun = false) {
       return { action: 'create', dryRun: true };
     }
     
-    const { data, error } = await supabase
+    // Vendors table doesn't have email column
+    const { data, error} = await supabase
       .from('vendors')
       .insert({
         name: vendorData.name,
-        email: vendorData.email,
         org_id: DEFAULT_ORG_ID
       })
       .select()

@@ -52,6 +52,17 @@ function normalizeText(text) {
 }
 
 /**
+ * Convert "checked" string to boolean
+ */
+function normalizeBoolean(text) {
+  if (!text) return null;
+  const normalized = text.toString().toLowerCase().trim();
+  if (normalized === 'checked' || normalized === 'true' || normalized === '1') return true;
+  if (normalized === 'false' || normalized === '0' || normalized === '') return false;
+  return null;
+}
+
+/**
  * Extract Spotify track ID from URL
  */
 function extractSpotifyTrackId(url) {
@@ -126,16 +137,16 @@ function normalizeCampaignData(row) {
     
     // Vendor info
     vendor: normalizeText(row.Vendor),
-    paid_vendor: normalizeText(row['Paid Vendor?']),
+    paid_vendor: normalizeBoolean(row['Paid Vendor?']),
     curator_status: normalizeText(row['Curator Status']),
     
     // Playlists
     playlists: normalizeText(row.Playlists),
     
     // Communication flags
-    notify_vendor: normalizeText(row['Notify Vendor?']),
-    ask_for_sfa: normalizeText(row['Ask For SFA']),
-    update_client: normalizeText(row['Update Client']),
+    notify_vendor: normalizeBoolean(row['Notify Vendor?']),
+    ask_for_sfa: normalizeBoolean(row['Ask For SFA']),
+    update_client: normalizeBoolean(row['Update Client']),
     
     // Contact info
     client_email: normalizeText(row['Client Email']),
