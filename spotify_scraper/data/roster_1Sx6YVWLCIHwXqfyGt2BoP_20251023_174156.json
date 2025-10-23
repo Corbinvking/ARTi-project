@@ -1,0 +1,193 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/1Sx6YVWLCIHwXqfyGt2BoP/stats",
+  "scraped_at": "2025-10-23T17:41:25.668330",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,648",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "109",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "80",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "17",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "56"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "341",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "33"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,648",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "109",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "80",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "17",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "56"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

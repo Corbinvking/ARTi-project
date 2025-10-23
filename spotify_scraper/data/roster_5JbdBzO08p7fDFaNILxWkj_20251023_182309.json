@@ -1,0 +1,186 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6QwGrl6Xk1MlvbQ5epmS2X/song/5JbdBzO08p7fDFaNILxWkj/stats",
+  "scraped_at": "2025-10-23T18:22:39.940350",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "PLAYLIST PARA ARRUMAR A CASA",
+            "made_by": "—",
+            "streams": "3,943",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "FLASH BACK - DANCE ANTIGOS 📀 | CLÁSSICAS",
+            "made_by": "—",
+            "streams": "520",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "189",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "34",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "20"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "PLAYLIST PARA ARRUMAR A CASA",
+            "made_by": "—",
+            "streams": "958",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "FLASH BACK - DANCE ANTIGOS 📀 | CLÁSSICAS",
+            "made_by": "—",
+            "streams": "159",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "12"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "PLAYLIST PARA ARRUMAR A CASA",
+            "made_by": "—",
+            "streams": "4,183",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "FLASH BACK - DANCE ANTIGOS 📀 | CLÁSSICAS",
+            "made_by": "—",
+            "streams": "531",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "209",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "62",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "34",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "17",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "23"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

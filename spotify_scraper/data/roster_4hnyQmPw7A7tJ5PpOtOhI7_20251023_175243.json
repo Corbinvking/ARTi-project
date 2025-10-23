@@ -1,0 +1,1082 @@
+{
+  "url": "https://artists.spotify.com/c/artist/3abRKajGbb3kLMy9AWzfMA/song/4hnyQmPw7A7tJ5PpOtOhI7/stats",
+  "scraped_at": "2025-10-23T17:52:08.324624",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "4,311",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "2,214",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "828",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Nasty BitsPersonalized",
+            "made_by": "Spotify",
+            "streams": "431",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "226",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Tech House 🌃",
+            "made_by": "—",
+            "streams": "225",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "89",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "84",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "This Is BIJOU",
+            "made_by": "Spotify",
+            "streams": "72",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Scream 2025",
+            "made_by": "—",
+            "streams": "69",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "51",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Housewerk 4.0 🎧🕴🏼",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "RAP HOUSE 2025 🌹🔥",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "🪐 BASS CANYON 2025 ✨",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Músicas antigas remixadas eletrônicas",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "ANTS 2025 🐜 Ushuaia Ibiza",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Lost Lands 2025 full lineup taste test",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "WORKOUT 2025 | TECH HOUSE & BASS HOUSE | GYM MOTIVATION",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Treino 🔥",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 7, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Tech House Hype 2025",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "Ibiza Calling 🏖️",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Glo",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 17, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "Electronic Hits",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "European Summer House",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "30",
+            "name": "PAWSA - PICK UP THE PHONE (feat. Nate Dogg)",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "STRAIGHT GA$",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 3, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "31",
+          "total": "446"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "1,021",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "434",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "214",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Tech House 🌃",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "Oct 11, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "38",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Scream 2025",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Nasty BitsPersonalized",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "This Is BIJOU",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Housewerk 4.0 🎧🕴🏼",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "🪐 BASS CANYON 2025 ✨",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "RAP HOUSE 2025 🌹🔥",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Músicas antigas remixadas eletrônicas",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 5, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "17",
+          "total": "151"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "27,155",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "13,728",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "11,974",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "10,953",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "9,343",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "8,571",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "8,267",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "IBIZA TECHNO HOUSE 2025 ⚡️",
+            "made_by": "—",
+            "streams": "4,225",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Calvin Harris - As Melhores",
+            "made_by": "—",
+            "streams": "3,763",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "3,585",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Nasty BitsPersonalized",
+            "made_by": "Spotify",
+            "streams": "3,250",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Tech House 🌃",
+            "made_by": "—",
+            "streams": "2,798",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "ELETRÔNICA 🫀 CARDIO",
+            "made_by": "—",
+            "streams": "2,297",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "2,176",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "1,991",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Estilo Jovem 🥷🏽🏁  @macedo_films_",
+            "made_by": "—",
+            "streams": "1,909",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,345",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "MUSIC ON  🔰 IBIZA 2025",
+            "made_by": "—",
+            "streams": "1,248",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,228",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "992",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Época dorada ⚜️ EDM/POP",
+            "made_by": "—",
+            "streams": "901",
+            "date_added": "May 12, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "856",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "821",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "🪐 BASS CANYON 2025 ✨",
+            "made_by": "—",
+            "streams": "521",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Lost Lands 2025 full lineup taste test",
+            "made_by": "—",
+            "streams": "482",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "This Is BIJOU",
+            "made_by": "Spotify",
+            "streams": "444",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "Electronic Hits",
+            "made_by": "—",
+            "streams": "379",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "RAP HOUSE 2025 🌹🔥",
+            "made_by": "—",
+            "streams": "343",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "262",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Housewerk 4.0 🎧🕴🏼",
+            "made_by": "—",
+            "streams": "214",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "209",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Scream 2025",
+            "made_by": "—",
+            "streams": "162",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Tech House Hype 2025",
+            "made_by": "—",
+            "streams": "130",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "CHIVATO - BARBER",
+            "made_by": "—",
+            "streams": "129",
+            "date_added": "May 4, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "New Music Friday Dance | All New Dance",
+            "made_by": "—",
+            "streams": "113",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "ANTS 2025 🐜 Ushuaia Ibiza",
+            "made_by": "—",
+            "streams": "96",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Músicas antigas remixadas eletrônicas",
+            "made_by": "—",
+            "streams": "86",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "86",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "39",
+            "name": "European Summer House",
+            "made_by": "—",
+            "streams": "78",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "STREAM DJ",
+            "made_by": "—",
+            "streams": "74",
+            "date_added": "May 26, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "WORKOUT 2025 | TECH HOUSE & BASS HOUSE | GYM MOTIVATION",
+            "made_by": "—",
+            "streams": "71",
+            "date_added": "May 26, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "67",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "43",
+            "name": "Bass Canyon 2025 😮‍💨🤯",
+            "made_by": "—",
+            "streams": "66",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "Lost Lands 2025 Uppercard",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "Jun 4, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "STRAIGHT GA$",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "May 3, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Locked Up House 2025 - DND RECS",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "New Sounds",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "Housik",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Aug 14, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "Weekly Selections | Dance Music",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "Ibiza Calling 🏖️",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "WORLD CLUB DOME - POOL SESSIONS",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "TABATA 2025 2.0",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "dat nunu",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "LASuLASo",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "New Dance Music Friday, New Music Friday Dance 2025",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "Treino 🔥",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Sep 7, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "Ibiza Tech House  🕶️",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "Westwood Weekly",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "Vibe 5-5-25",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "Gym 2025",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "EDM Release Radar",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "May 6, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "i’m back",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "May 29, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "Tertun, Kertun ja Serkun teknobunkkeri🕺",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "Suns Out, Buns Out",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "May 10, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "Love Songs (feat. Kosmo Kint)",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "Fresh New EDM | 2025",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "FRESH FRIDAYS HOUSE 2025 🧨",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "CPY YOGA SCULPT 🪞07.20.25",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 13, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "Dance CODE IN E 🤷🏻‍♂️",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 22, 2025"
+          },
+          {
+            "rank": "70",
+            "name": "TMD 4",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "71",
+            "name": "House | Techno | Tech House | Deep House",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "72",
+            "name": "Glo",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 17, 2025"
+          },
+          {
+            "rank": "73",
+            "name": "✩▁𝓢𝓲𝓷𝓯𝓾𝓵 𝓢𝔂𝓶𝓹𝓱𝓸𝓷𝓲𝓮𝓼▁✩",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "74",
+            "name": "NEW EDM FRIDAY 🔥",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "75",
+            "name": "island holiday",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "76",
+            "name": "💪🏻💪🏻",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jun 5, 2025"
+          },
+          {
+            "rank": "77",
+            "name": "Solidcore 5-6",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "78",
+            "name": "day & night, night & day",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "79",
+            "name": "Pines",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "80",
+            "name": "Bassy Dance Beats",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "81",
+            "name": "I like It",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "May 10, 2025"
+          },
+          {
+            "rank": "82",
+            "name": "Bass Canyon 2025",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "83",
+            "name": "JUNE @ BODYROK",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "84",
+            "name": "2025",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "85",
+            "name": "Bass 2025",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "86",
+            "name": "New Music Friday Cratediggers",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "87",
+            "name": "House",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "88",
+            "name": "Can you not?",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "89",
+            "name": "Conguita🐴",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 25, 2025"
+          },
+          {
+            "rank": "90",
+            "name": "May 45",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 28, 2025"
+          },
+          {
+            "rank": "91",
+            "name": "PAWSA - PICK UP THE PHONE (feat. Nate Dogg)",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "92",
+            "name": "bouncier than my ass on molly",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 3, 2025"
+          },
+          {
+            "rank": "93",
+            "name": "swaggiest new edm friday",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "94",
+            "name": "SPICY SCULPT 🌶️",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "95",
+            "name": "House",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "96",
+            "name": "HOUSE HOTLINE",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "97",
+            "name": "PAWSA - TOO COOL TO BE CARELESS",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "98",
+            "name": "Cheek Clapping EDM",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "May 2, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "98",
+          "total": "1,939"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

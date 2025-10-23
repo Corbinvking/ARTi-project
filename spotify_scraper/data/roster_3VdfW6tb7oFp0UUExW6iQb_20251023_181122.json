@@ -1,0 +1,333 @@
+{
+  "url": "https://artists.spotify.com/c/artist/56lvdVGMycLBklLDJqnt0r/song/3VdfW6tb7oFp0UUExW6iQb/stats",
+  "scraped_at": "2025-10-23T18:10:51.510923",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "971",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "401",
+            "date_added": "May 11, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Timur pu panas🤤🍺",
+            "made_by": "—",
+            "streams": "239",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "236",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Space Bass & Wook Bass 🍄",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "EDM Workout 2025 💪🏻 🔥 High-Energy Songs & Motivational Tracks for Fitness & Working Out",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Sep 21, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "DIH TREINO, 🏋✨ pra treinar.",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 8, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Top Remixes of Popular Songs 🎧 Car & Club Edition",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 1, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "46"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "229",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Timur pu panas🤤🍺",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "65",
+            "date_added": "Sep 28, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "62",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Space Bass & Wook Bass 🍄",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Top Remixes of Popular Songs 🎧 Car & Club Edition",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "21"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "5,243",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "1,824",
+            "date_added": "May 11, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "967",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "EDM Workout 2025 💪🏻 🔥 High-Energy Songs & Motivational Tracks for Fitness & Working Out",
+            "made_by": "—",
+            "streams": "461",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "EDM Festival Songs 2025 🌍🎶",
+            "made_by": "—",
+            "streams": "448",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Timur pu panas🤤🍺",
+            "made_by": "—",
+            "streams": "239",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "236",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "228",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Space Bass & Wook Bass 🍄",
+            "made_by": "—",
+            "streams": "198",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "154",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Top Remixes of Popular Songs 🎧 Car & Club Edition",
+            "made_by": "—",
+            "streams": "135",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "83",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "70",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "66",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "58",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "50",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "DIH TREINO, 🏋✨ pra treinar.",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Jul 8, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "RL",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 27, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "20",
+          "total": "157"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

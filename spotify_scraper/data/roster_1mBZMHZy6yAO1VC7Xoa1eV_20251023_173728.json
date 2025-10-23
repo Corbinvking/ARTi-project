@@ -1,0 +1,536 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2Csf1qoijHi5nMt2mMJcjd/song/1mBZMHZy6yAO1VC7Xoa1eV/stats",
+  "scraped_at": "2025-10-23T17:36:57.729661",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Techno Rave.💊",
+            "made_by": "—",
+            "streams": "25,410",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "21,828",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "19,804",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "4,027",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "PROJECT X",
+            "made_by": "—",
+            "streams": "3,232",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "2,964",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,443",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "960",
+            "date_added": "Oct 20, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "592",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "351",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Peak Time Techno",
+            "made_by": "—",
+            "streams": "160",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "This Is Andrea Botez",
+            "made_by": "Spotify",
+            "streams": "157",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "148",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "TPA x Hypeddit: New & Fresh",
+            "made_by": "—",
+            "streams": "101",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "97",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "pepeJAM",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "HIGH ENERGY TECHNO⚡️",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "This Is biskuwi",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Electronic Techno Library",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Upbeat Hits",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "New Music",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Techno Top 100 - Hypeddit",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Techno New Releases - Hypeddit",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "t33chn0",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 8, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "25",
+          "total": "1,118"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Techno Rave.💊",
+            "made_by": "—",
+            "streams": "7,223",
+            "date_added": "Oct 11, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3,724",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "PROJECT X",
+            "made_by": "—",
+            "streams": "2,598",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,754",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "1,417",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "960",
+            "date_added": "Oct 20, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "733",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "433",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "274",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "This Is Andrea Botez",
+            "made_by": "Spotify",
+            "streams": "67",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Peak Time Techno",
+            "made_by": "—",
+            "streams": "57",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "45",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "pepeJAM",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "HIGH ENERGY TECHNO⚡️",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "This Is biskuwi",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Electronic Techno Library",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 6, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "18",
+          "total": "662"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Techno Rave.💊",
+            "made_by": "—",
+            "streams": "25,410",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "21,828",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "19,804",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "4,027",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "PROJECT X",
+            "made_by": "—",
+            "streams": "3,232",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "2,964",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,443",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "960",
+            "date_added": "Oct 20, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "592",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "351",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Peak Time Techno",
+            "made_by": "—",
+            "streams": "160",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "This Is Andrea Botez",
+            "made_by": "Spotify",
+            "streams": "157",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "148",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "TPA x Hypeddit: New & Fresh",
+            "made_by": "—",
+            "streams": "101",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "97",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "pepeJAM",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "HIGH ENERGY TECHNO⚡️",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "This Is biskuwi",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Electronic Techno Library",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Upbeat Hits",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "New Music",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Techno Top 100 - Hypeddit",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Techno New Releases - Hypeddit",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "t33chn0",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 8, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "25",
+          "total": "1,118"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

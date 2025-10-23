@@ -1,0 +1,263 @@
+{
+  "url": "https://artists.spotify.com/c/artist/015xd9ZzBLzvkIlgny78zc/song/2q7ZDvMA70uUdelRE3Sd9Z/stats",
+  "scraped_at": "2025-10-23T17:15:56.720291",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Best Electronic Music Of All Time",
+            "made_by": "—",
+            "streams": "1,157",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "615",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "526",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "185",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "124",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "116",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "91",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "39",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "23"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Best Electronic Music Of All Time",
+            "made_by": "—",
+            "streams": "927",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "489",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "399",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "153",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "124",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "65",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "39",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "23"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Best Electronic Music Of All Time",
+            "made_by": "—",
+            "streams": "1,157",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "615",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "526",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "185",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "124",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "116",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "91",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "39",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "23"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,823 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4F8JGeO6bJO7Z309mxHlP0/song/23qcYNm5ncqa2atmkSK63J/stats",
+  "scraped_at": "2025-10-23T17:57:47.168080",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,524",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,371",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "790",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "420",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "193",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "166",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "142",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "95",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Apr 19, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "FILTHY WOOK MUSIC //",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "SCARY EDM // DARK & HEAVY",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Apr 7, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Dubstep Hits",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 29, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Dubstep uNk 2025",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Apr 9, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "BassBae's BASS BANGERS",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Electrodupster",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 16, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Dubstep Digest",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Dub ⚠️☣️☢️",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 16, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "21",
+          "total": "829"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "414",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "331",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "171",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "108",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "46",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "39",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "SCARY EDM // DARK & HEAVY",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Apr 7, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "FILTHY WOOK MUSIC //",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Dubstep Hits",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 29, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 19, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Dubstep Digest",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "292"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "35,466",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "23,987",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "21,207",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "14,812",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "GYM & WORKOUT - WINTER ARC  - TRAIN WITH PHONK, KRUSHED, TRAP & DUBSTEP - TIK TOK VIRAL-TOP 100",
+            "made_by": "—",
+            "streams": "8,660",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "7,096",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "6,797",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Bass.🚬",
+            "made_by": "—",
+            "streams": "4,940",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "3,918",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "2,668",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "1,847",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "1,612",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "855",
+            "date_added": "Apr 7, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "TikTok Car Vibes 2025 🚗🎶🔥 – Viral Driving Songs",
+            "made_by": "—",
+            "streams": "842",
+            "date_added": "Apr 8, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "753",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "711",
+            "date_added": "Apr 7, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "483",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "253",
+            "date_added": "Apr 19, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "BassBae's BASS BANGERS",
+            "made_by": "—",
+            "streams": "248",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "230",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Bass techno rap",
+            "made_by": "—",
+            "streams": "192",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "FILTHY WOOK MUSIC //",
+            "made_by": "—",
+            "streams": "171",
+            "date_added": "May 24, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "jsavais pas",
+            "made_by": "—",
+            "streams": "168",
+            "date_added": "Apr 6, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "149",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "25",
+            "name": "Dubstep Hits",
+            "made_by": "—",
+            "streams": "112",
+            "date_added": "May 29, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Dub ⚠️☣️☢️",
+            "made_by": "—",
+            "streams": "108",
+            "date_added": "Apr 16, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Dark Heavy Dubstep",
+            "made_by": "—",
+            "streams": "103",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "100",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "29",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "72",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "SCARY EDM // DARK & HEAVY",
+            "made_by": "—",
+            "streams": "69",
+            "date_added": "Apr 7, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "🛸 ABDUCTION 👽 - Experimental Bass and Other Strangeness",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "May 17, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Dubstep uNk 2025",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Apr 9, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Dubstep Hammers",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "35",
+            "name": "EDM Bass Music (Best of 2025)",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "Paskkoo 2",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Dubby",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Apr 21, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Dubstep & Riddim by Mechanic",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Apr 8, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "Dirt 2",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "wubz",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "BRAINF🤬CK",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Apr 17, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "2k25",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "hard technooooo",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "Now that’s what I call Riddim",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 20, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Gym EDM PumP",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Electrodupster",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jun 16, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "bass bumpin",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "Damn Bangers",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "WOMP WOMP",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Apr 6, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "This Is TazMayne",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Forbidden Kingdom 2025 :)",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "Monster Killer (Dubstep)",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 6, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "🔥 Dubstep Energy 🔥",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Apr 7, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "PHat whomps",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "yeaa",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "Mix  real Mayhaps",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 7, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "The Dub Rebellion 2025",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 9, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "HEAT WAVE",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Apr 6, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "i have Skrillex locked in my basement",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "BASS",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 3, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "Strange & Spooky Bass",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Apr 9, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "EDM",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 6, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "The Wheelhouse",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 24, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "student services. 🔥",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "I’m retarded VIP flip edit",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 9, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "Bass, Wubs, and Beyond!",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "ridDim 🫨",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "soupy 💿",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Apr 17, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "Wakaan dub 2025",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 13, 2025"
+          },
+          {
+            "rank": "70",
+            "name": "The Anger that gives Hope",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 17, 2025"
+          },
+          {
+            "rank": "71",
+            "name": "Shadows Speak in Silence",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 26, 2025"
+          },
+          {
+            "rank": "72",
+            "name": "Dubstep Digest",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "73",
+            "name": "FILTH",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 21, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "73",
+          "total": "3,111"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

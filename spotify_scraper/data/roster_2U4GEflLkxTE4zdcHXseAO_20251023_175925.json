@@ -1,0 +1,515 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4F8JGeO6bJO7Z309mxHlP0/song/2U4GEflLkxTE4zdcHXseAO/stats",
+  "scraped_at": "2025-10-23T17:58:54.547355",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,009",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "594",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "203",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Riddim Dubstep 2025",
+            "made_by": "—",
+            "streams": "201",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "62",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "54",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "pov: vc tá num edit do gymtok (gym)",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Not a softie",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Tearout//Dark Dubstep",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Dubstep uNk 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 9, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Dubstep Hammers",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 8, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "18",
+          "total": "460"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Riddim Dubstep 2025",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "39",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "171"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "15,278",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "9,987",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "6,433",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "3,226",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "2,603",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "2,395",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "2,117",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Riddim Dubstep 2025",
+            "made_by": "—",
+            "streams": "1,427",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "pov: vc tá num edit do gymtok (gym)",
+            "made_by": "—",
+            "streams": "1,213",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,124",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "1,090",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "655",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "571",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "234",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "179",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "134",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Beatport Best New Dubstep",
+            "made_by": "—",
+            "streams": "112",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "86",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Dubstep Hammers",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "46",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "30",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Dubstep uNk 2025",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Jul 9, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Not a softie",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "DUBSTEP TAKEOVER 2025 - BASS MUSIC - CAR MUSIC 🔊⚡️",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "May 27, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "March",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Jun 9, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "WOMP WOMP",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "Dubstep riddim trench",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 10, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "dj! come with a chune!",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "May 31, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Bass Face ☹️",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 28, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "GYM HEADBANGERS❤️‍🔥",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "33",
+            "name": "Tearout//Dark Dubstep",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "RIDDIM SELECTA",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 4, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "RIDDIM Dubstep⚔️💥",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "RECENTLY RELEASED FIRE | 2025.10.17 | STEALING FIRE REMIXES, JACKPOT REMIXES, ATLIENS REMIXES, LYNY",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "EDM",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 10, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "The Dub Rebellion 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 9, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "DC Comicz🦇🐈‍⬛🖤",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 5, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "✨40oz cult",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "Eye-Lips-Eyes",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "41",
+          "total": "1,526"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

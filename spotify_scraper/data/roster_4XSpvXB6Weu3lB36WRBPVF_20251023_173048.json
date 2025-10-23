@@ -1,0 +1,508 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1dHoVVD7qBHRyfL7PU1bgb/song/4XSpvXB6Weu3lB36WRBPVF/stats",
+  "scraped_at": "2025-10-23T17:30:16.110107",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "80",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Trap MojitoPersonalized",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Jan 4, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Dubstep uNk 2025",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jan 5, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "HTG",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Oct 11, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Зацени мне трек #22",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "DANCEABLE 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jan 10, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "199"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Trap MojitoPersonalized",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Jan 4, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "70"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Trap MojitoPersonalized",
+            "made_by": "Spotify",
+            "streams": "16,753",
+            "date_added": "Jan 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "10,080",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Bass.🚬",
+            "made_by": "—",
+            "streams": "6,623",
+            "date_added": "Dec 27, 2024"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "6,039",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "4,179",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "2,268",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "All New DancePersonalized",
+            "made_by": "Spotify",
+            "streams": "2,099",
+            "date_added": "Dec 27, 2024"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "618",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "456",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Зацени мне трек #22",
+            "made_by": "—",
+            "streams": "357",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "324",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "298",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "DANCEABLE 2025",
+            "made_by": "—",
+            "streams": "130",
+            "date_added": "Jan 10, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Deep, Dark & Dangerous",
+            "made_by": "—",
+            "streams": "110",
+            "date_added": "Feb 11, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "105",
+            "date_added": "Dec 27, 2024"
+          },
+          {
+            "rank": "16",
+            "name": "MONTA RELEASES",
+            "made_by": "—",
+            "streams": "57",
+            "date_added": "Dec 27, 2024"
+          },
+          {
+            "rank": "17",
+            "name": "Dubstep uNk 2025",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "Jan 5, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "UK DUBSTEP",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Jan 11, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "37",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Fat Trap",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Mar 21, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Saucy 3.0",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Apr 14, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Beatport Best New Trap / Future Bass",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Jan 13, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "r/Trap | Top weekly posts",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Dec 28, 2024"
+          },
+          {
+            "rank": "25",
+            "name": "🔥 Dubstep Energy 🔥",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Dec 28, 2024"
+          },
+          {
+            "rank": "26",
+            "name": "2025 edm",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Mar 3, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Electrodupster",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jun 16, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "TRAP edm",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Mar 21, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "30",
+            "name": "HTG",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Oct 11, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Gay Leather S&M BDSM Bondage Fetish",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "This Is Typhon",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "33",
+            "name": "hot guys are trap dj's",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Feb 3, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "BASS MUSIC_WEEKLY",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Dec 31, 2024"
+          },
+          {
+            "rank": "35",
+            "name": "Днбха",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "AUG22 B2B",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 14, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Rave",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Dec 28, 2024"
+          },
+          {
+            "rank": "38",
+            "name": "The Best EDM Selection 2025 | by MNTN Records",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jan 4, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "MUSCLE MOMMY🫦💦🍑",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Feb 25, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "🔥🔥DANCE🔥🔥",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Dec 28, 2024"
+          },
+          {
+            "rank": "41",
+            "name": "Bass is precious.",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Feb 26, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "43",
+            "name": "It's a Trap!",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jan 21, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "⚠️WEAPONS⚠️",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jan 8, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Beatport Top 100 - Trap / Future Bass",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Dec 31, 2024"
+          },
+          {
+            "rank": "46",
+            "name": "WEIGHTS",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Dec 27, 2024"
+          },
+          {
+            "rank": "47",
+            "name": "EDEM",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "Good but wierd",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jan 10, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "48",
+          "total": "1,330"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

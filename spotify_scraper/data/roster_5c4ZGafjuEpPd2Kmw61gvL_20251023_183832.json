@@ -1,0 +1,172 @@
+{
+  "url": "https://artists.spotify.com/c/artist/7e7AGt1EJqxXsb9xpaflJ5/song/5c4ZGafjuEpPd2Kmw61gvL/stats",
+  "scraped_at": "2025-10-23T18:38:03.718634",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "335",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Finja que vc está num edit de futebol",
+            "made_by": "—",
+            "streams": "200",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "11"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "98",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Finja que vc está num edit de futebol",
+            "made_by": "—",
+            "streams": "83",
+            "date_added": "Jun 17, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "6"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "4,141",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Finja que vc está num edit de futebol",
+            "made_by": "—",
+            "streams": "2,248",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "264",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "43",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "MONTA RELEASES",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "TRAP edm",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "MONTA MONDAYS",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 23, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "45"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

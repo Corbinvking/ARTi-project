@@ -1,0 +1,235 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2o874yOIwfz6MuDQMYYCCS/song/0yDnwS3lze0KD29r4kO52Z/stats",
+  "scraped_at": "2025-10-23T17:45:35.324774",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Peaky Blinders Vibes 🚬",
+            "made_by": "—",
+            "streams": "349",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "273",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "114",
+            "date_added": "May 23, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Cycling Motivation 2025",
+            "made_by": "—",
+            "streams": "70",
+            "date_added": "Mar 4, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "36"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Peaky Blinders Vibes 🚬",
+            "made_by": "—",
+            "streams": "311",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "248",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "May 23, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Cycling Motivation 2025",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Mar 4, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "17"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "3,988",
+            "date_added": "Mar 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "TikTok Car Vibes 2025 🚗🎶🔥 – Viral Driving Songs",
+            "made_by": "—",
+            "streams": "2,905",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "1,333",
+            "date_added": "May 23, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,207",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Cycling Motivation 2025",
+            "made_by": "—",
+            "streams": "988",
+            "date_added": "Mar 4, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Peaky Blinders Vibes 🚬",
+            "made_by": "—",
+            "streams": "349",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "121",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "54",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "No curveballs just straight gas",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Mar 26, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Sucre playlist para cocina",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Mar 4, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "The Weekly Meeting",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Mar 5, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "DEPARTMENT OF DUBS",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Hmm",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Mar 15, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "176"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

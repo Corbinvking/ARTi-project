@@ -1,0 +1,242 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1fYnA1IkOOJ3mtWl02xKk3/song/1k7xwk1bIoovNB5xDS1OWR/stats",
+  "scraped_at": "2025-10-23T17:32:32.041155",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "frank ocean best songs",
+            "made_by": "—",
+            "streams": "6,313",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "sza playlist ✂️BEST SZA SONGS BMF - gloria luther - Kendrick Lamar -  Sza  - What Do I Do - 30 For 30",
+            "made_by": "—",
+            "streams": "2,399",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "R&B 2025 - New R&B Hits - Best RnB Songs Playlist (RNB Music 2025)",
+            "made_by": "—",
+            "streams": "1,736",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Late night chill vibes 💫",
+            "made_by": "—",
+            "streams": "1,138",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "41",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "427"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "frank ocean best songs",
+            "made_by": "—",
+            "streams": "1,501",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "sza playlist ✂️BEST SZA SONGS BMF - gloria luther - Kendrick Lamar -  Sza  - What Do I Do - 30 For 30",
+            "made_by": "—",
+            "streams": "579",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "R&B 2025 - New R&B Hits - Best RnB Songs Playlist (RNB Music 2025)",
+            "made_by": "—",
+            "streams": "422",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Late night chill vibes 💫",
+            "made_by": "—",
+            "streams": "263",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "169"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "frank ocean best songs",
+            "made_by": "—",
+            "streams": "13,582",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "sza playlist ✂️BEST SZA SONGS BMF - gloria luther - Kendrick Lamar -  Sza  - What Do I Do - 30 For 30",
+            "made_by": "—",
+            "streams": "5,895",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "R&B 2025 - New R&B Hits - Best RnB Songs Playlist (RNB Music 2025)",
+            "made_by": "—",
+            "streams": "3,006",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Late night chill vibes 💫",
+            "made_by": "—",
+            "streams": "2,083",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "746",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "139",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "133",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "73",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "33",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "577"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

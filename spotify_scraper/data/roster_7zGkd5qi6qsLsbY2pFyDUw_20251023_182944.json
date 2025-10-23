@@ -1,0 +1,312 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6wI2A5J2jZZ2GXFHr1Qm5K/song/7zGkd5qi6qsLsbY2pFyDUw/stats",
+  "scraped_at": "2025-10-23T18:29:14.389606",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,356",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "91",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "FRONTLEVERMAIN PLAYLIST",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "🌟 BOUNTY HUNTER 🔫 Bang Bang Bass Heavy Dubstep Hitters",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Dubstep Digest",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Feb 7, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Deep Deep Riddim💀",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 22, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "93"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "293",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "🌟 BOUNTY HUNTER 🔫 Bang Bang Bass Heavy Dubstep Hitters",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Dubstep Digest",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Feb 7, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "39"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "14,655",
+            "date_added": "Feb 7, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,383",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "265",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "176",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "130",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Dub ⚠️☣️☢️",
+            "made_by": "—",
+            "streams": "85",
+            "date_added": "Apr 16, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "🌟 BOUNTY HUNTER 🔫 Bang Bang Bass Heavy Dubstep Hitters",
+            "made_by": "—",
+            "streams": "77",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Dubstep Digest",
+            "made_by": "—",
+            "streams": "77",
+            "date_added": "Feb 7, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "70",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "54",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Kansas City EDM (Updated Monthly On The First)",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Mar 1, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "37",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "FRONTLEVERMAIN PLAYLIST",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Now Loading: RemK",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "This Is Blaqout",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Deep Deep Riddim💀",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "anna",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "dj! come with a chune!",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 29, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "KILLMATTER - TAKEOVER",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 17, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "20",
+          "total": "328"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

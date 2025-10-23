@@ -1,0 +1,319 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0g9rKXAQFZkKVgGvz56WKz/song/5SPl8dRUoSGOfJIcAe1SP4/stats",
+  "scraped_at": "2025-10-23T17:22:31.489790",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Mode bantai🥶",
+            "made_by": "—",
+            "streams": "1,913",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "386",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "320",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "155",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Subsidia Records",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 28, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "117"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Mode bantai🥶",
+            "made_by": "—",
+            "streams": "496",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "80",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "73",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "48"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Best Electronic Music Of All Time",
+            "made_by": "—",
+            "streams": "11,781",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Mode bantai🥶",
+            "made_by": "—",
+            "streams": "5,928",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "3,577",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "1,777",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "1,729",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "1,129",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "527",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "300",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "208",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "131",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "106",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Subsidia Records",
+            "made_by": "—",
+            "streams": "99",
+            "date_added": "May 28, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "99",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "55",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "🔎 DISCOVERY ✈ Colorful and Melodic Bass Destinations",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "18",
+          "total": "342"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

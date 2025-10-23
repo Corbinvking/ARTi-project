@@ -1,0 +1,228 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1af1aCeFBW4yyWUbGAC6mO/song/5ycimCxdV6mt4ludJLOYge/stats",
+  "scraped_at": "2025-10-23T17:28:07.523923",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "121",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "44",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "MONTA RELEASES",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "New Music Friday.",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 29, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "51"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "27"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "303",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "152",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "96",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "New Music Friday.",
+            "made_by": "—",
+            "streams": "56",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "DANCE Mafia",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "MONTA RELEASES",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Dauerfeuer",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "MONTA MONDAYS",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "13",
+          "total": "104"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

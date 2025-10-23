@@ -1,0 +1,186 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4Zduc96idpOV5HWebhVUoD/song/66tUTKnqTwWuiYqcxdvLB0/stats",
+  "scraped_at": "2025-10-23T18:04:23.458946",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "2025 Trending Songs",
+            "made_by": "—",
+            "streams": "863",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "279",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "TPA x Hypeddit: Rising Stars",
+            "made_by": "—",
+            "streams": "80",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "34"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "2025 Trending Songs",
+            "made_by": "—",
+            "streams": "188",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "49",
+            "date_added": "Jul 24, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "9"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "2025 Trending Songs",
+            "made_by": "—",
+            "streams": "4,016",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "1,002",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "97",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "EDM Essentials",
+            "made_by": "—",
+            "streams": "94",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "TPA x Hypeddit: Rising Stars",
+            "made_by": "—",
+            "streams": "80",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Bass House Top 100 | Hypeddit",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 14, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "62"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

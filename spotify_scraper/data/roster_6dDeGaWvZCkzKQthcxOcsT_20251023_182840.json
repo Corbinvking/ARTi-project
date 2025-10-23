@@ -1,0 +1,417 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6wCnoQVmun9H1OqppOGY76/song/6dDeGaWvZCkzKQthcxOcsT/stats",
+  "scraped_at": "2025-10-23T18:28:07.898508",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "4,311",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Production Number // Runway // Pageant Songs",
+            "made_by": "—",
+            "streams": "2,284",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "1,534",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "642",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "562",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Lagu-lagu para Driver lintas 🤟",
+            "made_by": "—",
+            "streams": "445",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "vibing while driving🚗",
+            "made_by": "—",
+            "streams": "246",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "243",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "220",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Timur pu panas🤤🍺",
+            "made_by": "—",
+            "streams": "181",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "110",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "68",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "63",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "58",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "This Is Traveler",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "17",
+          "total": "96"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "1,928",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Production Number // Runway // Pageant Songs",
+            "made_by": "—",
+            "streams": "634",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "445",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "186",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "126",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Lagu-lagu para Driver lintas 🤟",
+            "made_by": "—",
+            "streams": "104",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "vibing while driving🚗",
+            "made_by": "—",
+            "streams": "71",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "66",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Timur pu panas🤤🍺",
+            "made_by": "—",
+            "streams": "60",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "59",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "43"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Production Number // Runway // Pageant Songs",
+            "made_by": "—",
+            "streams": "9,599",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "4,666",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4,491",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "4,311",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Lagu-lagu para Driver lintas 🤟",
+            "made_by": "—",
+            "streams": "3,175",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "2,939",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "2,880",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "2,868",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Timur pu panas🤤🍺",
+            "made_by": "—",
+            "streams": "1,614",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "vibing while driving🚗",
+            "made_by": "—",
+            "streams": "1,294",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "1,102",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "744",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "602",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "444",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "400",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "226",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "96",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "This Is Traveler",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "New Trance, Progressive House & Melodic Techno",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 18, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "20",
+          "total": "196"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,431 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4F8JGeO6bJO7Z309mxHlP0/song/3rVn268gtCq7wQl6TonOEg/stats",
+  "scraped_at": "2025-10-23T18:00:00.514574",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "605",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "219",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "100",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "80",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Real Riddim Hours.",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Dubstep Princess👸🏻",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Aug 14, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Electronic Hits",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 16, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Dubstep Hammers",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "DISCOVER.dubstep",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "387"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "127",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "37",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "33",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Real Riddim Hours.",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Dubstep Princess👸🏻",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 14, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "148"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "10,403",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "5,522",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5,412",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "4,559",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "3,320",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "617",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "449",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "369",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "360",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "213",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Electronic Hits",
+            "made_by": "—",
+            "streams": "105",
+            "date_added": "Jun 16, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "100",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "DISCOVER.dubstep",
+            "made_by": "—",
+            "streams": "97",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "THE DEVILS DUBSTEP",
+            "made_by": "—",
+            "streams": "77",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Dubstep Hammers",
+            "made_by": "—",
+            "streams": "59",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Real Riddim Hours.",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "32",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "DUBSTEP TAKEOVER 2025 - BASS MUSIC - CAR MUSIC 🔊⚡️",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Dubstep Princess👸🏻",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Aug 14, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Wonky Ass Music",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "TO ALL THE BITCH ASS HOES",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "WOMP WOMP",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "RIDDIM 4 GREMLINS👹⚔️",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "The Dub Rebellion 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 9, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "TON RADAAR DES SORTIES - new music friday",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "New Dubstep Bangers 2025",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "RIDDIM",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 16, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "29",
+          "total": "1,157"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

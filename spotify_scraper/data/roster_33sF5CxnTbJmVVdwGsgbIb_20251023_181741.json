@@ -1,0 +1,690 @@
+{
+  "url": "https://artists.spotify.com/c/artist/5dRanOuN20a4kNXXdrilUL/song/33sF5CxnTbJmVVdwGsgbIb/stats",
+  "scraped_at": "2025-10-23T18:17:09.714071",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "864",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "ILLUSIONIZE SET 2025",
+            "made_by": "—",
+            "streams": "460",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "308",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "ALOK & MEDUZA",
+            "made_by": "—",
+            "streams": "206",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "ELETRÔNICA 🫀 CARDIO",
+            "made_by": "—",
+            "streams": "133",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "77",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "38",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "New House & Bass House 2025",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Rising Electronic",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 1, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "198"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "225",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "ILLUSIONIZE SET 2025",
+            "made_by": "—",
+            "streams": "138",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "81",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "ALOK & MEDUZA",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "ELETRÔNICA 🫀 CARDIO",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "17",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 27, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "59"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "8,080",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "5,963",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "3,641",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "ILLUSIONIZE SET 2025",
+            "made_by": "—",
+            "streams": "2,833",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Fresh Finds Dance",
+            "made_by": "Spotify",
+            "streams": "2,753",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "DJ TIKTOK VIRAL 2025🤙🏻",
+            "made_by": "—",
+            "streams": "2,377",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "ALOK & MEDUZA",
+            "made_by": "—",
+            "streams": "1,302",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "TECH HOUSE MAFIA 2025  - Fisher, Mau P, James Hype Essentials",
+            "made_by": "—",
+            "streams": "1,029",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "738",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "ELETRÔNICA 🫀 CARDIO",
+            "made_by": "—",
+            "streams": "631",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "504",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "349",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "319",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "🚀 BEST HOUSE HITS 2025",
+            "made_by": "—",
+            "streams": "295",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "283",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "WINTER BOMBS",
+            "made_by": "—",
+            "streams": "225",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "193",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Dirty Tech House",
+            "made_by": "—",
+            "streams": "188",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "167",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "EXIT Festival 2025",
+            "made_by": "—",
+            "streams": "131",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "TECH SNEK",
+            "made_by": "—",
+            "streams": "89",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "House 2025 | 🎧Devotion",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "59",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "House Hits 2025",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "BASS HOUSE MAFIA 2025",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Tech House 2025 | Best Club & Festival Tracks | Missing ( John Summit Remix)",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "technito",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Jul 5, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "Aquasella Festival 2025",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "SHMEJAY",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Groove Tech House 2025 🔊 Underground & Club Vibes",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "New House & Bass House 2025",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "House Party 2025",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Electronic Workout 2025",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "un’ultima notte",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Jul 6, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Rising Electronic",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "punchi",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Jul 6, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "JUMBO HOTDOG (2025)(DJ MIX) Trailer Trash Vocal Mix**FOR PROMO USE ONLY**",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jul 14, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Party Tech House",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 6, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "Supreme Groove",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Aug 3, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "👙☀️🩴",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "The Groove Lab | 2025",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "Dirrty Ass Haus",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "System Breach II Ultra Music Festival",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "Monegros Desert Festival 2025",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Techh🎛",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "47",
+            "name": "TECH HOUSE SELECTA",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "brain in a vat picks // 2025-10-17",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jun 26, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "Pop Dance Party Tracks",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jul 14, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "Dance",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jun 29, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Motion Mix",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 23, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "cool girl vibes",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "SCULPT 8/28",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 23, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "House 🪩",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "The Weak Ends Vol. 11",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "Tech-chill de kg",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "haus",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "Alijunkie",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 10, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "Camp Lamp Camp",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "61",
+            "name": "COKE BENDER",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "tucs",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "August Feels 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 28, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "Electric Castle 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "Only Mode",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "67",
+            "name": "🪩",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 28, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "67",
+          "total": "598"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

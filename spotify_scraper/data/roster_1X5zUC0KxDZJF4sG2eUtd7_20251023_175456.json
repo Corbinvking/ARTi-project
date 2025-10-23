@@ -1,0 +1,165 @@
+{
+  "url": "https://artists.spotify.com/c/artist/45VaAitjKdMGvoe7nEwb0A/song/1X5zUC0KxDZJF4sG2eUtd7/stats",
+  "scraped_at": "2025-10-23T17:54:25.834199",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,254",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "198",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "56",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "40"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "284",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "17"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,614",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "212",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "144",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "17",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "42"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

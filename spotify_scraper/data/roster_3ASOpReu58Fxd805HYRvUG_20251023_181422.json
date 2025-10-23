@@ -1,0 +1,151 @@
+{
+  "url": "https://artists.spotify.com/c/artist/5QEvwiOF71VuDCstzIpPwq/song/3ASOpReu58Fxd805HYRvUG/stats",
+  "scraped_at": "2025-10-23T18:13:51.135628",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "803",
+            "date_added": "Jul 10, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "24"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "211",
+            "date_added": "Jul 10, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "11"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "3,657",
+            "date_added": "Jul 10, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "132",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "103",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "74"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

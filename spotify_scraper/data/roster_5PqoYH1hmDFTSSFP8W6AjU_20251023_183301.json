@@ -1,0 +1,207 @@
+{
+  "url": "https://artists.spotify.com/c/artist/7E8qeYNDZZ5ceLcC4SwzF0/song/5PqoYH1hmDFTSSFP8W6AjU/stats",
+  "scraped_at": "2025-10-23T18:32:31.697662",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "OLD SCHOOL DISNEY CHANNEL📣📣📣",
+            "made_by": "—",
+            "streams": "2,966",
+            "date_added": "Sep 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "All Pitch perfect songs",
+            "made_by": "—",
+            "streams": "2,660",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "pov : you're in a 2020s covid 19 quarantine",
+            "made_by": "—",
+            "streams": "2,158",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "313",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "274",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "60"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "All Pitch perfect songs",
+            "made_by": "—",
+            "streams": "565",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "pov : you're in a 2020s covid 19 quarantine",
+            "made_by": "—",
+            "streams": "553",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "28"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "OLD SCHOOL DISNEY CHANNEL📣📣📣",
+            "made_by": "—",
+            "streams": "7,717",
+            "date_added": "Sep 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "All Pitch perfect songs",
+            "made_by": "—",
+            "streams": "7,106",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "pov : you're in a 2020s covid 19 quarantine",
+            "made_by": "—",
+            "streams": "3,685",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "792",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "738",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "155",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "90"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

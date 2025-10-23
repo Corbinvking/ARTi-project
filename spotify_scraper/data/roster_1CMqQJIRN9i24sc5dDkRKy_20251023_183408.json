@@ -1,0 +1,270 @@
+{
+  "url": "https://artists.spotify.com/c/artist/7e7AGt1EJqxXsb9xpaflJ5/song/1CMqQJIRN9i24sc5dDkRKy/stats",
+  "scraped_at": "2025-10-23T18:33:36.128066",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dance anos 90 e 2000 - CLÁSSICOS",
+            "made_by": "—",
+            "streams": "2,012",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DANCEACRE 🇬🇫",
+            "made_by": "—",
+            "streams": "489",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "EUROSUMMER |🫀🪩",
+            "made_by": "—",
+            "streams": "208",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Sunset Brasil 2025",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Acre Dance 🇬🇫✌🏾",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jun 21, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "57"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dance anos 90 e 2000 - CLÁSSICOS",
+            "made_by": "—",
+            "streams": "568",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DANCEACRE 🇬🇫",
+            "made_by": "—",
+            "streams": "123",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Sunset Brasil 2025",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "22"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dance anos 90 e 2000 - CLÁSSICOS",
+            "made_by": "—",
+            "streams": "13,756",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "O tigrão vai te ensinar",
+            "made_by": "—",
+            "streams": "7,244",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DANCEACRE 🇬🇫",
+            "made_by": "—",
+            "streams": "4,693",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Canciones para la playa 🏝️",
+            "made_by": "—",
+            "streams": "1,818",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "EUROSUMMER |🫀🪩",
+            "made_by": "—",
+            "streams": "1,703",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,251",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "playita vibes 🌊🌸☀️",
+            "made_by": "—",
+            "streams": "1,189",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Sunset Brasil 2025",
+            "made_by": "—",
+            "streams": "1,154",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "292",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Driving 🚗😍🥵",
+            "made_by": "—",
+            "streams": "102",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "60",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Acre Dance 🇬🇫✌🏾",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Jun 21, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "THIRD BEDROOM",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Dark House 2025",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Músicas antigas de baile",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "19",
+          "total": "250"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

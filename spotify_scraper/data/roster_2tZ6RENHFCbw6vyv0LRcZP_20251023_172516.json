@@ -1,0 +1,795 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1TOclxL64oLeB45DFWFFU2/song/2tZ6RENHFCbw6vyv0LRcZP/stats",
+  "scraped_at": "2025-10-23T17:24:44.167886",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "5,560",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "5,409",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,881",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,309",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "House Essentials 2025",
+            "made_by": "—",
+            "streams": "764",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "700",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Shuffle SyndromePersonalized",
+            "made_by": "Spotify",
+            "streams": "449",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "UNDERGROUND HOUSE & TECHNO 2025 | MDLBEAST RECORDS",
+            "made_by": "—",
+            "streams": "310",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "267",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "168",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "157",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Beatport Best New Bass House",
+            "made_by": "—",
+            "streams": "97",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "74",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "This Is Wenzday",
+            "made_by": "Spotify",
+            "streams": "34",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "RENEGADE #78",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "FALL ‘25",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Oct 8, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "In Da Getto",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "BOOTY CHAKRA TECHNICIAN",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "I AM STUPID",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Oct 11, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Breakaway NorCal 2025 Prep",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "LIES Takeme2marzz",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "SundayFundayPlays",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 21, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "This Is Confession",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Stream Playlist",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 7, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "28",
+            "name": "Everyday is Wenzday",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "EDM & Headbanger Shit",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 1, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Locked Up House 2025 - DND RECS",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 22, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "30",
+          "total": "522"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "1,482",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "1,233",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "384",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "382",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Shuffle SyndromePersonalized",
+            "made_by": "Spotify",
+            "streams": "159",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "130",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "76",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "House Essentials 2025",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "32",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Beatport Best New Bass House",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "This Is Wenzday",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "In Da Getto",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "I AM STUPID",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 11, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "SundayFundayPlays",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 21, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "201"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "17,804",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "11,355",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "7,910",
+            "date_added": "Sep 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "House Essentials 2025",
+            "made_by": "—",
+            "streams": "3,745",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "3,209",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "UNDERGROUND HOUSE & TECHNO 2025 | MDLBEAST RECORDS",
+            "made_by": "—",
+            "streams": "2,353",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "All New DancePersonalized",
+            "made_by": "Spotify",
+            "streams": "1,648",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,633",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "1,503",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Shuffle SyndromePersonalized",
+            "made_by": "Spotify",
+            "streams": "880",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "878",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "876",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "696",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "291",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "New House Music Friday",
+            "made_by": "—",
+            "streams": "211",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "BOOTY CHAKRA TECHNICIAN",
+            "made_by": "—",
+            "streams": "178",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Beatport Best New Bass House",
+            "made_by": "—",
+            "streams": "165",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "New Tech House Music Friday 2025 🪩",
+            "made_by": "—",
+            "streams": "107",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "102",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "B&L Fresh Batch Friday",
+            "made_by": "—",
+            "streams": "78",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "This Is Wenzday",
+            "made_by": "Spotify",
+            "streams": "55",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "This Is Confession",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "RENEGADE #71",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Trance",
+            "made_by": "—",
+            "streams": "34",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "RENEGADE #78",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Locked Up House 2025 - DND RECS",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "HILLS HOUSE",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "In Da Getto",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Receiving Era",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "USB Weaponsss",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "FALL ‘25",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Oct 8, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "33",
+            "name": "I AM STUPID",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Oct 11, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "standing on the ROCK 🪨",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "36",
+            "name": "Everyday is Wenzday",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "EDM & Headbanger Shit",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Sep 1, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "CAPRANDOM",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 23, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "New Music Friday Cratediggers",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "Dance",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 25, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "Stream Playlist",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 7, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "ROCKYS SONGS 4 U",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "Party Tech House",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 1, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "let the music take you on a trip",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "swaggiest new edm friday",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Wolfpack 8/27",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "Breakaway NorCal 2025 Prep",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "Lord of House",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "😈Tech House🫨",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 23, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "LIES Takeme2marzz",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Global Wave",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "SundayFundayPlays",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 21, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "Z’s Absolute Heaters 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "Beatport Top 100 - Bass House",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 24, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "Sunset Sundays",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "DISCIPLINA MUSICAL",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "House Heaters || New Tech House, Deep House, and More",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "New Music Friday Heat 🔥🔥🔥",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "Dance Party",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 31, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "59",
+          "total": "960"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,1096 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0KZDvnSmE8sY5Q2PtUab2P/song/2rV3TspSNv2TYJGMj0u4Lh/stats",
+  "scraped_at": "2025-10-23T17:18:09.715032",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "33,957",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "11,143",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "5,165",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "2,494",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Música Para Trabajar  Activo Y Alegre 2025",
+            "made_by": "—",
+            "streams": "1,227",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "693",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Dance Aura 2025 | EDM | Progressive House | Dance Pop",
+            "made_by": "—",
+            "streams": "571",
+            "date_added": "May 28, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "This Is Ozz Gold",
+            "made_by": "—",
+            "streams": "366",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "362",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "267",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Sunset Chill 2025 | Tropical House | Deep House | Chill House | Dance Pop",
+            "made_by": "—",
+            "streams": "164",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Carla Collection",
+            "made_by": "—",
+            "streams": "64",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Roads of Yesterday",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Dakota (Trance edit)",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Cold Heart - PNAU Remix",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "38",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "New songs",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "uplifting edm 🦋",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "TRUSTFALL - ANGEL DISTRICT",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "ᴍᴇʟᴏᴅɪᴄ ᴇᴅᴍ┊⁷⁰-²¹⁰ʙᴘᴍ┊ᴇʟᴇᴄᴛʀᴏᴘᴏᴘ┊ꜰᴜᴛᴜʀᴇ ʙᴀss┊ᴀᴍʙɪᴇɴᴛ ᴇʟᴇᴄᴛʀᴏɴɪᴄ┊sʏɴᴛʜᴡᴀᴠᴇ",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "IBIZA SUNSET",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Sep 17, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "RADIO DISNEY 102.1 TOLUCA",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 31, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "BEST  HOUSE MIX",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Herfst’25 ⛅️🍂",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "Dance Aura 2025 | EDM | Progressive House | Dance Pop",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 7, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Sierpień 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Cancion cool",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "CHIHUAN",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Lily",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 4, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "32",
+          "total": "3,234"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "7,439",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3,703",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,231",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Música Para Trabajar  Activo Y Alegre 2025",
+            "made_by": "—",
+            "streams": "1,173",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "785",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "156",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "86",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Dance Aura 2025 | EDM | Progressive House | Dance Pop",
+            "made_by": "—",
+            "streams": "84",
+            "date_added": "May 28, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "78",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "This Is Ozz Gold",
+            "made_by": "—",
+            "streams": "64",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Sunset Chill 2025 | Tropical House | Deep House | Chill House | Dance Pop",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Roads of Yesterday",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Dakota (Trance edit)",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "New songs",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "uplifting edm 🦋",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 2, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "17",
+          "total": "1,377"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "134,914",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "49,026",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "13,979",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "13,795",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6,380",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "This Is Ozz Gold",
+            "made_by": "—",
+            "streams": "5,910",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Calvin Harris - As Melhores",
+            "made_by": "—",
+            "streams": "5,062",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "4,745",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "4,145",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Dance Aura 2025 | EDM | Progressive House | Dance Pop",
+            "made_by": "—",
+            "streams": "2,746",
+            "date_added": "May 28, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "1,951",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,885",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Summer Party 2025",
+            "made_by": "—",
+            "streams": "1,796",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "1,795",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "1,713",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Emotional EDM 2025",
+            "made_by": "—",
+            "streams": "1,393",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Sunset Chill 2025 | Tropical House | Deep House | Chill House | Dance Pop",
+            "made_by": "—",
+            "streams": "1,364",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Época dorada ⚜️ EDM/POP",
+            "made_by": "—",
+            "streams": "1,272",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Música Para Trabajar  Activo Y Alegre 2025",
+            "made_by": "—",
+            "streams": "1,227",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Música Electrónica Fiesta 🪩 Mejor EDM Éxitos 2025",
+            "made_by": "—",
+            "streams": "967",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "731",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "uplifting edm 🦋",
+            "made_by": "—",
+            "streams": "438",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Carla Collection",
+            "made_by": "—",
+            "streams": "311",
+            "date_added": "Sep 2, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "213",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "25",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "212",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Cold Heart - PNAU Remix",
+            "made_by": "—",
+            "streams": "70",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "宮古島2025",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Jun 26, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "$ad Boi 🖤",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Roads of Yesterday",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Sommerabende",
+            "made_by": "—",
+            "streams": "51",
+            "date_added": "Aug 13, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Pop",
+            "made_by": "—",
+            "streams": "51",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Dakota (Trance edit)",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "49",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "34",
+            "name": "Mega Hits",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "May 19, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "TRUSTFALL - ANGEL DISTRICT",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "GehtImmerUndÜberall",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Jun 3, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "New songs",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "RADIO DISNEY 102.1 TOLUCA",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "May 31, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "Driving into 2025",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "41",
+            "name": "TTL melodic house🙂‍↕️",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "May 24, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "🩶",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Jun 24, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "2025 🤓",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "May 22, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "Bumpin to the sunset 🌅",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Aug 2, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Electro Alternativa",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "climb x: pilates 5.10",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "Cancion cool",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "Peace call",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "Work Chill",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "May 23, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "Muusika",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Lily",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "Spilleliste 2025",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Jul 4, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "Music Enak di Jalan",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Jun 1, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "Beats",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "Herfst’25 ⛅️🍂",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "Progressive House Top 100 | Hypeddit",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "May 4, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "WBMcD June 2025",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "BEST  HOUSE MIX",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "In That Mood",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Aug 9, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "Esencia Melódica",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "Blæstquellj",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "May 4, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "𝓡𝓲𝓭𝓲𝓷🏎️🙌🏻",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "House music",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "May 25, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "🌹Nós e Ella🫣",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "May 22, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "Rave bangers",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "Crazy Auntie Ann",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "Tranquilo🤌🏾",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "Chill suplies",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "Ronaldo 21.FW",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "May 25, 2025"
+          },
+          {
+            "rank": "70",
+            "name": "Eletrônicas",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "71",
+            "name": "The Best",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "72",
+            "name": "OZZ GOLD",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "73",
+            "name": "F A V O U R I T E S",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "74",
+            "name": "Gym",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 27, 2025"
+          },
+          {
+            "rank": "75",
+            "name": "LMNT 115",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "76",
+            "name": "House-Chill-EDM Car Music",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Sep 3, 2025"
+          },
+          {
+            "rank": "77",
+            "name": "IBIZA SUNSET",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Sep 17, 2025"
+          },
+          {
+            "rank": "78",
+            "name": "Upbeat English",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 12, 2025"
+          },
+          {
+            "rank": "79",
+            "name": "— 1409’s E D M",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "80",
+            "name": "Sierpień 2025",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "81",
+            "name": "raves 🏠",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "May 31, 2025"
+          },
+          {
+            "rank": "82",
+            "name": "Temazos Culebooble2",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "May 26, 2025"
+          },
+          {
+            "rank": "83",
+            "name": "🆕  ☀️🥂",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 17, 2025"
+          },
+          {
+            "rank": "84",
+            "name": "ᴍᴇʟᴏᴅɪᴄ ᴇᴅᴍ┊⁷⁰-²¹⁰ʙᴘᴍ┊ᴇʟᴇᴄᴛʀᴏᴘᴏᴘ┊ꜰᴜᴛᴜʀᴇ ʙᴀss┊ᴀᴍʙɪᴇɴᴛ ᴇʟᴇᴄᴛʀᴏɴɪᴄ┊sʏɴᴛʜᴡᴀᴠᴇ",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "85",
+            "name": "Sérgio list 3",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Aug 2, 2025"
+          },
+          {
+            "rank": "86",
+            "name": "vibes",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jul 28, 2025"
+          },
+          {
+            "rank": "87",
+            "name": "Dance Aura 2025",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 14, 2025"
+          },
+          {
+            "rank": "88",
+            "name": "JULY 25",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "89",
+            "name": "My playlist favoritos",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "May 6, 2025"
+          },
+          {
+            "rank": "90",
+            "name": "my main",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "91",
+            "name": "Vår 2025",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "May 22, 2025"
+          },
+          {
+            "rank": "92",
+            "name": "And They Were Roommates",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jun 26, 2025"
+          },
+          {
+            "rank": "93",
+            "name": "Benidorm 25",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "94",
+            "name": "Dance Aura 2025 | EDM | Progressive House | Dance Pop",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jul 7, 2025"
+          },
+          {
+            "rank": "95",
+            "name": "Electronic Donky Music",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 3, 2025"
+          },
+          {
+            "rank": "96",
+            "name": "musikk",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "97",
+            "name": "house",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 8, 2025"
+          },
+          {
+            "rank": "98",
+            "name": "Alo music 🤘🏽",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 14, 2025"
+          },
+          {
+            "rank": "99",
+            "name": "life is beautiful",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 18, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "99",
+          "total": "6,798"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

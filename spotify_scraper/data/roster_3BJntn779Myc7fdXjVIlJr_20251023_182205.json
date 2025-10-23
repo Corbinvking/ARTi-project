@@ -1,0 +1,389 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6QtjSxtj8oM0CA78RJQmF3/song/3BJntn779Myc7fdXjVIlJr/stats",
+  "scraped_at": "2025-10-23T18:21:35.146582",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Morning Energy Boost 🌞 Happy Vibes & Energizing Mood 2025",
+            "made_by": "—",
+            "streams": "5,072",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,088",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Dance anos 90 e 2000 - CLÁSSICOS",
+            "made_by": "—",
+            "streams": "725",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Bershka 2025 • The Ultimate In Store Fashion Music Soundtrack",
+            "made_by": "—",
+            "streams": "456",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "ZARA 2025 · Fashion Store Music · Shopping Vibes",
+            "made_by": "—",
+            "streams": "330",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Feel Good House 2025 🤩🏠",
+            "made_by": "—",
+            "streams": "268",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "feel gOOd happy vibes",
+            "made_by": "—",
+            "streams": "224",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Hollister Co. Store Music 2025 | Music To Play In Stores",
+            "made_by": "—",
+            "streams": "100",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "93",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Disco House 🪩",
+            "made_by": "—",
+            "streams": "71",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "54",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Underground Dance Music 2025 | Renegades and Afters",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Sep 28, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Disco is a Weapon | Disco House 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "53"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Morning Energy Boost 🌞 Happy Vibes & Energizing Mood 2025",
+            "made_by": "—",
+            "streams": "2,817",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Dance anos 90 e 2000 - CLÁSSICOS",
+            "made_by": "—",
+            "streams": "518",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "141",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Bershka 2025 • The Ultimate In Store Fashion Music Soundtrack",
+            "made_by": "—",
+            "streams": "89",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "ZARA 2025 · Fashion Store Music · Shopping Vibes",
+            "made_by": "—",
+            "streams": "69",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "feel gOOd happy vibes",
+            "made_by": "—",
+            "streams": "57",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Feel Good House 2025 🤩🏠",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Disco House 🪩",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Hollister Co. Store Music 2025 | Music To Play In Stores",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Underground Dance Music 2025 | Renegades and Afters",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Disco is a Weapon | Disco House 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "33"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Morning Energy Boost 🌞 Happy Vibes & Energizing Mood 2025",
+            "made_by": "—",
+            "streams": "5,072",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,101",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Dance anos 90 e 2000 - CLÁSSICOS",
+            "made_by": "—",
+            "streams": "725",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Bershka 2025 • The Ultimate In Store Fashion Music Soundtrack",
+            "made_by": "—",
+            "streams": "581",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "ZARA 2025 · Fashion Store Music · Shopping Vibes",
+            "made_by": "—",
+            "streams": "395",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Feel Good House 2025 🤩🏠",
+            "made_by": "—",
+            "streams": "346",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "feel gOOd happy vibes",
+            "made_by": "—",
+            "streams": "259",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Hollister Co. Store Music 2025 | Music To Play In Stores",
+            "made_by": "—",
+            "streams": "131",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "94",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Disco House 🪩",
+            "made_by": "—",
+            "streams": "76",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "74",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "55",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Underground Dance Music 2025 | Renegades and Afters",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Sep 28, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Disco is a Weapon | Disco House 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "57"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

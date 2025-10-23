@@ -1,0 +1,214 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2suzxJ52jvlUSX6G4vXN9u/song/7bPNMSzyNlR3lh4gBhbH7M/stats",
+  "scraped_at": "2025-10-23T17:47:47.541057",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "frank ocean best songs",
+            "made_by": "—",
+            "streams": "1,439",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "80",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "43",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "195"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "frank ocean best songs",
+            "made_by": "—",
+            "streams": "1,439",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "78"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "13,319",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "frank ocean best songs",
+            "made_by": "—",
+            "streams": "9,912",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "2,867",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "416",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "AMERICAN TRAP 2025 🇺🇸  TRAP AMERICANO 2025",
+            "made_by": "—",
+            "streams": "385",
+            "date_added": "Aug 13, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "HipHop Vault",
+            "made_by": "—",
+            "streams": "310",
+            "date_added": "Aug 13, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "282",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "World Stage: Rap/Alternative",
+            "made_by": "—",
+            "streams": "232",
+            "date_added": "Aug 13, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "167",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "HipHop & Rap only the best!",
+            "made_by": "—",
+            "streams": "85",
+            "date_added": "Aug 13, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "41",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "New Indie, Alternative, R&B, Folk 2025",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 14, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "the great lock in of august-december.",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 2, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "464"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

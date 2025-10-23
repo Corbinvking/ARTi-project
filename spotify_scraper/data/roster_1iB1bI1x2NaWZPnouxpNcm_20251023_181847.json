@@ -1,0 +1,256 @@
+{
+  "url": "https://artists.spotify.com/c/artist/5frpwNUVxVl9W0n5kCbAr7/song/1iB1bI1x2NaWZPnouxpNcm/stats",
+  "scraped_at": "2025-10-23T18:18:15.973185",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "167",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "46",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "38",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "33",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Dreamy Pop",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 25, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "271"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "17",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "98"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Morning Energy Boost 🌞 Happy Vibes & Energizing Mood 2025",
+            "made_by": "—",
+            "streams": "27,713",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "the best of lana del rey",
+            "made_by": "—",
+            "streams": "18,050",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Ariana Grande Greatest Hits",
+            "made_by": "—",
+            "streams": "4,219",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3,677",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "2,213",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "669",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "609",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "296",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "141",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "99",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "28",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Dreamy Pop",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 25, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Out of Time",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 7, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "707"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}
