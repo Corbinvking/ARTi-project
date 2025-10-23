@@ -14,9 +14,51 @@ This workflow automates the entire process of:
 
 ---
 
-## 🚀 Quick Start (Manual Run)
+## 🚀 Quick Start
 
-### Method 1: Local Scrape → Upload → Production Import (RECOMMENDED)
+### 🎯 1-CLICK COMPLETE PIPELINE (NEWEST & BEST!)
+
+**The ultimate workflow: From CSV to Production in ONE command!**
+
+```bash
+# Windows (Double-click or run in terminal)
+RUN-COMPLETE-PIPELINE.bat
+
+# Or PowerShell
+.\RUN-COMPLETE-PIPELINE.ps1
+
+# Or Python directly
+python scripts/run_complete_pipeline.py
+```
+
+**This single command does EVERYTHING:**
+1. ✅ Parses your CSV file
+2. ✅ Collects SFA URLs from Roster
+3. ✅ Scrapes stream data
+4. ✅ Imports to LOCAL database
+5. ✅ Verifies local data
+6. ✅ Uploads to PRODUCTION server
+7. ✅ Imports to PRODUCTION database
+8. ✅ Complete in ~3 hours (2-3 hrs scraping, 3 mins deployment)
+
+**Advanced Options:**
+```bash
+# Use custom CSV file
+python scripts/run_complete_pipeline.py --csv "path/to/campaigns.csv"
+
+# Local only (test before deploying)
+python scripts/run_complete_pipeline.py --local-only
+
+# Production only (if already scraped)
+python scripts/run_complete_pipeline.py --production-only
+
+# Custom server IP
+python scripts/run_complete_pipeline.py --server-ip "your-server-ip"
+```
+
+---
+
+### Method 1: Local Scrape → Upload → Production Import (Manual Control)
 
 **Best for production - avoids long-running scrapers on production server**
 
