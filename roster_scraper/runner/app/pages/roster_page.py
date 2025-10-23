@@ -116,7 +116,7 @@ class RosterPage:
     
     async def find_artist(self, artist_name: str) -> Optional[Dict[str, Any]]:
         """
-        Find a specific artist in the roster
+        Find a specific artist in the roster using the search bar
         
         Args:
             artist_name: Name of the artist to find (e.g., "Segan")
@@ -126,7 +126,71 @@ class RosterPage:
         """
         print(f"🔍 Searching for artist: {artist_name}")
         
-        # Get all artists
+        try:
+            # Find and use the search bar
+            search_selectors = [
+                'input[placeholder*="roster"]',
+                'input[placeholder*="Search"]',
+                'input[type="search"]',
+                '[data-testid="roster-search"]',
+                'input[aria-label*="Search"]'
+            ]
+            
+            search_input = None
+            for selector in search_selectors:
+                try:
+                    search_input = await self.page.wait_for_selector(selector, timeout=3000)
+                    if search_input:
+                        print(f"   Found search bar with selector: {selector}")
+                        break
+                except:
+                    continue
+            
+            if not search_input:
+                print(f"   ⚠️  Search bar not found, falling back to manual search")
+                return await self.find_artist_manual(artist_name)
+            
+            # Clear and type into search bar
+            await search_input.click()
+            await search_input.fill('')  # Clear existing text
+            await asyncio.sleep(0.5)
+            await search_input.type(artist_name, delay=100)  # Type with delay to trigger search
+            
+            # Wait for results to load
+            await asyncio.sleep(2)
+            
+            # Look for the artist in the filtered results
+            artist_elements = await self.page.query_selector_all('a[href*="/artist/"]')
+            
+            for element in artist_elements:
+                try:
+                    text = await element.text_content()
+                    if text and self.names_match(artist_name, text.strip()):
+                        artist_url = await element.get_attribute('href')
+                        print(f"   ✅ Found: {text.strip()}")
+                        return {
+                            'name': text.strip(),
+                            'url': artist_url or '',
+                            'element': element
+                        }
+                except:
+                    continue
+            
+            print(f"   ❌ Artist not found: {artist_name}")
+            return None
+            
+        except Exception as e:
+            print(f"   ⚠️  Error searching: {e}")
+            return None
+    
+    async def find_artist_manual(self, artist_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Fallback method: Find artist by loading all artists
+        (Used if search bar is not available)
+        """
+        print(f"   Using manual search method...")
+        
+        # Get all artists (old method)
         artists = await self.get_all_artists()
         
         # Fuzzy match (case-insensitive, handle variations)
@@ -135,7 +199,6 @@ class RosterPage:
                 print(f"   ✅ Found: {artist['name']}")
                 return artist
         
-        print(f"   ❌ Artist not found: {artist_name}")
         return None
     
     def names_match(self, name1: str, name2: str) -> bool:
