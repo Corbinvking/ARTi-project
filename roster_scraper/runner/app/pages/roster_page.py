@@ -225,7 +225,7 @@ class RosterPage:
         return False
     
     async def navigate_to_artist(self, artist_info: Dict[str, Any]) -> None:
-        """Navigate to a specific artist's page"""
+        """Navigate to a specific artist's page and then to their Songs page"""
         print(f"📂 Opening artist: {artist_info['name']}")
         
         try:
@@ -239,7 +239,47 @@ class RosterPage:
                 await self.page.wait_for_load_state('networkidle', timeout=30000)
             
             await asyncio.sleep(2)
-            print(f"   ✅ Loaded artist page")
+            print(f"   ✅ Loaded artist home page")
+            
+            # Now find and click "See songs" button to get to the songs list
+            print(f"   🔍 Looking for 'See songs' button...")
+            
+            see_songs_selectors = [
+                'text="See songs"',
+                'span:has-text("See songs")',
+                'button:has-text("See songs")',
+                'a:has-text("See songs")',
+                '[data-encore-id="text"]:has-text("See songs")'
+            ]
+            
+            see_songs_button = None
+            for selector in see_songs_selectors:
+                try:
+                    see_songs_button = await self.page.wait_for_selector(selector, timeout=3000)
+                    if see_songs_button:
+                        print(f"   ✅ Found 'See songs' button")
+                        break
+                except:
+                    continue
+            
+            if see_songs_button:
+                # Click the "See songs" button
+                await see_songs_button.click()
+                await self.page.wait_for_load_state('networkidle', timeout=30000)
+                await asyncio.sleep(2)
+                print(f"   ✅ Navigated to Songs page")
+            else:
+                print(f"   ⚠️  'See songs' button not found, trying Music tab...")
+                # Fallback: try clicking on "Music" tab
+                try:
+                    music_tab = await self.page.wait_for_selector('text="Music"', timeout=3000)
+                    if music_tab:
+                        await music_tab.click()
+                        await asyncio.sleep(2)
+                        print(f"   ✅ Clicked Music tab")
+                except:
+                    print(f"   ⚠️  Could not find Music navigation")
+            
         except Exception as e:
             print(f"   ❌ Failed to navigate to artist: {e}")
             raise
@@ -264,8 +304,9 @@ class RosterPage:
         # Scroll to load all songs
         await self.scroll_to_bottom()
         
-        # Find song elements (try multiple selectors)
+        # Find song elements (try multiple selectors for table rows)
         selectors_to_try = [
+            'tr',  # Table rows
             '[data-testid="song-row"]',
             '[data-testid*="track"]',
             'tr[data-testid*="song"]',
@@ -276,7 +317,7 @@ class RosterPage:
         for selector in selectors_to_try:
             try:
                 elements = await self.page.query_selector_all(selector)
-                if elements:
+                if elements and len(elements) > 0:
                     song_elements = elements
                     print(f"   Found {len(elements)} song elements with selector: {selector}")
                     break
@@ -286,6 +327,7 @@ class RosterPage:
         if not song_elements:
             # Fallback: find all links containing /song/
             song_elements = await self.page.query_selector_all('a[href*="/song/"]')
+            print(f"   Fallback: Found {len(song_elements)} song links")
         
         for element in song_elements:
             try:
