@@ -10,9 +10,9 @@ from pathlib import Path
 from datetime import datetime
 
 def extract_track_id_from_filename(filename):
-    """Extract Spotify track ID from filename like 'roster_08Bd5NkwharGRRlyycDD8R_20251023.json'"""
-    if filename.startswith('roster_') and filename.endswith('.json'):
-        parts = filename.replace('roster_', '').replace('.json', '').split('_')
+    """Extract Spotify track ID from filename like 'song_08Bd5NkwharGRRlyycDD8R_20251023.json'"""
+    if filename.startswith('song_') and filename.endswith('.json'):
+        parts = filename.replace('song_', '').replace('.json', '').split('_')
         if len(parts) >= 1:
             return parts[0]
     return None
@@ -37,11 +37,11 @@ def generate_sql_from_scraped_data():
         print(f"❌ Data directory not found: {data_dir}")
         return
     
-    json_files = list(data_dir.glob('roster_*.json'))
+    json_files = list(data_dir.glob('song_*.json'))
     print(f"📁 Found {len(json_files)} JSON files")
     
     if len(json_files) == 0:
-        print("⚠️  No roster JSON files found!")
+        print("⚠️  No song JSON files found!")
         return
     
     sql_statements = []
