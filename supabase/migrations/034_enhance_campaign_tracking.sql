@@ -24,11 +24,42 @@ ADD COLUMN IF NOT EXISTS is_new BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS added_via_csv BOOLEAN DEFAULT FALSE;
 
 -- Add indexes for common queries
-CREATE INDEX IF NOT EXISTS idx_spotify_campaigns_curator_status ON spotify_campaigns(curator_status);
-CREATE INDEX IF NOT EXISTS idx_spotify_campaigns_paid_vendor ON spotify_campaigns(paid_vendor);
-CREATE INDEX IF NOT EXISTS idx_spotify_campaigns_notify_vendor ON spotify_campaigns(notify_vendor) WHERE notify_vendor = TRUE;
-CREATE INDEX IF NOT EXISTS idx_spotify_campaigns_ask_for_sfa ON spotify_campaigns(ask_for_sfa) WHERE ask_for_sfa = TRUE;
-CREATE INDEX IF NOT EXISTS idx_clients_verified ON clients(verified);
+-- Note: Skip indexes on boolean columns if they're TEXT type
+DO $$
+BEGIN
+  -- Create index on curator_status (always text)
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_spotify_campaigns_curator_status') THEN
+    CREATE INDEX idx_spotify_campaigns_curator_status ON spotify_campaigns(curator_status);
+  END IF;
+  
+  -- Create index on paid_vendor (only if boolean)
+  IF EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = 'spotify_campaigns'::regclass AND attname = 'paid_vendor' AND atttypid = 'boolean'::regtype) THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_spotify_campaigns_paid_vendor') THEN
+      CREATE INDEX idx_spotify_campaigns_paid_vendor ON spotify_campaigns(paid_vendor);
+    END IF;
+  END IF;
+  
+  -- Create index on notify_vendor (only if boolean)
+  IF EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = 'spotify_campaigns'::regclass AND attname = 'notify_vendor' AND atttypid = 'boolean'::regtype) THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_spotify_campaigns_notify_vendor') THEN
+      CREATE INDEX idx_spotify_campaigns_notify_vendor ON spotify_campaigns(notify_vendor) WHERE notify_vendor = TRUE;
+    END IF;
+  END IF;
+  
+  -- Create index on ask_for_sfa (only if boolean)
+  IF EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = 'spotify_campaigns'::regclass AND attname = 'ask_for_sfa' AND atttypid = 'boolean'::regtype) THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_spotify_campaigns_ask_for_sfa') THEN
+      CREATE INDEX idx_spotify_campaigns_ask_for_sfa ON spotify_campaigns(ask_for_sfa) WHERE ask_for_sfa = TRUE;
+    END IF;
+  END IF;
+  
+  -- Create index on clients.verified
+  IF EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = 'clients'::regclass AND attname = 'verified' AND atttypid = 'boolean'::regtype) THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_clients_verified') THEN
+      CREATE INDEX idx_clients_verified ON clients(verified);
+    END IF;
+  END IF;
+END $$;
 
 -- Add comments
 COMMENT ON COLUMN spotify_campaigns.daily_streams IS 'Current daily stream rate from CSV';
