@@ -97,7 +97,21 @@ async function main() {
       );
     }
     
-    // Step 5: Verify sync (skip in dry-run)
+    // Step 5: Create campaign groups (skip in dry-run)
+    if (!dryRun) {
+      await runScript(
+        path.join(__dirname, 'create_campaign_groups_from_campaigns.js')
+      );
+    }
+    
+    // Step 6: Fix source and type (skip in dry-run)
+    if (!dryRun) {
+      await runScript(
+        path.join(__dirname, 'fix_campaign_source_type.js')
+      );
+    }
+    
+    // Step 7: Verify sync (skip in dry-run)
     if (!dryRun) {
       await runScript(
         path.join(__dirname, 'verify_database_sync.js')

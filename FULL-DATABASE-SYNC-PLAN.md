@@ -35,11 +35,11 @@ CSV (653 campaigns)
   ↓
 Stage 1: Parse & Normalize CSV Data
   ↓
-Stage 2: Create/Update Clients (203 unique)
+Stage 2: Create/Update Clients (190 unique)
   ↓
 Stage 3: Create/Update Vendors (from CSV vendor column)
   ↓
-Stage 4: Create/Update Campaigns (653 total)
+Stage 4: Create/Update Campaigns (585 total)
   ↓
 Stage 5: Collect SFA URLs (for campaigns without them)
   ↓
