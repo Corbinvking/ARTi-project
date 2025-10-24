@@ -66,8 +66,8 @@ def generate_sql_from_scraped_data():
             print(f"⚠️  Error reading {json_file.name}: {e}")
             continue
         
-        # Generate SFA URL
-        sfa_url = f"https://artists.spotify.com/c/song/{track_id}/stats"
+        # Extract SFA URL from scraped data (it's in the 'url' field)
+        sfa_url = data.get('url', f"https://artists.spotify.com/c/song/{track_id}/stats")
         
         sql_statements.append(f"\n-- ============================================================")
         sql_statements.append(f"-- Track ID: {track_id}")
