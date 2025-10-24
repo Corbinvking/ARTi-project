@@ -271,6 +271,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         radio_streams: radioStreams,
         discover_weekly_streams: discoverWeeklyStreams,
         track_url: songs?.[0]?.url || null, // First song's URL
+        sfa: songs?.[0]?.sfa || null, // First song's SFA URL (scraped from Spotify for Artists)
         songs: songs || [],
       };
 
