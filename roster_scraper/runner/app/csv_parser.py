@@ -44,10 +44,6 @@ class CampaignCSVParser:
             reader = csv.DictReader(f)
             
             for row in reader:
-                # Skip if not Active status
-                if row.get('Status', '').strip().lower() != 'active':
-                    continue
-                
                 # Get campaign and client names
                 campaign_name = row.get('Campaign', '').strip()
                 client_name = row.get('Client', '').strip()
