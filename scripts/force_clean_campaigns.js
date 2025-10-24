@@ -1,12 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Must use service role
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('❌ Missing environment variables!');
-  console.error('   NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅' : '❌');
-  console.error('   SUPABASE_SERVICE_ROLE_KEY:', supabaseKey ? '✅' : '❌');
+  console.error('   Supabase URL:', supabaseUrl ? '✅' : '❌');
+  console.error('   Service Role Key:', supabaseKey ? '✅' : '❌');
+  console.error('\nChecking .env.local...');
+  
+  // Try to help debug
+  const fs = await import('fs');
+  if (fs.existsSync('.env.local')) {
+    console.error('✅ .env.local exists');
+    console.error('\nPlease check it contains:');
+    console.error('   NEXT_PUBLIC_SUPABASE_URL=...');
+    console.error('   SUPABASE_SERVICE_ROLE_KEY=...');
+  } else {
+    console.error('❌ .env.local not found!');
+    console.error('\nManually set variables:');
+    console.error('   export NEXT_PUBLIC_SUPABASE_URL="your-url"');
+    console.error('   export SUPABASE_SERVICE_ROLE_KEY="your-key"');
+  }
   process.exit(1);
 }
 
