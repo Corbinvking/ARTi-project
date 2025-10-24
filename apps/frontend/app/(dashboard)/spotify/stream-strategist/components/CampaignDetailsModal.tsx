@@ -767,6 +767,20 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                 <p className="font-medium">{getSalespersonName(campaignData?.salesperson)}</p>
               )}
             </div>
+            {campaignData?.sfa && (
+              <div className="col-span-2">
+                <Label className="text-muted-foreground">Spotify for Artists Link</Label>
+                <a 
+                  href={campaignData.sfa} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-primary hover:underline font-medium mt-1"
+                >
+                  View Stream Data on Spotify for Artists
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            )}
           </div>
           
           {/* External Streaming Sources */}
