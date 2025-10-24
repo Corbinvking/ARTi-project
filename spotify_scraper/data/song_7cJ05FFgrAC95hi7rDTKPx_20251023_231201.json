@@ -1,0 +1,235 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6DRsCnHwpy638sR8fO1PTD/song/7cJ05FFgrAC95hi7rDTKPx/stats",
+  "scraped_at": "2025-10-23T23:11:30.639019",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,429",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Vibes Kekayaan 💸",
+            "made_by": "—",
+            "streams": "864",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "581",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "pov: vc tá num edit do gymtok (gym)",
+            "made_by": "—",
+            "streams": "242",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "51",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "61"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "364",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Vibes Kekayaan 💸",
+            "made_by": "—",
+            "streams": "107",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "80",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "pov: vc tá num edit do gymtok (gym)",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "31"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "6,355",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "5,185",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Vibes Kekayaan 💸",
+            "made_by": "—",
+            "streams": "4,245",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "pov: vc tá num edit do gymtok (gym)",
+            "made_by": "—",
+            "streams": "1,597",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "995",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "85",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "52",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "161"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4k5Uxaq8bCl3ooK9GEHDOz/song/3QILsRihHn4oMeDoHTxTLQ/stats",
+  "scraped_at": "2025-10-23T22:08:06.268860",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "7"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "92",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "27"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

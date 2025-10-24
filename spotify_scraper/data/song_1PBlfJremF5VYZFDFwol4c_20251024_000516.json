@@ -1,0 +1,480 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6wCnoQVmun9H1OqppOGY76/song/1PBlfJremF5VYZFDFwol4c/stats",
+  "scraped_at": "2025-10-24T00:04:44.508621",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Best Electronic Music Of All Time",
+            "made_by": "—",
+            "streams": "5,228",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "2,266",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "968",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "625",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "543",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "ALOK & MEDUZA",
+            "made_by": "—",
+            "streams": "336",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "282",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "ILLUSIONIZE SET 2025",
+            "made_by": "—",
+            "streams": "280",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "249",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "78",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "62",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "50",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "41",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "34",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "HIIT E",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "This Is Traveler",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Bøf",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 1, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "18",
+          "total": "181"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Best Electronic Music Of All Time",
+            "made_by": "—",
+            "streams": "1,382",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "565",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "238",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "155",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "146",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "ALOK & MEDUZA",
+            "made_by": "—",
+            "streams": "87",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "ILLUSIONIZE SET 2025",
+            "made_by": "—",
+            "streams": "72",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "49",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "34",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Bøf",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 1, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "72"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "31,281",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Best Electronic Music Of All Time",
+            "made_by": "—",
+            "streams": "25,265",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "11,581",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "6,309",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "4,522",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3,422",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "3,338",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "DJ TIKTOK VIRAL 2025🤙🏻",
+            "made_by": "—",
+            "streams": "2,768",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "ALOK & MEDUZA",
+            "made_by": "—",
+            "streams": "2,246",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Eletrônicas GRAVES",
+            "made_by": "—",
+            "streams": "2,103",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "ILLUSIONIZE SET 2025",
+            "made_by": "—",
+            "streams": "2,040",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "814",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "543",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "387",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Electronic Music best - Moby, Chemical Brothers, Fatboy Slim, Zedd, David Guetta, Calvin Harris",
+            "made_by": "—",
+            "streams": "235",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "177",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "151",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Edm",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Jun 24, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Bøf",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "This Is Traveler",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "2025",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Remember Me - Zone 2",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Indoor new 3",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "HIIT E",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "28",
+          "total": "487"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,438 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1af1aCeFBW4yyWUbGAC6mO/song/5yaNtgMysqjPGQMoFjyRM4/stats",
+  "scraped_at": "2025-10-23T23:04:54.811342",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "986",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Cyber Rockstar 🔥🎧",
+            "made_by": "—",
+            "streams": "531",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Peaky Blinders Vibes 🚬",
+            "made_by": "—",
+            "streams": "375",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Motivacion GYM 2025 | Entrenar | Musica para ENTRENAR ⚡️",
+            "made_by": "—",
+            "streams": "158",
+            "date_added": "Sep 21, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "153",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "109",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Тренировка 2025 - Музыка для тренировок (Песни для тренировок)",
+            "made_by": "—",
+            "streams": "104",
+            "date_added": "Sep 21, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "45",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "ТикТок топ: песни из тик ток - TikTok",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "New Music Friday.",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "BASS FACE - Innovative Bass Music",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 22, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "131"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Peaky Blinders Vibes 🚬",
+            "made_by": "—",
+            "streams": "348",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "263",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Cyber Rockstar 🔥🎧",
+            "made_by": "—",
+            "streams": "146",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "66",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "New Music Friday.",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "47"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "3,439",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,608",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Тренировка 2025 - Музыка для тренировок (Песни для тренировок)",
+            "made_by": "—",
+            "streams": "818",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Cyber Rockstar 🔥🎧",
+            "made_by": "—",
+            "streams": "552",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Motivacion GYM 2025 | Entrenar | Musica para ENTRENAR ⚡️",
+            "made_by": "—",
+            "streams": "534",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Peaky Blinders Vibes 🚬",
+            "made_by": "—",
+            "streams": "375",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "348",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "294",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "185",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "111",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "105",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "B&L Fresh Batch Friday",
+            "made_by": "—",
+            "streams": "102",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "ТикТок топ: песни из тик ток - TikTok",
+            "made_by": "—",
+            "streams": "102",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "89",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "70",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "New Music Friday.",
+            "made_by": "—",
+            "streams": "62",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "MONTA RELEASES",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "DARK AUDIO",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Beatport Best New Trap / Future Bass",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "UPROAR",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "BASS FACE - Innovative Bass Music",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Inspiration",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 19, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "UK DUBSTEP",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "MONTA MONDAYS",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "26",
+            "name": "New Dubstep | Aug. Week2",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Dauerfeuer",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "29",
+            "name": "Bassquake | Dubstep Brutal Drops 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 20, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "FULL ENERGY WORKOUT PLAYLIST ⚡",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Sonic Convergence Bass Selects (Bass, Dubstep, Dnb, Trap, Grime, Hybrid, Wave, IDM,  etc",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 19, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "EDM 2025 | Best EDM Songs",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 29, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "32",
+          "total": "263"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

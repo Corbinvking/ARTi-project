@@ -246,6 +246,27 @@ async function processDataFile(fileData) {
   
   console.log(`   ✅ Found campaign: ${campaign.campaign_name || campaign.id}`);
   
+  // Update campaign with SFA URL if not already set
+  const sfaUrl = `https://artists.spotify.com/c/song/${trackId}/stats`;
+  if (!campaign.sfa || campaign.sfa !== sfaUrl) {
+    console.log(`   🔗 Updating SFA URL in campaign...`);
+    const { error: updateError } = await supabase
+      .from('spotify_campaigns')
+      .update({ 
+        sfa: sfaUrl,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', campaign.id);
+    
+    if (updateError) {
+      console.log(`   ⚠️  Could not update SFA URL: ${updateError.message}`);
+    } else {
+      console.log(`   ✅ SFA URL saved to campaign`);
+    }
+  } else {
+    console.log(`   ℹ️  SFA URL already set`);
+  }
+  
   // Process playlists from the scraped data
   let playlistsProcessed = 0;
   let playlistsFailed = 0;

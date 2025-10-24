@@ -1,0 +1,186 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4oVR5VVXCVqlpUTbVkwCz5/song/5mru4dvoMsMGnj4dnT9cZi/stats",
+  "scraped_at": "2025-10-24T00:22:43.375307",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "780",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "168",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "50",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "38",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "GOLDCLASS 👑",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Jul 31, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "40"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "14"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "17,868",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,460",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "553",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "GOLDCLASS 👑",
+            "made_by": "—",
+            "streams": "129",
+            "date_added": "Jul 31, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "86",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "78",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "72"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

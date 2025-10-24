@@ -1,0 +1,151 @@
+{
+  "url": "https://artists.spotify.com/c/artist/5QEvwiOF71VuDCstzIpPwq/song/5ovHZbvVrRKEo0gyRZna22/stats",
+  "scraped_at": "2025-10-24T00:20:28.452571",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "807",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "38"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "206",
+            "date_added": "Apr 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "12"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "9,711",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "157",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Dub ⚠️☣️☢️",
+            "made_by": "—",
+            "streams": "74",
+            "date_added": "Apr 16, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "48",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "BOAT 6- The BANGER edition",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "May 10, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "144"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

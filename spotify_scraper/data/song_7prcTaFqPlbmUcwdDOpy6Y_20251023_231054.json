@@ -1,0 +1,228 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6DRsCnHwpy638sR8fO1PTD/song/7prcTaFqPlbmUcwdDOpy6Y/stats",
+  "scraped_at": "2025-10-23T23:10:26.507858",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "364",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Rap Radar",
+            "made_by": "—",
+            "streams": "321",
+            "date_added": "Oct 19, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "141",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "PROJECT X",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Oct 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Trap | Aggressive Bass 2025 💪",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "16"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "338",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Rap Radar",
+            "made_by": "—",
+            "streams": "321",
+            "date_added": "Oct 19, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "PROJECT X",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Oct 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "10"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "364",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Rap Radar",
+            "made_by": "—",
+            "streams": "321",
+            "date_added": "Oct 19, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "307",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "131",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Heavy Bass",
+            "made_by": "—",
+            "streams": "110",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Trap | Aggressive Bass 2025 💪",
+            "made_by": "—",
+            "streams": "80",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "PROJECT X",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Oct 22, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Heavy Trap EDM Renegades ⚡⛓️‍💥",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "BASS MUSIC 2025 MOTIVATION!!!",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "26"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,326 @@
+{
+  "url": "https://artists.spotify.com/c/artist/3nkApPk39ekjlyilodddaV/song/08Bd5NkwharGRRlyycDD8R/stats",
+  "scraped_at": "2025-10-23T22:16:56.674639",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BGC Nights",
+            "made_by": "—",
+            "streams": "587",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "383",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "203",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Dubstep Music Essentials by EKM.CO",
+            "made_by": "—",
+            "streams": "124",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "103",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "60"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "203",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "BGC Nights",
+            "made_by": "—",
+            "streams": "159",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "77",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Dubstep Music Essentials by EKM.CO",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "27"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Sub LowPersonalized",
+            "made_by": "Spotify",
+            "streams": "8,088",
+            "date_added": "Jan 10, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "BGC Nights",
+            "made_by": "—",
+            "streams": "3,884",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "TikTok Car Vibes 2025 🚗🎶🔥 – Viral Driving Songs",
+            "made_by": "—",
+            "streams": "3,547",
+            "date_added": "Mar 26, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "2,582",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Musicas de Academia 2025 (Atualizada Cada Semana) - Musicas para Malhar",
+            "made_by": "—",
+            "streams": "1,757",
+            "date_added": "Jan 11, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,250",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Hits Gym Remixes (Pop Workout Remixes 2025) Top Workout Remixes 2025",
+            "made_by": "—",
+            "streams": "1,216",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Remix Tiktok 2025 (Dj Remix Tiktok) Tiktok Remixes 2025",
+            "made_by": "—",
+            "streams": "1,091",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "1,074",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Dubstep Music Essentials by EKM.CO",
+            "made_by": "—",
+            "streams": "1,039",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Top 100 Bài Hát Âu Mỹ Hay Nhất 2025 Bảng Xếp Hạng Nhạc Âu Mỹ 2025",
+            "made_by": "—",
+            "streams": "826",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "738",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "SOUL CYCLE 2025 - Cycling Music 2025",
+            "made_by": "—",
+            "streams": "603",
+            "date_added": "Jan 11, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Les Mills Bodypump 2025",
+            "made_by": "—",
+            "streams": "565",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "370",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "233",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "New OPM Love Songs 2025: Tagalog Music Playlist",
+            "made_by": "—",
+            "streams": "212",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "211",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "One More Rep",
+            "made_by": "—",
+            "streams": "153",
+            "date_added": "Jan 10, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Indoor Cycling 2025 🚴‍♂️- Spinning Music 2025 (Cycling Music 2025)",
+            "made_by": "—",
+            "streams": "107",
+            "date_added": "Jan 11, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "17",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "Music BC: 2025 Releases",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jan 31, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Musicas Para Malhar 2025 Playlist Academia - Musica de Motivaçāo - Musicas de Academia - EDM Workout",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jan 22, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "24",
+          "total": "340"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

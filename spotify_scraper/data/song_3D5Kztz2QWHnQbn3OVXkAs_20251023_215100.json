@@ -1,0 +1,487 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2Csf1qoijHi5nMt2mMJcjd/song/3D5Kztz2QWHnQbn3OVXkAs/stats",
+  "scraped_at": "2025-10-23T21:50:30.366758",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Música para trabajar activo y alegre 🌟 Música En Inglés y Español 2025",
+            "made_by": "—",
+            "streams": "5,992",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "5,103",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,312",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "2,169",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "De Todo Un Poco 2025 🎶 Buena música variada del hoy y del ayer",
+            "made_by": "—",
+            "streams": "1,330",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "1,187",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "F1 PLAYLIST 2025 | F1 VIBES 🏎️ 💨",
+            "made_by": "—",
+            "streams": "826",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "709",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "458",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "347",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Mulheres 🏋🏻‍♀️  para treinos pesados",
+            "made_by": "—",
+            "streams": "316",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "This Is Andrea Botez",
+            "made_by": "Spotify",
+            "streams": "178",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "156",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "140",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "55",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "2025: September Top 50+",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "This Is Skye Paula",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Project Wingman",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 18, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Dj Xam et Zandra",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Andrea Botez Oakland",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 28, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "21",
+          "total": "575"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "1,262",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Música para trabajar activo y alegre 🌟 Música En Inglés y Español 2025",
+            "made_by": "—",
+            "streams": "1,116",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "352",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "De Todo Un Poco 2025 🎶 Buena música variada del hoy y del ayer",
+            "made_by": "—",
+            "streams": "291",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "F1 PLAYLIST 2025 | F1 VIBES 🏎️ 💨",
+            "made_by": "—",
+            "streams": "223",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "179",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "128",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mulheres 🏋🏻‍♀️  para treinos pesados",
+            "made_by": "—",
+            "streams": "66",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "This Is Andrea Botez",
+            "made_by": "Spotify",
+            "streams": "61",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "258"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "10,855",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Música para trabajar activo y alegre 🌟 Música En Inglés y Español 2025",
+            "made_by": "—",
+            "streams": "7,085",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "5,300",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "4,477",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3,363",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "De Todo Un Poco 2025 🎶 Buena música variada del hoy y del ayer",
+            "made_by": "—",
+            "streams": "1,541",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,119",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "F1 PLAYLIST 2025 | F1 VIBES 🏎️ 💨",
+            "made_by": "—",
+            "streams": "903",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "487",
+            "date_added": "Sep 24, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "432",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Mulheres 🏋🏻‍♀️  para treinos pesados",
+            "made_by": "—",
+            "streams": "357",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "281",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "This Is Andrea Botez",
+            "made_by": "Spotify",
+            "streams": "226",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "180",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "82",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Project Wingman",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Sep 18, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "This Is Skye Paula",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "2025: September Top 50+",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 6, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "New Dance 2025",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 14, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Musica Nueva EDM",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "swaggiest new edm friday",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Dj Xam et Zandra",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Andrea Botez Oakland",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 28, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "25",
+          "total": "704"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

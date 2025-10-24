@@ -1,0 +1,396 @@
+{
+  "url": "https://artists.spotify.com/c/artist/59qp3cl2JYJ2Dkx8AJAwl3/song/4P166jh9A1fS8ckkYdUHxq/stats",
+  "scraped_at": "2025-10-23T21:56:02.388677",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "753",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Production Number // Runway // Pageant Songs",
+            "made_by": "—",
+            "streams": "697",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DANCEACRE 🇬🇫",
+            "made_by": "—",
+            "streams": "456",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "vibing while driving🚗",
+            "made_by": "—",
+            "streams": "410",
+            "date_added": "Jul 5, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Lagu-lagu para Driver lintas 🤟",
+            "made_by": "—",
+            "streams": "378",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "355",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "214",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "ILLUSIONIZE SET 2025",
+            "made_by": "—",
+            "streams": "153",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Calvin Harris - As Melhores",
+            "made_by": "—",
+            "streams": "139",
+            "date_added": "Jul 5, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "73",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "70",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "68"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "218",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Production Number // Runway // Pageant Songs",
+            "made_by": "—",
+            "streams": "211",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DANCEACRE 🇬🇫",
+            "made_by": "—",
+            "streams": "124",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Lagu-lagu para Driver lintas 🤟",
+            "made_by": "—",
+            "streams": "103",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "70",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "69",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "vibing while driving🚗",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Jul 5, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "59",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "ILLUSIONIZE SET 2025",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jul 3, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "33"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Production Number // Runway // Pageant Songs",
+            "made_by": "—",
+            "streams": "5,611",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Calvin Harris - As Melhores",
+            "made_by": "—",
+            "streams": "3,446",
+            "date_added": "Jul 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Lagu-lagu para Driver lintas 🤟",
+            "made_by": "—",
+            "streams": "3,428",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "3,114",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "vibing while driving🚗",
+            "made_by": "—",
+            "streams": "2,975",
+            "date_added": "Jul 5, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "2,606",
+            "date_added": "Jul 5, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "DANCEACRE 🇬🇫",
+            "made_by": "—",
+            "streams": "2,396",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "2,366",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "2,322",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "1,288",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "ILLUSIONIZE SET 2025",
+            "made_by": "—",
+            "streams": "848",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "752",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "415",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "311",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "169",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "52",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "37",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "37",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "The vibes are high🫶🏽 (soft house, good for drives, chillin, etc)",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jul 7, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Naughty Neon Nights - Stardust",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": ",",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,872 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1TOclxL64oLeB45DFWFFU2/song/4PUmIR122HycjOVN2ZxLox/stats",
+  "scraped_at": "2025-10-24T00:10:23.940053",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GROOVY HOUSE TUNES",
+            "made_by": "—",
+            "streams": "920",
+            "date_added": "Aug 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "785",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "766",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Lagu-lagu para Driver lintas 🤟",
+            "made_by": "—",
+            "streams": "560",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "372",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "296",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "249",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "203",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "126",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "124",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Breakaway NorCal 2025 Playlist",
+            "made_by": "—",
+            "streams": "109",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "House Tech No",
+            "made_by": "—",
+            "streams": "89",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "56",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "49",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "It's Friday then, It's Saturday Sunday What - House Party 2025",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Jul 14, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "This Is Wenzday",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "electroclashed* weekly",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Sep 21, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Wicked Oaks ‘25 ☠️ 🧙‍♀️",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "House U",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "House Hotlist | Repopulate Mars",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Breakaway NorCal 2025 Prep",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Everyday is Wenzday",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "26",
+          "total": "271"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "220",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "GROOVY HOUSE TUNES",
+            "made_by": "—",
+            "streams": "192",
+            "date_added": "Aug 16, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Lagu-lagu para Driver lintas 🤟",
+            "made_by": "—",
+            "streams": "111",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "73",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "66",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "House Tech No",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "This Is Wenzday",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Breakaway NorCal 2025 Playlist",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "It's Friday then, It's Saturday Sunday What - House Party 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 14, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "House U",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Wicked Oaks ‘25 ☠️ 🧙‍♀️",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 12, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "20",
+          "total": "100"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Tech House Operator",
+            "made_by": "Spotify",
+            "streams": "10,606",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "9,360",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Lagu-lagu para Driver lintas 🤟",
+            "made_by": "—",
+            "streams": "6,857",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "6,438",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Alok: As Melhores 🇧🇷 Alok 2025",
+            "made_by": "—",
+            "streams": "5,342",
+            "date_added": "Jul 10, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "elRow 2025 🎡🎭 Tech House",
+            "made_by": "—",
+            "streams": "4,953",
+            "date_added": "Jul 8, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "3,308",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "3,287",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "GROOVY HOUSE TUNES",
+            "made_by": "—",
+            "streams": "2,796",
+            "date_added": "Aug 16, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "2,795",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "2,488",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Ngebut di toll💃🏻🚨",
+            "made_by": "—",
+            "streams": "1,966",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "1,348",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "631",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "577",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "523",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "2015 - 2017 EDM",
+            "made_by": "—",
+            "streams": "513",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "511",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "House Tech No",
+            "made_by": "—",
+            "streams": "411",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "House Cat - Best & Latest House Music Releases",
+            "made_by": "—",
+            "streams": "212",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "BEST EDM 2016",
+            "made_by": "—",
+            "streams": "211",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "It's Friday then, It's Saturday Sunday What - House Party 2025",
+            "made_by": "—",
+            "streams": "181",
+            "date_added": "Jul 14, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "178",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "Breakaway NorCal 2025 Playlist",
+            "made_by": "—",
+            "streams": "155",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "New House Music Friday",
+            "made_by": "—",
+            "streams": "124",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "BOOTY CHAKRA TECHNICIAN",
+            "made_by": "—",
+            "streams": "109",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "98",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "28",
+            "name": "TECH HOUSE AFTER PARTY",
+            "made_by": "—",
+            "streams": "82",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "This Is Wenzday",
+            "made_by": "Spotify",
+            "streams": "78",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "30",
+            "name": "Feeling Tech House 2026",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Future Forest 2025 Lineup",
+            "made_by": "—",
+            "streams": "59",
+            "date_added": "Jul 8, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "HILLS HOUSE",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Tech House Party",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "House Hotlist | Repopulate Mars",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "House U",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "electroclashed* weekly",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "Sep 21, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "RENEGADE #56",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Summer rave",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "40",
+            "name": "House Techno Workout 🥵",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "Complete Collection | South Of Saturn",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "Will You be My Daddy?",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "Everyday is Wenzday",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "flying techy housy",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Elements 2025 road trip",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jul 29, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Box Connection!! Angie",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jul 9, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "Wicked Oaks ‘25 ☠️ 🧙‍♀️",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "Jus The Hits (Tech House/Bass House/Melodic Techno) UPDATED WEEKLY",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "Ski Day All Day",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "JUICE RADIO",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Breakaway NorCal 2025 Prep",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "What I’m on",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 6, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "LEBLAENG LIKES",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "July 2025",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "South of Saturn - 9-5-25 latest update",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "Shooting🌠",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "ALWM - Missed Connections : FRESH CUTS",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "Elements 2025 Thursday",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 2, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "Bender Barbie Baddie House",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "2025 in the HOUSE!",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 29, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "Kaysin’s Cuts",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "Dark House 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "✋🙂‍↔️🤚",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 28, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "Fresh New EDM | 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "Desert Hearts X3",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 8, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "Booty bouncing tech-house",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "Every club track (Shuffle)",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 6, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "OLLY's HOUSE PARTY",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 6, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "Terapia:House",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 1, 2025"
+          },
+          {
+            "rank": "70",
+            "name": "CASHEW Selects",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 27, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "70",
+          "total": "859"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

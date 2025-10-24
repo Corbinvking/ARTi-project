@@ -1,0 +1,410 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2oeAOUAMNsDVJKgwNjYuTR/song/5PTvxnybJr1pN6WeGxz3Dn/stats",
+  "scraped_at": "2025-10-23T22:00:28.865673",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Minimal Techno 2025",
+            "made_by": "—",
+            "streams": "305",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "PACO OSUNA 2025 Playlist - Wavy Distance, Fly Life, Groove Bass, What Is, Samba drone, Atopisimo",
+            "made_by": "—",
+            "streams": "182",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Musicas de Academia 2025 (Atualizada Cada Semana) - Musicas para Malhar",
+            "made_by": "—",
+            "streams": "176",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "61",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Deborah De Luca 2025 Playlist - Children, Croce, Gam Gam,You're Toxic, Minimal, Bel Mercy",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Loco Dice 2025 Best songs Playlist",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Charlotte De Witte 2025 Playlist - The Age Of Love, Reflection, Pria, Overdrive, Doppler",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Les Mills Bodypump 2025",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Sep 15, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "SOUL CYCLE 2025 - Cycling Music 2025",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "High Intensity Workout 2025 (HIIT Workout 2025) Intense Cardio Workout 2025",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "เพลงใหม่ล่าสุด 2025 สตริงเดือนนี้ (เพลงใหม่ - รวมเพลงฮิต อันดับ เพลงสตริงใหม่ล่าสุด)",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Hits Gym Remixes (Pop Workout Remixes 2025) Top Workout Remixes 2025",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "CADENA 100 (Actualizada Cada Semana)",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2025",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Minimal Techno 2025",
+            "made_by": "—",
+            "streams": "74",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "PACO OSUNA 2025 Playlist - Wavy Distance, Fly Life, Groove Bass, What Is, Samba drone, Atopisimo",
+            "made_by": "—",
+            "streams": "54",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Musicas de Academia 2025 (Atualizada Cada Semana) - Musicas para Malhar",
+            "made_by": "—",
+            "streams": "42",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Deborah De Luca 2025 Playlist - Children, Croce, Gam Gam,You're Toxic, Minimal, Bel Mercy",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Loco Dice 2025 Best songs Playlist",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "SOUL CYCLE 2025 - Cycling Music 2025",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Les Mills Bodypump 2025",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "เพลงใหม่ล่าสุด 2025 สตริงเดือนนี้ (เพลงใหม่ - รวมเพลงฮิต อันดับ เพลงสตริงใหม่ล่าสุด)",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "High Intensity Workout 2025 (HIIT Workout 2025) Intense Cardio Workout 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Hits Gym Remixes (Pop Workout Remixes 2025) Top Workout Remixes 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 16, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "22"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Minimal Techno 2025",
+            "made_by": "—",
+            "streams": "3,849",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "David Guetta, Avicii, Tiësto, Martin Garrix, Nicky Romero, Alan Walker, Dimitri Vegas & Like Mike ✨",
+            "made_by": "—",
+            "streams": "2,804",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "TECHNO🚨🔥FIESTAS",
+            "made_by": "—",
+            "streams": "2,768",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "PACO OSUNA 2025 Playlist - Wavy Distance, Fly Life, Groove Bass, What Is, Samba drone, Atopisimo",
+            "made_by": "—",
+            "streams": "1,285",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Musicas de Academia 2025 (Atualizada Cada Semana) - Musicas para Malhar",
+            "made_by": "—",
+            "streams": "1,016",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "💉🩺NOCHES DE ANTRO 🇲🇽90's, ANTROS-DISCOTECA, 90's DANCE CLUB HITS, ANTRO Y FIESTA 2024 🩺💉",
+            "made_by": "—",
+            "streams": "813",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "785",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Deborah De Luca 2025 Playlist - Children, Croce, Gam Gam,You're Toxic, Minimal, Bel Mercy",
+            "made_by": "—",
+            "streams": "353",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Les Mills Bodypump 2025",
+            "made_by": "—",
+            "streams": "335",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Charlotte De Witte 2025 Playlist - The Age Of Love, Reflection, Pria, Overdrive, Doppler",
+            "made_by": "—",
+            "streams": "265",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "264",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "SOUL CYCLE 2025 - Cycling Music 2025",
+            "made_by": "—",
+            "streams": "233",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Loco Dice 2025 Best songs Playlist",
+            "made_by": "—",
+            "streams": "222",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Hits Gym Remixes (Pop Workout Remixes 2025) Top Workout Remixes 2025",
+            "made_by": "—",
+            "streams": "167",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "เพลงใหม่ล่าสุด 2025 สตริงเดือนนี้ (เพลงใหม่ - รวมเพลงฮิต อันดับ เพลงสตริงใหม่ล่าสุด)",
+            "made_by": "—",
+            "streams": "113",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "CADENA 100 (Actualizada Cada Semana)",
+            "made_by": "—",
+            "streams": "103",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "High Intensity Workout 2025 (HIIT Workout 2025) Intense Cardio Workout 2025",
+            "made_by": "—",
+            "streams": "98",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "ELECTRO POP 2015 - 2025 ✨DAVID GUETTA ✨ GALANTIS ✨  CALVIN HARRIS Y MÁS ✨ EDEM ÉXITOS ✨",
+            "made_by": "—",
+            "streams": "63",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "30",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "David Guetta, Avicii, Tiësto, Martin Garrix, Nicky Romero, Alesso, DVBBS, Dimitri Vegas & Like Mike",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Schranz 2025 S/S",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jun 5, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2025",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

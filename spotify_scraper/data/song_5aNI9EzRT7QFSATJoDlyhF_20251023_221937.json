@@ -1,0 +1,221 @@
+{
+  "url": "https://artists.spotify.com/c/artist/015xd9ZzBLzvkIlgny78zc/song/5aNI9EzRT7QFSATJoDlyhF/stats",
+  "scraped_at": "2025-10-23T22:19:08.322578",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "TECNO HOUSE 2025 🔥",
+            "made_by": "—",
+            "streams": "7,446",
+            "date_added": "Sep 25, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "4,253",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "139",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "78",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "30",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "84"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "TECNO HOUSE 2025 🔥",
+            "made_by": "—",
+            "streams": "1,902",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "658",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "90",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "33",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "39"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "11,184",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "TECNO HOUSE 2025 🔥",
+            "made_by": "—",
+            "streams": "7,446",
+            "date_added": "Sep 25, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,108",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "277",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "214",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "142",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "70",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "67",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Tv girl",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "114"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

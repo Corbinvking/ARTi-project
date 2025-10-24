@@ -1,0 +1,354 @@
+{
+  "url": "https://artists.spotify.com/c/artist/7e7AGt1EJqxXsb9xpaflJ5/song/5GBjoySnGgKMiJZRRkaKV0/stats",
+  "scraped_at": "2025-10-23T22:46:00.518162",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "6,868",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "2,864",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,575",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "ELETRÔNICA FRITAÇÃO 🤘🎅",
+            "made_by": "—",
+            "streams": "305",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "249",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "235",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "165",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "163",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "EDM Festival Songs 2025 🌍🎶",
+            "made_by": "—",
+            "streams": "155",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "89",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "EDM Workout 2025 💪🏻 🔥 High-Energy Songs & Motivational Tracks for Fitness & Working Out",
+            "made_by": "—",
+            "streams": "83",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "68",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "BEST DANCE HITS 2025 ✨ IBIZA CLUB SONGS ✨",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "EDM FESTIVAL 2025",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "82"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "2,158",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "559",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "93",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "43",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "EDM Festival Songs 2025 🌍🎶",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "ELETRÔNICA FRITAÇÃO 🤘🎅",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "32",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "EDM Workout 2025 💪🏻 🔥 High-Energy Songs & Motivational Tracks for Fitness & Working Out",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "EDM FESTIVAL 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "BEST DANCE HITS 2025 ✨ IBIZA CLUB SONGS ✨",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 15, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "41"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "6,868",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "2,864",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,575",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "ELETRÔNICA FRITAÇÃO 🤘🎅",
+            "made_by": "—",
+            "streams": "305",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "249",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "235",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "165",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "163",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "EDM Festival Songs 2025 🌍🎶",
+            "made_by": "—",
+            "streams": "155",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "89",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "EDM Workout 2025 💪🏻 🔥 High-Energy Songs & Motivational Tracks for Fitness & Working Out",
+            "made_by": "—",
+            "streams": "83",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "68",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "BEST DANCE HITS 2025 ✨ IBIZA CLUB SONGS ✨",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "EDM FESTIVAL 2025",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "82"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

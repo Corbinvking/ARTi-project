@@ -48,6 +48,24 @@ echo.
 echo ✅ SFA URLs collected!
 echo.
 
+REM Stage 1.5: Import URLs to Database
+echo.
+echo ================================================================================
+echo [STAGE 1.5/4] SAVING SFA URLs TO DATABASE
+echo ================================================================================
+echo.
+
+node scripts/import-roster-urls.js
+
+if errorlevel 1 (
+    echo.
+    echo ⚠️ URL import had issues, but continuing...
+)
+
+echo.
+echo ✅ SFA URLs saved to database!
+echo.
+
 REM Stage 2: Stream Data Scraper
 echo.
 echo ================================================================================

@@ -1,0 +1,592 @@
+{
+  "url": "https://artists.spotify.com/c/artist/5dRanOuN20a4kNXXdrilUL/song/2BcDYBtqZF3BhCUKRjYAdz/stats",
+  "scraped_at": "2025-10-23T23:58:12.342461",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "3,717",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "2,063",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "1,472",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "949",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Late Night Workout",
+            "made_by": "—",
+            "streams": "478",
+            "date_added": "Sep 15, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "202",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "166",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Housewerk 2025",
+            "made_by": "—",
+            "streams": "62",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Electronic Hits",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Hot New Dance 2025 | Let's Dance",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "TECH HOUSE & TECHNO MUSIC 2025 😎 Dom Dolla - Dreamin | Cloonee, HNTR - Stephanie",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Deep Tech House",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "House Cat - Best & Latest House Music Releases",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "New House & Bass House 2025",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "ELECTRO-HOUSE / CLUB - TOP 40",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "The Groove Lab | 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "🎛🎧",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "21",
+          "total": "192"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "908",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "438",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "311",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Late Night Workout",
+            "made_by": "—",
+            "streams": "124",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Housewerk 2025",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "TECH HOUSE & TECHNO MUSIC 2025 😎 Dom Dolla - Dreamin | Cloonee, HNTR - Stephanie",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Deep Tech House",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Electronic Hits",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 22, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "76"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "6,514",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOUSE PARTY 2025 🔥",
+            "made_by": "—",
+            "streams": "5,894",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3,882",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3,449",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "2,981",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Late Night Workout",
+            "made_by": "—",
+            "streams": "1,119",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "GYM MOTIVATION 🔥🏋🏽‍♀️ Música para hacer ejercicio gimnasio",
+            "made_by": "—",
+            "streams": "556",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Loveland Festival 2025",
+            "made_by": "—",
+            "streams": "265",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Electronic Hits",
+            "made_by": "—",
+            "streams": "262",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "MAXIMA FM 2025 | Actualizada Cada Semana",
+            "made_by": "—",
+            "streams": "238",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "House Generation | Best Of Tech House",
+            "made_by": "—",
+            "streams": "234",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "217",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Housewerk 2025",
+            "made_by": "—",
+            "streams": "193",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "ELECTRO PARTY BANGERS 🔥 Dance House EDM 2025",
+            "made_by": "—",
+            "streams": "175",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Tech House All Day",
+            "made_by": "—",
+            "streams": "153",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Nasty BitsPersonalized",
+            "made_by": "Spotify",
+            "streams": "135",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "125",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "WINTER BOMBS",
+            "made_by": "—",
+            "streams": "108",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Deep Tech House",
+            "made_by": "—",
+            "streams": "98",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Hot New Dance 2025 | Let's Dance",
+            "made_by": "—",
+            "streams": "96",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "House Cat - Best & Latest House Music Releases",
+            "made_by": "—",
+            "streams": "91",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "81",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "TECH HOUSE & TECHNO MUSIC 2025 😎 Dom Dolla - Dreamin | Cloonee, HNTR - Stephanie",
+            "made_by": "—",
+            "streams": "63",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "New Music Friday Dance | All New Dance",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "SHMEJAY",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Aug 23, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "The Groove Lab | 2025",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "New House & Bass House 2025",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "House Hits 2025",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Aug 23, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "30",
+            "name": "House Party 2025",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Aug 26, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "System Breach II Ultra Music Festival",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Tech House Best Tracks - 2025 🪩",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "ELECTRO-HOUSE / CLUB - TOP 40",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "Tech house",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 3, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Ice Cream Playlist (Weekly Updated)",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "tucs",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "38",
+            "name": "Tech House 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "🎛🎧",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "Tecno Academia",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "41",
+          "total": "303"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

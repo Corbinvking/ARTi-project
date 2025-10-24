@@ -10,33 +10,55 @@ from datetime import datetime
 from pathlib import Path
 from runner.app.scraper import SpotifyArtistsScraper
 
-def parse_s4alist_file():
-    """Parse the s4alist.md file and extract artist names and SFA links"""
-    s4alist_path = Path(__file__).parent.parent / 's4alist.md'
+def parse_roster_scraped_urls():
+    """Parse roster scraping results and extract SFA URLs"""
+    # Look for the most recent roster results file
+    roster_data_dir = Path(__file__).parent.parent / 'roster_scraper' / 'data'
     
-    if not s4alist_path.exists():
-        print(f"❌ File not found: {s4alist_path}")
+    if not roster_data_dir.exists():
+        print(f"❌ Directory not found: {roster_data_dir}")
         return []
     
-    songs = []
-    current_artist = None
+    # Find all roster_scraping_results_*.json files
+    import json
+    import glob
     
-    with open(s4alist_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            
-            # Check if this is an artist line (starts with -)
-            if line.startswith('-'):
-                current_artist = line[1:].strip()
-                continue
-            
-            # Check if this is an SFA link
-            if line.startswith('https://artists.spotify.com'):
-                if current_artist:
-                    songs.append({
-                        'artist': current_artist,
-                        'url': line
-                    })
+    result_files = sorted(
+        glob.glob(str(roster_data_dir / 'roster_scraping_results_*.json')),
+        reverse=True  # Most recent first
+    )
+    
+    if not result_files:
+        print(f"❌ No roster scraping results found in: {roster_data_dir}")
+        print(f"   Run the roster scraper first: cd roster_scraper && python run_roster_scraper.py")
+        return []
+    
+    latest_file = result_files[0]
+    print(f"📁 Reading URLs from: {Path(latest_file).name}")
+    
+    songs = []
+    
+    try:
+        with open(latest_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Extract songs from the data structure
+        if 'clients' in data:
+            for client_name, client_data in data['clients'].items():
+                if 'songs' in client_data and client_data['songs']:
+                    for song in client_data['songs']:
+                        if song.get('sfa_url'):
+                            songs.append({
+                                'artist': client_data.get('artist_name', client_name),
+                                'song_name': song.get('song_name', 'Unknown'),
+                                'url': song['sfa_url']
+                            })
+        
+        print(f"✅ Found {len(songs)} URLs from roster scraping results")
+        
+    except Exception as e:
+        print(f"❌ Error reading roster results: {e}")
+        return []
     
     return songs
 
@@ -44,8 +66,8 @@ async def main():
     print("🎵 S4A List Scraper")
     print("=" * 60)
     
-    # Parse the s4alist.md file
-    songs = parse_s4alist_file()
+    # Parse the roster scraping results
+    songs = parse_roster_scraped_urls()
     
     if not songs:
         print("❌ No songs found in s4alist.md")
@@ -102,21 +124,33 @@ async def main():
             
             successful = 0
             failed = 0
+            skipped = 0
             
             for i, song_info in enumerate(songs, 1):
                 try:
-                    print(f"\n🎵 [{i}/{len(songs)}] Processing: {song_info['artist']}")
-                    print(f"   URL: {song_info['url']}")
-                    
-                    # Scrape the song
-                    data = await scraper.scrape_song_data(song_info['url'])
-                    
-                    # Extract song ID from URL
+                    # Extract song ID from URL first to check if already scraped
                     match = re.search(r'/song/([a-zA-Z0-9]+)/', song_info['url'])
                     if match:
                         song_id = match.group(1)
                     else:
                         song_id = f"unknown_{datetime.now().strftime('%H%M%S')}"
+                    
+                    # Check if this song was already scraped
+                    timestamp = datetime.now().strftime('%Y%m%d')
+                    expected_filename = f"song_{song_id}_{timestamp}_*.json"
+                    existing_files = list(data_dir.glob(f"song_{song_id}_*.json"))
+                    
+                    if existing_files:
+                        print(f"\n⏭️  [{i}/{len(songs)}] Skipping: {song_info['artist']} (already scraped)")
+                        print(f"   File: {existing_files[0].name}")
+                        skipped += 1
+                        continue
+                    
+                    print(f"\n🎵 [{i}/{len(songs)}] Processing: {song_info['artist']}")
+                    print(f"   URL: {song_info['url']}")
+                    
+                    # Scrape the song
+                    data = await scraper.scrape_song_data(song_info['url'])
                     
                     # Save to file
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -150,6 +184,7 @@ async def main():
             print("📊 SCRAPING SUMMARY")
             print("=" * 60)
             print(f"✅ Successful: {successful}")
+            print(f"⏭️  Skipped (already scraped): {skipped}")
             print(f"❌ Failed: {failed}")
             print(f"📁 Data files in: ./data/")
             print()

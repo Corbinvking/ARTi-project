@@ -1,0 +1,214 @@
+{
+  "url": "https://artists.spotify.com/c/artist/5FLXUFIdxqhy9t1Gk3G0uN/song/09LQ575Xbw6cqvbz6coA17/stats",
+  "scraped_at": "2025-10-24T00:11:32.579643",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "EYES CLOSED - JISOO, ZAYN",
+            "made_by": "—",
+            "streams": "4,456",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "5, 4, 3 (Pretty Woman) (feat. Lay Bankz) - S.COUPS X MINGYU",
+            "made_by": "—",
+            "streams": "413",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "SPAGHETTI - J-HOPE X BTS",
+            "made_by": "—",
+            "streams": "203",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Do The Dance - ILLIT",
+            "made_by": "—",
+            "streams": "133",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "115",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "34"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "EYES CLOSED - JISOO, ZAYN",
+            "made_by": "—",
+            "streams": "894",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "5, 4, 3 (Pretty Woman) (feat. Lay Bankz) - S.COUPS X MINGYU",
+            "made_by": "—",
+            "streams": "92",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "SPAGHETTI - J-HOPE X BTS",
+            "made_by": "—",
+            "streams": "75",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Do The Dance - ILLIT",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "18"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "EYES CLOSED - JISOO, ZAYN",
+            "made_by": "—",
+            "streams": "4,456",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "5, 4, 3 (Pretty Woman) (feat. Lay Bankz) - S.COUPS X MINGYU",
+            "made_by": "—",
+            "streams": "413",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "SPAGHETTI - J-HOPE X BTS",
+            "made_by": "—",
+            "streams": "203",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Do The Dance - ILLIT",
+            "made_by": "—",
+            "streams": "133",
+            "date_added": "Oct 5, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "116",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "37"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

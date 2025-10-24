@@ -1,0 +1,263 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6DRsCnHwpy638sR8fO1PTD/song/0PfUZbJGFeZYiUB10QrXzW/stats",
+  "scraped_at": "2025-10-23T23:08:16.348296",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,395",
+            "date_added": "Sep 30, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DRUM&BASS 2025 MOTIVATION!!!",
+            "made_by": "—",
+            "streams": "219",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BASS MUSIC 2025 MOTIVATION!!!",
+            "made_by": "—",
+            "streams": "130",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "TPA x Hypeddit: New Music Friday",
+            "made_by": "—",
+            "streams": "59",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Heavy Bass Workout | Gym Music",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "36"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "337",
+            "date_added": "Sep 30, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "TPA x Hypeddit: New Music Friday",
+            "made_by": "—",
+            "streams": "59",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DRUM&BASS 2025 MOTIVATION!!!",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "BASS MUSIC 2025 MOTIVATION!!!",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "18"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,395",
+            "date_added": "Sep 30, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DRUM&BASS 2025 MOTIVATION!!!",
+            "made_by": "—",
+            "streams": "250",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BASS MUSIC 2025 MOTIVATION!!!",
+            "made_by": "—",
+            "streams": "149",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "TPA x Hypeddit: New Music Friday",
+            "made_by": "—",
+            "streams": "59",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Heavy Bass Workout | Gym Music",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "38"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

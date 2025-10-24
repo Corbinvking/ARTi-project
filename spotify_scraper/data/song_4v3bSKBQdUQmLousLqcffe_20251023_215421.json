@@ -1,0 +1,242 @@
+{
+  "url": "https://artists.spotify.com/c/artist/7xXfQMNqFmCBVqBupo7N2e/song/4v3bSKBQdUQmLousLqcffe/stats",
+  "scraped_at": "2025-10-23T21:53:50.355867",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "678",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "555",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "408",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "280",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "OUTLAW RADIO (Bass Music 2025)",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 3, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "36"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "165",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "134",
+            "date_added": "Sep 28, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "110",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "84",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "18"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "3,168",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "3,042",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "1,560",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "1,219",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "441",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "279",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "225",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "141",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "DJ TIKTOK VIRAL 2025🤙🏻",
+            "made_by": "—",
+            "streams": "93",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "82",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "33",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "OUTLAW RADIO (Bass Music 2025)",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 3, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "13",
+          "total": "115"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

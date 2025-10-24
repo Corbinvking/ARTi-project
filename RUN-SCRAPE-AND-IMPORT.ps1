@@ -41,6 +41,24 @@ Write-Host ""
 Write-Host "SFA URLs collected!" -ForegroundColor Green
 Write-Host ""
 
+# Stage 1.5: Import URLs to Database
+Write-Host ""
+Write-Host "================================================================================" -ForegroundColor Cyan
+Write-Host "[STAGE 1.5/4] SAVING SFA URLs TO DATABASE" -ForegroundColor Cyan
+Write-Host "================================================================================" -ForegroundColor Cyan
+Write-Host ""
+
+node scripts/import-roster-urls.js
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "Warning: URL import had issues, but continuing..." -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "SFA URLs saved to database!" -ForegroundColor Green
+Write-Host ""
+
 # Stage 2: Stream Data Scraper
 Write-Host ""
 Write-Host "================================================================================" -ForegroundColor Cyan

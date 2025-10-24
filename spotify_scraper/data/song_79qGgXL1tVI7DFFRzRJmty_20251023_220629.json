@@ -1,0 +1,200 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4k5Uxaq8bCl3ooK9GEHDOz/song/79qGgXL1tVI7DFFRzRJmty/stats",
+  "scraped_at": "2025-10-23T22:06:00.160754",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Peaky Blinders Vibes 🚬",
+            "made_by": "—",
+            "streams": "1,193",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "1,057",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "120",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "46",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "&FRIENDS Halloween 2025",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "45"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Peaky Blinders Vibes 🚬",
+            "made_by": "—",
+            "streams": "299",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "257",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "&FRIENDS Halloween 2025",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "16"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Peaky Blinders Vibes 🚬",
+            "made_by": "—",
+            "streams": "4,450",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "2,028",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "463",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "395",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "&FRIENDS Halloween 2025",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "74"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

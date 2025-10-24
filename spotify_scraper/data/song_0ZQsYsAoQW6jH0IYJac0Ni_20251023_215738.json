@@ -1,0 +1,305 @@
+{
+  "url": "https://artists.spotify.com/c/artist/34RzVO4RIxNjAq5VHJhWSp/song/0ZQsYsAoQW6jH0IYJac0Ni/stats",
+  "scraped_at": "2025-10-23T21:57:08.494882",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DO IT - Stray Kids",
+            "made_by": "—",
+            "streams": "229",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "SPAGHETTI - J-HOPE X BTS",
+            "made_by": "—",
+            "streams": "208",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "EYES CLOSED - JISOO, ZAYN",
+            "made_by": "—",
+            "streams": "113",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "SPAGHETTI - LE SSERAFIM, J-HOPE",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "72"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DO IT - Stray Kids",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "SPAGHETTI - J-HOPE X BTS",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "EYES CLOSED - JISOO, ZAYN",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Aug 28, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "35"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "SPAGHETTI - J-HOPE X BTS",
+            "made_by": "—",
+            "streams": "23,408",
+            "date_added": "Mar 13, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DO IT - Stray Kids",
+            "made_by": "—",
+            "streams": "10,292",
+            "date_added": "Mar 13, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "5, 4, 3 (Pretty Woman) (feat. Lay Bankz) - S.COUPS X MINGYU",
+            "made_by": "—",
+            "streams": "5,436",
+            "date_added": "Mar 13, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "O tigrão vai te ensinar",
+            "made_by": "—",
+            "streams": "5,372",
+            "date_added": "Mar 14, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "EYES CLOSED - JISOO, ZAYN",
+            "made_by": "—",
+            "streams": "5,174",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "EYES CLOSED - JISOO, ZAYN",
+            "made_by": "—",
+            "streams": "4,756",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4,084",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "JISOO, ZAYN - EYES CLOSED",
+            "made_by": "—",
+            "streams": "3,552",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "WE GO UP - BABYMONSTER",
+            "made_by": "—",
+            "streams": "900",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Stray Kids - DO IT",
+            "made_by": "—",
+            "streams": "859",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "454",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "SPAGHETTI - J-HOPE X BTS",
+            "made_by": "—",
+            "streams": "437",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "SPAGHETTI - LE SSERAFIM, J-HOPE",
+            "made_by": "—",
+            "streams": "284",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "154",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Do The Dance - ILLIT",
+            "made_by": "—",
+            "streams": "135",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "101",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "79",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "45",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "RUN SEOKJIN WORLD TOUR SETLIST",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Dance Pop 2025",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Mar 11, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "Noturna - focus ONE ARMY ONE VOICE",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "25",
+            "name": "Lagree practice",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "New Beginnings",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Mar 18, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "26",
+          "total": "485"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

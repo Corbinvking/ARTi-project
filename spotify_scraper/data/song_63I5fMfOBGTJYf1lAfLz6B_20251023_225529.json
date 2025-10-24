@@ -1,0 +1,242 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/63I5fMfOBGTJYf1lAfLz6B/stats",
+  "scraped_at": "2025-10-23T22:54:58.306611",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "runners high !!",
+            "made_by": "—",
+            "streams": "11,246",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "373",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "clubbing in ibiza 🍸🪩",
+            "made_by": "—",
+            "streams": "313",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "189",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "188",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "69",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Siimi Approves",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 20, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "157"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "runners high !!",
+            "made_by": "—",
+            "streams": "2,564",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "114",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "clubbing in ibiza 🍸🪩",
+            "made_by": "—",
+            "streams": "72",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "72",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "83"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "runners high !!",
+            "made_by": "—",
+            "streams": "11,246",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "373",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "clubbing in ibiza 🍸🪩",
+            "made_by": "—",
+            "streams": "313",
+            "date_added": "Sep 27, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "245",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "193",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "190",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Siimi Approves",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 20, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "162"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

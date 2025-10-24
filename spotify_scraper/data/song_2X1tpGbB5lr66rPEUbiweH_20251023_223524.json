@@ -1,0 +1,172 @@
+{
+  "url": "https://artists.spotify.com/c/artist/3KQJv7IcTnYH8gAcbtLOIt/song/2X1tpGbB5lr66rPEUbiweH/stats",
+  "scraped_at": "2025-10-23T22:34:55.351246",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Academia 2025 - só as melhores para treinar 💪- melhores hits para  - as mais tocadas nas academias.",
+            "made_by": "—",
+            "streams": "4,015",
+            "date_added": "Sep 18, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "ELETRÔNICA FRITAÇÃO 🤘🎅",
+            "made_by": "—",
+            "streams": "454",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "295",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "20"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Academia 2025 - só as melhores para treinar 💪- melhores hits para  - as mais tocadas nas academias.",
+            "made_by": "—",
+            "streams": "1,194",
+            "date_added": "Sep 18, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "ELETRÔNICA FRITAÇÃO 🤘🎅",
+            "made_by": "—",
+            "streams": "142",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "8"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Academia 2025 - só as melhores para treinar 💪- melhores hits para  - as mais tocadas nas academias.",
+            "made_by": "—",
+            "streams": "4,716",
+            "date_added": "Sep 18, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "ELETRÔNICA FRITAÇÃO 🤘🎅",
+            "made_by": "—",
+            "streams": "454",
+            "date_added": "Oct 7, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "354",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "37",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "30",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "23"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

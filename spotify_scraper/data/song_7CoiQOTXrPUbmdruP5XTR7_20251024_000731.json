@@ -1,0 +1,473 @@
+{
+  "url": "https://artists.spotify.com/c/artist/56hXYTbEGYdTwI2zjMMcVh/song/7CoiQOTXrPUbmdruP5XTR7/stats",
+  "scraped_at": "2025-10-24T00:07:00.854456",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "995",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "545",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "68",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "44",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "HEAVY TEAROUT 2025",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "JEANIE SELECTS",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "NASTY RIDDIM | NEW DUBSTEP 👽",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 16, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Bangers",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "TEAROUT.",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 17, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "222"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "273",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "194",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "HEAVY TEAROUT 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "JEANIE SELECTS",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 13, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "10",
+          "total": "79"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "6,558",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3,704",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "2,193",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "383",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "294",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "268",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "244",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "240",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "139",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "138",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Beatport Best New Dubstep",
+            "made_by": "—",
+            "streams": "130",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "120",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "84",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "HEAVY TEAROUT 2025",
+            "made_by": "—",
+            "streams": "73",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "THE DEVILS DUBSTEP",
+            "made_by": "—",
+            "streams": "66",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "JEANIE SELECTS",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "ANGRY DUBSTEP ◉ Aggressive | Energetic | Hard AF | Dancefloor Dubstep",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "NASTY RIDDIM | NEW DUBSTEP 👽",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Jun 16, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "PLURfect Playlist",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "BASS HEADS ONLY",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "sum25",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Gym n' Bass",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 19, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "HEAVY DUB",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Sep 14, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "TEAROUT.",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 17, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Bangers",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "WOMP WOMP",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "BassHead",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "bass music bangers",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 15, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "2k25 Finds",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Friday 6/13",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Malice in the Bassline",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "I Want My Face Taken Off",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "LOST LANDS 2025 🦖",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 31, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "35",
+          "total": "619"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

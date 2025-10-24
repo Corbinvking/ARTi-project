@@ -1,0 +1,200 @@
+{
+  "url": "https://artists.spotify.com/c/artist/7xXfQMNqFmCBVqBupo7N2e/song/42BIc0reXaqVYMzo7TRmPD/stats",
+  "scraped_at": "2025-10-23T21:52:44.781961",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Shadow boxing🥊",
+            "made_by": "—",
+            "streams": "704",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Finja que vc está num edit de futebol",
+            "made_by": "—",
+            "streams": "207",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Subsidia Records",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jul 31, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "52"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Shadow boxing🥊",
+            "made_by": "—",
+            "streams": "183",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Finja que vc está num edit de futebol",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "18"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Shadow boxing🥊",
+            "made_by": "—",
+            "streams": "3,013",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Finja que vc está num edit de futebol",
+            "made_by": "—",
+            "streams": "907",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "344",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "187",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Subsidia Records",
+            "made_by": "—",
+            "streams": "119",
+            "date_added": "Jul 31, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "30",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "23",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "OUTLAW RADIO (Bass Music 2025)",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 7, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Subsidia",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 30, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "154"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

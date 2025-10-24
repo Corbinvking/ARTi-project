@@ -1,0 +1,480 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/3o5mNSJZimpo1bWyVR5dQE/stats",
+  "scraped_at": "2025-10-23T22:29:21.396539",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,666",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "1,437",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "988",
+            "date_added": "May 29, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "619",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "361",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "84",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "SHREK RAVE EXCISION",
+            "made_by": "—",
+            "streams": "79",
+            "date_added": "Sep 3, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "🔥🔥🔥Riddim 2025🔥🔥🔥",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Apr 23, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Brain Scratchies",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Dubstep uNk 2025",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jul 9, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Lost Lands 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 31, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "503"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "315",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "163",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "93",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "SHREK RAVE EXCISION",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 3, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "🔥🔥🔥Riddim 2025🔥🔥🔥",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 23, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "196"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "10,519",
+            "date_added": "May 29, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "10,353",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "8,859",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "8,346",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "人気の曲- 2025年ヒット曲 (有名な曲)",
+            "made_by": "—",
+            "streams": "2,815",
+            "date_added": "May 24, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "2,598",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "GYM & WORKOUT - WINTER ARC  - TRAIN WITH PHONK, KRUSHED, TRAP & DUBSTEP - TIK TOK VIRAL-TOP 100",
+            "made_by": "—",
+            "streams": "2,215",
+            "date_added": "May 25, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,539",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Тренировка 2025 - Музыка для тренировок (Песни для тренировок)",
+            "made_by": "—",
+            "streams": "1,238",
+            "date_added": "May 24, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "801",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "🔥🔥🔥Riddim 2025🔥🔥🔥",
+            "made_by": "—",
+            "streams": "629",
+            "date_added": "Apr 23, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Motivacion GYM 2025 | Entrenar | Musica para ENTRENAR ⚡️",
+            "made_by": "—",
+            "streams": "611",
+            "date_added": "May 24, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "293",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "174",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "134",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "121",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "SHREK RAVE EXCISION",
+            "made_by": "—",
+            "streams": "82",
+            "date_added": "Sep 3, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Brain Scratchies",
+            "made_by": "—",
+            "streams": "63",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Bass Nights Stylle",
+            "made_by": "—",
+            "streams": "39",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "33",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Rickhouse",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Dubstep uNk 2025",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Jul 9, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Heavy DUBSTEP (HHD) Hitting Hard",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Edm🖕life",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 4, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Lost Lands 2025",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jul 31, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Good fucking wub",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "RIDDIM Dubstep⚔️💥",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "EDM 2025 | Best EDM Songs",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Helldivers EDM",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 22, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Anomalies",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "tsts",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "A Journey Through Sound🎶",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Apr 26, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Mr. Wildfire",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Aug 23, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "Amber Of Fire",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "DUBSTEP RELEASES 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 23, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "HOLYSONGS",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 16, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "TikTok Playlist",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 2, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Shubiraumdaundaun",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 19, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "38",
+          "total": "1,650"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,410 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2hoNqBOIPGztCNSNZEwMQE/song/0ptEawoHf0cu5uvV3I07uf/stats",
+  "scraped_at": "2025-10-23T22:35:59.534224",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Raw Electronic",
+            "made_by": "—",
+            "streams": "171",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "139",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "future garage 2025",
+            "made_by": "—",
+            "streams": "132",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Organic Electronica - Midnight",
+            "made_by": "—",
+            "streams": "131",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Top Dance & EDM Hits 2025🎉|  BETTER RADIO",
+            "made_by": "—",
+            "streams": "94",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Morning Chill 2025  ☕️ Relax Music",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "53",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Floating Melodies — Organic & Dreamy Electronica 2025",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Chill Electronica 2025 ||",
+            "made_by": "—",
+            "streams": "39",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "gone city beats // breaks, garage, idm, electronica",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Garage House",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "FLUMETRONICA",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "We Can Dance Festival 2025",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Deep Electronic Experience",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Aesthetic Electronic",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "New Electronic Friday",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "18",
+          "total": "52"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "106",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Raw Electronic",
+            "made_by": "—",
+            "streams": "86",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "future garage 2025",
+            "made_by": "—",
+            "streams": "61",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Morning Chill 2025  ☕️ Relax Music",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Top Dance & EDM Hits 2025🎉|  BETTER RADIO",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Organic Electronica - Midnight",
+            "made_by": "—",
+            "streams": "49",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Floating Melodies — Organic & Dreamy Electronica 2025",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Chill Electronica 2025 ||",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Garage House",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "FLUMETRONICA",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "gone city beats // breaks, garage, idm, electronica",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "We Can Dance Festival 2025",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "40"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Raw Electronic",
+            "made_by": "—",
+            "streams": "171",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "139",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "future garage 2025",
+            "made_by": "—",
+            "streams": "132",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Organic Electronica - Midnight",
+            "made_by": "—",
+            "streams": "131",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Top Dance & EDM Hits 2025🎉|  BETTER RADIO",
+            "made_by": "—",
+            "streams": "94",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Morning Chill 2025  ☕️ Relax Music",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "53",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Floating Melodies — Organic & Dreamy Electronica 2025",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Chill Electronica 2025 ||",
+            "made_by": "—",
+            "streams": "39",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "gone city beats // breaks, garage, idm, electronica",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Garage House",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "FLUMETRONICA",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "We Can Dance Festival 2025",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Deep Electronic Experience",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Aesthetic Electronic",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "New Electronic Friday",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "18",
+          "total": "52"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

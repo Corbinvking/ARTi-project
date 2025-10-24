@@ -1,0 +1,81 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6TW9Zc8SDwtueBDeJf6TYY/song/52YPjaYYVxd0lBaYZ4vaSe/stats",
+  "scraped_at": "2025-10-23T21:54:57.197935",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "7"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "7"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "7"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

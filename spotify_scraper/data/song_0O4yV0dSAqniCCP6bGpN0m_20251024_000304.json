@@ -1,0 +1,613 @@
+{
+  "url": "https://artists.spotify.com/c/artist/6wCnoQVmun9H1OqppOGY76/song/0O4yV0dSAqniCCP6bGpN0m/stats",
+  "scraped_at": "2025-10-24T00:02:33.775223",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "14,002",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Electrónica Vieja Éxitos",
+            "made_by": "—",
+            "streams": "6,350",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Progressive Trance 2025",
+            "made_by": "—",
+            "streams": "3,357",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Academia 2025 - só as melhores para treinar 💪- melhores hits para  - as mais tocadas nas academias.",
+            "made_by": "—",
+            "streams": "1,655",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Opus - Eric Prydz / 2025 Playlist",
+            "made_by": "—",
+            "streams": "1,037",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Minimal Techno 2025",
+            "made_by": "—",
+            "streams": "786",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Anyma 2025 Playlist - Eternity,  Last Night, Pictures of You,  Angel in the Dark, Syren",
+            "made_by": "—",
+            "streams": "670",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Claptone best songs 2025 - No Eyes, Heartbeat, Liquid Spirit, Before I Lose My Mind, Cold Heart",
+            "made_by": "—",
+            "streams": "587",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "547",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Pura Energía música GYM 2025",
+            "made_by": "—",
+            "streams": "368",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Música electronica para viajar y escuchar en el auto 2025",
+            "made_by": "—",
+            "streams": "241",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "MÚSICA TRANCE 2025🔉 TRANCE MUSIC 2025/🔉Progressive Trance",
+            "made_by": "—",
+            "streams": "223",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "223",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "221",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Kolombo 2025 Playlist - Acostumbrado, I Take Ya!, Goin Crazy, Follow Up, Trance Hotel, Ur the finest",
+            "made_by": "—",
+            "streams": "184",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Música para entrenar FUERTE - Música GYM 2025",
+            "made_by": "—",
+            "streams": "151",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "144",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Loco Dice 2025 Best songs Playlist",
+            "made_by": "—",
+            "streams": "111",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Return to Oz - ARTBAT Remix - Monolink",
+            "made_by": "—",
+            "streams": "106",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "PACO OSUNA 2025 Playlist - Wavy Distance, Fly Life, Groove Bass, What Is, Samba drone, Atopisimo",
+            "made_by": "—",
+            "streams": "104",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "ADRIATIQUE 2025 Playlist - Miracle, Home, With You, Mystery, Need You Now, Atlas Remix",
+            "made_by": "—",
+            "streams": "92",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Minimal Trance (2025)",
+            "made_by": "—",
+            "streams": "87",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "71",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "Trance Mission 2025",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "26",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "This Is Traveler",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2025",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "5,136",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Electrónica Vieja Éxitos",
+            "made_by": "—",
+            "streams": "2,830",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Progressive Trance 2025",
+            "made_by": "—",
+            "streams": "1,118",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Academia 2025 - só as melhores para treinar 💪- melhores hits para  - as mais tocadas nas academias.",
+            "made_by": "—",
+            "streams": "512",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Opus - Eric Prydz / 2025 Playlist",
+            "made_by": "—",
+            "streams": "311",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Minimal Techno 2025",
+            "made_by": "—",
+            "streams": "262",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Anyma 2025 Playlist - Eternity,  Last Night, Pictures of You,  Angel in the Dark, Syren",
+            "made_by": "—",
+            "streams": "240",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Claptone best songs 2025 - No Eyes, Heartbeat, Liquid Spirit, Before I Lose My Mind, Cold Heart",
+            "made_by": "—",
+            "streams": "201",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Pura Energía música GYM 2025",
+            "made_by": "—",
+            "streams": "140",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "88",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "87",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "86",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Música electronica para viajar y escuchar en el auto 2025",
+            "made_by": "—",
+            "streams": "81",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "MÚSICA TRANCE 2025🔉 TRANCE MUSIC 2025/🔉Progressive Trance",
+            "made_by": "—",
+            "streams": "74",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Kolombo 2025 Playlist - Acostumbrado, I Take Ya!, Goin Crazy, Follow Up, Trance Hotel, Ur the finest",
+            "made_by": "—",
+            "streams": "63",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Música para entrenar FUERTE - Música GYM 2025",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Loco Dice 2025 Best songs Playlist",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "PACO OSUNA 2025 Playlist - Wavy Distance, Fly Life, Groove Bass, What Is, Samba drone, Atopisimo",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Return to Oz - ARTBAT Remix - Monolink",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "ADRIATIQUE 2025 Playlist - Miracle, Home, With You, Mystery, Need You Now, Atlas Remix",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Minimal Trance (2025)",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Trance Mission 2025",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "25",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2025",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "14,002",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Electrónica Vieja Éxitos",
+            "made_by": "—",
+            "streams": "6,350",
+            "date_added": "Oct 9, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Progressive Trance 2025",
+            "made_by": "—",
+            "streams": "3,357",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Academia 2025 - só as melhores para treinar 💪- melhores hits para  - as mais tocadas nas academias.",
+            "made_by": "—",
+            "streams": "1,655",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Opus - Eric Prydz / 2025 Playlist",
+            "made_by": "—",
+            "streams": "1,037",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Minimal Techno 2025",
+            "made_by": "—",
+            "streams": "786",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Anyma 2025 Playlist - Eternity,  Last Night, Pictures of You,  Angel in the Dark, Syren",
+            "made_by": "—",
+            "streams": "670",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Claptone best songs 2025 - No Eyes, Heartbeat, Liquid Spirit, Before I Lose My Mind, Cold Heart",
+            "made_by": "—",
+            "streams": "587",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "547",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Pura Energía música GYM 2025",
+            "made_by": "—",
+            "streams": "368",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Música electronica para viajar y escuchar en el auto 2025",
+            "made_by": "—",
+            "streams": "241",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "MÚSICA TRANCE 2025🔉 TRANCE MUSIC 2025/🔉Progressive Trance",
+            "made_by": "—",
+            "streams": "223",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "223",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "221",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Kolombo 2025 Playlist - Acostumbrado, I Take Ya!, Goin Crazy, Follow Up, Trance Hotel, Ur the finest",
+            "made_by": "—",
+            "streams": "184",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Música para entrenar FUERTE - Música GYM 2025",
+            "made_by": "—",
+            "streams": "151",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "144",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Loco Dice 2025 Best songs Playlist",
+            "made_by": "—",
+            "streams": "111",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Return to Oz - ARTBAT Remix - Monolink",
+            "made_by": "—",
+            "streams": "106",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "PACO OSUNA 2025 Playlist - Wavy Distance, Fly Life, Groove Bass, What Is, Samba drone, Atopisimo",
+            "made_by": "—",
+            "streams": "104",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "ADRIATIQUE 2025 Playlist - Miracle, Home, With You, Mystery, Need You Now, Atlas Remix",
+            "made_by": "—",
+            "streams": "92",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Minimal Trance (2025)",
+            "made_by": "—",
+            "streams": "87",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "71",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "Trance Mission 2025",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "26",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "This Is Traveler",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2025",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

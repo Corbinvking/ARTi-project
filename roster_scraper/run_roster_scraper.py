@@ -20,7 +20,7 @@ async def main():
     print()
     
     # Configuration
-    csv_path = Path('../Spotify Playlisting-Active Campaigns.csv')
+    csv_path = Path('../full-databse-chunk.csv')
     output_dir = Path('data')
     output_dir.mkdir(parents=True, exist_ok=True)
     

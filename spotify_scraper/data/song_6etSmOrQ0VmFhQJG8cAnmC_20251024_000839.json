@@ -1,0 +1,375 @@
+{
+  "url": "https://artists.spotify.com/c/artist/79qK9xOwh7pXV73ebBOnzR/song/6etSmOrQ0VmFhQJG8cAnmC/stats",
+  "scraped_at": "2025-10-24T00:08:08.184092",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "744",
+            "date_added": "Jan 25, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "523",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "O tigrão vai te ensinar",
+            "made_by": "—",
+            "streams": "293",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "STRENGTH | 2025 Workout Playlist",
+            "made_by": "—",
+            "streams": "153",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "DRUM AND BASS THERAPY 🫂",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "147"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "155",
+            "date_added": "Jan 25, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "83",
+            "date_added": "Oct 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "STRENGTH | 2025 Workout Playlist",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "DRUM AND BASS THERAPY 🫂",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "52"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "18,884",
+            "date_added": "Jan 25, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "8,153",
+            "date_added": "Jan 28, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BREGA FUNK 2025🔥VOCE METE BEM DEMAIS🔥EU TO VENDO ELE DE PEÇA NEIFF🔥PROMETEU TUDO TIKTOK🔥MAIS TOCADAS",
+            "made_by": "—",
+            "streams": "7,360",
+            "date_added": "Mar 10, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "FUNK DAS ANTIGAS ✦ SÓ AS RELIQUIA!",
+            "made_by": "—",
+            "streams": "4,058",
+            "date_added": "Mar 10, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "O tigrão vai te ensinar",
+            "made_by": "—",
+            "streams": "3,999",
+            "date_added": "Jan 30, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Forza Horizon Soundtrack",
+            "made_by": "—",
+            "streams": "2,460",
+            "date_added": "Jan 28, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "STRENGTH | 2025 Workout Playlist",
+            "made_by": "—",
+            "streams": "1,751",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "1,258",
+            "date_added": "Jan 28, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,127",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,006",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Forza Horizon 5 Soundtrack",
+            "made_by": "—",
+            "streams": "924",
+            "date_added": "Jan 28, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "485",
+            "date_added": "Jan 25, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Driving EDM | Drives & Vibes ✨ | EDM, Electronic",
+            "made_by": "—",
+            "streams": "199",
+            "date_added": "Feb 13, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "182",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Dubstep Inferno Vol. 3",
+            "made_by": "—",
+            "streams": "160",
+            "date_added": "Jun 4, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "160",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "DRUM AND BASS THERAPY 🫂",
+            "made_by": "—",
+            "streams": "157",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "147",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "62",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Ad Social Office Vibes I",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Feb 23, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "2025 🐣🎊🌎",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Mar 6, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Leeman",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Apr 16, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "ForThePlot",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jan 30, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Drum and Bass 2025⚡️",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Feb 4, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "17",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "26",
+            "name": "Utah Moment🤤 Pt. 6",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Mar 13, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "28",
+            "name": "Bc Trip 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 5, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Weddingnight",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Mar 12, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Sonny Selects: Drum & Bass",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jan 25, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Hattie b",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Feb 28, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "31",
+          "total": "703"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

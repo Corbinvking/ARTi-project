@@ -1,0 +1,312 @@
+{
+  "url": "https://artists.spotify.com/c/artist/7e7AGt1EJqxXsb9xpaflJ5/song/7LhyJPrs0IPtLitQNbrg2H/stats",
+  "scraped_at": "2025-10-23T22:48:16.552571",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Sub LowPersonalized",
+            "made_by": "Spotify",
+            "streams": "250",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "UK DUBSTEP",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 13, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "81"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "21"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Sub LowPersonalized",
+            "made_by": "Spotify",
+            "streams": "19,706",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Nowości 2025 - Hity Na Czasie 2025 (Najlepsze)",
+            "made_by": "—",
+            "streams": "3,465",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "人気の曲- 2025年ヒット曲 (有名な曲)",
+            "made_by": "—",
+            "streams": "2,014",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Тренировка 2025 - Музыка для тренировок (Песни для тренировок)",
+            "made_by": "—",
+            "streams": "1,169",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "All New DancePersonalized",
+            "made_by": "Spotify",
+            "streams": "1,077",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "528",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Motivacion GYM 2025 | Entrenar | Musica para ENTRENAR ⚡️",
+            "made_by": "—",
+            "streams": "481",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "223",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "The Ultimate Gay Male Sex Party",
+            "made_by": "—",
+            "streams": "185",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "166",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Auto Playlist 2025 - Autofahren 2025 (Autobahn)",
+            "made_by": "—",
+            "streams": "107",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "106",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "80",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Beatport Best New UK Garage / Bassline",
+            "made_by": "—",
+            "streams": "59",
+            "date_added": "Jun 15, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "39",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "28",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "MONTA RELEASES",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "UK DUBSTEP",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Sc74",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Sep 11, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "SLOW BASS FAST PACE",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "MONTA MONDAYS",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 23, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Owse",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 19, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "25",
+            "name": "Hot 78",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Rave",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 14, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "EDM 2025 | Best EDM Songs",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 6, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "Beatport Top 100 - UK Garage / Bassline",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "TON RADAAR DES SORTIES - new music friday",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "swaggiest new edm friday",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 13, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2025",
+          "total": "2025"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

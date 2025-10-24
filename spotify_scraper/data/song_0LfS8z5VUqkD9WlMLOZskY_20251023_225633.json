@@ -1,0 +1,242 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/0LfS8z5VUqkD9WlMLOZskY/stats",
+  "scraped_at": "2025-10-23T22:56:05.118635",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "10,085",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,325",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Drum and Bass🔥",
+            "made_by": "—",
+            "streams": "452",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "32",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Siimi Approves",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 8, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "61"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "2,767",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,303",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Drum and Bass🔥",
+            "made_by": "—",
+            "streams": "375",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "32"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "24,882",
+            "date_added": "Aug 18, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,678",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "509",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Drum and Bass🔥",
+            "made_by": "—",
+            "streams": "452",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "377",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "304",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Brand New Drum And Bass 🦀",
+            "made_by": "—",
+            "streams": "39",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Siimi Approves",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "pink planet",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 9, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "13",
+          "total": "108"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

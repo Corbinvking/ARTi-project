@@ -1,0 +1,312 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/2Hi3RjH7mxw3OaIVsjPZQ7/stats",
+  "scraped_at": "2025-10-23T22:13:30.427056",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "827",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "194",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "ILLENIUM LIVE LOST LANDS 2025",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Aug 3, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "ILLENIUM @ Red Rocks Amphitheatre 2025-08-20",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "ILLENIUM @ Shambhala Festival 2025-07-27",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 4, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "141"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "181",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "102",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 3, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "59"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "3,664",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,656",
+            "date_added": "Aug 6, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "1,581",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "408",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "297",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "112",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "92",
+            "date_added": "Aug 3, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "87",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "81",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "23",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "ILLENIUM LIVE LOST LANDS 2025",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "ILLENIUM @ Red Rocks Amphitheatre 2025-08-20",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Aug 28, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "This Is Sam Lamar",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Lifting heavy things & listening to robot noises 🦾",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "🦖lost lands 2025🦕",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 14, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "ILLENIUM @ Shambhala Festival 2025-07-27",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 4, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "20",
+          "total": "347"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

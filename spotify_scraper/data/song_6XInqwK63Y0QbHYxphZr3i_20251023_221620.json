@@ -1,0 +1,223 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/6XInqwK63Y0QbHYxphZr3i/stats",
+  "scraped_at": "2025-10-23T22:15:53.760314",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "95"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "30,024",
+            "date_added": "Dec 3, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "11,767",
+            "date_added": "Dec 10, 2024"
+          },
+          {
+            "rank": "3",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "7,607",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "4,546",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "TikTok Car Vibes 2025 🚗🎶🔥 – Viral Driving Songs",
+            "made_by": "—",
+            "streams": "1,544",
+            "date_added": "Apr 23, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "730",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "184",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "147",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "86",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "76",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "70",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Nov 29, 2024"
+          },
+          {
+            "rank": "13",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Sploinky Ass Shit 🔥🚀🫥🔊",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Dec 2, 2024"
+          },
+          {
+            "rank": "15",
+            "name": "☣️✡️👹✡️☣️",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Dec 2, 2024"
+          },
+          {
+            "rank": "16",
+            "name": "Kn¿where Festival❓️¿❔️",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Apr 5, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Explosive gym",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Dec 22, 2024"
+          },
+          {
+            "rank": "18",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Dustep hard",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Dec 6, 2024"
+          },
+          {
+            "rank": "20",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "GOONS PLAYING DUBSTEP 😈💀💣🔮💊",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Dec 2, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "21",
+          "total": "650"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

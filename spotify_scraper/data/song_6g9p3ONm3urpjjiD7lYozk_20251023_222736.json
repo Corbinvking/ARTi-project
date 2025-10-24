@@ -1,0 +1,459 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/6g9p3ONm3urpjjiD7lYozk/stats",
+  "scraped_at": "2025-10-23T22:27:03.606552",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "1,335",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,203",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "773",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "155",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "116",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "96",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "43",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "This Is FelMax",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "13",
+          "total": "295"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "387",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "302",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "169",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 8, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "107"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "12,647",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "9,182",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "7,027",
+            "date_added": "May 21, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "人気の曲- 2025年ヒット曲 (有名な曲)",
+            "made_by": "—",
+            "streams": "4,157",
+            "date_added": "May 23, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Тренировка 2025 - Музыка для тренировок (Песни для тренировок)",
+            "made_by": "—",
+            "streams": "2,235",
+            "date_added": "May 24, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "1,345",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Motivacion GYM 2025 | Entrenar | Musica para ENTRENAR ⚡️",
+            "made_by": "—",
+            "streams": "1,104",
+            "date_added": "May 24, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "831",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "592",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "397",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "274",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "231",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "225",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "210",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "CHAOS DUBSTEP",
+            "made_by": "—",
+            "streams": "164",
+            "date_added": "Jun 4, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "121",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Beatport Best New Dubstep",
+            "made_by": "—",
+            "streams": "108",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "92",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "THE DEVILS DUBSTEP",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Jun 30, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "This Is FelMax",
+            "made_by": "Spotify",
+            "streams": "61",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "45",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "ANGRY DUBSTEP ◉ Aggressive | Energetic | Hard AF | Dancefloor Dubstep",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jun 20, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "EDM Playlist",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "EDM 2025 | Best EDM Songs",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "Reggie Rock Star",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "Bass Music Pulse 🔥 Festival Season! - Trap / Dubstep / Bass House / Future Bass / Twonk / Jersey",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "dub",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "music that scares the hoes",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Nephtanica's  EDM Playlist  2025",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 11, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "RV EDC25",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 10, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "swaggiest new edm friday",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "New Dubstep Bangers 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Dj bangers🔊📶",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "The Blaap Chronicles",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 7, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "36",
+          "total": "941"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

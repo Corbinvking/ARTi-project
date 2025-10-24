@@ -1,0 +1,291 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0NgWGGk9p04zLTeFbIdsVO/song/5qW9dDUgpiGGU6BoZhv1aT/stats",
+  "scraped_at": "2025-10-23T22:52:45.113754",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Drum and Bass🔥",
+            "made_by": "—",
+            "streams": "492",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "253",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "133",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "NIGHTCORE",
+            "made_by": "—",
+            "streams": "97",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "H2L: New Drum & Bass 2025 | updated weekly",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Brand New Drum And Bass 🦀",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Weekly Neuro DnB Releases",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Siimi Approves",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 9, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "39"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Drum and Bass🔥",
+            "made_by": "—",
+            "streams": "405",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "107",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "NIGHTCORE",
+            "made_by": "—",
+            "streams": "79",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "59",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "H2L: New Drum & Bass 2025 | updated weekly",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Brand New Drum And Bass 🦀",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "28"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Drum and Bass🔥",
+            "made_by": "—",
+            "streams": "492",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "253",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "133",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "NIGHTCORE",
+            "made_by": "—",
+            "streams": "97",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "H2L: New Drum & Bass 2025 | updated weekly",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Brand New Drum And Bass 🦀",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Weekly Neuro DnB Releases",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 13, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Siimi Approves",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 9, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "39"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

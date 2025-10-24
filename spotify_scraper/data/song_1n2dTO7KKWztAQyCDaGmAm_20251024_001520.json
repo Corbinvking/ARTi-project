@@ -1,0 +1,515 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4F8JGeO6bJO7Z309mxHlP0/song/1n2dTO7KKWztAQyCDaGmAm/stats",
+  "scraped_at": "2025-10-24T00:14:50.744837",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Bass.🚬",
+            "made_by": "—",
+            "streams": "503",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "402",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "115",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "72",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "72",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "57",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Riddim Dubstep 2025",
+            "made_by": "—",
+            "streams": "53",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Dubstep Slayer",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "OUTLAW RADIO (Bass Music 2025)",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "30",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Beatport Best New Dubstep",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "ANGRY DUBSTEP ◉ Aggressive | Energetic | Hard AF | Dancefloor Dubstep",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Best Dubstep & Hybrid Bass 2025",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "RIDDIM BASSFACE 2025 🤤",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Sep 10, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "New Bass Music Weekly",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Dubstep Workout - Best Dubstep Music",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 12, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Dubstep Hammers",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "WE GO JIM",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "Riddim completly mixed",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 20, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "24",
+          "total": "330"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Bass.🚬",
+            "made_by": "—",
+            "streams": "387",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "60",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Dubstep Slayer",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Riddim Dubstep 2025",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "ANGRY DUBSTEP ◉ Aggressive | Energetic | Hard AF | Dancefloor Dubstep",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Dubstep Workout - Best Dubstep Music",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 12, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Beatport Best New Dubstep",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "131"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "2,541",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "2,523",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,068",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Bass.🚬",
+            "made_by": "—",
+            "streams": "503",
+            "date_added": "Oct 14, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "171",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "127",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "122",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Beatport Best New Dubstep",
+            "made_by": "—",
+            "streams": "83",
+            "date_added": "Sep 9, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Riddim Dubstep 2025",
+            "made_by": "—",
+            "streams": "82",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Dubstep Slayer",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "49",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "37",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "OUTLAW RADIO (Bass Music 2025)",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Sep 29, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Dubstep Hammers",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "ANGRY DUBSTEP ◉ Aggressive | Energetic | Hard AF | Dancefloor Dubstep",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Best Dubstep & Hybrid Bass 2025",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "RIDDIM BASSFACE 2025 🤤",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Sep 10, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "New Bass Music Weekly",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "WO",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Riddim completly mixed",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 20, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "RECENTLY RELEASED FIRE | 2025.10.17 | STEALING FIRE REMIXES, JACKPOT REMIXES, ATLIENS REMIXES, LYNY",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 4, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Dubstep Workout - Best Dubstep Music",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 12, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "This Is Dack Janiels",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "26",
+            "name": "Siimi Approves",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "WE GO JIM",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 26, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "27",
+          "total": "558"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}
