@@ -49,7 +49,7 @@ async function cleanCampaignGroups() {
     // Get all campaign groups
     const { data: groups, error: groupError } = await supabase
       .from('campaign_groups')
-      .select('id, campaign_ids');
+      .select('id');
 
     if (groupError) {
       console.error('❌ Error fetching groups:', groupError.message);
@@ -58,14 +58,25 @@ async function cleanCampaignGroups() {
 
     console.log(`\n🔍 Analyzing ${groups.length} campaign groups...`);
 
+    // Get all campaign_group_ids that are actually in use
+    const { data: linkedCampaigns, error: linkedError } = await supabase
+      .from('spotify_campaigns')
+      .select('campaign_group_id')
+      .not('campaign_group_id', 'is', null);
+
+    if (linkedError) {
+      console.error('❌ Error fetching linked campaigns:', linkedError.message);
+      return;
+    }
+
+    const usedGroupIds = new Set(linkedCampaigns.map(c => c.campaign_group_id));
+    console.log(`   📊 Groups with linked campaigns: ${usedGroupIds.size}`);
+
     let orphanedGroups = [];
     let validGroups = 0;
 
     for (const group of groups) {
-      const campaignIds = group.campaign_ids || [];
-      const hasValidCampaign = campaignIds.some(id => validCampaignIds.has(id));
-      
-      if (!hasValidCampaign) {
+      if (!usedGroupIds.has(group.id)) {
         orphanedGroups.push(group.id);
       } else {
         validGroups++;
