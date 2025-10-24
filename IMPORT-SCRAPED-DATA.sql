@@ -1,6 +1,6 @@
 -- ================================================================================
 -- AUTO-GENERATED SQL IMPORT FROM SCRAPED DATA
--- Generated: 2025-10-24T00:42:44.425110
+-- Generated: 2025-10-24T00:55:09.615178
 -- Total files: 79
 -- ================================================================================
 
@@ -11,15 +11,20 @@
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/08Bd5NkwharGRRlyycDD8R/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%08Bd5NkwharGRRlyycDD8R%' OR sfa LIKE '%08Bd5NkwharGRRlyycDD8R%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/08Bd5NkwharGRRlyycDD8R/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 24 playlists
@@ -466,15 +471,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/09LQ575Xbw6cqvbz6coA17/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%09LQ575Xbw6cqvbz6coA17%' OR sfa LIKE '%09LQ575Xbw6cqvbz6coA17%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/09LQ575Xbw6cqvbz6coA17/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 9 playlists
@@ -651,15 +661,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/0ehFhAL9qXecLJDlDDhCU5/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%0ehFhAL9qXecLJDlDDhCU5%' OR sfa LIKE '%0ehFhAL9qXecLJDlDDhCU5%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/0ehFhAL9qXecLJDlDDhCU5/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 28 playlists
@@ -1178,15 +1193,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/0LfS8z5VUqkD9WlMLOZskY/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%0LfS8z5VUqkD9WlMLOZskY%' OR sfa LIKE '%0LfS8z5VUqkD9WlMLOZskY%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/0LfS8z5VUqkD9WlMLOZskY/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 13 playlists
@@ -1435,15 +1455,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/0O4yV0dSAqniCCP6bGpN0m/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%0O4yV0dSAqniCCP6bGpN0m%' OR sfa LIKE '%0O4yV0dSAqniCCP6bGpN0m%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/0O4yV0dSAqniCCP6bGpN0m/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 27 playlists
@@ -1944,15 +1969,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/0ptEawoHf0cu5uvV3I07uf/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%0ptEawoHf0cu5uvV3I07uf%' OR sfa LIKE '%0ptEawoHf0cu5uvV3I07uf%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/0ptEawoHf0cu5uvV3I07uf/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 18 playlists
@@ -2291,15 +2321,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/0yDnwS3lze0KD29r4kO52Z/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%0yDnwS3lze0KD29r4kO52Z%' OR sfa LIKE '%0yDnwS3lze0KD29r4kO52Z%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/0yDnwS3lze0KD29r4kO52Z/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 16 playlists
@@ -2602,15 +2637,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/0ZQsYsAoQW6jH0IYJac0Ni/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%0ZQsYsAoQW6jH0IYJac0Ni%' OR sfa LIKE '%0ZQsYsAoQW6jH0IYJac0Ni%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/0ZQsYsAoQW6jH0IYJac0Ni/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 24 playlists
@@ -3057,15 +3097,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1CMqQJIRN9i24sc5dDkRKy/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1CMqQJIRN9i24sc5dDkRKy%' OR sfa LIKE '%1CMqQJIRN9i24sc5dDkRKy%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1CMqQJIRN9i24sc5dDkRKy/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 19 playlists
@@ -3422,15 +3467,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1iB1bI1x2NaWZPnouxpNcm/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1iB1bI1x2NaWZPnouxpNcm%' OR sfa LIKE '%1iB1bI1x2NaWZPnouxpNcm%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1iB1bI1x2NaWZPnouxpNcm/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 14 playlists
@@ -3697,15 +3747,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1k7xwk1bIoovNB5xDS1OWR/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1k7xwk1bIoovNB5xDS1OWR%' OR sfa LIKE '%1k7xwk1bIoovNB5xDS1OWR%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1k7xwk1bIoovNB5xDS1OWR/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 10 playlists
@@ -3900,15 +3955,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1Lgomzf78tCPn65JOGYJK6/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1Lgomzf78tCPn65JOGYJK6%' OR sfa LIKE '%1Lgomzf78tCPn65JOGYJK6%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1Lgomzf78tCPn65JOGYJK6/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 11 playlists
@@ -4121,15 +4181,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1mBZMHZy6yAO1VC7Xoa1eV/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1mBZMHZy6yAO1VC7Xoa1eV%' OR sfa LIKE '%1mBZMHZy6yAO1VC7Xoa1eV%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1mBZMHZy6yAO1VC7Xoa1eV/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 25 playlists
@@ -4594,15 +4659,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1n2dTO7KKWztAQyCDaGmAm/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1n2dTO7KKWztAQyCDaGmAm%' OR sfa LIKE '%1n2dTO7KKWztAQyCDaGmAm%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1n2dTO7KKWztAQyCDaGmAm/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 27 playlists
@@ -5103,15 +5173,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1PBlfJremF5VYZFDFwol4c/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1PBlfJremF5VYZFDFwol4c%' OR sfa LIKE '%1PBlfJremF5VYZFDFwol4c%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1PBlfJremF5VYZFDFwol4c/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 28 playlists
@@ -5630,15 +5705,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1Q1dJbo4IJnlHyhIuptAxe/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1Q1dJbo4IJnlHyhIuptAxe%' OR sfa LIKE '%1Q1dJbo4IJnlHyhIuptAxe%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1Q1dJbo4IJnlHyhIuptAxe/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 4 playlists
@@ -5725,15 +5805,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1Sx6YVWLCIHwXqfyGt2BoP/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1Sx6YVWLCIHwXqfyGt2BoP%' OR sfa LIKE '%1Sx6YVWLCIHwXqfyGt2BoP%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1Sx6YVWLCIHwXqfyGt2BoP/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 7 playlists
@@ -5874,15 +5959,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1X5zUC0KxDZJF4sG2eUtd7/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1X5zUC0KxDZJF4sG2eUtd7%' OR sfa LIKE '%1X5zUC0KxDZJF4sG2eUtd7%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1X5zUC0KxDZJF4sG2eUtd7/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 6 playlists
@@ -6005,15 +6095,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/1zEwiKPpde4C5ytAv2Uggz/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%1zEwiKPpde4C5ytAv2Uggz%' OR sfa LIKE '%1zEwiKPpde4C5ytAv2Uggz%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/1zEwiKPpde4C5ytAv2Uggz/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 8 playlists
@@ -6172,15 +6267,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/23qcYNm5ncqa2atmkSK63J/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%23qcYNm5ncqa2atmkSK63J%' OR sfa LIKE '%23qcYNm5ncqa2atmkSK63J%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/23qcYNm5ncqa2atmkSK63J/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 73 playlists
@@ -7509,15 +7609,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/2BcDYBtqZF3BhCUKRjYAdz/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%2BcDYBtqZF3BhCUKRjYAdz%' OR sfa LIKE '%2BcDYBtqZF3BhCUKRjYAdz%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/2BcDYBtqZF3BhCUKRjYAdz/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 41 playlists
@@ -8270,15 +8375,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/2Hi3RjH7mxw3OaIVsjPZQ7/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%2Hi3RjH7mxw3OaIVsjPZQ7%' OR sfa LIKE '%2Hi3RjH7mxw3OaIVsjPZQ7%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/2Hi3RjH7mxw3OaIVsjPZQ7/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 20 playlists
@@ -8653,15 +8763,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/2IwIvnhAM0zqBAKR7vnteg/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%2IwIvnhAM0zqBAKR7vnteg%' OR sfa LIKE '%2IwIvnhAM0zqBAKR7vnteg%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/2IwIvnhAM0zqBAKR7vnteg/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 26 playlists
@@ -9144,15 +9259,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/2OQ3GcbuXO0n9bA2TZW3aX/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%2OQ3GcbuXO0n9bA2TZW3aX%' OR sfa LIKE '%2OQ3GcbuXO0n9bA2TZW3aX%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/2OQ3GcbuXO0n9bA2TZW3aX/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 14 playlists
@@ -9419,15 +9539,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/2q7ZDvMA70uUdelRE3Sd9Z/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%2q7ZDvMA70uUdelRE3Sd9Z%' OR sfa LIKE '%2q7ZDvMA70uUdelRE3Sd9Z%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/2q7ZDvMA70uUdelRE3Sd9Z/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 10 playlists
@@ -9622,15 +9747,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/2rV3TspSNv2TYJGMj0u4Lh/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%2rV3TspSNv2TYJGMj0u4Lh%' OR sfa LIKE '%2rV3TspSNv2TYJGMj0u4Lh%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/2rV3TspSNv2TYJGMj0u4Lh/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 99 playlists
@@ -11427,15 +11557,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/2tZ6RENHFCbw6vyv0LRcZP/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%2tZ6RENHFCbw6vyv0LRcZP%' OR sfa LIKE '%2tZ6RENHFCbw6vyv0LRcZP%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/2tZ6RENHFCbw6vyv0LRcZP/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 59 playlists
@@ -12512,15 +12647,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/2U4GEflLkxTE4zdcHXseAO/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%2U4GEflLkxTE4zdcHXseAO%' OR sfa LIKE '%2U4GEflLkxTE4zdcHXseAO%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/2U4GEflLkxTE4zdcHXseAO/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 41 playlists
@@ -13273,15 +13413,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/2X1tpGbB5lr66rPEUbiweH/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%2X1tpGbB5lr66rPEUbiweH%' OR sfa LIKE '%2X1tpGbB5lr66rPEUbiweH%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/2X1tpGbB5lr66rPEUbiweH/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 6 playlists
@@ -13404,15 +13549,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/33sF5CxnTbJmVVdwGsgbIb/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%33sF5CxnTbJmVVdwGsgbIb%' OR sfa LIKE '%33sF5CxnTbJmVVdwGsgbIb%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/33sF5CxnTbJmVVdwGsgbIb/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 67 playlists
@@ -14633,15 +14783,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/39Lx4OkM2rGj1fnQ0v5yBs/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%39Lx4OkM2rGj1fnQ0v5yBs%' OR sfa LIKE '%39Lx4OkM2rGj1fnQ0v5yBs%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/39Lx4OkM2rGj1fnQ0v5yBs/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 13 playlists
@@ -14890,15 +15045,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/3ASOpReu58Fxd805HYRvUG/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%3ASOpReu58Fxd805HYRvUG%' OR sfa LIKE '%3ASOpReu58Fxd805HYRvUG%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/3ASOpReu58Fxd805HYRvUG/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 7 playlists
@@ -15039,15 +15199,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/3BJntn779Myc7fdXjVIlJr/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%3BJntn779Myc7fdXjVIlJr%' OR sfa LIKE '%3BJntn779Myc7fdXjVIlJr%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/3BJntn779Myc7fdXjVIlJr/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 16 playlists
@@ -15350,15 +15515,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/3D5Kztz2QWHnQbn3OVXkAs/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%3D5Kztz2QWHnQbn3OVXkAs%' OR sfa LIKE '%3D5Kztz2QWHnQbn3OVXkAs%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/3D5Kztz2QWHnQbn3OVXkAs/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 25 playlists
@@ -15823,15 +15993,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/3edPHaXV4KwMrmXlMcvmM7/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%3edPHaXV4KwMrmXlMcvmM7%' OR sfa LIKE '%3edPHaXV4KwMrmXlMcvmM7%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/3edPHaXV4KwMrmXlMcvmM7/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 14 playlists
@@ -16098,15 +16273,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/3o5mNSJZimpo1bWyVR5dQE/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%3o5mNSJZimpo1bWyVR5dQE%' OR sfa LIKE '%3o5mNSJZimpo1bWyVR5dQE%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/3o5mNSJZimpo1bWyVR5dQE/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 38 playlists
@@ -16805,15 +16985,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/3QILsRihHn4oMeDoHTxTLQ/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%3QILsRihHn4oMeDoHTxTLQ%' OR sfa LIKE '%3QILsRihHn4oMeDoHTxTLQ%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/3QILsRihHn4oMeDoHTxTLQ/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 4 playlists
@@ -16900,15 +17085,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/3rVn268gtCq7wQl6TonOEg/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%3rVn268gtCq7wQl6TonOEg%' OR sfa LIKE '%3rVn268gtCq7wQl6TonOEg%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/3rVn268gtCq7wQl6TonOEg/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 29 playlists
@@ -17445,15 +17635,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/3UYD5M3oHAKXQENew4lvvg/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%3UYD5M3oHAKXQENew4lvvg%' OR sfa LIKE '%3UYD5M3oHAKXQENew4lvvg%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/3UYD5M3oHAKXQENew4lvvg/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 17 playlists
@@ -17774,15 +17969,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/3VdfW6tb7oFp0UUExW6iQb/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%3VdfW6tb7oFp0UUExW6iQb%' OR sfa LIKE '%3VdfW6tb7oFp0UUExW6iQb%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/3VdfW6tb7oFp0UUExW6iQb/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 20 playlists
@@ -18157,15 +18357,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/42BIc0reXaqVYMzo7TRmPD/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%42BIc0reXaqVYMzo7TRmPD%' OR sfa LIKE '%42BIc0reXaqVYMzo7TRmPD%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/42BIc0reXaqVYMzo7TRmPD/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 12 playlists
@@ -18396,15 +18601,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/4hnyQmPw7A7tJ5PpOtOhI7/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%4hnyQmPw7A7tJ5PpOtOhI7%' OR sfa LIKE '%4hnyQmPw7A7tJ5PpOtOhI7%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/4hnyQmPw7A7tJ5PpOtOhI7/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 97 playlists
@@ -20165,15 +20375,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/4PUmIR122HycjOVN2ZxLox/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%4PUmIR122HycjOVN2ZxLox%' OR sfa LIKE '%4PUmIR122HycjOVN2ZxLox%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/4PUmIR122HycjOVN2ZxLox/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 70 playlists
@@ -21448,15 +21663,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/4v3bSKBQdUQmLousLqcffe/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%4v3bSKBQdUQmLousLqcffe%' OR sfa LIKE '%4v3bSKBQdUQmLousLqcffe%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/4v3bSKBQdUQmLousLqcffe/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 13 playlists
@@ -21705,15 +21925,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/4XSpvXB6Weu3lB36WRBPVF/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%4XSpvXB6Weu3lB36WRBPVF%' OR sfa LIKE '%4XSpvXB6Weu3lB36WRBPVF%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/4XSpvXB6Weu3lB36WRBPVF/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 48 playlists
@@ -22592,15 +22817,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/4Z9FCrT3uZFbz9fN9ho9XI/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%4Z9FCrT3uZFbz9fN9ho9XI%' OR sfa LIKE '%4Z9FCrT3uZFbz9fN9ho9XI%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/4Z9FCrT3uZFbz9fN9ho9XI/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 27 playlists
@@ -23101,15 +23331,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5aNI9EzRT7QFSATJoDlyhF/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5aNI9EzRT7QFSATJoDlyhF%' OR sfa LIKE '%5aNI9EzRT7QFSATJoDlyhF%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5aNI9EzRT7QFSATJoDlyhF/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 11 playlists
@@ -23322,15 +23557,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5c4ZGafjuEpPd2Kmw61gvL/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5c4ZGafjuEpPd2Kmw61gvL%' OR sfa LIKE '%5c4ZGafjuEpPd2Kmw61gvL%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5c4ZGafjuEpPd2Kmw61gvL/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 10 playlists
@@ -23525,15 +23765,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5dzczpZpijHIFSPMDJhuMh/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5dzczpZpijHIFSPMDJhuMh%' OR sfa LIKE '%5dzczpZpijHIFSPMDJhuMh%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5dzczpZpijHIFSPMDJhuMh/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 11 playlists
@@ -23746,15 +23991,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5GBjoySnGgKMiJZRRkaKV0/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5GBjoySnGgKMiJZRRkaKV0%' OR sfa LIKE '%5GBjoySnGgKMiJZRRkaKV0%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5GBjoySnGgKMiJZRRkaKV0/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 15 playlists
@@ -24039,15 +24289,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5iTBIMKxofBBRSvj8CCtju/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5iTBIMKxofBBRSvj8CCtju%' OR sfa LIKE '%5iTBIMKxofBBRSvj8CCtju%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5iTBIMKxofBBRSvj8CCtju/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 35 playlists
@@ -24692,15 +24947,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5JbdBzO08p7fDFaNILxWkj/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5JbdBzO08p7fDFaNILxWkj%' OR sfa LIKE '%5JbdBzO08p7fDFaNILxWkj%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5JbdBzO08p7fDFaNILxWkj/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 7 playlists
@@ -24841,15 +25101,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5mru4dvoMsMGnj4dnT9cZi/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5mru4dvoMsMGnj4dnT9cZi%' OR sfa LIKE '%5mru4dvoMsMGnj4dnT9cZi%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5mru4dvoMsMGnj4dnT9cZi/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 10 playlists
@@ -25044,15 +25309,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5ovHZbvVrRKEo0gyRZna22/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5ovHZbvVrRKEo0gyRZna22%' OR sfa LIKE '%5ovHZbvVrRKEo0gyRZna22%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5ovHZbvVrRKEo0gyRZna22/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 10 playlists
@@ -25247,15 +25517,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5PqoYH1hmDFTSSFP8W6AjU/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5PqoYH1hmDFTSSFP8W6AjU%' OR sfa LIKE '%5PqoYH1hmDFTSSFP8W6AjU%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5PqoYH1hmDFTSSFP8W6AjU/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 11 playlists
@@ -25468,15 +25743,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5PTvxnybJr1pN6WeGxz3Dn/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5PTvxnybJr1pN6WeGxz3Dn%' OR sfa LIKE '%5PTvxnybJr1pN6WeGxz3Dn%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5PTvxnybJr1pN6WeGxz3Dn/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 24 playlists
@@ -25923,15 +26203,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5qW9dDUgpiGGU6BoZhv1aT/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5qW9dDUgpiGGU6BoZhv1aT%' OR sfa LIKE '%5qW9dDUgpiGGU6BoZhv1aT%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5qW9dDUgpiGGU6BoZhv1aT/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 12 playlists
@@ -26162,15 +26447,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5SPl8dRUoSGOfJIcAe1SP4/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5SPl8dRUoSGOfJIcAe1SP4%' OR sfa LIKE '%5SPl8dRUoSGOfJIcAe1SP4%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5SPl8dRUoSGOfJIcAe1SP4/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 18 playlists
@@ -26509,15 +26799,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5tnRFzbCegC5dYbVIVwf3v/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5tnRFzbCegC5dYbVIVwf3v%' OR sfa LIKE '%5tnRFzbCegC5dYbVIVwf3v%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5tnRFzbCegC5dYbVIVwf3v/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 103 playlists
@@ -28386,15 +28681,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5UprPcoiccH3ZxcIjnXgPc/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5UprPcoiccH3ZxcIjnXgPc%' OR sfa LIKE '%5UprPcoiccH3ZxcIjnXgPc%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5UprPcoiccH3ZxcIjnXgPc/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 37 playlists
@@ -29075,15 +29375,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5V6R75WadQnMa98B8WldOZ/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5V6R75WadQnMa98B8WldOZ%' OR sfa LIKE '%5V6R75WadQnMa98B8WldOZ%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5V6R75WadQnMa98B8WldOZ/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 5 playlists
@@ -29188,15 +29493,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5yaNtgMysqjPGQMoFjyRM4/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5yaNtgMysqjPGQMoFjyRM4%' OR sfa LIKE '%5yaNtgMysqjPGQMoFjyRM4%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5yaNtgMysqjPGQMoFjyRM4/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 32 playlists
@@ -29787,15 +30097,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/5ycimCxdV6mt4ludJLOYge/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%5ycimCxdV6mt4ludJLOYge%' OR sfa LIKE '%5ycimCxdV6mt4ludJLOYge%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/5ycimCxdV6mt4ludJLOYge/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 13 playlists
@@ -30044,15 +30359,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/63I5fMfOBGTJYf1lAfLz6B/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%63I5fMfOBGTJYf1lAfLz6B%' OR sfa LIKE '%63I5fMfOBGTJYf1lAfLz6B%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/63I5fMfOBGTJYf1lAfLz6B/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 10 playlists
@@ -30247,15 +30567,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/66tUTKnqTwWuiYqcxdvLB0/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%66tUTKnqTwWuiYqcxdvLB0%' OR sfa LIKE '%66tUTKnqTwWuiYqcxdvLB0%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/66tUTKnqTwWuiYqcxdvLB0/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 11 playlists
@@ -30468,15 +30793,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/6dDeGaWvZCkzKQthcxOcsT/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%6dDeGaWvZCkzKQthcxOcsT%' OR sfa LIKE '%6dDeGaWvZCkzKQthcxOcsT%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/6dDeGaWvZCkzKQthcxOcsT/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 20 playlists
@@ -30851,15 +31181,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/6etSmOrQ0VmFhQJG8cAnmC/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%6etSmOrQ0VmFhQJG8cAnmC%' OR sfa LIKE '%6etSmOrQ0VmFhQJG8cAnmC%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/6etSmOrQ0VmFhQJG8cAnmC/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 31 playlists
@@ -31432,15 +31767,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/6g9p3ONm3urpjjiD7lYozk/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%6g9p3ONm3urpjjiD7lYozk%' OR sfa LIKE '%6g9p3ONm3urpjjiD7lYozk%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/6g9p3ONm3urpjjiD7lYozk/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 36 playlists
@@ -32103,15 +32443,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/6teDQNy3eXMRghoOsfCJ3H/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%6teDQNy3eXMRghoOsfCJ3H%' OR sfa LIKE '%6teDQNy3eXMRghoOsfCJ3H%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/6teDQNy3eXMRghoOsfCJ3H/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 13 playlists
@@ -32360,15 +32705,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/6tUEDYPEJBJg4cTLEDed3U/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%6tUEDYPEJBJg4cTLEDed3U%' OR sfa LIKE '%6tUEDYPEJBJg4cTLEDed3U%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/6tUEDYPEJBJg4cTLEDed3U/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 39 playlists
@@ -33085,15 +33435,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/6wTaZYGJwmwzwTUHRXtdiI/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%6wTaZYGJwmwzwTUHRXtdiI%' OR sfa LIKE '%6wTaZYGJwmwzwTUHRXtdiI%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/6wTaZYGJwmwzwTUHRXtdiI/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 27 playlists
@@ -33594,15 +33949,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/6XInqwK63Y0QbHYxphZr3i/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%6XInqwK63Y0QbHYxphZr3i%' OR sfa LIKE '%6XInqwK63Y0QbHYxphZr3i%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/6XInqwK63Y0QbHYxphZr3i/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 21 playlists
@@ -33995,15 +34355,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/79qGgXL1tVI7DFFRzRJmty/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%79qGgXL1tVI7DFFRzRJmty%' OR sfa LIKE '%79qGgXL1tVI7DFFRzRJmty%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/79qGgXL1tVI7DFFRzRJmty/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 9 playlists
@@ -34180,15 +34545,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/7bPNMSzyNlR3lh4gBhbH7M/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%7bPNMSzyNlR3lh4gBhbH7M%' OR sfa LIKE '%7bPNMSzyNlR3lh4gBhbH7M%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/7bPNMSzyNlR3lh4gBhbH7M/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 14 playlists
@@ -34455,15 +34825,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/7CoiQOTXrPUbmdruP5XTR7/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%7CoiQOTXrPUbmdruP5XTR7%' OR sfa LIKE '%7CoiQOTXrPUbmdruP5XTR7%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/7CoiQOTXrPUbmdruP5XTR7/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 35 playlists
@@ -35108,15 +35483,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/7LhyJPrs0IPtLitQNbrg2H/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%7LhyJPrs0IPtLitQNbrg2H%' OR sfa LIKE '%7LhyJPrs0IPtLitQNbrg2H%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/7LhyJPrs0IPtLitQNbrg2H/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 30 playlists
@@ -35671,15 +36051,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/7mdqPJqTZqJGzCUCQYncs7/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%7mdqPJqTZqJGzCUCQYncs7%' OR sfa LIKE '%7mdqPJqTZqJGzCUCQYncs7%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/7mdqPJqTZqJGzCUCQYncs7/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 10 playlists
@@ -35874,15 +36259,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/7wf5HLu7MIPZHvPgYp9T6P/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%7wf5HLu7MIPZHvPgYp9T6P%' OR sfa LIKE '%7wf5HLu7MIPZHvPgYp9T6P%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/7wf5HLu7MIPZHvPgYp9T6P/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 14 playlists
@@ -36149,15 +36539,20 @@ END $$;
 -- ============================================================
 DO $$
 DECLARE
-  v_campaign_id UUID;
+  v_campaign_id INTEGER;
 BEGIN
-  -- Find campaign and update SFA URL
-  UPDATE spotify_campaigns
-  SET sfa = 'https://artists.spotify.com/c/song/7zGkd5qi6qsLsbY2pFyDUw/stats', updated_at = NOW()
+  -- Find campaign by track ID
+  SELECT id INTO v_campaign_id
+  FROM spotify_campaigns
   WHERE url LIKE '%7zGkd5qi6qsLsbY2pFyDUw%' OR sfa LIKE '%7zGkd5qi6qsLsbY2pFyDUw%'
-  RETURNING id INTO v_campaign_id;
+  LIMIT 1;
 
+  -- Update SFA URL if campaign found
   IF v_campaign_id IS NOT NULL THEN
+    UPDATE spotify_campaigns
+    SET sfa = 'https://artists.spotify.com/c/song/7zGkd5qi6qsLsbY2pFyDUw/stats', updated_at = NOW()
+    WHERE id = v_campaign_id;
+
     RAISE NOTICE 'Found campaign: %', v_campaign_id;
 
     -- Insert/Update 20 playlists
