@@ -1,0 +1,305 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4k5Uxaq8bCl3ooK9GEHDOz/song/7cRnMq8EftSHAoso0cgqPJ/stats",
+  "scraped_at": "2025-10-24T09:45:25.722326",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "1,344",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "501",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "368",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "pov: vc tá num edit do gymtok (gym)",
+            "made_by": "—",
+            "streams": "114",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "89",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "&FRIENDS Halloween 2025",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "76"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "345",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "93",
+            "date_added": "Sep 28, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "65",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "pov: vc tá num edit do gymtok (gym)",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "&FRIENDS Halloween 2025",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "29"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "3,165",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "2,792",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,168",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "2,036",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "1,166",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "pov: vc tá num edit do gymtok (gym)",
+            "made_by": "—",
+            "streams": "1,151",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "315",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "139",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "90",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "77",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "74",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "38",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "34",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "&FRIENDS Halloween 2025",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Oct 17, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "MIDTEMPO BASS",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "28",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "This Week in EDM | 2025",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 12, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Eye-Lips-Eyes",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "EXODUS ERA DISCOGRAPHY",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 11, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "20",
+          "total": "200"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

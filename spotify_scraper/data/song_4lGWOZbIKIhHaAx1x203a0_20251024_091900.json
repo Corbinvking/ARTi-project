@@ -1,0 +1,368 @@
+{
+  "url": "https://artists.spotify.com/c/artist/5bsjK8qfd6B3haIhyGEc51/song/4lGWOZbIKIhHaAx1x203a0/stats",
+  "scraped_at": "2025-10-24T09:18:31.191098",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "POP ANIMADO(INTERNACIONAL)",
+            "made_by": "—",
+            "streams": "768",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Banho Premium 🛁💆‍♀️",
+            "made_by": "—",
+            "streams": "308",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "This Is BlackJeans",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "140"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "POP ANIMADO(INTERNACIONAL)",
+            "made_by": "—",
+            "streams": "161",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Banho Premium 🛁💆‍♀️",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "This Is BlackJeans",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "54"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Músicas animadas,alegres, alto astral...",
+            "made_by": "—",
+            "streams": "32,064",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOT playlist 🔥",
+            "made_by": "—",
+            "streams": "24,926",
+            "date_added": "Jan 23, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "POP ANIMADO(INTERNACIONAL)",
+            "made_by": "—",
+            "streams": "6,251",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Playlist TRANSANTE 🔞 | FUNK Love SONG br 👅🔥 🇧🇷",
+            "made_by": "—",
+            "streams": "4,703",
+            "date_added": "Jan 20, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Hot Sex Songs 😈🍑🔥- Bedroom Playlist",
+            "made_by": "—",
+            "streams": "4,040",
+            "date_added": "Jan 20, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "PARA GARCHAR COMO UN TORO",
+            "made_by": "—",
+            "streams": "3,504",
+            "date_added": "Jan 20, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Banho Premium 🛁💆‍♀️",
+            "made_by": "—",
+            "streams": "3,463",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "nós, mulheres",
+            "made_by": "—",
+            "streams": "3,285",
+            "date_added": "Jan 20, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,604",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "849",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "308",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "155",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "This Is BlackJeans",
+            "made_by": "Spotify",
+            "streams": "148",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "138",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "SoHo Workday",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "41",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "r&b",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Jan 26, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Frutos de Goiás Brusque",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Apr 21, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "<*_*>",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "2025",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jan 28, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Hum Love",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Feb 4, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "2025/9 R&B ピックアップ",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Feb 2, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "26",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "Spicy",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Feb 15, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "GC URBAN AND HEELS",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Feb 12, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "PRODUCED BY AIRE",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jan 16, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Reggie’s Flowlist",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Meu mundo sozinho.",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Feb 10, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Prod. by TK the Architect 🎑",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jan 23, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Pikant🌶️ #2 Internacional",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 9, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "33",
+          "total": "876"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

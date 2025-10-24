@@ -1,0 +1,155 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1u6hVvDMnzlcSM4Ws4L9R4/song/3qHodmjlJ5rYhiyylDwm67/stats",
+  "scraped_at": "2025-10-24T09:24:09.669610",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Training hype😤💪🏾",
+            "made_by": "—",
+            "streams": "12,568",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "toxic future",
+            "made_by": "—",
+            "streams": "10,727",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "274",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Songs You NEED To Hear",
+            "made_by": "—",
+            "streams": "202",
+            "date_added": "Oct 11, 2024"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "62",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "23",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Gym",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Nov 8, 2024"
+          },
+          {
+            "rank": "8",
+            "name": "Do u know ball",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Dec 10, 2024"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "toxic future",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Nov 6, 2024"
+          },
+          {
+            "rank": "13",
+            "name": "mortal",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 22, 2024"
+          },
+          {
+            "rank": "14",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "475"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

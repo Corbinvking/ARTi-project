@@ -1,0 +1,319 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1u6hVvDMnzlcSM4Ws4L9R4/song/3DA2usd67cZ1KBZweVCKw9/stats",
+  "scraped_at": "2025-10-24T09:20:50.433161",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "White girls music💄💖👧",
+            "made_by": "—",
+            "streams": "4,960",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Chill para estudiar",
+            "made_by": "—",
+            "streams": "2,739",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "productive morning ☀️",
+            "made_by": "—",
+            "streams": "307",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Tiny Desk Concerts.",
+            "made_by": "—",
+            "streams": "85",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "49",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "23",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "180"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "White girls music💄💖👧",
+            "made_by": "—",
+            "streams": "1,231",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Chill para estudiar",
+            "made_by": "—",
+            "streams": "633",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "productive morning ☀️",
+            "made_by": "—",
+            "streams": "65",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Tiny Desk Concerts.",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "68"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Músicas animadas,alegres, alto astral...",
+            "made_by": "—",
+            "streams": "22,704",
+            "date_added": "Apr 9, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "frank ocean best songs",
+            "made_by": "—",
+            "streams": "18,377",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "White girls music💄💖👧",
+            "made_by": "—",
+            "streams": "14,659",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Chill para estudiar",
+            "made_by": "—",
+            "streams": "6,250",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Banho Premium 🛁💆‍♀️",
+            "made_by": "—",
+            "streams": "2,779",
+            "date_added": "Apr 9, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "to my favorite person, I miss you",
+            "made_by": "—",
+            "streams": "2,145",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "productive morning ☀️",
+            "made_by": "—",
+            "streams": "1,619",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "766",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Tiny Desk Concerts.",
+            "made_by": "—",
+            "streams": "296",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "study motivation",
+            "made_by": "—",
+            "streams": "197",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "148",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "127",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Songs You NEED To Hear",
+            "made_by": "—",
+            "streams": "115",
+            "date_added": "Jun 25, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "60",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "41",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "..",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Frutos de Goiás Brusque",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Apr 21, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "But that’s Never Enough 🎶",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "songs that feel like champagne coast",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "21",
+          "total": "1,099"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

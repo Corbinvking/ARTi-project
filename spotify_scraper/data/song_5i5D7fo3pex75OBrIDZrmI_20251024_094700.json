@@ -1,0 +1,193 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4ZCjRDyNxVEfH7N2ckVRcO/song/5i5D7fo3pex75OBrIDZrmI/stats",
+  "scraped_at": "2025-10-24T09:46:30.388887",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "43"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "15"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Beyoncé Antigas (Melhores)",
+            "made_by": "—",
+            "streams": "19,266",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOT playlist 🔥",
+            "made_by": "—",
+            "streams": "11,884",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Hot Sex Songs 😈🍑🔥- Bedroom Playlist",
+            "made_by": "—",
+            "streams": "6,113",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "rihanna antigas melhores e maiores",
+            "made_by": "—",
+            "streams": "1,279",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,065",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "nós, mulheres",
+            "made_by": "—",
+            "streams": "691",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "CLIMEX 🔞",
+            "made_by": "—",
+            "streams": "460",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "456",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "343",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "200",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "67",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "28",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "MARIA J 203",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "236"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

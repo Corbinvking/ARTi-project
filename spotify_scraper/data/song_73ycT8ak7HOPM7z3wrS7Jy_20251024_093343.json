@@ -1,0 +1,459 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2oeAOUAMNsDVJKgwNjYuTR/song/73ycT8ak7HOPM7z3wrS7Jy/stats",
+  "scraped_at": "2025-10-24T09:33:12.644008",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Claptone best songs 2025 - No Eyes, Heartbeat, Liquid Spirit, Before I Lose My Mind, Cold Heart",
+            "made_by": "—",
+            "streams": "184",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Opus - Eric Prydz / 2025 Playlist",
+            "made_by": "—",
+            "streams": "178",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Minimal Techno 2025",
+            "made_by": "—",
+            "streams": "157",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Loco Dice 2025 Best songs Playlist",
+            "made_by": "—",
+            "streams": "130",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "ELETRÔNICA FRITAÇÃO 🤘🎅",
+            "made_by": "—",
+            "streams": "119",
+            "date_added": "Jun 24, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Deborah De Luca 2025 Playlist - Children, Croce, Gam Gam,You're Toxic, Minimal, Bel Mercy",
+            "made_by": "—",
+            "streams": "109",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Pura Energía música GYM 2025",
+            "made_by": "—",
+            "streams": "98",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "90",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "HÖR BERLIN 2025",
+            "made_by": "—",
+            "streams": "86",
+            "date_added": "Apr 14, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Charlotte De Witte 2025 Playlist - The Age Of Love, Reflection, Pria, Overdrive, Doppler",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "PACO OSUNA 2025 Playlist - Wavy Distance, Fly Life, Groove Bass, What Is, Samba drone, Atopisimo",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "EDM Workout 2025 💪🏻 🔥 High-Energy Songs & Motivational Tracks for Fitness & Working Out",
+            "made_by": "—",
+            "streams": "45",
+            "date_added": "Sep 21, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "RAVE TECHNO 2025",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Apr 14, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2025",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Opus - Eric Prydz / 2025 Playlist",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Minimal Techno 2025",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Claptone best songs 2025 - No Eyes, Heartbeat, Liquid Spirit, Before I Lose My Mind, Cold Heart",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Deborah De Luca 2025 Playlist - Children, Croce, Gam Gam,You're Toxic, Minimal, Bel Mercy",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Loco Dice 2025 Best songs Playlist",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "HÖR BERLIN 2025",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Apr 14, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "ELETRÔNICA FRITAÇÃO 🤘🎅",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Jun 24, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Pura Energía música GYM 2025",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "PACO OSUNA 2025 Playlist - Wavy Distance, Fly Life, Groove Bass, What Is, Samba drone, Atopisimo",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Charlotte De Witte 2025 Playlist - The Age Of Love, Reflection, Pria, Overdrive, Doppler",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "EDM Workout 2025 💪🏻 🔥 High-Energy Songs & Motivational Tracks for Fitness & Working Out",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 15, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "RAVE TECHNO 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 14, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2025",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Minimal Techno 2025",
+            "made_by": "—",
+            "streams": "3,600",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Claptone best songs 2025 - No Eyes, Heartbeat, Liquid Spirit, Before I Lose My Mind, Cold Heart",
+            "made_by": "—",
+            "streams": "1,812",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BGC Nights",
+            "made_by": "—",
+            "streams": "1,795",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "ELETRÔNICA FRITAÇÃO 🤘🎅",
+            "made_by": "—",
+            "streams": "1,275",
+            "date_added": "Jun 24, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Charlotte De Witte 2025 Playlist - The Age Of Love, Reflection, Pria, Overdrive, Doppler",
+            "made_by": "—",
+            "streams": "1,126",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Deborah De Luca 2025 Playlist - Children, Croce, Gam Gam,You're Toxic, Minimal, Bel Mercy",
+            "made_by": "—",
+            "streams": "1,122",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Opus - Eric Prydz / 2025 Playlist",
+            "made_by": "—",
+            "streams": "1,098",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Loco Dice 2025 Best songs Playlist",
+            "made_by": "—",
+            "streams": "1,072",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Pura Energía música GYM 2025",
+            "made_by": "—",
+            "streams": "1,072",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "PACO OSUNA 2025 Playlist - Wavy Distance, Fly Life, Groove Bass, What Is, Samba drone, Atopisimo",
+            "made_by": "—",
+            "streams": "928",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "714",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Rolitas pal’ gym 🦍",
+            "made_by": "—",
+            "streams": "624",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "HÖR BERLIN 2025",
+            "made_by": "—",
+            "streams": "537",
+            "date_added": "Apr 14, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "TikTok Car Vibes 2025 🚗🎶🔥 – Viral Driving Songs",
+            "made_by": "—",
+            "streams": "534",
+            "date_added": "Apr 4, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "EDM Workout 2025 💪🏻 🔥 High-Energy Songs & Motivational Tracks for Fitness & Working Out",
+            "made_by": "—",
+            "streams": "360",
+            "date_added": "Jun 24, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "283",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "RAVE TECHNO 2025",
+            "made_by": "—",
+            "streams": "261",
+            "date_added": "Apr 14, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "techno snobs",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "Apr 10, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Workout Techno House",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Mar 28, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "24",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "25",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "26",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2025",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

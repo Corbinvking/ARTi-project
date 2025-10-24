@@ -1,0 +1,473 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0tLJ8fk8oulNkMQRAj4Toi/song/4ghtiAnBmsNKpVdzKGmmMx/stats",
+  "scraped_at": "2025-10-24T09:38:45.585110",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "126",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "67",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "98"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "37",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "32"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "EDM BANGERS ❤️‍🔥🤯🌎",
+            "made_by": "—",
+            "streams": "12,026",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "5,715",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5,430",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Música Electrónica Fiesta 🪩 Mejor EDM Éxitos 2025",
+            "made_by": "—",
+            "streams": "4,461",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "5",
+            "name": "La Mejor Musica Electronica 2025",
+            "made_by": "—",
+            "streams": "3,753",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,634",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "1,285",
+            "date_added": "Feb 9, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "1,038",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "850",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "96",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "87",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "81",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "79",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Beatport Best New Bass House",
+            "made_by": "—",
+            "streams": "67",
+            "date_added": "Oct 7, 2024"
+          },
+          {
+            "rank": "15",
+            "name": "This Is Confession",
+            "made_by": "—",
+            "streams": "51",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "16",
+            "name": "F45 Brix/Brom Cardio & Hybrid",
+            "made_by": "—",
+            "streams": "51",
+            "date_added": "Jan 27, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "¡POR FIN! DE SEMANA",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Mar 15, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Top eletrônicas",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Nov 12, 2024"
+          },
+          {
+            "rank": "19",
+            "name": "EDM🔊🔊",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Oct 26, 2024"
+          },
+          {
+            "rank": "20",
+            "name": "Ski Day All Day",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "21",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "23",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "Mode One: Bass House Selects",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "24",
+            "name": "BAANGERS Takeover",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "25",
+            "name": "Sending it for Anna",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "26",
+            "name": "vututu",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Feb 13, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "BootZ and Catz",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Feb 18, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "Control Room: Tech House Selects",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "29",
+            "name": "G & Meee 🤙🏻🪩",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Dec 10, 2024"
+          },
+          {
+            "rank": "30",
+            "name": "Weewoo rave",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 11, 2024"
+          },
+          {
+            "rank": "31",
+            "name": "Techno Shit - OKAYVAL",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Mar 6, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "PAYTANDBROADY",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jan 10, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "New Music Friday Dance | All New Dance",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "34",
+            "name": "Playlist Quarteto",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Nov 12, 2024"
+          },
+          {
+            "rank": "35",
+            "name": "Tech House Grooves 2025",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "36",
+            "name": "Xino Enero 2024",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jan 8, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "RWRD UPBEAT MIX 2024 WINTER",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Nov 21, 2024"
+          },
+          {
+            "rank": "38",
+            "name": "Peachy Picks",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "39",
+            "name": "DJ Essentials 🍾",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "40",
+            "name": "HOUSE MUSIC FOR THE PEOPLE",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 5, 2024"
+          },
+          {
+            "rank": "41",
+            "name": "Motion Mix",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "Banger BassHouse",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 4, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "Tech House Party 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jan 14, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "The Paul Hollywood Handshake",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jan 8, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Body Movin'",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Nov 2, 2024"
+          },
+          {
+            "rank": "46",
+            "name": "HOIST",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 12, 2024"
+          },
+          {
+            "rank": "47",
+            "name": "🩵",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jan 21, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "Heavy Hitters",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 13, 2024"
+          },
+          {
+            "rank": "49",
+            "name": "My playlist #57",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "50",
+            "name": "Westwood Weekly",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 18, 2024"
+          },
+          {
+            "rank": "51",
+            "name": "House | Techno | Tech House | Deep House",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 25, 2024"
+          },
+          {
+            "rank": "52",
+            "name": "Prayer Handz - The Blessed List",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Oct 4, 2024"
+          },
+          {
+            "rank": "53",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "53",
+          "total": "771"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4ZCjRDyNxVEfH7N2ckVRcO/song/77mP7u8a3Rn4atVhnhvjRv/stats",
+  "scraped_at": "2025-10-24T09:48:42.325515",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HOT playlist 🔥",
+            "made_by": "—",
+            "streams": "13,889",
+            "date_added": "Sep 18, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "Beyoncé Antigas (Melhores)",
+            "made_by": "—",
+            "streams": "3,800",
+            "date_added": "Sep 20, 2024"
+          },
+          {
+            "rank": "3",
+            "name": "Playlist TRANSANTE 🔞 | FUNK Love SONG br 👅🔥 🇧🇷",
+            "made_by": "—",
+            "streams": "2,682",
+            "date_added": "Nov 28, 2024"
+          },
+          {
+            "rank": "4",
+            "name": "Best RnB of All Time",
+            "made_by": "—",
+            "streams": "2,613",
+            "date_added": "Nov 28, 2024"
+          },
+          {
+            "rank": "5",
+            "name": "RnB Mix TrapSoul 💞 2025",
+            "made_by": "—",
+            "streams": "1,471",
+            "date_added": "Nov 28, 2024"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,142",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "PARA GARCHAR COMO UN TORO",
+            "made_by": "—",
+            "streams": "954",
+            "date_added": "Nov 27, 2024"
+          },
+          {
+            "rank": "8",
+            "name": "Hot Sex Songs 😈🍑🔥- Bedroom Playlist",
+            "made_by": "—",
+            "streams": "947",
+            "date_added": "Sep 18, 2024"
+          },
+          {
+            "rank": "9",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "787",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Sza, summer walker, jhene aiko, HER & Kehlani:)",
+            "made_by": "—",
+            "streams": "157",
+            "date_added": "Sep 18, 2024"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "LOONYLIST - POP",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "Oct 3, 2024"
+          },
+          {
+            "rank": "13",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "46",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "RnB's Secret Garden: Soulful and Rare 🎶",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Nov 26, 2024"
+          },
+          {
+            "rank": "16",
+            "name": "Noite Romântica",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Dec 3, 2024"
+          },
+          {
+            "rank": "17",
+            "name": "soulful singles",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Sep 23, 2024"
+          },
+          {
+            "rank": "18",
+            "name": "Ducks & birds 🌻",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Apr 10, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "22",
+          "total": "541"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

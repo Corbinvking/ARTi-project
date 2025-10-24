@@ -1,0 +1,669 @@
+{
+  "url": "https://artists.spotify.com/c/artist/17rgSaJBsQFMe9HmDcFXup/song/4iaoQCOtPjp2ed8iM6pgi4/stats",
+  "scraped_at": "2025-10-24T09:35:24.150089",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "3,319",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "381",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Época dorada ⚜️ EDM/POP",
+            "made_by": "—",
+            "streams": "362",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "281",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "224",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "152",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "113",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "ELETRÔNICA 🫀 CARDIO",
+            "made_by": "—",
+            "streams": "109",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "89",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "82",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Lickwid Dance",
+            "made_by": "—",
+            "streams": "51",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "壞 Bad： Time Flies 穿梭时光",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "2025 | Summer Dance",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "2025 New Releases & Remix's",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "EDM Love Songs 🔊💕",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Apr 21, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "EDM & Pop 2025",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 2, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "CARDIO HITS 2025",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Songs that feel like innerbloom",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "21",
+          "total": "293"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "753",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Época dorada ⚜️ EDM/POP",
+            "made_by": "—",
+            "streams": "99",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "76",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "73",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "ELETRÔNICA 🫀 CARDIO",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "33",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Lickwid Dance",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "2025 | Summer Dance",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Songs that feel like innerbloom",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "EDM Love Songs 🔊💕",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 21, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "15",
+          "total": "115"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "55,519",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Best Electronic Music Of All Time",
+            "made_by": "—",
+            "streams": "19,050",
+            "date_added": "Jun 11, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "9,771",
+            "date_added": "Aug 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "8,471",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Época dorada ⚜️ EDM/POP",
+            "made_by": "—",
+            "streams": "3,973",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "3,096",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Pra Treinar - Internacional 💪🏼",
+            "made_by": "—",
+            "streams": "2,823",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "2,294",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,609",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Calvin Harris - As Melhores",
+            "made_by": "—",
+            "streams": "1,234",
+            "date_added": "Aug 6, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "1,165",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "2025 | Summer Dance",
+            "made_by": "—",
+            "streams": "964",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "ELETRÔNICA 🫀 CARDIO",
+            "made_by": "—",
+            "streams": "879",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "806",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "ELECTRO PARTY BANGERS 🔥 Dance House EDM 2025",
+            "made_by": "—",
+            "streams": "721",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "560",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Lickwid Dance",
+            "made_by": "—",
+            "streams": "556",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "403",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "LOS 40 DANCE 2025 - Actualizada Cada Semana",
+            "made_by": "—",
+            "streams": "384",
+            "date_added": "Apr 19, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Modern Dance & Pop",
+            "made_by": "—",
+            "streams": "337",
+            "date_added": "Apr 19, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "CARDIO HITS 2025",
+            "made_by": "—",
+            "streams": "281",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Dance Music",
+            "made_by": "—",
+            "streams": "210",
+            "date_added": "Apr 26, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "壞 Bad： Time Flies 穿梭时光",
+            "made_by": "—",
+            "streams": "185",
+            "date_added": "Aug 31, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "EDM Hits",
+            "made_by": "—",
+            "streams": "171",
+            "date_added": "Apr 19, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Emotional Dance Music",
+            "made_by": "—",
+            "streams": "167",
+            "date_added": "Apr 26, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "2025 New Releases & Remix's",
+            "made_by": "—",
+            "streams": "126",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Metro FM 2025 - Metro Hits 2025, Metro FM Top 40, Radyo Fenomen, Capital Radio, Karnaval Radio",
+            "made_by": "—",
+            "streams": "115",
+            "date_added": "Apr 19, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "MÚSICA REMIXES 2025  HITS 💥 Top 100 🎶 Lo Más Nuevo",
+            "made_by": "—",
+            "streams": "103",
+            "date_added": "Apr 19, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "EDM Love Songs 🔊💕",
+            "made_by": "—",
+            "streams": "95",
+            "date_added": "Apr 21, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "2k25 PZM",
+            "made_by": "—",
+            "streams": "66",
+            "date_added": "May 4, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "bora malhar gay 🌈🏋️‍♀️🦵",
+            "made_by": "—",
+            "streams": "62",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "SUMMER 25' by Feels",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Apr 22, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "34",
+            "name": "Songs that feel like innerbloom",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Brandon's Lowkey Techno Playlist",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "EDM & Pop 2025",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Aug 2, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "SUMMERS JAMS 2024-2025",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "39",
+            "name": "Mafia's Groove 3",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Apr 21, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "LIV Golf Vibes ⛳️ 😎",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "Jackie Summer25",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 16, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "2House5",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 12, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "Baladas Deep house",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "Frühling 225 🌸",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Apr 24, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "v i b e s",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Apr 26, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Drip 223",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "48",
+            "name": "Buckle up 🛣️ Buttercup.",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Apr 22, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "6PM TLS 4",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 24, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "BMI's #MusicMonday",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Artclass ✁✸ [Selects]",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 5, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "51",
+          "total": "1,056"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

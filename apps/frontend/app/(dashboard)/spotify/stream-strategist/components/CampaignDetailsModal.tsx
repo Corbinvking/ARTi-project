@@ -923,52 +923,31 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            ) : campaignPlaylists.length === 0 && algorithmicPlaylists.length === 0 ? (
+            ) : campaignPlaylists.length === 0 ? (
               <div className="text-center p-8 text-muted-foreground">
                 <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">No Playlist Data Yet</p>
+                <p className="text-lg font-medium mb-2">No Vendor Playlist Data Yet</p>
                 <p className="text-sm">
-                  Playlist placement data will appear here once the Spotify scraper runs for this campaign.
+                  Vendor playlist placement data will appear here once the Spotify scraper runs for this campaign.
                 </p>
+                {algorithmicPlaylists.length > 0 && (
+                  <p className="text-sm mt-4 text-muted-foreground">
+                    💡 <strong>Tip:</strong> This campaign has {algorithmicPlaylists.length} algorithmic playlist{algorithmicPlaylists.length !== 1 ? 's' : ''} with stream data.
+                    Check the <strong>Campaign Details</strong> tab to see Radio, Discover Weekly, and other Spotify algorithmic sources.
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Spotify Algorithmic Playlists Section */}
+                {/* Note about algorithmic playlists */}
                 {algorithmicPlaylists.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b">
-                      <Radio className="h-5 w-5 text-green-600" />
-                      <h3 className="text-lg font-semibold">Spotify Algorithmic Playlists</h3>
-                      <Badge variant="secondary">{algorithmicPlaylists.length}</Badge>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {algorithmicPlaylists.map((playlist: any) => (
-                        <Card key={playlist.id} className="p-4">
-                          <div className="flex items-start gap-2">
-                            <Radio className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm truncate" title={playlist.playlist_name}>
-                                {playlist.playlist_name}
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                Spotify Official
-                              </div>
-                              <div className="mt-2 text-lg font-bold">
-                                {(playlist.streams_28d || 0).toLocaleString()}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                streams (28d)
-                              </div>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="text-sm text-green-800 dark:text-green-200">
-                        <strong>Total Algorithmic Streams (28d):</strong>{' '}
-                        {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()}
-                      </div>
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <Radio className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                    <div className="text-sm text-blue-800 dark:text-blue-200">
+                      <strong>Spotify Algorithmic Playlists:</strong>{' '}
+                      This campaign has {algorithmicPlaylists.length} algorithmic playlist{algorithmicPlaylists.length !== 1 ? 's' : ''} with{' '}
+                      {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()} streams (28d).
+                      View them in the <strong>Campaign Details</strong> tab under "External Streaming Sources".
                     </div>
                   </div>
                 )}

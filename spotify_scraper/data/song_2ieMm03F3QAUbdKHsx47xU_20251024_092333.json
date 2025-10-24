@@ -1,0 +1,148 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1u6hVvDMnzlcSM4Ws4L9R4/song/2ieMm03F3QAUbdKHsx47xU/stats",
+  "scraped_at": "2025-10-24T09:23:04.866985",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Training hype😤💪🏾",
+            "made_by": "—",
+            "streams": "7,795",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "6,043",
+            "date_added": "Oct 18, 2024"
+          },
+          {
+            "rank": "3",
+            "name": "Música para el Gym  (Motivación)",
+            "made_by": "—",
+            "streams": "5,103",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "88",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "POMPING",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "joe nunca te sientes solo",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Oct 15, 2024"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Akshay's Playlist (International)",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Dec 6, 2024"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "The Barbell Ballerina Gym Playlist",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Oct 11, 2024"
+          },
+          {
+            "rank": "11",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "154"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

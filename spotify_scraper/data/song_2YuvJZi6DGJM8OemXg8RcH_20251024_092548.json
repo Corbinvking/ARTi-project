@@ -1,0 +1,127 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1u6hVvDMnzlcSM4Ws4L9R4/song/2YuvJZi6DGJM8OemXg8RcH/stats",
+  "scraped_at": "2025-10-24T09:25:16.829518",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Training hype😤💪🏾",
+            "made_by": "—",
+            "streams": "12,005",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "POST MALONE AS MELHORES",
+            "made_by": "—",
+            "streams": "6,590",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "3",
+            "name": "🐐Gym Playlist",
+            "made_by": "—",
+            "streams": "3,628",
+            "date_added": "Oct 10, 2024"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "503",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "87",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "43",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Songs You NEED To Hear",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Oct 11, 2024"
+          },
+          {
+            "rank": "8",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "129"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

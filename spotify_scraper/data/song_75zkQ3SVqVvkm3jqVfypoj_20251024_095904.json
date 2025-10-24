@@ -1,0 +1,424 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1mrXo5fhYhx3gEiLjbOtYA/song/75zkQ3SVqVvkm3jqVfypoj/stats",
+  "scraped_at": "2025-10-24T09:58:33.798245",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HypePersonalized",
+            "made_by": "Spotify",
+            "streams": "1,065",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Trap MojitoPersonalized",
+            "made_by": "Spotify",
+            "streams": "100",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "59",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "39",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "HOUSE OF HGODS",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "This Is Hgods",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "179"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HypePersonalized",
+            "made_by": "Spotify",
+            "streams": "250",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "HOUSE OF HGODS",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "70"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Bass Arcade",
+            "made_by": "Spotify",
+            "streams": "12,430",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HypePersonalized",
+            "made_by": "Spotify",
+            "streams": "10,692",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Trap MojitoPersonalized",
+            "made_by": "Spotify",
+            "streams": "8,022",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "5,168",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4,549",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "2,685",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "2,087",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "All New DancePersonalized",
+            "made_by": "Spotify",
+            "streams": "1,344",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "DJ BRUTAL ATTACK ⁉️",
+            "made_by": "—",
+            "streams": "1,282",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "DJ TIKTOK VIRAL 2025🤙🏻",
+            "made_by": "—",
+            "streams": "1,007",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "645",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Dubstep Inferno Vol. 3",
+            "made_by": "—",
+            "streams": "469",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "CHAOS DUBSTEP",
+            "made_by": "—",
+            "streams": "401",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "400",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "370",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "345",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "224",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "209",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "182",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "This Is Hgods",
+            "made_by": "Spotify",
+            "streams": "81",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "HOUSE OF HGODS",
+            "made_by": "—",
+            "streams": "71",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "🛸 ABDUCTION 👽 - Experimental Bass and Other Strangeness",
+            "made_by": "—",
+            "streams": "55",
+            "date_added": "May 17, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Workout",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "May 3, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "EDM Release Radar",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "May 6, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "30",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "Gaming Music 2025 – Top 100 Bass Boosted EDM",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "May 4, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "MUSCLE MOMMY🫦💦🍑",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "30",
+            "name": "20 and a 1/4 Century",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "🔥🔊DUBSTEP🔊🔥",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jun 13, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "HYPE",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 6, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Braden's Favorites",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "May 10, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "Rave",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Bass Arcade",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 28, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "Madi’s Baddies",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Trap Dojo",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 3, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Filthy Nasty Dubstep and Riddim",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 28, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "38",
+          "total": "749"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

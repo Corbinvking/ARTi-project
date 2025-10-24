@@ -1,0 +1,2546 @@
+{
+  "scraped_at": "2025-10-24T01:16:33.007264",
+  "total_campaigns": 642,
+  "total_clients": 203,
+  "clients": {
+    "1369": {
+      "campaigns": 1,
+      "roster_songs_found": 8,
+      "matched_songs": 0,
+      "songs": [],
+      "status": "success"
+    },
+    "3CHO": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "8BLADES": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "A Dying Light": {
+      "campaigns": 2,
+      "roster_songs_found": 2,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "A Dying Light - Needed U",
+          "client": "A Dying Light",
+          "artist": "A Dying Light",
+          "song": "Needed U",
+          "sfa_url": "https://artists.spotify.com/c/artist/0gYN2lkS1bs4s7rot34aJq/song/0GAWCVXvNSqEhqLY1s6QbL/stats",
+          "track_id": "0GAWCVXvNSqEhqLY1s6QbL",
+          "goal": 100000,
+          "vendor": ""
+        },
+        {
+          "campaign": "ADL - It's A Wonderful Life",
+          "client": "A Dying Light",
+          "artist": "ADL",
+          "song": "It's A Wonderful Life",
+          "sfa_url": "https://artists.spotify.com/c/artist/0gYN2lkS1bs4s7rot34aJq/song/1KGMgXe5Q5V7SvzFsekDNw/stats",
+          "track_id": "1KGMgXe5Q5V7SvzFsekDNw",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "ACA": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "AMAGII,radish mgmt": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Adam Jasim": {
+      "campaigns": 1,
+      "roster_songs_found": 48,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Adam Jasim - Save Me",
+          "client": "Adam Jasim",
+          "artist": "Adam Jasim",
+          "song": "Save Me",
+          "sfa_url": "https://artists.spotify.com/c/artist/0g9rKXAQFZkKVgGvz56WKz/song/5SPl8dRUoSGOfJIcAe1SP4/stats",
+          "track_id": "5SPl8dRUoSGOfJIcAe1SP4",
+          "goal": 25000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Afterparty": {
+      "campaigns": 4,
+      "roster_songs_found": 19,
+      "matched_songs": 4,
+      "songs": [
+        {
+          "campaign": "AfterParty x Rvnbaek - Bar Fight -",
+          "client": "Afterparty",
+          "artist": "AfterParty x Rvnbaek",
+          "song": "Bar Fight -",
+          "sfa_url": "https://artists.spotify.com/c/artist/45VaAitjKdMGvoe7nEwb0A/song/1X5zUC0KxDZJF4sG2eUtd7/stats",
+          "track_id": "1X5zUC0KxDZJF4sG2eUtd7",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "AfterParty - Leveled",
+          "client": "Afterparty",
+          "artist": "AfterParty",
+          "song": "Leveled",
+          "sfa_url": "https://artists.spotify.com/c/artist/45VaAitjKdMGvoe7nEwb0A/song/7mdqPJqTZqJGzCUCQYncs7/stats",
+          "track_id": "7mdqPJqTZqJGzCUCQYncs7",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Afterparty - Bang",
+          "client": "Afterparty",
+          "artist": "Afterparty",
+          "song": "Bang",
+          "sfa_url": "https://artists.spotify.com/c/artist/45VaAitjKdMGvoe7nEwb0A/song/1GpqUczpaPNSy77LBoVBBl/stats",
+          "track_id": "1GpqUczpaPNSy77LBoVBBl",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Afterparty - The Call",
+          "client": "Afterparty",
+          "artist": "Afterparty",
+          "song": "The Call",
+          "sfa_url": "https://artists.spotify.com/c/artist/45VaAitjKdMGvoe7nEwb0A/song/1aPyG6lCqudIIHqbHyP7mg/stats",
+          "track_id": "1aPyG6lCqudIIHqbHyP7mg",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        }
+      ],
+      "status": "success"
+    },
+    "Alexis Nikki": {
+      "campaigns": 1,
+      "roster_songs_found": 7,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Alexis Nikki - Can't Get Enough",
+          "client": "Alexis Nikki",
+          "artist": "Alexis Nikki",
+          "song": "Can't Get Enough",
+          "sfa_url": "https://artists.spotify.com/c/artist/3KZyyx2FXo5QamvxVuutg0/song/3BtTja2nDUXrQjvpSR9dmM/stats",
+          "track_id": "3BtTja2nDUXrQjvpSR9dmM",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Align": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Ambrxse": {
+      "campaigns": 3,
+      "roster_songs_found": 19,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Ambrxse - Swipe Right",
+          "client": "Ambrxse",
+          "artist": "Ambrxse",
+          "song": "Swipe Right",
+          "sfa_url": "https://artists.spotify.com/c/artist/47oNSHfwymN7Gg2IftahRA/song/2g2hGPtrBgpjlHzh021DeI/stats",
+          "track_id": "2g2hGPtrBgpjlHzh021DeI",
+          "goal": 18000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Amit Prim8": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Andrea Botez": {
+      "campaigns": 3,
+      "roster_songs_found": 14,
+      "matched_songs": 3,
+      "songs": [
+        {
+          "campaign": "Andrea Botez - Naughty",
+          "client": "Andrea Botez",
+          "artist": "Andrea Botez",
+          "song": "Naughty",
+          "sfa_url": "https://artists.spotify.com/c/artist/2Csf1qoijHi5nMt2mMJcjd/song/1mBZMHZy6yAO1VC7Xoa1eV/stats",
+          "track_id": "1mBZMHZy6yAO1VC7Xoa1eV",
+          "goal": 15000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Andrea Botez - Naughty",
+          "client": "Andrea Botez",
+          "artist": "Andrea Botez",
+          "song": "Naughty",
+          "sfa_url": "https://artists.spotify.com/c/artist/2Csf1qoijHi5nMt2mMJcjd/song/1mBZMHZy6yAO1VC7Xoa1eV/stats",
+          "track_id": "1mBZMHZy6yAO1VC7Xoa1eV",
+          "goal": 25000,
+          "vendor": "Majed"
+        },
+        {
+          "campaign": "Andrea Botez - Lights",
+          "client": "Andrea Botez",
+          "artist": "Andrea Botez",
+          "song": "Lights",
+          "sfa_url": "https://artists.spotify.com/c/artist/2Csf1qoijHi5nMt2mMJcjd/song/3D5Kztz2QWHnQbn3OVXkAs/stats",
+          "track_id": "3D5Kztz2QWHnQbn3OVXkAs",
+          "goal": 20000,
+          "vendor": "Glenn"
+        }
+      ],
+      "status": "success"
+    },
+    "Andrea Fiamberti": {
+      "campaigns": 5,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Annabel Stirling": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "April Fools": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Atlantic": {
+      "campaigns": 1,
+      "roster_songs_found": 93,
+      "matched_songs": 0,
+      "songs": [],
+      "status": "success"
+    },
+    "Atlantic,High Zombie": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Atlantic,dack janiels": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Avant Garden": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "BIJOU": {
+      "campaigns": 2,
+      "roster_songs_found": 200,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Bijou - In The Club",
+          "client": "BIJOU",
+          "artist": "Bijou",
+          "song": "In The Club",
+          "sfa_url": "https://artists.spotify.com/c/artist/3abRKajGbb3kLMy9AWzfMA/song/4hnyQmPw7A7tJ5PpOtOhI7/stats",
+          "track_id": "4hnyQmPw7A7tJ5PpOtOhI7",
+          "goal": 5000,
+          "vendor": "Alekk"
+        },
+        {
+          "campaign": "Bijou - In The Club",
+          "client": "BIJOU",
+          "artist": "Bijou",
+          "song": "In The Club",
+          "sfa_url": "https://artists.spotify.com/c/artist/3abRKajGbb3kLMy9AWzfMA/song/4hnyQmPw7A7tJ5PpOtOhI7/stats",
+          "track_id": "4hnyQmPw7A7tJ5PpOtOhI7",
+          "goal": 70000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "BILLYTHEKID": {
+      "campaigns": 2,
+      "roster_songs_found": 38,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "BILLYTHEKID - AUTOMATIC",
+          "client": "BILLYTHEKID",
+          "artist": "BILLYTHEKID",
+          "song": "AUTOMATIC",
+          "sfa_url": "https://artists.spotify.com/c/artist/7xXfQMNqFmCBVqBupo7N2e/song/42BIc0reXaqVYMzo7TRmPD/stats",
+          "track_id": "42BIc0reXaqVYMzo7TRmPD",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "BILLYTHEKID - ACTION",
+          "client": "BILLYTHEKID",
+          "artist": "BILLYTHEKID",
+          "song": "ACTION",
+          "sfa_url": "https://artists.spotify.com/c/artist/7xXfQMNqFmCBVqBupo7N2e/song/4v3bSKBQdUQmLousLqcffe/stats",
+          "track_id": "4v3bSKBQdUQmLousLqcffe",
+          "goal": 18000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "BLAOW!": {
+      "campaigns": 3,
+      "roster_songs_found": 23,
+      "matched_songs": 3,
+      "songs": [
+        {
+          "campaign": "Blaow! - Blam",
+          "client": "BLAOW!",
+          "artist": "Blaow!",
+          "song": "Blam",
+          "sfa_url": "https://artists.spotify.com/c/artist/6TW9Zc8SDwtueBDeJf6TYY/song/52YPjaYYVxd0lBaYZ4vaSe/stats",
+          "track_id": "52YPjaYYVxd0lBaYZ4vaSe",
+          "goal": 15000,
+          "vendor": ""
+        },
+        {
+          "campaign": "BLAOW! - Runnit",
+          "client": "BLAOW!",
+          "artist": "BLAOW!",
+          "song": "Runnit",
+          "sfa_url": "https://artists.spotify.com/c/artist/6TW9Zc8SDwtueBDeJf6TYY/song/5XcZxtAp3S8lrk4s6csQN1/stats",
+          "track_id": "5XcZxtAp3S8lrk4s6csQN1",
+          "goal": 7000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "BLAOW! - Runnit",
+          "client": "BLAOW!",
+          "artist": "BLAOW!",
+          "song": "Runnit",
+          "sfa_url": "https://artists.spotify.com/c/artist/6TW9Zc8SDwtueBDeJf6TYY/song/5XcZxtAp3S8lrk4s6csQN1/stats",
+          "track_id": "5XcZxtAp3S8lrk4s6csQN1",
+          "goal": 8000,
+          "vendor": "Levianth"
+        }
+      ],
+      "status": "success"
+    },
+    "Beacon": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Benny Brappo": {
+      "campaigns": 2,
+      "roster_songs_found": 15,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Benny Brappo - Twin Flame",
+          "client": "Benny Brappo",
+          "artist": "Benny Brappo",
+          "song": "Twin Flame",
+          "sfa_url": "https://artists.spotify.com/c/artist/59qp3cl2JYJ2Dkx8AJAwl3/song/4P166jh9A1fS8ckkYdUHxq/stats",
+          "track_id": "4P166jh9A1fS8ckkYdUHxq",
+          "goal": 35000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "BetterVibesOnly LLC": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Bexxie": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Bijan M": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Birdsall": {
+      "campaigns": 2,
+      "roster_songs_found": 9,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Birdsall - Afters",
+          "client": "Birdsall",
+          "artist": "Birdsall",
+          "song": "Afters",
+          "sfa_url": "https://artists.spotify.com/c/artist/34RzVO4RIxNjAq5VHJhWSp/song/6uP0nzronDSxjRkqMLGZfi/stats",
+          "track_id": "6uP0nzronDSxjRkqMLGZfi",
+          "goal": 30000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Birdsall - Cold Cold Killa",
+          "client": "Birdsall",
+          "artist": "Birdsall",
+          "song": "Cold Cold Killa",
+          "sfa_url": "https://artists.spotify.com/c/artist/34RzVO4RIxNjAq5VHJhWSp/song/0ZQsYsAoQW6jH0IYJac0Ni/stats",
+          "track_id": "0ZQsYsAoQW6jH0IYJac0Ni",
+          "goal": 70000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "BlackJeans": {
+      "campaigns": 1,
+      "roster_songs_found": 11,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "BlackJeans - Carry On",
+          "client": "BlackJeans",
+          "artist": "BlackJeans",
+          "song": "Carry On",
+          "sfa_url": "https://artists.spotify.com/c/artist/5bsjK8qfd6B3haIhyGEc51/song/4lGWOZbIKIhHaAx1x203a0/stats",
+          "track_id": "4lGWOZbIKIhHaAx1x203a0",
+          "goal": 60000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Blanke": {
+      "campaigns": 2,
+      "roster_songs_found": 127,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Blanke, Linney - How It Feels",
+          "client": "Blanke",
+          "artist": "Blanke, Linney",
+          "song": "How It Feels",
+          "sfa_url": "https://artists.spotify.com/c/artist/59Yq0xrABEihHANsfo9QMT/song/6wrfjapgdCBiKvLDuqJKTW/stats",
+          "track_id": "6wrfjapgdCBiKvLDuqJKTW",
+          "goal": 15000,
+          "vendor": "Glenn"
+        },
+        {
+          "campaign": "Blanke, Linney - How It Feels",
+          "client": "Blanke",
+          "artist": "Blanke, Linney",
+          "song": "How It Feels",
+          "sfa_url": "https://artists.spotify.com/c/artist/59Yq0xrABEihHANsfo9QMT/song/6wrfjapgdCBiKvLDuqJKTW/stats",
+          "track_id": "6wrfjapgdCBiKvLDuqJKTW",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Blaqout": {
+      "campaigns": 1,
+      "roster_songs_found": 47,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Blaqout - Bloodlust",
+          "client": "Blaqout",
+          "artist": "Blaqout",
+          "song": "Bloodlust",
+          "sfa_url": "https://artists.spotify.com/c/artist/6wI2A5J2jZZ2GXFHr1Qm5K/song/7zGkd5qi6qsLsbY2pFyDUw/stats",
+          "track_id": "7zGkd5qi6qsLsbY2pFyDUw",
+          "goal": 20000,
+          "vendor": "Golden Nugget"
+        }
+      ],
+      "status": "success"
+    },
+    "Boom Records LLC": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Brandon Sea": {
+      "campaigns": 5,
+      "roster_songs_found": 21,
+      "matched_songs": 5,
+      "songs": [
+        {
+          "campaign": "Brandon Sea - luv4commas",
+          "client": "Brandon Sea",
+          "artist": "Brandon Sea",
+          "song": "luv4commas",
+          "sfa_url": "https://artists.spotify.com/c/artist/1u6hVvDMnzlcSM4Ws4L9R4/song/3DA2usd67cZ1KBZweVCKw9/stats",
+          "track_id": "3DA2usd67cZ1KBZweVCKw9",
+          "goal": 38000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Brandon Sea - Got It On Me",
+          "client": "Brandon Sea",
+          "artist": "Brandon Sea",
+          "song": "Got It On Me",
+          "sfa_url": "https://artists.spotify.com/c/artist/1u6hVvDMnzlcSM4Ws4L9R4/song/3AH68xt8EdBqLQ5wczggNx/stats",
+          "track_id": "3AH68xt8EdBqLQ5wczggNx",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Brandon Sea - I Am Him",
+          "client": "Brandon Sea",
+          "artist": "Brandon Sea",
+          "song": "I Am Him",
+          "sfa_url": "https://artists.spotify.com/c/artist/1u6hVvDMnzlcSM4Ws4L9R4/song/2ieMm03F3QAUbdKHsx47xU/stats",
+          "track_id": "2ieMm03F3QAUbdKHsx47xU",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Brandon Sea - Interstellar",
+          "client": "Brandon Sea",
+          "artist": "Brandon Sea",
+          "song": "Interstellar",
+          "sfa_url": "https://artists.spotify.com/c/artist/1u6hVvDMnzlcSM4Ws4L9R4/song/3qHodmjlJ5rYhiyylDwm67/stats",
+          "track_id": "3qHodmjlJ5rYhiyylDwm67",
+          "goal": 25000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Brandon Sea - Pursuit",
+          "client": "Brandon Sea",
+          "artist": "Brandon Sea",
+          "song": "Pursuit",
+          "sfa_url": "https://artists.spotify.com/c/artist/1u6hVvDMnzlcSM4Ws4L9R4/song/2YuvJZi6DGJM8OemXg8RcH/stats",
+          "track_id": "2YuvJZi6DGJM8OemXg8RcH",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Branzino Boys": {
+      "campaigns": 2,
+      "roster_songs_found": 5,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Branzino Boys - Lost My Marbles",
+          "client": "Branzino Boys",
+          "artist": "Branzino Boys",
+          "song": "Lost My Marbles",
+          "sfa_url": "https://artists.spotify.com/c/artist/2hOfHZBtepEZA6tGw29Nue/song/1VdlKfR7L0oYejQgS0cLEr/stats",
+          "track_id": "1VdlKfR7L0oYejQgS0cLEr",
+          "goal": 5000,
+          "vendor": "Alekk"
+        },
+        {
+          "campaign": "Branzino Boys - Lost My Marbles",
+          "client": "Branzino Boys",
+          "artist": "Branzino Boys",
+          "song": "Lost My Marbles",
+          "sfa_url": "https://artists.spotify.com/c/artist/2hOfHZBtepEZA6tGw29Nue/song/1VdlKfR7L0oYejQgS0cLEr/stats",
+          "track_id": "1VdlKfR7L0oYejQgS0cLEr",
+          "goal": 15000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Brayell": {
+      "campaigns": 1,
+      "roster_songs_found": 25,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Brayell - Merry Go",
+          "client": "Brayell",
+          "artist": "Brayell",
+          "song": "Merry Go",
+          "sfa_url": "https://artists.spotify.com/c/artist/2suzxJ52jvlUSX6G4vXN9u/song/7bPNMSzyNlR3lh4gBhbH7M/stats",
+          "track_id": "7bPNMSzyNlR3lh4gBhbH7M",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "CC Recordings LLC": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "CELO": {
+      "campaigns": 4,
+      "roster_songs_found": 15,
+      "matched_songs": 4,
+      "songs": [
+        {
+          "campaign": "CELO - Take It Back",
+          "client": "CELO",
+          "artist": "CELO",
+          "song": "Take It Back",
+          "sfa_url": "https://artists.spotify.com/c/artist/0cF121Uo22slYVIvyft0Eh/song/54vPWq7mkRQDnSBclBH5S9/stats",
+          "track_id": "54vPWq7mkRQDnSBclBH5S9",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "CELO - Take It Back",
+          "client": "CELO",
+          "artist": "CELO",
+          "song": "Take It Back",
+          "sfa_url": "https://artists.spotify.com/c/artist/0cF121Uo22slYVIvyft0Eh/song/54vPWq7mkRQDnSBclBH5S9/stats",
+          "track_id": "54vPWq7mkRQDnSBclBH5S9",
+          "goal": 15000,
+          "vendor": "Moon"
+        },
+        {
+          "campaign": "CELO, KOZMOZ - SMACKDOWN",
+          "client": "CELO",
+          "artist": "CELO, KOZMOZ",
+          "song": "SMACKDOWN",
+          "sfa_url": "https://artists.spotify.com/c/artist/0cF121Uo22slYVIvyft0Eh/song/14gAUipxkzzgzwl1XLJLKM/stats",
+          "track_id": "14gAUipxkzzgzwl1XLJLKM",
+          "goal": 10000,
+          "vendor": "Moon"
+        },
+        {
+          "campaign": "CELO, KOZMOZ - SMACKDOWN",
+          "client": "CELO",
+          "artist": "CELO, KOZMOZ",
+          "song": "SMACKDOWN",
+          "sfa_url": "https://artists.spotify.com/c/artist/0cF121Uo22slYVIvyft0Eh/song/14gAUipxkzzgzwl1XLJLKM/stats",
+          "track_id": "14gAUipxkzzgzwl1XLJLKM",
+          "goal": 15000,
+          "vendor": "Golden Nugget"
+        }
+      ],
+      "status": "success"
+    },
+    "CRaymak": {
+      "campaigns": 1,
+      "roster_songs_found": 54,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Craymak - Call Your Name",
+          "client": "CRaymak",
+          "artist": "Craymak",
+          "song": "Call Your Name",
+          "sfa_url": "https://artists.spotify.com/c/artist/150jtRwN0MU5qRxkhKnzNm/song/4ljOSmFxvYGOqFT0sawrb4/stats",
+          "track_id": "4ljOSmFxvYGOqFT0sawrb4",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "CURE97": {
+      "campaigns": 2,
+      "roster_songs_found": 24,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "CURE97 - BAILEO (PELEO VIP)",
+          "client": "CURE97",
+          "artist": "CURE97",
+          "song": "BAILEO (PELEO VIP)",
+          "sfa_url": "https://artists.spotify.com/c/artist/1F0DIm1bWIawL8dBETpQcO/song/5n7eXvWuzhOLeuNVVjMEgL/stats",
+          "track_id": "5n7eXvWuzhOLeuNVVjMEgL",
+          "goal": 40000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "CURE97, Dirty Audio - Reborn",
+          "client": "CURE97",
+          "artist": "CURE97, Dirty Audio",
+          "song": "Reborn",
+          "sfa_url": "https://artists.spotify.com/c/artist/1F0DIm1bWIawL8dBETpQcO/song/2Yl9S2IamNW0hVmhClSYcp/stats",
+          "track_id": "2Yl9S2IamNW0hVmhClSYcp",
+          "goal": 47000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "CURE97,Dirty Audio,GOLD": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "CURE97,YZENIA": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Carbon Sigil": {
+      "campaigns": 3,
+      "roster_songs_found": 3,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Carbon Sigil - Tease",
+          "client": "Carbon Sigil",
+          "artist": "Carbon Sigil",
+          "song": "Tease",
+          "sfa_url": "https://artists.spotify.com/c/artist/2oeAOUAMNsDVJKgwNjYuTR/song/5PTvxnybJr1pN6WeGxz3Dn/stats",
+          "track_id": "5PTvxnybJr1pN6WeGxz3Dn",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Carbon Sigil - Rescue",
+          "client": "Carbon Sigil",
+          "artist": "Carbon Sigil",
+          "song": "Rescue",
+          "sfa_url": "https://artists.spotify.com/c/artist/2oeAOUAMNsDVJKgwNjYuTR/song/73ycT8ak7HOPM7z3wrS7Jy/stats",
+          "track_id": "73ycT8ak7HOPM7z3wrS7Jy",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Cash Me Out Records LLC": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Casmir": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Charcom": {
+      "campaigns": 3,
+      "roster_songs_found": 23,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Charcom - I'll Be There",
+          "client": "Charcom",
+          "artist": "Charcom",
+          "song": "I'll Be There",
+          "sfa_url": "https://artists.spotify.com/c/artist/17rgSaJBsQFMe9HmDcFXup/song/6pbxbAfzprKaowNLT3UIrB/stats",
+          "track_id": "6pbxbAfzprKaowNLT3UIrB",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Charcom - IF ONLY FOR A SECOND",
+          "client": "Charcom",
+          "artist": "Charcom",
+          "song": "IF ONLY FOR A SECOND",
+          "sfa_url": "https://artists.spotify.com/c/artist/17rgSaJBsQFMe9HmDcFXup/song/4iaoQCOtPjp2ed8iM6pgi4/stats",
+          "track_id": "4iaoQCOtPjp2ed8iM6pgi4",
+          "goal": 12000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Chase Roberts": {
+      "campaigns": 1,
+      "roster_songs_found": 12,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Chase Roberts - Maintain",
+          "client": "Chase Roberts",
+          "artist": "Chase Roberts",
+          "song": "Maintain",
+          "sfa_url": "https://artists.spotify.com/c/artist/4eFAkDTAmATnGzdCYXy0ih/song/2cmXKnCWrqv005BWw2Wz60/stats",
+          "track_id": "2cmXKnCWrqv005BWw2Wz60",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Classic": {
+      "campaigns": 1,
+      "roster_songs_found": 24,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Classic Williams - Manifest",
+          "client": "Classic",
+          "artist": "Classic Williams",
+          "song": "Manifest",
+          "sfa_url": "https://artists.spotify.com/c/artist/4ff8i59IehCp9BoGavBFxR/song/3CCfyEHAO0zputVZdN04Hn/stats",
+          "track_id": "3CCfyEHAO0zputVZdN04Hn",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Code Red": {
+      "campaigns": 2,
+      "roster_songs_found": 4,
+      "matched_songs": 0,
+      "songs": [],
+      "status": "success"
+    },
+    "Confession": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Control Room": {
+      "campaigns": 1,
+      "roster_songs_found": 69,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Control Room - Rigamarole",
+          "client": "Control Room",
+          "artist": "Control Room",
+          "song": "Rigamarole",
+          "sfa_url": "https://artists.spotify.com/c/artist/0tLJ8fk8oulNkMQRAj4Toi/song/4ghtiAnBmsNKpVdzKGmmMx/stats",
+          "track_id": "4ghtiAnBmsNKpVdzKGmmMx",
+          "goal": 25000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Control Room,MAINFRAME": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "DND Records LLC": {
+      "campaigns": 4,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "DVRKSTAR": {
+      "campaigns": 8,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Dark Roast": {
+      "campaigns": 10,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Dark Roast,BIJOU": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Dark Roast,Sidequest": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Daunter": {
+      "campaigns": 2,
+      "roster_songs_found": 5,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Daunter - Let Go",
+          "client": "Daunter",
+          "artist": "Daunter",
+          "song": "Let Go",
+          "sfa_url": "https://artists.spotify.com/c/artist/36Bfcbr8mLMRPteWtBIm6Y/song/2IwIvnhAM0zqBAKR7vnteg/stats",
+          "track_id": "2IwIvnhAM0zqBAKR7vnteg",
+          "goal": 12000,
+          "vendor": "Golden Nugget"
+        }
+      ],
+      "status": "success"
+    },
+    "Dim Mak": {
+      "campaigns": 9,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Dim Mak,Crumb Pit": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Dim Mak,Rami Pearlman": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Dirty Audio": {
+      "campaigns": 1,
+      "roster_songs_found": 124,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Dirty Audio - Rules",
+          "client": "Dirty Audio",
+          "artist": "Dirty Audio",
+          "song": "Rules",
+          "sfa_url": "https://artists.spotify.com/c/artist/1WGex9YdmT4TZjmmMirZA8/song/1UUY5rEPmQzFiun0eAnNTJ/stats",
+          "track_id": "1UUY5rEPmQzFiun0eAnNTJ",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Disentr": {
+      "campaigns": 1,
+      "roster_songs_found": 11,
+      "matched_songs": 0,
+      "songs": [],
+      "status": "success"
+    },
+    "Domineaux": {
+      "campaigns": 1,
+      "roster_songs_found": 4,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Domineaux - The Void",
+          "client": "Domineaux",
+          "artist": "Domineaux",
+          "song": "The Void",
+          "sfa_url": "https://artists.spotify.com/c/artist/3n6rEIsXaZUnbAGpA4H3sE/song/5duvUei9us2DdsOW27sZ2M/stats",
+          "track_id": "5duvUei9us2DdsOW27sZ2M",
+          "goal": 22000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Dr3w Lovely": {
+      "campaigns": 6,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Drew Meagher": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Dubloadz": {
+      "campaigns": 3,
+      "roster_songs_found": 126,
+      "matched_songs": 3,
+      "songs": [
+        {
+          "campaign": "Dubloadz - Noise Room",
+          "client": "Dubloadz",
+          "artist": "Dubloadz",
+          "song": "Noise Room",
+          "sfa_url": "https://artists.spotify.com/c/artist/4akLvvJyLbJxlbpSXHTLvT/song/2I7dkDYaHidznvwaX5LcDu/stats",
+          "track_id": "2I7dkDYaHidznvwaX5LcDu",
+          "goal": 10000,
+          "vendor": "Moon"
+        },
+        {
+          "campaign": "Dubloadz - Plant Food",
+          "client": "Dubloadz",
+          "artist": "Dubloadz",
+          "song": "Plant Food",
+          "sfa_url": "https://artists.spotify.com/c/artist/4akLvvJyLbJxlbpSXHTLvT/song/67ee805thTESGmox9QCnuI/stats",
+          "track_id": "67ee805thTESGmox9QCnuI",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Dubloadz - Yo! Unrelease This",
+          "client": "Dubloadz",
+          "artist": "Dubloadz",
+          "song": "Yo! Unrelease This",
+          "sfa_url": "https://artists.spotify.com/c/artist/4akLvvJyLbJxlbpSXHTLvT/song/1KsIb5iklw1SzOJjX7mzin/stats",
+          "track_id": "1KsIb5iklw1SzOJjX7mzin",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        }
+      ],
+      "status": "success"
+    },
+    "EAZLEY": {
+      "campaigns": 2,
+      "roster_songs_found": 15,
+      "matched_songs": 0,
+      "songs": [],
+      "status": "success"
+    },
+    "ERASR": {
+      "campaigns": 1,
+      "roster_songs_found": 8,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "ERASR - Lost Without Your Love",
+          "client": "ERASR",
+          "artist": "ERASR",
+          "song": "Lost Without Your Love",
+          "sfa_url": "https://artists.spotify.com/c/artist/2Yg5TxEVXCqfLpRY3A7ZYH/song/5V6R75WadQnMa98B8WldOZ/stats",
+          "track_id": "5V6R75WadQnMa98B8WldOZ",
+          "goal": 15000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Electric Feel": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Eli Taylor": {
+      "campaigns": 4,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Evalyn": {
+      "campaigns": 1,
+      "roster_songs_found": 60,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Evalyn - Playstation",
+          "client": "Evalyn",
+          "artist": "Evalyn",
+          "song": "Playstation",
+          "sfa_url": "https://artists.spotify.com/c/artist/68WwJXWrpo1yVOOIZjLSeT/song/5iTBIMKxofBBRSvj8CCtju/stats",
+          "track_id": "5iTBIMKxofBBRSvj8CCtju",
+          "goal": 50000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Exodus Era": {
+      "campaigns": 5,
+      "roster_songs_found": 6,
+      "matched_songs": 5,
+      "songs": [
+        {
+          "campaign": "Exodus Era - Beachside Vibrations",
+          "client": "Exodus Era",
+          "artist": "Exodus Era",
+          "song": "Beachside Vibrations",
+          "sfa_url": "https://artists.spotify.com/c/artist/4k5Uxaq8bCl3ooK9GEHDOz/song/79qGgXL1tVI7DFFRzRJmty/stats",
+          "track_id": "79qGgXL1tVI7DFFRzRJmty",
+          "goal": 5000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Exodus Era - Beachside Vibrations",
+          "client": "Exodus Era",
+          "artist": "Exodus Era",
+          "song": "Beachside Vibrations",
+          "sfa_url": "https://artists.spotify.com/c/artist/4k5Uxaq8bCl3ooK9GEHDOz/song/79qGgXL1tVI7DFFRzRJmty/stats",
+          "track_id": "79qGgXL1tVI7DFFRzRJmty",
+          "goal": 5000,
+          "vendor": "Moon"
+        },
+        {
+          "campaign": "Exodus Era - Continuity Error",
+          "client": "Exodus Era",
+          "artist": "Exodus Era",
+          "song": "Continuity Error",
+          "sfa_url": "https://artists.spotify.com/c/artist/4k5Uxaq8bCl3ooK9GEHDOz/song/3QILsRihHn4oMeDoHTxTLQ/stats",
+          "track_id": "3QILsRihHn4oMeDoHTxTLQ",
+          "goal": 10000,
+          "vendor": ""
+        },
+        {
+          "campaign": "Exodus Era - Prophecy Variance",
+          "client": "Exodus Era",
+          "artist": "Exodus Era",
+          "song": "Prophecy Variance",
+          "sfa_url": "https://artists.spotify.com/c/artist/4k5Uxaq8bCl3ooK9GEHDOz/song/1zEwiKPpde4C5ytAv2Uggz/stats",
+          "track_id": "1zEwiKPpde4C5ytAv2Uggz",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Exodus Era - Squidmeat",
+          "client": "Exodus Era",
+          "artist": "Exodus Era",
+          "song": "Squidmeat",
+          "sfa_url": "https://artists.spotify.com/c/artist/4k5Uxaq8bCl3ooK9GEHDOz/song/7cRnMq8EftSHAoso0cgqPJ/stats",
+          "track_id": "7cRnMq8EftSHAoso0cgqPJ",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Felmax,Atlantic": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Felsmere": {
+      "campaigns": 6,
+      "roster_songs_found": 14,
+      "matched_songs": 6,
+      "songs": [
+        {
+          "campaign": "Felsmere - Only One I See",
+          "client": "Felsmere",
+          "artist": "Felsmere",
+          "song": "Only One I See",
+          "sfa_url": "https://artists.spotify.com/c/artist/4ZCjRDyNxVEfH7N2ckVRcO/song/6teDQNy3eXMRghoOsfCJ3H/stats",
+          "track_id": "6teDQNy3eXMRghoOsfCJ3H",
+          "goal": 50000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Felsmere - Don't Wake Me Up",
+          "client": "Felsmere",
+          "artist": "Felsmere",
+          "song": "Don't Wake Me Up",
+          "sfa_url": "https://artists.spotify.com/c/artist/4ZCjRDyNxVEfH7N2ckVRcO/song/3UYD5M3oHAKXQENew4lvvg/stats",
+          "track_id": "3UYD5M3oHAKXQENew4lvvg",
+          "goal": 35000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Felsmere - False Positive",
+          "client": "Felsmere",
+          "artist": "Felsmere",
+          "song": "False Positive",
+          "sfa_url": "https://artists.spotify.com/c/artist/4ZCjRDyNxVEfH7N2ckVRcO/song/5i5D7fo3pex75OBrIDZrmI/stats",
+          "track_id": "5i5D7fo3pex75OBrIDZrmI",
+          "goal": 35000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Felsmere - Nothin' I Can't Face",
+          "client": "Felsmere",
+          "artist": "Felsmere",
+          "song": "Nothin' I Can't Face",
+          "sfa_url": "https://artists.spotify.com/c/artist/4ZCjRDyNxVEfH7N2ckVRcO/song/506q2RBKpGwTrep4KmyypS/stats",
+          "track_id": "506q2RBKpGwTrep4KmyypS",
+          "goal": 100000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Felsmere - I Blew It",
+          "client": "Felsmere",
+          "artist": "Felsmere",
+          "song": "I Blew It",
+          "sfa_url": "https://artists.spotify.com/c/artist/4ZCjRDyNxVEfH7N2ckVRcO/song/77mP7u8a3Rn4atVhnhvjRv/stats",
+          "track_id": "77mP7u8a3Rn4atVhnhvjRv",
+          "goal": 35000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Felsmere - I Blew It",
+          "client": "Felsmere",
+          "artist": "Felsmere",
+          "song": "I Blew It",
+          "sfa_url": "https://artists.spotify.com/c/artist/4ZCjRDyNxVEfH7N2ckVRcO/song/77mP7u8a3Rn4atVhnhvjRv/stats",
+          "track_id": "77mP7u8a3Rn4atVhnhvjRv",
+          "goal": 22000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Filthy": {
+      "campaigns": 20,
+      "roster_songs_found": 18,
+      "matched_songs": 12,
+      "songs": [
+        {
+          "campaign": "Filthy - Break The Pattern",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "Break The Pattern",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/1Sx6YVWLCIHwXqfyGt2BoP/stats",
+          "track_id": "1Sx6YVWLCIHwXqfyGt2BoP",
+          "goal": 5000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Filthy - Break The Pattern",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "Break The Pattern",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/1Sx6YVWLCIHwXqfyGt2BoP/stats",
+          "track_id": "1Sx6YVWLCIHwXqfyGt2BoP",
+          "goal": 40000,
+          "vendor": ""
+        },
+        {
+          "campaign": "Filthy - DoubleDash",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "DoubleDash",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/2Hi3RjH7mxw3OaIVsjPZQ7/stats",
+          "track_id": "2Hi3RjH7mxw3OaIVsjPZQ7",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Filthy - DoubleDash",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "DoubleDash",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/2Hi3RjH7mxw3OaIVsjPZQ7/stats",
+          "track_id": "2Hi3RjH7mxw3OaIVsjPZQ7",
+          "goal": 5000,
+          "vendor": "Moon"
+        },
+        {
+          "campaign": "Filthy, Kracaa - Obey or Suffer",
+          "client": "Filthy",
+          "artist": "Filthy, Kracaa",
+          "song": "Obey or Suffer",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/0QfrgIGuB8ufTN0Pls4aAM/stats",
+          "track_id": "0QfrgIGuB8ufTN0Pls4aAM",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Filthy - Final Retribution",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "Final Retribution",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/26gwy3Iknut55Jn1g5ht7S/stats",
+          "track_id": "26gwy3Iknut55Jn1g5ht7S",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Filthy - Final Retribution",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "Final Retribution",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/26gwy3Iknut55Jn1g5ht7S/stats",
+          "track_id": "26gwy3Iknut55Jn1g5ht7S",
+          "goal": 10000,
+          "vendor": "Moon"
+        },
+        {
+          "campaign": "Filthy - Caged Within",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "Caged Within",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/6XInqwK63Y0QbHYxphZr3i/stats",
+          "track_id": "6XInqwK63Y0QbHYxphZr3i",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Filthy - Caged Within",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "Caged Within",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/6XInqwK63Y0QbHYxphZr3i/stats",
+          "track_id": "6XInqwK63Y0QbHYxphZr3i",
+          "goal": 50000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Filthy - Harvest of Lies",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "Harvest of Lies",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/2eXUxQ9WsxPq1an3Z9Ao0x/stats",
+          "track_id": "2eXUxQ9WsxPq1an3Z9Ao0x",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Filthy - Spectral Abduction",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "Spectral Abduction",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/2J28FIA6miRh8M5OppDRa2/stats",
+          "track_id": "2J28FIA6miRh8M5OppDRa2",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Filthy - Transceptor",
+          "client": "Filthy",
+          "artist": "Filthy",
+          "song": "Transceptor",
+          "sfa_url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/4ulVQPLBM0PB4ftSshYslR/stats",
+          "track_id": "4ulVQPLBM0PB4ftSshYslR",
+          "goal": 20000,
+          "vendor": "Golden Nugget"
+        }
+      ],
+      "status": "success"
+    },
+    "Frontline Agency": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Get Back": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Gina Jeanz": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Gingi": {
+      "campaigns": 1,
+      "roster_songs_found": 2,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Gingi - Hello",
+          "client": "Gingi",
+          "artist": "Gingi",
+          "song": "Hello",
+          "sfa_url": "https://artists.spotify.com/c/artist/4dMbKkmjM74hLXrizbo9wP/song/6R1xiF3Y27d2FkZdsovVMS/stats",
+          "track_id": "6R1xiF3Y27d2FkZdsovVMS",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Gl0bal": {
+      "campaigns": 3,
+      "roster_songs_found": 62,
+      "matched_songs": 3,
+      "songs": [
+        {
+          "campaign": "Gl0bal, Collixion - Chop Shop",
+          "client": "Gl0bal",
+          "artist": "Gl0bal, Collixion",
+          "song": "Chop Shop",
+          "sfa_url": "https://artists.spotify.com/c/artist/3nkApPk39ekjlyilodddaV/song/10v9kJRppLzyuCmpzY5rUu/stats",
+          "track_id": "10v9kJRppLzyuCmpzY5rUu",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Gl0bal - Candy Man",
+          "client": "Gl0bal",
+          "artist": "Gl0bal",
+          "song": "Candy Man",
+          "sfa_url": "https://artists.spotify.com/c/artist/3nkApPk39ekjlyilodddaV/song/08Bd5NkwharGRRlyycDD8R/stats",
+          "track_id": "08Bd5NkwharGRRlyycDD8R",
+          "goal": 25000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Gl0bal - See Me",
+          "client": "Gl0bal",
+          "artist": "Gl0bal",
+          "song": "See Me",
+          "sfa_url": "https://artists.spotify.com/c/artist/3nkApPk39ekjlyilodddaV/song/5Az7ApIibeJqX3t31xTvqj/stats",
+          "track_id": "5Az7ApIibeJqX3t31xTvqj",
+          "goal": 40000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Goodtalk": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Harel": {
+      "campaigns": 3,
+      "roster_songs_found": 22,
+      "matched_songs": 3,
+      "songs": [
+        {
+          "campaign": "Harel - Look Twice",
+          "client": "Harel",
+          "artist": "Harel",
+          "song": "Look Twice",
+          "sfa_url": "https://artists.spotify.com/c/artist/015xd9ZzBLzvkIlgny78zc/song/2q7ZDvMA70uUdelRE3Sd9Z/stats",
+          "track_id": "2q7ZDvMA70uUdelRE3Sd9Z",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Harel - god forbid I catch a vibe",
+          "client": "Harel",
+          "artist": "Harel",
+          "song": "god forbid I catch a vibe",
+          "sfa_url": "https://artists.spotify.com/c/artist/015xd9ZzBLzvkIlgny78zc/song/5aNI9EzRT7QFSATJoDlyhF/stats",
+          "track_id": "5aNI9EzRT7QFSATJoDlyhF",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Harel - god forbid I catch a vibe",
+          "client": "Harel",
+          "artist": "Harel",
+          "song": "god forbid I catch a vibe",
+          "sfa_url": "https://artists.spotify.com/c/artist/015xd9ZzBLzvkIlgny78zc/song/5aNI9EzRT7QFSATJoDlyhF/stats",
+          "track_id": "5aNI9EzRT7QFSATJoDlyhF",
+          "goal": 10000,
+          "vendor": "Glenn"
+        }
+      ],
+      "status": "success"
+    },
+    "Hgods": {
+      "campaigns": 3,
+      "roster_songs_found": 39,
+      "matched_songs": 3,
+      "songs": [
+        {
+          "campaign": "HGods - Jackie Kennedy",
+          "client": "Hgods",
+          "artist": "HGods",
+          "song": "Jackie Kennedy",
+          "sfa_url": "https://artists.spotify.com/c/artist/1mrXo5fhYhx3gEiLjbOtYA/song/75zkQ3SVqVvkm3jqVfypoj/stats",
+          "track_id": "75zkQ3SVqVvkm3jqVfypoj",
+          "goal": 5000,
+          "vendor": "Moon"
+        },
+        {
+          "campaign": "HGods - Jackie Kennedy",
+          "client": "Hgods",
+          "artist": "HGods",
+          "song": "Jackie Kennedy",
+          "sfa_url": "https://artists.spotify.com/c/artist/1mrXo5fhYhx3gEiLjbOtYA/song/75zkQ3SVqVvkm3jqVfypoj/stats",
+          "track_id": "75zkQ3SVqVvkm3jqVfypoj",
+          "goal": 5000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "HGods - THE COMMOTION",
+          "client": "Hgods",
+          "artist": "HGods",
+          "song": "THE COMMOTION",
+          "sfa_url": "https://artists.spotify.com/c/artist/1mrXo5fhYhx3gEiLjbOtYA/song/0mgknu0NQIMgzqiqiYC2wz/stats",
+          "track_id": "0mgknu0NQIMgzqiqiYC2wz",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Hitskope": {
+      "campaigns": 23,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Hornja": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Humansion": {
+      "campaigns": 1,
+      "roster_songs_found": 29,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Humansion - Sorcery",
+          "client": "Humansion",
+          "artist": "Humansion",
+          "song": "Sorcery",
+          "sfa_url": "https://artists.spotify.com/c/artist/6VN0cbu6VBJn4RMPNDWsma/song/6KxDE6UDSqpEPyUYBpMLXE/stats",
+          "track_id": "6KxDE6UDSqpEPyUYBpMLXE",
+          "goal": 20000,
+          "vendor": "Glenn"
+        }
+      ],
+      "status": "success"
+    },
+    "Hurry Up Slowly": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "ILLUS": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Ian Snow": {
+      "campaigns": 3,
+      "roster_songs_found": 28,
+      "matched_songs": 3,
+      "songs": [
+        {
+          "campaign": "Ian Snow - Higher Dimension",
+          "client": "Ian Snow",
+          "artist": "Ian Snow",
+          "song": "Higher Dimension",
+          "sfa_url": "https://artists.spotify.com/c/artist/0UcCuYO0BxHn8HZjDF4tSB/song/6wUoK7ZrHR5NHKwycgQ6wl/stats",
+          "track_id": "6wUoK7ZrHR5NHKwycgQ6wl",
+          "goal": 30000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Ian Snow - Hypersequence",
+          "client": "Ian Snow",
+          "artist": "Ian Snow",
+          "song": "Hypersequence",
+          "sfa_url": "https://artists.spotify.com/c/artist/0UcCuYO0BxHn8HZjDF4tSB/song/4XJs3zY6ToEIZfYQqDKCSr/stats",
+          "track_id": "4XJs3zY6ToEIZfYQqDKCSr",
+          "goal": 50000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Ian Snow - Into the Portal",
+          "client": "Ian Snow",
+          "artist": "Ian Snow",
+          "song": "Into the Portal",
+          "sfa_url": "https://artists.spotify.com/c/artist/0UcCuYO0BxHn8HZjDF4tSB/song/7JfczG2numKWUEj1KvHDAu/stats",
+          "track_id": "7JfczG2numKWUEj1KvHDAu",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Imogen": {
+      "campaigns": 1,
+      "roster_songs_found": 8,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Imogen - I Hope Losing Me Haunts You",
+          "client": "Imogen",
+          "artist": "Imogen",
+          "song": "I Hope Losing Me Haunts You",
+          "sfa_url": "https://artists.spotify.com/c/artist/7E8qeYNDZZ5ceLcC4SwzF0/song/5PqoYH1hmDFTSSFP8W6AjU/stats",
+          "track_id": "5PqoYH1hmDFTSSFP8W6AjU",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Imogen Valentine": {
+      "campaigns": 2,
+      "roster_songs_found": 8,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Imogen Valentine - Golden Girl (WINSKI Remix)",
+          "client": "Imogen Valentine",
+          "artist": "Imogen Valentine",
+          "song": "Golden Girl (WINSKI Remix)",
+          "sfa_url": "https://artists.spotify.com/c/artist/7E8qeYNDZZ5ceLcC4SwzF0/song/49eSFPZUJGCEsbiQoblrhy/stats",
+          "track_id": "49eSFPZUJGCEsbiQoblrhy",
+          "goal": 20000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Imogen Valentine - Golden Girl",
+          "client": "Imogen Valentine",
+          "artist": "Imogen Valentine",
+          "song": "Golden Girl",
+          "sfa_url": "https://artists.spotify.com/c/artist/7E8qeYNDZZ5ceLcC4SwzF0/song/49eSFPZUJGCEsbiQoblrhy/stats",
+          "track_id": "49eSFPZUJGCEsbiQoblrhy",
+          "goal": 50000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Indie Select": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "It's A Ten Records": {
+      "campaigns": 6,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Jacksen Kamen": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Jeff Straw": {
+      "campaigns": 1,
+      "roster_songs_found": 11,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Jeff Straw - I've Been",
+          "client": "Jeff Straw",
+          "artist": "Jeff Straw",
+          "song": "I've Been",
+          "sfa_url": "https://artists.spotify.com/c/artist/6QtjSxtj8oM0CA78RJQmF3/song/3BJntn779Myc7fdXjVIlJr/stats",
+          "track_id": "3BJntn779Myc7fdXjVIlJr",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Jordan (Harden)": {
+      "campaigns": 11,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Jordan Andrew": {
+      "campaigns": 2,
+      "roster_songs_found": 3,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Jordan Andrew - iKNOW",
+          "client": "Jordan Andrew",
+          "artist": "Jordan Andrew",
+          "song": "iKNOW",
+          "sfa_url": "https://artists.spotify.com/c/artist/651eNGEaPRrlO9JQ5eekd6/song/4Z9FCrT3uZFbz9fN9ho9XI/stats",
+          "track_id": "4Z9FCrT3uZFbz9fN9ho9XI",
+          "goal": 25000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Jordan Andrew - iKNOW",
+          "client": "Jordan Andrew",
+          "artist": "Jordan Andrew",
+          "song": "iKNOW",
+          "sfa_url": "https://artists.spotify.com/c/artist/651eNGEaPRrlO9JQ5eekd6/song/4Z9FCrT3uZFbz9fN9ho9XI/stats",
+          "track_id": "4Z9FCrT3uZFbz9fN9ho9XI",
+          "goal": 25000,
+          "vendor": "Glenn"
+        }
+      ],
+      "status": "success"
+    },
+    "Joseph Saggio": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "KLOWN": {
+      "campaigns": 5,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "KRACAA": {
+      "campaigns": 1,
+      "roster_songs_found": 10,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "KRACAA - BYE BYE",
+          "client": "KRACAA",
+          "artist": "KRACAA",
+          "song": "BYE BYE",
+          "sfa_url": "https://artists.spotify.com/c/artist/5bc44nCz13AFBY4UmxDJde/song/1zT9UokNBbxZgaB0fC5iik/stats",
+          "track_id": "1zT9UokNBbxZgaB0fC5iik",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        }
+      ],
+      "status": "success"
+    },
+    "Kalypso Records LLC,Karma": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Karl Farelice": {
+      "campaigns": 1,
+      "roster_songs_found": 9,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Karl Farelice - Schizophrenic Traplord",
+          "client": "Karl Farelice",
+          "artist": "Karl Farelice",
+          "song": "Schizophrenic Traplord",
+          "sfa_url": "https://artists.spotify.com/c/artist/3JPBefrLuMkEzPlW7xEKMQ/song/5X7YyLuqVqtdHQ75AzDVuJ/stats",
+          "track_id": "5X7YyLuqVqtdHQ75AzDVuJ",
+          "goal": 15000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Karma": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Karma, Kalypso Records LLC": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Kazi": {
+      "campaigns": 2,
+      "roster_songs_found": 17,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Kazi\tFade - Away",
+          "client": "Kazi",
+          "artist": "Kazi\tFade",
+          "song": "Away",
+          "sfa_url": "https://artists.spotify.com/c/artist/5AS6c56mjqwIGujc81FTVh/song/6ziSsRF9GvkT7SHO04wDB4/stats",
+          "track_id": "6ziSsRF9GvkT7SHO04wDB4",
+          "goal": 15000,
+          "vendor": "Glenn"
+        }
+      ],
+      "status": "success"
+    },
+    "Kenetic Kannibalz,Atlantic": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Khi Lo": {
+      "campaigns": 3,
+      "roster_songs_found": 15,
+      "matched_songs": 3,
+      "songs": [
+        {
+          "campaign": "Khi Lo - Rock Da Boat",
+          "client": "Khi Lo",
+          "artist": "Khi Lo",
+          "song": "Rock Da Boat",
+          "sfa_url": "https://artists.spotify.com/c/artist/78HrnPZloRq7o90YDlygXv/song/3VzVU8zjBXF5Voejy6Dzej/stats",
+          "track_id": "3VzVU8zjBXF5Voejy6Dzej",
+          "goal": 12000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Khi Lo - Blurry Love",
+          "client": "Khi Lo",
+          "artist": "Khi Lo",
+          "song": "Blurry Love",
+          "sfa_url": "https://artists.spotify.com/c/artist/78HrnPZloRq7o90YDlygXv/song/6PZXG6tSsVxf5JO8FDh7me/stats",
+          "track_id": "6PZXG6tSsVxf5JO8FDh7me",
+          "goal": 14000,
+          "vendor": "Vynx"
+        },
+        {
+          "campaign": "Khi Lo - Ratchet",
+          "client": "Khi Lo",
+          "artist": "Khi Lo",
+          "song": "Ratchet",
+          "sfa_url": "https://artists.spotify.com/c/artist/78HrnPZloRq7o90YDlygXv/song/5kZMuDaOTOjoEJr0jEorJp/stats",
+          "track_id": "5kZMuDaOTOjoEJr0jEorJp",
+          "goal": 15000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Kluster Flux": {
+      "campaigns": 10,
+      "roster_songs_found": 5,
+      "matched_songs": 9,
+      "songs": [
+        {
+          "campaign": "Kluster FLux - War",
+          "client": "Kluster Flux",
+          "artist": "Kluster FLux",
+          "song": "War",
+          "sfa_url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/5tnRFzbCegC5dYbVIVwf3v/stats",
+          "track_id": "5tnRFzbCegC5dYbVIVwf3v",
+          "goal": 25000,
+          "vendor": "Glenn"
+        },
+        {
+          "campaign": "Kluster FLux - War",
+          "client": "Kluster Flux",
+          "artist": "Kluster FLux",
+          "song": "War",
+          "sfa_url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/5tnRFzbCegC5dYbVIVwf3v/stats",
+          "track_id": "5tnRFzbCegC5dYbVIVwf3v",
+          "goal": 25000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Kluster Flux - Gods",
+          "client": "Kluster Flux",
+          "artist": "Kluster Flux",
+          "song": "Gods",
+          "sfa_url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/3o5mNSJZimpo1bWyVR5dQE/stats",
+          "track_id": "3o5mNSJZimpo1bWyVR5dQE",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Kluster Flux - Final Flash",
+          "client": "Kluster Flux",
+          "artist": "Kluster Flux",
+          "song": "Final Flash",
+          "sfa_url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/6g9p3ONm3urpjjiD7lYozk/stats",
+          "track_id": "6g9p3ONm3urpjjiD7lYozk",
+          "goal": 10000,
+          "vendor": "Levianth"
+        },
+        {
+          "campaign": "Kluster Flux - Final Flash",
+          "client": "Kluster Flux",
+          "artist": "Kluster Flux",
+          "song": "Final Flash",
+          "sfa_url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/6g9p3ONm3urpjjiD7lYozk/stats",
+          "track_id": "6g9p3ONm3urpjjiD7lYozk",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Kluster Flux - Final Flash",
+          "client": "Kluster Flux",
+          "artist": "Kluster Flux",
+          "song": "Final Flash",
+          "sfa_url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/6g9p3ONm3urpjjiD7lYozk/stats",
+          "track_id": "6g9p3ONm3urpjjiD7lYozk",
+          "goal": 10000,
+          "vendor": "Moon"
+        },
+        {
+          "campaign": "Kluster Flux - Gods",
+          "client": "Kluster Flux",
+          "artist": "Kluster Flux",
+          "song": "Gods",
+          "sfa_url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/3o5mNSJZimpo1bWyVR5dQE/stats",
+          "track_id": "3o5mNSJZimpo1bWyVR5dQE",
+          "goal": 20000,
+          "vendor": "Levianth"
+        },
+        {
+          "campaign": "Kluster Flux - Gods",
+          "client": "Kluster Flux",
+          "artist": "Kluster Flux",
+          "song": "Gods",
+          "sfa_url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/3o5mNSJZimpo1bWyVR5dQE/stats",
+          "track_id": "3o5mNSJZimpo1bWyVR5dQE",
+          "goal": 10000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Kluster Flux - Gods",
+          "client": "Kluster Flux",
+          "artist": "Kluster Flux",
+          "song": "Gods",
+          "sfa_url": "https://artists.spotify.com/c/artist/1r5BmDBeH2Su9jCTByqMAI/song/3o5mNSJZimpo1bWyVR5dQE/stats",
+          "track_id": "3o5mNSJZimpo1bWyVR5dQE",
+          "goal": 10000,
+          "vendor": "Moon"
+        }
+      ],
+      "status": "success"
+    },
+    "Kozmoz": {
+      "campaigns": 2,
+      "roster_songs_found": 48,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Kozmoz - The Kill",
+          "client": "Kozmoz",
+          "artist": "Kozmoz",
+          "song": "The Kill",
+          "sfa_url": "https://artists.spotify.com/c/artist/4jwHh8156lpD0ifm9bUCz4/song/5FDlY4RXzPiEFJWcxbgFuy/stats",
+          "track_id": "5FDlY4RXzPiEFJWcxbgFuy",
+          "goal": 10000,
+          "vendor": "Moon"
+        },
+        {
+          "campaign": "Kozmoz - The Kill",
+          "client": "Kozmoz",
+          "artist": "Kozmoz",
+          "song": "The Kill",
+          "sfa_url": "https://artists.spotify.com/c/artist/4jwHh8156lpD0ifm9bUCz4/song/5FDlY4RXzPiEFJWcxbgFuy/stats",
+          "track_id": "5FDlY4RXzPiEFJWcxbgFuy",
+          "goal": 10000,
+          "vendor": "Club Restricted"
+        }
+      ],
+      "status": "success"
+    },
+    "Kryture": {
+      "campaigns": 2,
+      "roster_songs_found": 33,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Kryture - AETHERBORN",
+          "client": "Kryture",
+          "artist": "Kryture",
+          "song": "AETHERBORN",
+          "sfa_url": "https://artists.spotify.com/c/artist/72iKUroqeSkinEfiVns8v7/song/7wf5HLu7MIPZHvPgYp9T6P/stats",
+          "track_id": "7wf5HLu7MIPZHvPgYp9T6P",
+          "goal": 5000,
+          "vendor": "Golden Nugget"
+        },
+        {
+          "campaign": "Kryture - AETHERBORN",
+          "client": "Kryture",
+          "artist": "Kryture",
+          "song": "AETHERBORN",
+          "sfa_url": "https://artists.spotify.com/c/artist/72iKUroqeSkinEfiVns8v7/song/7wf5HLu7MIPZHvPgYp9T6P/stats",
+          "track_id": "7wf5HLu7MIPZHvPgYp9T6P",
+          "goal": 5000,
+          "vendor": ""
+        }
+      ],
+      "status": "success"
+    },
+    "LAEHY": {
+      "campaigns": 1,
+      "roster_songs_found": 4,
+      "matched_songs": 1,
+      "songs": [
+        {
+          "campaign": "Laehy - Take It",
+          "client": "LAEHY",
+          "artist": "Laehy",
+          "song": "Take It",
+          "sfa_url": "https://artists.spotify.com/c/artist/6fdOZKzCUrC1mxwkFvlkeX/song/39FpbIZrnIyTfHnB6WU1AI/stats",
+          "track_id": "39FpbIZrnIyTfHnB6WU1AI",
+          "goal": 10000,
+          "vendor": "Glenn"
+        }
+      ],
+      "status": "success"
+    },
+    "Lani Daye": {
+      "campaigns": 2,
+      "roster_songs_found": 10,
+      "matched_songs": 2,
+      "songs": [
+        {
+          "campaign": "Lani Daye - falling down",
+          "client": "Lani Daye",
+          "artist": "Lani Daye",
+          "song": "falling down",
+          "sfa_url": "https://artists.spotify.com/c/artist/1fYnA1IkOOJ3mtWl02xKk3/song/1k7xwk1bIoovNB5xDS1OWR/stats",
+          "track_id": "1k7xwk1bIoovNB5xDS1OWR",
+          "goal": 15000,
+          "vendor": "Club Restricted"
+        },
+        {
+          "campaign": "Lani Daye - falling down",
+          "client": "Lani Daye",
+          "artist": "Lani Daye",
+          "song": "falling down",
+          "sfa_url": "https://artists.spotify.com/c/artist/1fYnA1IkOOJ3mtWl02xKk3/song/1k7xwk1bIoovNB5xDS1OWR/stats",
+          "track_id": "1k7xwk1bIoovNB5xDS1OWR",
+          "goal": 15000,
+          "vendor": "Glenn"
+        }
+      ],
+      "status": "success"
+    },
+    "Later Tonight": {
+      "campaigns": 5,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Laurie": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Legacy,Priime": {
+      "campaigns": 7,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Leona Naess": {
+      "campaigns": 7,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Logically Delicious": {
+      "campaigns": 5,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Luhv": {
+      "campaigns": 11,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Lysergix": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "MAINFRAME": {
+      "campaigns": 7,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "MAINFRAME,Control Room": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Madwen": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Majed": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Maria Lyons": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Max Aidan": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Medium Rare": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Milk & Honey Records LLC": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Murda Beatz": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Myles O'Neal": {
+      "campaigns": 4,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Nazaar": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Neyvo": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Nick Olajos": {
+      "campaigns": 6,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Odd Language": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Odd Language,Atlantic": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Ozz Gold": {
+      "campaigns": 4,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "PM": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "PROPPAGANDA": {
+      "campaigns": 4,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Paper Skies": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Patrick Reza": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Perfect Circle": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Peter Don": {
+      "campaigns": 4,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Pharaoh Phonix": {
+      "campaigns": 34,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Phuture": {
+      "campaigns": 7,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Phuture Collective": {
+      "campaigns": 16,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Planet Zuzy": {
+      "campaigns": 5,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Poni": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Powerhaus MGMT": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Priime": {
+      "campaigns": 4,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Pure Sinners": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Rae Stacks": {
+      "campaigns": 8,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Rami Pearlman": {
+      "campaigns": 8,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Ravenscoon": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Reece Rosé": {
+      "campaigns": 9,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Riddim Network": {
+      "campaigns": 7,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Riddim Network,Rude Noise": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Right Call": {
+      "campaigns": 4,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Roda Artists": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Roman Ray": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "SHAPESHFTR": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "SQISHI": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Savage Roar": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Segan": {
+      "campaigns": 6,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Shalizi Group": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Simone Elisa": {
+      "campaigns": 8,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Sophy Winter": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Space Yacht LLC": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Squired": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Squirrely Bass": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Star Williams + PatrickReza": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Strobez": {
+      "campaigns": 7,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Sunni D": {
+      "campaigns": 8,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Sunny Side Up": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "TGUT": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "TMRRW": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "TYPHON": {
+      "campaigns": 6,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "The Big Blind": {
+      "campaigns": 6,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Thursday Cigs": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Tonal": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Traveler": {
+      "campaigns": 16,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Trenton": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "VRG": {
+      "campaigns": 6,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Velvet Era": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Violet Arrow LLC": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "WHYNOTUS": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Welcome Records": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Wenzday": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Xarobaby": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "YZENIA": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Zachary": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Zealr": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "Zovah": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "boat house": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "dack janiels": {
+      "campaigns": 13,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "dack janiels,Atlantic": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "dead weight": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "disgo": {
+      "campaigns": 3,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "illadelph": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "mother.": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "nik p": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "shaun": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "wiley": {
+      "campaigns": 2,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    },
+    "zimoh": {
+      "campaigns": 1,
+      "roster_songs_found": 0,
+      "matched_songs": 0,
+      "status": "no_roster_songs"
+    }
+  }
+}

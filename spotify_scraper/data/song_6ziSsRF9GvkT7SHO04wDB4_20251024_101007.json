@@ -1,0 +1,214 @@
+{
+  "url": "https://artists.spotify.com/c/artist/5AS6c56mjqwIGujc81FTVh/song/6ziSsRF9GvkT7SHO04wDB4/stats",
+  "scraped_at": "2025-10-24T10:09:36.480272",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "108",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "108"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "40"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,436",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "431",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "385",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "327",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "122",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "112",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "57",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Lil bit of everything",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Mar 17, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "The List",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Jan 6, 2024"
+          },
+          {
+            "rank": "10",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "HyperRock",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Jan 27, 2024"
+          },
+          {
+            "rank": "12",
+            "name": "This Is Kazi",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "myFavoriteSongs",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jan 17, 2024"
+          },
+          {
+            "rank": "16",
+            "name": "Marathon 🏃‍♂️",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Feb 4, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "590"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

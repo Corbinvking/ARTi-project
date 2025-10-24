@@ -1,0 +1,139 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0UcCuYO0BxHn8HZjDF4tSB/song/7JfczG2numKWUEj1KvHDAu/stats",
+  "scraped_at": "2025-10-24T10:05:14.480535",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Trancewave ⚡Trance Trap",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Apr 13, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "Downtempo Space Bass/Dub👽",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 1, 2024"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "26"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Trancewave ⚡Trance Trap",
+            "made_by": "—",
+            "streams": "219",
+            "date_added": "Apr 13, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "131",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "58",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Downtempo Space Bass/Dub👽",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Jun 1, 2024"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "28",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Music 4 cats",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 5, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "9",
+          "total": "175"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

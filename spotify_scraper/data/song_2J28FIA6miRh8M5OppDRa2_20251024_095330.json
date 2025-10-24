@@ -1,0 +1,174 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/2J28FIA6miRh8M5OppDRa2/stats",
+  "scraped_at": "2025-10-24T09:53:00.430039",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "EDM | Heavy Dubstep",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 12, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "81"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "EDM | Heavy Dubstep",
+            "made_by": "—",
+            "streams": "187",
+            "date_added": "Jul 12, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "113",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "81",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "71",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "love brain heart control",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Jul 26, 2024"
+          },
+          {
+            "rank": "6",
+            "name": "Ha Ha He Hu",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Jul 31, 2024"
+          },
+          {
+            "rank": "7",
+            "name": "BEST PHONK OF ALL TIME😈",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Aug 22, 2024"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Dubstep Headbangers 🔥",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Jul 16, 2024"
+          },
+          {
+            "rank": "10",
+            "name": "HEAVY",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Nov 27, 2024"
+          },
+          {
+            "rank": "11",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Phonk for the strongest battlegrounds👾🕹️🎮",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 5, 2024"
+          },
+          {
+            "rank": "14",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "A (edited)",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 16, 2024"
+          },
+          {
+            "rank": "16",
+            "name": "LVsu2",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 14, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "603"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

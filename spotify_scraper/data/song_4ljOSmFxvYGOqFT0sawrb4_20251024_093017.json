@@ -1,0 +1,235 @@
+{
+  "url": "https://artists.spotify.com/c/artist/150jtRwN0MU5qRxkhKnzNm/song/4ljOSmFxvYGOqFT0sawrb4/stats",
+  "scraped_at": "2025-10-24T09:29:48.493886",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "193",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Animestep",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Mar 5, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "44"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "39",
+            "date_added": "Aug 8, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "18"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "andai kutahu kan sesakit ini",
+            "made_by": "—",
+            "streams": "7,137",
+            "date_added": "Apr 17, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "6,170",
+            "date_added": "Apr 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BGC Nights",
+            "made_by": "—",
+            "streams": "2,081",
+            "date_added": "May 13, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "1,953",
+            "date_added": "Mar 19, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "1,558",
+            "date_added": "Feb 28, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "TikTok Car Vibes 2025 🚗🎶🔥 – Viral Driving Songs",
+            "made_by": "—",
+            "streams": "1,110",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "937",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "571",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "473",
+            "date_added": "Feb 28, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "422",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "327",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Animestep",
+            "made_by": "—",
+            "streams": "215",
+            "date_added": "Mar 5, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "55",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Real 🔱",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Apr 17, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Future Bass / Melodic Dubstep / Chill Rave EDM 2025",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Mar 1, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Summer Hits y 2025 | Best House, EDM & Poolside Vibes",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Mar 4, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "23",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Beatport Best New Trap / Future Bass",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Mar 4, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "This Is CRaymak",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "22",
+          "total": "238"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,431 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2hOfHZBtepEZA6tGw29Nue/song/1VdlKfR7L0oYejQgS0cLEr/stats",
+  "scraped_at": "2025-10-24T09:26:24.390832",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "337",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "272",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "EUROSUMMER |🫀🪩",
+            "made_by": "—",
+            "streams": "208",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "115",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Hed Kandi Classics | 1990-2002",
+            "made_by": "—",
+            "streams": "89",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Sunset Brasil 2025",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "House / Tech House",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Sep 28, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Ibiza Calling 🏖️",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Sep 6, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "House Miami 2025",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Aug 11, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Verão no Rio - Ully",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Sep 1, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "115"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Ibiza Calling 🏖️",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 6, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "41"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dance anos 90 e 2000 - CLÁSSICOS",
+            "made_by": "—",
+            "streams": "5,576",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "IBIZA TECHNO HOUSE 2025 ⚡️",
+            "made_by": "—",
+            "streams": "4,761",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "INTERNACIONAL DAS ANTIGAS (ANOS 80 e 90)",
+            "made_by": "—",
+            "streams": "2,199",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Electrónica 2010-2016",
+            "made_by": "—",
+            "streams": "2,045",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Brasilidades remix 🇧🇷🌴🎧",
+            "made_by": "—",
+            "streams": "1,903",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "MUSIC ON  🔰 IBIZA 2025",
+            "made_by": "—",
+            "streams": "1,557",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "FLASH BACK - DANCE ANTIGOS 📀 | CLÁSSICAS",
+            "made_by": "—",
+            "streams": "1,548",
+            "date_added": "Jun 6, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,071",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "DJ Remix tiktok",
+            "made_by": "—",
+            "streams": "880",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "EUROSUMMER |🫀🪩",
+            "made_by": "—",
+            "streams": "795",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Hed Kandi Classics | 1990-2002",
+            "made_by": "—",
+            "streams": "753",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Época dorada ⚜️ EDM/POP",
+            "made_by": "—",
+            "streams": "292",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Sunset Brasil 2025",
+            "made_by": "—",
+            "streams": "147",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "ADIDAS Runners 2025",
+            "made_by": "—",
+            "streams": "146",
+            "date_added": "Aug 27, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "68",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "House Miami 2025",
+            "made_by": "—",
+            "streams": "57",
+            "date_added": "Aug 11, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "57",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Ibiza Calling 🏖️",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Verão no Rio - Ully",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Sep 1, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "leto v usich",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "HOUSE TIME",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jul 29, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "QUEEZA",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "😎",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "House / Tech House",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Sep 28, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "$EDM Exchange",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "MEXICO BABY🇲🇽",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "House collab",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jul 31, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "32",
+            "name": "ARC 2025 Sunday",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Aug 23, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "34",
+            "name": "Ibiza 2025",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Aug 7, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "INCREDIBILE!",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "🥃🌴JOUSE🌴🥃",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "37",
+          "total": "302"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

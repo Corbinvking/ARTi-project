@@ -1,0 +1,195 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4akLvvJyLbJxlbpSXHTLvT/song/2I7dkDYaHidznvwaX5LcDu/stats",
+  "scraped_at": "2025-10-24T09:42:06.466851",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "83"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "10,102",
+            "date_added": "Mar 8, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "3,454",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,567",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "377",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "323",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "229",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "186",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "CHAOS DUBSTEP",
+            "made_by": "—",
+            "streams": "174",
+            "date_added": "Jun 4, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "52",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "This Is Dubloadz",
+            "made_by": "Spotify",
+            "streams": "42",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "28",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Wubby Trippy Bass 🍄",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Feb 28, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "New Dance Music Friday, New Music Friday Dance 2025",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Feb 28, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "This is NOT music!!!",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Feb 28, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "RECENTLY RELEASED FIRE | 2025.10.03 | SKRILLEX x ISOXO, VERSA, BROKEN HEARTED REMIXES, ANTAGONISTS",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Feb 27, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Wubs n Dubs",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 5, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "TON RADAAR DES SORTIES - new music friday",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Feb 28, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "18",
+          "total": "515"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

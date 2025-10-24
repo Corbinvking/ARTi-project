@@ -1,0 +1,237 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/0QfrgIGuB8ufTN0Pls4aAM/stats",
+  "scraped_at": "2025-10-24T09:49:48.808629",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "249",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "68"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "13,756",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "6,448",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Bass.🚬",
+            "made_by": "—",
+            "streams": "4,136",
+            "date_added": "Apr 18, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "3,413",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "2,779",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,800",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "1,066",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "TikTok Car Vibes 2025 🚗🎶🔥 – Viral Driving Songs",
+            "made_by": "—",
+            "streams": "814",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "719",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "227",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "214",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "123",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "115",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "113",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "87",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Dub ⚠️☣️☢️",
+            "made_by": "—",
+            "streams": "79",
+            "date_added": "Apr 16, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "18",
+            "name": "Graveyard Shift",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "17",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "EvaraveduB",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Elciro's great playlist",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Apr 12, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "21",
+          "total": "676"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,928 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0cF121Uo22slYVIvyft0Eh/song/14gAUipxkzzgzwl1XLJLKM/stats",
+  "scraped_at": "2025-10-24T09:28:40.308518",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "582",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "503",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "340",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "RIDDIM 2025",
+            "made_by": "—",
+            "streams": "321",
+            "date_added": "Feb 3, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Crankdat Get Cranked 2025 Tour",
+            "made_by": "—",
+            "streams": "277",
+            "date_added": "Mar 17, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "riddim choppy chops",
+            "made_by": "—",
+            "streams": "187",
+            "date_added": "Jan 19, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Apocalypse: Zombieland 2025 Official Playlist",
+            "made_by": "—",
+            "streams": "149",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "132",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "54",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "SONGS FOR WHEN 100% IS NOT ENOUGH - BY TOXSYCK",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "43",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Lost Lands - Riddim",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Tearout / Riddim. 🔥☠️",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jan 27, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "riddim hours",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Heavy Dubstep & Riddim 2025",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 25, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "17",
+          "total": "563"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "276",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "225",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "170",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Crankdat Get Cranked 2025 Tour",
+            "made_by": "—",
+            "streams": "115",
+            "date_added": "Mar 17, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "RIDDIM 2025",
+            "made_by": "—",
+            "streams": "63",
+            "date_added": "Feb 3, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "54",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Apocalypse: Zombieland 2025 Official Playlist",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "riddim choppy chops",
+            "made_by": "—",
+            "streams": "42",
+            "date_added": "Jan 19, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "SONGS FOR WHEN 100% IS NOT ENOUGH - BY TOXSYCK",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Apr 12, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "12",
+          "total": "228"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dubstep DonPersonalized",
+            "made_by": "Spotify",
+            "streams": "21,170",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "15,058",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "10,581",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "8,761",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "RIDDIM 2025",
+            "made_by": "—",
+            "streams": "6,848",
+            "date_added": "Feb 3, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3,286",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "2,226",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,870",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,517",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "BREAKAWAY TAMPA 2025",
+            "made_by": "—",
+            "streams": "1,236",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "riddim choppy chops",
+            "made_by": "—",
+            "streams": "944",
+            "date_added": "Jan 19, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "591",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Crankdat Get Cranked 2025 Tour",
+            "made_by": "—",
+            "streams": "587",
+            "date_added": "Mar 17, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "472",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "SONGS FOR WHEN 100% IS NOT ENOUGH - BY TOXSYCK",
+            "made_by": "—",
+            "streams": "354",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "316",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Apocalypse: Zombieland 2025 Official Playlist",
+            "made_by": "—",
+            "streams": "300",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Breakaway Tampa 2025",
+            "made_by": "—",
+            "streams": "239",
+            "date_added": "Feb 3, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "North Coast 2025 SATURDAY",
+            "made_by": "—",
+            "streams": "231",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Beatport Best New Dubstep",
+            "made_by": "—",
+            "streams": "188",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "breakaway tampa 2025 (friday)👯🪩🎉",
+            "made_by": "—",
+            "streams": "178",
+            "date_added": "Feb 1, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Dubstep Bangers 🔥",
+            "made_by": "—",
+            "streams": "172",
+            "date_added": "Feb 17, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "HEAVY BASS SHIT !",
+            "made_by": "—",
+            "streams": "107",
+            "date_added": "Feb 19, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "99",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "25",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "98",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "75",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "66",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "ATLIENS - BE YOUR GHOST (CELO REMIX)",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "GYMVMT 138",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Apr 22, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "breakaway tampa 2025",
+            "made_by": "—",
+            "streams": "57",
+            "date_added": "Feb 23, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "EDM: Workout Dubstep Mix",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Tearout / Riddim. 🔥☠️",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Jan 27, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "47",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "34",
+            "name": "BREAKAWAY",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Mar 4, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Dubs, Wubs, Bo Cho's, and Yuts",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Jan 21, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "Riddim Church",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Feb 14, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "EDM Heaven",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Feb 5, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Top Lane Experience",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Jan 18, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "Dropped in the pit",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Feb 6, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "This Is Kozmoz",
+            "made_by": "Spotify",
+            "streams": "23",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "41",
+            "name": "Hard wubs 2.0 👹",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Jan 20, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "EDM MIX ALL GENRZ",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Mar 7, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "Heavy Dubstep & Riddim 2025",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "öyhötystä",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Feb 26, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Guaranteed Bass Face",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jan 19, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "WOMP WOMP",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jan 23, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "GYMVMT 132",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Feb 20, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "Breakaway 2025",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "HDBNGRS",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jan 18, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "Beatport Top 100 Dubstep Tracks (Auto Generated)",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jan 19, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "Blow for Breakaway?",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Feb 13, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "2025 edm",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "May 31, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "tampa breakaway day 1",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Feb 4, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "Boom boom",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Feb 10, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "Electro",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Apr 9, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "RIDDIM,BASS,DUBSTEP,DEATHSTEP",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jul 16, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "TON RADAAR DES SORTIES - new music friday",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "house 🏠",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Feb 1, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "Where’d you find this?",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Feb 18, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "ANGRY DUBSTEP ◉ Aggressive | Energetic | Hard AF | Dancefloor Dubstep",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jan 24, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "୧ ˚ ˖ wubz ‧☆",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "Rampage 2025 🔊🍺",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "Lost Lands - Riddim",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "🔥RIDDIM☢️☣️DUBSTEP👽",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jan 29, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "Ape shit 🦧",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "tsts",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Apr 7, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "The Dub Rebellion 2025",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jan 22, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "Dubstep Soldiers",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Apr 13, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "dj! come with a chune!",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Feb 18, 2025"
+          },
+          {
+            "rank": "70",
+            "name": "The Soup",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 20, 2025"
+          },
+          {
+            "rank": "71",
+            "name": "Kirchdorfer BurschenBus",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Feb 9, 2025"
+          },
+          {
+            "rank": "72",
+            "name": "Meli’s MDMA 💊",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Feb 18, 2025"
+          },
+          {
+            "rank": "73",
+            "name": "1.30.2025",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jan 28, 2025"
+          },
+          {
+            "rank": "74",
+            "name": "| RIDDIM/TEAROUT |",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "75",
+            "name": "Apocalypse Fest 2025🧟‍♂️",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 28, 2025"
+          },
+          {
+            "rank": "76",
+            "name": "SHAQramento",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "77",
+            "name": "SMOOTH BRAIN BANGERS",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Feb 24, 2025"
+          },
+          {
+            "rank": "78",
+            "name": "Pretty Sweet Dubs & Wubs",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jan 19, 2025"
+          },
+          {
+            "rank": "79",
+            "name": "Gross riddim to hide from your mom",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Mar 21, 2025"
+          },
+          {
+            "rank": "80",
+            "name": "Metallica Dubstep",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Apr 8, 2025"
+          },
+          {
+            "rank": "81",
+            "name": "riddim hours",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "82",
+            "name": "SQUIRTS BREAKAWAY",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "83",
+            "name": "Apocalypse Zombieland 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 29, 2025"
+          },
+          {
+            "rank": "84",
+            "name": "breakaway tampa 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "85",
+            "name": "👾🌱HeadBang👽👻",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Feb 7, 2025"
+          },
+          {
+            "rank": "86",
+            "name": "Rail Breaker 🥴",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jan 21, 2025"
+          },
+          {
+            "rank": "87",
+            "name": "HEAVY BASS WORKOUT",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 17, 2025"
+          },
+          {
+            "rank": "88",
+            "name": "Vaping",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Feb 19, 2025"
+          },
+          {
+            "rank": "89",
+            "name": "EDM Bass Music (Best of 2025)",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "90",
+            "name": "Breakaway 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 22, 2025"
+          },
+          {
+            "rank": "91",
+            "name": "EDM",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jan 18, 2025"
+          },
+          {
+            "rank": "92",
+            "name": "EDM: New 2025 Dance Music Releases",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jan 17, 2025"
+          },
+          {
+            "rank": "93",
+            "name": "MURDER",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Mar 26, 2025"
+          },
+          {
+            "rank": "94",
+            "name": "riddim⚔️💀",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Apr 10, 2025"
+          },
+          {
+            "rank": "95",
+            "name": "𝐑𝐈𝐃𝐃𝐈𝐌 𝐍𝐎𝐓 𝐑𝐇𝐘𝐓𝐇𝐌",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 7, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "95",
+          "total": "2,712"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

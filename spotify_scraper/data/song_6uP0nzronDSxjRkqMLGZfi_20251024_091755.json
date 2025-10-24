@@ -1,0 +1,305 @@
+{
+  "url": "https://artists.spotify.com/c/artist/34RzVO4RIxNjAq5VHJhWSp/song/6uP0nzronDSxjRkqMLGZfi/stats",
+  "scraped_at": "2025-10-24T09:17:25.746705",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "2,029",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,145",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "PLAYLIST PARA ARRUMAR A CASA",
+            "made_by": "—",
+            "streams": "523",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Late Night Ride🌃",
+            "made_by": "—",
+            "streams": "288",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "amoy red flag na expensive na rich na conyo na matangkad na pogi na may tattoo sleeve",
+            "made_by": "—",
+            "streams": "248",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "243",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Drake, Frank Ocean, PND, Brent Faiyaz, Bryson Tiller, SZA",
+            "made_by": "—",
+            "streams": "233",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "208",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "194",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "132",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "DRAKE SÓ AS MELHORES 💸",
+            "made_by": "—",
+            "streams": "111",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Kabobble Wobble",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 15, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "141"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "202",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "56"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "3,464",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,417",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "2,029",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "PLAYLIST PARA ARRUMAR A CASA",
+            "made_by": "—",
+            "streams": "715",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "437",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Late Night Ride🌃",
+            "made_by": "—",
+            "streams": "393",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "amoy red flag na expensive na rich na conyo na matangkad na pogi na may tattoo sleeve",
+            "made_by": "—",
+            "streams": "373",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Drake, Frank Ocean, PND, Brent Faiyaz, Bryson Tiller, SZA",
+            "made_by": "—",
+            "streams": "329",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "324",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "DRAKE SÓ AS MELHORES 💸",
+            "made_by": "—",
+            "streams": "202",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "197",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "21",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Kabobble Wobble",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Sep 15, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Dance Pop 2025",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Sep 11, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "16",
+          "total": "162"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4ZCjRDyNxVEfH7N2ckVRcO/song/506q2RBKpGwTrep4KmyypS/stats",
+  "scraped_at": "2025-10-24T09:47:36.324760",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "82"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "5, 4, 3 (Pretty Woman) (feat. Lay Bankz) - S.COUPS X MINGYU",
+            "made_by": "—",
+            "streams": "38,140",
+            "date_added": "Jan 7, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "ADELE - AS MELHORES",
+            "made_by": "—",
+            "streams": "27,670",
+            "date_added": "Jan 8, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Beyoncé Antigas (Melhores)",
+            "made_by": "—",
+            "streams": "20,231",
+            "date_added": "Jan 8, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "EYES CLOSED - JISOO, ZAYN",
+            "made_by": "—",
+            "streams": "12,989",
+            "date_added": "Jan 7, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Ariana Grande as melhores",
+            "made_by": "—",
+            "streams": "4,258",
+            "date_added": "Jan 8, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "DO IT - Stray Kids",
+            "made_by": "—",
+            "streams": "2,114",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,494",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "☾ the most beautiful songs I’ve ever heard",
+            "made_by": "—",
+            "streams": "1,049",
+            "date_added": "Jan 7, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "1,023",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "WE GO UP - BABYMONSTER",
+            "made_by": "—",
+            "streams": "919",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "EMPODERAMENTO FEMININO",
+            "made_by": "—",
+            "streams": "796",
+            "date_added": "Jan 8, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Folklore (Taylor's Version)",
+            "made_by": "—",
+            "streams": "739",
+            "date_added": "Jan 8, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "SPAGHETTI - J-HOPE X BTS",
+            "made_by": "—",
+            "streams": "498",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "298",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "284",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "263",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "SPAGHETTI - LE SSERAFIM, J-HOPE",
+            "made_by": "—",
+            "streams": "242",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "122",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "97",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "64",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "31",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "WAggi WCS Mix 2025",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jan 31, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "23",
+          "total": "606"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

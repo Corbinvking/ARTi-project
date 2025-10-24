@@ -1,0 +1,690 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0cF121Uo22slYVIvyft0Eh/song/54vPWq7mkRQDnSBclBH5S9/stats",
+  "scraped_at": "2025-10-24T09:27:29.970327",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "566",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Crankdat Get Cranked 2025 Tour",
+            "made_by": "—",
+            "streams": "285",
+            "date_added": "Mar 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "115",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "75",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "24",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Feb 24, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "BEST OF BASS 2025",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "This Is RZRKT",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Leaders Of The Pack 🐺 DUBSTEP, HYBRID TRAP, FUTURE BASS, HIGH ENERGY Tracks To Elevate Your Day",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 25, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "HEAVY TEAROUT 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Mar 4, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "ATLIENS - BE YOUR GHOST (CELO REMIX)",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "TEAROUT/DUBSTEP/DEATHSTEP",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Feb 22, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "🪐 BASS CANYON 2025 ✨",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 8, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "NEW BASS MUSIC 2025",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Feb 22, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "411"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "189",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Crankdat Get Cranked 2025 Tour",
+            "made_by": "—",
+            "streams": "111",
+            "date_added": "Mar 17, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "This Is RZRKT",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Feb 24, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "138"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "18,392",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "BEST DUBSTEP OF ALL TIME",
+            "made_by": "—",
+            "streams": "15,921",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "10,202",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "4,709",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Bass.🚬",
+            "made_by": "—",
+            "streams": "3,633",
+            "date_added": "Feb 22, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "1,315",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Crankdat Get Cranked 2025 Tour",
+            "made_by": "—",
+            "streams": "595",
+            "date_added": "Mar 17, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Heavy Workout EDM",
+            "made_by": "—",
+            "streams": "550",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "465",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "443",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Heavy bass EDM bangers",
+            "made_by": "—",
+            "streams": "387",
+            "date_added": "Feb 24, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "336",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "This Is RZRKT",
+            "made_by": "Spotify",
+            "streams": "242",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "🪐 BASS CANYON 2025 ✨",
+            "made_by": "—",
+            "streams": "236",
+            "date_added": "Jun 8, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "BEST OF BASS 2025",
+            "made_by": "—",
+            "streams": "197",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "HEAVY TEAROUT 2025",
+            "made_by": "—",
+            "streams": "168",
+            "date_added": "Mar 4, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "162",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "161",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "HEAVY BASS SHIT !",
+            "made_by": "—",
+            "streams": "107",
+            "date_added": "Feb 22, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Leaders Of The Pack 🐺 DUBSTEP, HYBRID TRAP, FUTURE BASS, HIGH ENERGY Tracks To Elevate Your Day",
+            "made_by": "—",
+            "streams": "99",
+            "date_added": "May 25, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "82",
+            "date_added": "Feb 22, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "NEW BASS MUSIC 2025",
+            "made_by": "—",
+            "streams": "65",
+            "date_added": "Feb 22, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "ATLIENS - BE YOUR GHOST (CELO REMIX)",
+            "made_by": "—",
+            "streams": "53",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Dubstep Slappers",
+            "made_by": "—",
+            "streams": "50",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "A raver’s life 💯🔥",
+            "made_by": "—",
+            "streams": "48",
+            "date_added": "Feb 28, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Shaq’s Bass All-stars PHX 2025⭐️",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "EDC Las Vegas 2025 - Basspod",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Mar 24, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "29",
+            "name": "TEAROUT/DUBSTEP/DEATHSTEP",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Feb 22, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "🫡",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Feb 23, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "GOTTA GO FAST",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Apr 7, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Bangers",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Mar 13, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "GYM HEADBANGERS❤️‍🔥",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Mar 2, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "Dubstep",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Feb 24, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Nephtanica's  EDM Playlist  2025",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Mar 4, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "🔥 Dubstep Energy 🔥",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Feb 24, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "baddies dubstep to LA",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Feb 28, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "39",
+            "name": "hard technooooo",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "NCMF 2025",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 29, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "537.",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Feb 23, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "WORKOUT PUMP RAP/EDM",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Feb 26, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "44",
+            "name": "A Bump Vol. 3",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Mar 23, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Blacklistfestival Dubstep, Gym, Car",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Mar 17, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "It’s that time 🤫",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Feb 22, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "Chaos Will Bring Peace Tour 2025 Day 1",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Mar 3, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "JUICY HITTERS",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Feb 22, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "Reggie Rock Star",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jun 22, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "BEYOND WONDERLAND 2025",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jun 7, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "DFT 2025",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Mar 21, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "Baddies in Vegas",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "RIDDIM,BASS,DUBSTEP,DEATHSTEP",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jul 16, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "Bass",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "Weird Bass III: Odd Vibrations",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "SHAQramento",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "tsts",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Apr 7, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "BASS FRENZY",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Apr 21, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "Paige’s EDCLV 2025 Playlist🎆",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Feb 25, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "Wubz 🫠",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Mar 7, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "breakaway tampa 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "| RIDDIM/TEAROUT |",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "𝐑𝐈𝐃𝐃𝐈𝐌 𝐍𝐎𝐓 𝐑𝐇𝐘𝐓𝐇𝐌",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "Club Thomas | Trap, Bass, & Womp Womp Music",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "New Songs Deux",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "Jessica’s dancefest",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Mar 7, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "EDC25’🔥",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "BREAKAWAY 2025",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "Breakaway TPA 2025",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 23, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "69",
+          "total": "2,135"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

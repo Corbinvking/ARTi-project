@@ -1,0 +1,193 @@
+{
+  "url": "https://artists.spotify.com/c/artist/78HrnPZloRq7o90YDlygXv/song/3VzVU8zjBXF5Voejy6Dzej/stats",
+  "scraped_at": "2025-10-24T10:10:42.668055",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "hot girls thrist trap",
+            "made_by": "—",
+            "streams": "394",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "54",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "47"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "hot girls thrist trap",
+            "made_by": "—",
+            "streams": "90",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "18",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "12"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HOT playlist 🔥",
+            "made_by": "—",
+            "streams": "7,038",
+            "date_added": "Mar 10, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5,161",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "pov: youre a filipino thirst trapping",
+            "made_by": "—",
+            "streams": "3,386",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "hot girls thrist trap",
+            "made_by": "—",
+            "streams": "2,539",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "babaeng nag thirst trap randomly sa harap ng hangin",
+            "made_by": "—",
+            "streams": "1,288",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "ALL  Juice WRLD Songs🧃🌎 w/ UNRELEASED & LEAKS 100hrs+",
+            "made_by": "—",
+            "streams": "1,009",
+            "date_added": "Feb 15, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "212",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "80",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "63",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "PICK UP THE PHONE, Pt. 2",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Feb 23, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "This Is Khi Lo",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "MARIA J 203",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jul 11, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "ALL  Juice WRLD Songs🧃🌎 w/ UNRELEASED & LEAKS 100hrs+",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Feb 25, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "280"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

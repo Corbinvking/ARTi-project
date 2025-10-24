@@ -1,0 +1,270 @@
+{
+  "url": "https://artists.spotify.com/c/artist/3nkApPk39ekjlyilodddaV/song/10v9kJRppLzyuCmpzY5rUu/stats",
+  "scraped_at": "2025-10-24T09:56:20.734449",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DJ PLAT KT VIRAL TIKTOK🤩🤙🏼",
+            "made_by": "—",
+            "streams": "537",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DJ BRUTAL ATTACK ⁉️",
+            "made_by": "—",
+            "streams": "425",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "107",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "63",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "51"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DJ PLAT KT VIRAL TIKTOK🤩🤙🏼",
+            "made_by": "—",
+            "streams": "140",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DJ BRUTAL ATTACK ⁉️",
+            "made_by": "—",
+            "streams": "112",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "28",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "20"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "6,566",
+            "date_added": "May 14, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "DJ PLAT KT VIRAL TIKTOK🤩🤙🏼",
+            "made_by": "—",
+            "streams": "4,596",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "3,907",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "DJ BRUTAL ATTACK ⁉️",
+            "made_by": "—",
+            "streams": "3,285",
+            "date_added": "Jun 10, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "WORKOUT ANJG HARUS SEMANGAT",
+            "made_by": "—",
+            "streams": "3,083",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,880",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "TikTok Car Vibes 2025 🚗🎶🔥 – Viral Driving Songs",
+            "made_by": "—",
+            "streams": "962",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "902",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "564",
+            "date_added": "Apr 11, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "326",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "303",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "258",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "92",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "65",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "26",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "RIP & TEAR",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "18",
+          "total": "265"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

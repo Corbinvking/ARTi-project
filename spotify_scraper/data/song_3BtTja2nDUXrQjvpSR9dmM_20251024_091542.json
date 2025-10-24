@@ -1,0 +1,270 @@
+{
+  "url": "https://artists.spotify.com/c/artist/3KZyyx2FXo5QamvxVuutg0/song/3BtTja2nDUXrQjvpSR9dmM/stats",
+  "scraped_at": "2025-10-24T09:15:12.328751",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Musicas de Academia 2025 (Atualizada Cada Semana) - Musicas para Malhar",
+            "made_by": "—",
+            "streams": "241",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "96",
+            "date_added": "May 23, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Les Mills Bodypump 2025",
+            "made_by": "—",
+            "streams": "51",
+            "date_added": "Sep 15, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "SOUL CYCLE 2025 - Cycling Music 2025",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "High Intensity Workout 2025 (HIIT Workout 2025) Intense Cardio Workout 2025",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Sep 26, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "32"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Musicas de Academia 2025 (Atualizada Cada Semana) - Musicas para Malhar",
+            "made_by": "—",
+            "streams": "66",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "May 23, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Les Mills Bodypump 2025",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "SOUL CYCLE 2025 - Cycling Music 2025",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "High Intensity Workout 2025 (HIIT Workout 2025) Intense Cardio Workout 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 16, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "6",
+          "total": "20"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "GYM - TEMAZOS MOTIVACION 2025",
+            "made_by": "—",
+            "streams": "7,474",
+            "date_added": "Jun 25, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Musicas de Academia 2025 (Atualizada Cada Semana) - Musicas para Malhar",
+            "made_by": "—",
+            "streams": "4,058",
+            "date_added": "Mar 14, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "SOUL CYCLE 2025 - Cycling Music 2025",
+            "made_by": "—",
+            "streams": "1,789",
+            "date_added": "Mar 14, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "1,780",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Tiktok Football Edits 🎶 ⚽",
+            "made_by": "—",
+            "streams": "1,237",
+            "date_added": "May 23, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Les Mills Bodypump 2025",
+            "made_by": "—",
+            "streams": "1,070",
+            "date_added": "Mar 14, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "High Intensity Workout 2025 (HIIT Workout 2025) Intense Cardio Workout 2025",
+            "made_by": "—",
+            "streams": "673",
+            "date_added": "Mar 14, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "EDM Festival Songs 2025 🌍🎶",
+            "made_by": "—",
+            "streams": "595",
+            "date_added": "May 23, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Summer 🌻",
+            "made_by": "—",
+            "streams": "39",
+            "date_added": "Jul 10, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "New Music Friday Dance | All New Dance",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Mar 8, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "🏎️ GLXY GPX 🏎️ Hyper Gen Bass, Speed of Light Dance, Future Tracks to Drive Your Day",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "May 7, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Obwód 2",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Mar 31, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "CAR MUSIC 🚘 ⚡️ Spin Cycle Upbeat Mix",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Mar 31, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": ",",
+          "total": ","
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

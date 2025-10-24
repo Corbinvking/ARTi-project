@@ -1,0 +1,160 @@
+{
+  "url": "https://artists.spotify.com/c/artist/3n6rEIsXaZUnbAGpA4H3sE/song/5duvUei9us2DdsOW27sZ2M/stats",
+  "scraped_at": "2025-10-24T09:41:01.496785",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HOT playlist 🔥",
+            "made_by": "—",
+            "streams": "1,369",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "hot girls thrist trap",
+            "made_by": "—",
+            "streams": "193",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "4",
+          "total": "106"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "inggris tiktok viral song",
+            "made_by": "—",
+            "streams": "10,103",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "HOT playlist 🔥",
+            "made_by": "—",
+            "streams": "9,747",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "3,471",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "2,941",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "hot girls thrist trap",
+            "made_by": "—",
+            "streams": "2,377",
+            "date_added": "Jul 2, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "babaeng nag thirst trap randomly sa harap ng hangin",
+            "made_by": "—",
+            "streams": "939",
+            "date_added": "Jun 27, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "546",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "386",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "63",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "22",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "11",
+          "total": "280"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

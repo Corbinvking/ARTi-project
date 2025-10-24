@@ -1,0 +1,1495 @@
+{
+  "url": "https://artists.spotify.com/c/artist/59Yq0xrABEihHANsfo9QMT/song/6wrfjapgdCBiKvLDuqJKTW/stats",
+  "scraped_at": "2025-10-24T09:19:36.984390",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "26,426",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "5,817",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3,829",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "3,447",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "2,193",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Bass LoungePersonalized",
+            "made_by": "Spotify",
+            "streams": "1,911",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "1,805",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,188",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "1,005",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Calvin Harris - As Melhores",
+            "made_by": "—",
+            "streams": "898",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "sad emo-EDM for sad ppl 💔",
+            "made_by": "—",
+            "streams": "645",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "526",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Top EDM: Progressive House 💫",
+            "made_by": "—",
+            "streams": "367",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "This Is Blanke",
+            "made_by": "Spotify",
+            "streams": "218",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "94",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "Melodic Dubstep 2025",
+            "made_by": "—",
+            "streams": "68",
+            "date_added": "Aug 11, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Proximity",
+            "made_by": "—",
+            "streams": "60",
+            "date_added": "Sep 19, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "EDM  | Music for Gaming  |  Streaming 🎧🎶",
+            "made_by": "—",
+            "streams": "51",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "46",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Zeepeye Playlist",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Sad Beats",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Melodic Bass/Melodic Dupstep",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "STUTTER EDM HOUSE💥",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "36",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "25",
+            "name": "MAGICAL",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "This Is Linney",
+            "made_by": "Spotify",
+            "streams": "30",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "EDM  to fall in love ✨❤️",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Sep 14, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "blankelist",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "Blanke: The Complete Discography",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Progressive House Friday",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "Narnia",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "P.R.O.G. (@crunchysimplest)",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Fall EDM 2025",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "Best Chill EDM 2025",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "Melodic Bass",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "edm",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "Jul 27, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Ember Shores 2025 LFGGGG",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "dope bombs.",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "Lost In Dreams Selects",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "Sad EDM 💔 Sad Music to Cry and Dance To",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "New Future Bass 2025",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "Black List",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "🙌 Melodic Bangers 🔊",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "Good Vibez",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "melodic edm",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Man I Need Remix Lost Kings",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Sep 22, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "Gaming Power Melodic EDM Playlist 2025",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "New Electronic Music",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "EDM Cry Bangers",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Aug 25, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "MELODIC CHILL EDM",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "BOUNCE",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "Extended Euphoric Progressive Big Room",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 14, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "edm songs to crybang to",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "55",
+            "name": "ravebae",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 12, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "Chill / Dubstep / Chillstep / Trance / Electronic / Psytrance / Melodic dubstep / EDM",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 25, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "💫",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "The Feralness Continues in 2025 👹",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "SLANDER Voyager Tour",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Oct 1, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "VOYAGER",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "Lifting All The Feels",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "NEW EDM 2025 | EDM RELEASE RADAR FRIDAY",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "[] 10.12",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 12, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "❤️Melodic & Dubstep2025❤️",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "Escape Psycho Circus 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "Ultimate Vocal/Upbeat EDM Playlist",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 8, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "errr eee bom bom dun dun",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "Melodic Dubstep| Female Vocals| Chillstep | Future Bass",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 2, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "68",
+          "total": "5,293"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "6,401",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,581",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "985",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "944",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "453",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Bass LoungePersonalized",
+            "made_by": "Spotify",
+            "streams": "430",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "297",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "244",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "207",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "sad emo-EDM for sad ppl 💔",
+            "made_by": "—",
+            "streams": "135",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "135",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Calvin Harris - As Melhores",
+            "made_by": "—",
+            "streams": "133",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "Top EDM: Progressive House 💫",
+            "made_by": "—",
+            "streams": "84",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "This Is Blanke",
+            "made_by": "Spotify",
+            "streams": "65",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Melodic Dubstep 2025",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Aug 11, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "EDM  | Music for Gaming  |  Streaming 🎧🎶",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Zeepeye Playlist",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Sad Beats",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Melodic Bass/Melodic Dupstep",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "EDM  to fall in love ✨❤️",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Sep 14, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "STUTTER EDM HOUSE💥",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Progressive House Friday",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Black List",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Melodic Bass",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Oct 3, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "This Is Linney",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "29",
+            "name": "Best Chill EDM 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Sep 16, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Blanke: The Complete Discography",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "New Electronic Music",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "EDM Cry Bangers",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Aug 25, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "New Future Bass 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "melodic edm",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "🙌 Melodic Bangers 🔊",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "blankelist",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "NEW EDM 2025 | EDM RELEASE RADAR FRIDAY",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "MELODIC CHILL EDM",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jul 20, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "38",
+          "total": "2,110"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "85,900",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "79,462",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "43,658",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Bass LoungePersonalized",
+            "made_by": "Spotify",
+            "streams": "25,071",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Morning Energy Boost 🌞 Happy Vibes & Energizing Mood 2025",
+            "made_by": "—",
+            "streams": "15,437",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "David Guetta - As Melhores",
+            "made_by": "—",
+            "streams": "12,706",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "12,560",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "11,158",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "10,685",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Avicii, Calvin Harris, David Guetta, Alok",
+            "made_by": "—",
+            "streams": "7,168",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "David Guetta Playlist",
+            "made_by": "—",
+            "streams": "5,386",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "This Is Blanke",
+            "made_by": "Spotify",
+            "streams": "5,011",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "3,818",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Calvin Harris - As Melhores",
+            "made_by": "—",
+            "streams": "3,324",
+            "date_added": "Jul 22, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "All New DancePersonalized",
+            "made_by": "Spotify",
+            "streams": "2,068",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "1,543",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Melodic Techno 2025",
+            "made_by": "—",
+            "streams": "1,368",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Proximity",
+            "made_by": "—",
+            "streams": "1,314",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Top EDM: Progressive House 💫",
+            "made_by": "—",
+            "streams": "1,243",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "sad emo-EDM for sad ppl 💔",
+            "made_by": "—",
+            "streams": "686",
+            "date_added": "Sep 23, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Melodic Dubstep 2025",
+            "made_by": "—",
+            "streams": "440",
+            "date_added": "Aug 11, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "316",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "EDM  | Music for Gaming  |  Streaming 🎧🎶",
+            "made_by": "—",
+            "streams": "245",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Blanke: The Complete Discography",
+            "made_by": "—",
+            "streams": "232",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Edmtrain's New Music Weekly",
+            "made_by": "—",
+            "streams": "228",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Sad EDM 💔 Sad Music to Cry and Dance To",
+            "made_by": "—",
+            "streams": "191",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "ZENITH",
+            "made_by": "—",
+            "streams": "178",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "blankelist",
+            "made_by": "—",
+            "streams": "175",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "This Is Linney",
+            "made_by": "Spotify",
+            "streams": "172",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "30",
+            "name": "New Electronic Music",
+            "made_by": "—",
+            "streams": "169",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "31",
+            "name": "New EDM This Week - New EDM 2025 - New Dance Music",
+            "made_by": "—",
+            "streams": "159",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "Zeepeye Playlist",
+            "made_by": "—",
+            "streams": "131",
+            "date_added": "Aug 4, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Melodic Bass",
+            "made_by": "—",
+            "streams": "127",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "STUTTER EDM HOUSE💥",
+            "made_by": "—",
+            "streams": "123",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "New Future Bass 2025",
+            "made_by": "—",
+            "streams": "120",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "All In One",
+            "made_by": "—",
+            "streams": "115",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Melodic Bass/Melodic Dupstep",
+            "made_by": "—",
+            "streams": "108",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "38",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "103",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "39",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "100",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "40",
+            "name": "Lost In Dreams Selects",
+            "made_by": "—",
+            "streams": "94",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "P.R.O.G. (@crunchysimplest)",
+            "made_by": "—",
+            "streams": "93",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "Summer Vibes",
+            "made_by": "—",
+            "streams": "86",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "79",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "Best Chill EDM 2025",
+            "made_by": "—",
+            "streams": "78",
+            "date_added": "Jul 30, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Progressive House Friday",
+            "made_by": "—",
+            "streams": "76",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Narnia",
+            "made_by": "—",
+            "streams": "75",
+            "date_added": "Jul 24, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "edm",
+            "made_by": "—",
+            "streams": "73",
+            "date_added": "Jul 27, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "edm",
+            "made_by": "—",
+            "streams": "71",
+            "date_added": "Jul 23, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "Good Vibez",
+            "made_by": "—",
+            "streams": "71",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "for the plot ❤️‍🔥💫",
+            "made_by": "—",
+            "streams": "68",
+            "date_added": "Aug 22, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "EDM Dope Beats",
+            "made_by": "—",
+            "streams": "63",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "Born to Fly",
+            "made_by": "—",
+            "streams": "58",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "NEW EDM 2025 | EDM RELEASE RADAR FRIDAY",
+            "made_by": "—",
+            "streams": "54",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "Sad Beats",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Aug 21, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "NEW EDM 2025 ⚡ EDM HITS 2025 ⚡ MUSICA ELECTRONICA 2025",
+            "made_by": "—",
+            "streams": "47",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "🌀🌀🌀",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Jul 31, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "dope bombs.",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "Jul 31, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "최신 EDM | MILLION EDM WEEKLY",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Jul 28, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "Chill / Dubstep / Chillstep / Trance / Electronic / Psytrance / Melodic dubstep / EDM",
+            "made_by": "—",
+            "streams": "43",
+            "date_added": "Aug 25, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "Fall EDM 2025",
+            "made_by": "—",
+            "streams": "42",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "Funk Dartz ♋️",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "The Feralness Continues in 2025 👹",
+            "made_by": "—",
+            "streams": "40",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "EDM  to fall in love ✨❤️",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Sep 14, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "💫",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "New Music Friday Cratediggers",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "dubstep sleep",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "🙌 Melodic Bangers 🔊",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "PARC_WP_VENUE",
+            "made_by": "—",
+            "streams": "32",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "concrete angel",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "70",
+            "name": "New Melodic EDM",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Jul 29, 2025"
+          },
+          {
+            "rank": "71",
+            "name": "MAGICAL",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Oct 10, 2025"
+          },
+          {
+            "rank": "72",
+            "name": "The Aviary",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "73",
+            "name": "Trance y house progresivo",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Jul 29, 2025"
+          },
+          {
+            "rank": "74",
+            "name": "MELODIC CHILL EDM",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Jul 20, 2025"
+          },
+          {
+            "rank": "75",
+            "name": "New Dance Music Friday, New Music Friday Dance 2025",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "76",
+            "name": "eeedeeem",
+            "made_by": "—",
+            "streams": "29",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "77",
+            "name": "melodic edm",
+            "made_by": "—",
+            "streams": "28",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "78",
+            "name": "goofball music",
+            "made_by": "—",
+            "streams": "26",
+            "date_added": "Jul 27, 2025"
+          },
+          {
+            "rank": "79",
+            "name": "BOUNCE",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "80",
+            "name": "The Weekly",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "81",
+            "name": "Gaming Power Melodic EDM Playlist 2025",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Jul 25, 2025"
+          },
+          {
+            "rank": "82",
+            "name": "Black List",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Aug 15, 2025"
+          },
+          {
+            "rank": "83",
+            "name": "Best of EDM 2000-2025",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "84",
+            "name": "LONTAR STREAM",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Sep 15, 2025"
+          },
+          {
+            "rank": "85",
+            "name": "Electro Dance Mewing",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "86",
+            "name": "Veld 2025 Bass Stage",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "87",
+            "name": "Ctrl Alt Esc",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Aug 12, 2025"
+          },
+          {
+            "rank": "88",
+            "name": "Workflow🤑",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Jul 19, 2025"
+          },
+          {
+            "rank": "89",
+            "name": "TREN  MODE 💉",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Aug 2, 2025"
+          },
+          {
+            "rank": "90",
+            "name": "Dakkroth Streamsound",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Aug 1, 2025"
+          },
+          {
+            "rank": "91",
+            "name": "Ember Shores 2025 LFGGGG",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Sep 8, 2025"
+          },
+          {
+            "rank": "92",
+            "name": "Extended Euphoric Progressive Big Room",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Sep 14, 2025"
+          },
+          {
+            "rank": "93",
+            "name": "August",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Jul 26, 2025"
+          },
+          {
+            "rank": "94",
+            "name": "PERSONALPOP",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Jul 27, 2025"
+          },
+          {
+            "rank": "95",
+            "name": "Bananna Time",
+            "made_by": "—",
+            "streams": "20",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "96",
+            "name": "🏋🏻‍♂️ CrossFit Coaching 🏋🏻‍♂️",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Jul 31, 2025"
+          },
+          {
+            "rank": "97",
+            "name": "Fresh New EDM | 2025",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Jul 17, 2025"
+          },
+          {
+            "rank": "98",
+            "name": "July 2025",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "99",
+            "name": "SCHILDIS PLATTENBOX",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Jul 18, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "99",
+          "total": "10,993"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

@@ -1,0 +1,270 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4akLvvJyLbJxlbpSXHTLvT/song/1KsIb5iklw1SzOJjX7mzin/stats",
+  "scraped_at": "2025-10-24T09:44:17.555359",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "25",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "12",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "5",
+          "total": "155"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "48"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "9,956",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5,547",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "4,170",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,084",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "559",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "300",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "115",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Dub ⚠️☣️☢️",
+            "made_by": "—",
+            "streams": "96",
+            "date_added": "Apr 16, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "92",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "This Is Dubloadz",
+            "made_by": "Spotify",
+            "streams": "62",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "57",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "FUCK SHIT UP",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Feb 25, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "New Dance Music Friday, New Music Friday Dance 2025",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Cachiporris",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Feb 26, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Party 🥳",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Feb 28, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "all i need is bass",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Feb 26, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Creamy'n'Steamy",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Mar 24, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "RECENTLY RELEASED FIRE | 2025.10.03 | SKRILLEX x ISOXO, VERSA, BROKEN HEARTED REMIXES, ANTAGONISTS",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Feb 20, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "New Songs Deux",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Feb 21, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "21",
+            "name": "The Dub Rebellion 2025",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 9, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "WONKERS",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Mar 28, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "Wubs n Dubs",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Jun 5, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "23",
+          "total": "904"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

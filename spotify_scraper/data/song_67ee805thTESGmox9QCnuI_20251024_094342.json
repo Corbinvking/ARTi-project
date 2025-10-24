@@ -1,0 +1,228 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4akLvvJyLbJxlbpSXHTLvT/song/67ee805thTESGmox9QCnuI/stats",
+  "scraped_at": "2025-10-24T09:43:12.717029",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DEEP / DARK / DUBSTEP",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Mar 12, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "75"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DEEP / DARK / DUBSTEP",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Mar 12, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "18"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "DUBSTEP BRUTAL DROPS",
+            "made_by": "—",
+            "streams": "9,845",
+            "date_added": "Mar 11, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "3,894",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "2,749",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "247",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "192",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "157",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "DEEP / DARK / DUBSTEP",
+            "made_by": "—",
+            "streams": "136",
+            "date_added": "Mar 12, 2025"
+          },
+          {
+            "rank": "8",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "119",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Dub ⚠️☣️☢️",
+            "made_by": "—",
+            "streams": "73",
+            "date_added": "Apr 16, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "60",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "57",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "This Is Dubloadz",
+            "made_by": "Spotify",
+            "streams": "51",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "31",
+            "date_added": "Mar 7, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "The Weekly Meeting",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "Mar 7, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "13",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "16",
+            "name": "New Dance Music Friday, New Music Friday Dance 2025",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Mar 7, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "Bass Music’s Hottest 🔥 HAWT ONES",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Mar 6, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Stream Mix Vol.3",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Mar 8, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "Club Foetus nō 11",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Mar 14, 2025"
+          },
+          {
+            "rank": "20",
+            "name": "RECENTLY RELEASED FIRE | 2025.10.03 | SKRILLEX x ISOXO, VERSA, BROKEN HEARTED REMIXES, ANTAGONISTS",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Mar 6, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "NEW MUSIC FRIDAY",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Mar 7, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "21",
+          "total": "501"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

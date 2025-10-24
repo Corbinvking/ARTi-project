@@ -1,0 +1,235 @@
+{
+  "url": "https://artists.spotify.com/c/artist/3nkApPk39ekjlyilodddaV/song/5Az7ApIibeJqX3t31xTvqj/stats",
+  "scraped_at": "2025-10-24T09:57:27.745155",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dubstep Music Essentials by EKM.CO",
+            "made_by": "—",
+            "streams": "93",
+            "date_added": "Jul 3, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Violence",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Oct 26, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "52"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Dubstep Music Essentials by EKM.CO",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "Jul 3, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "1",
+          "total": "16"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "SIGMA MALE TIKTOK MUSIC - BEST SIGMA SONGS",
+            "made_by": "—",
+            "streams": "11,042",
+            "date_added": "Apr 17, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "AGGRESSIVE GYM SONGS 😈 (PHONK, DUBSTEP, RAP, TRAP)",
+            "made_by": "—",
+            "streams": "10,538",
+            "date_added": "Oct 18, 2024"
+          },
+          {
+            "rank": "3",
+            "name": "MOTIVAÇÃO PLAYLIST",
+            "made_by": "—",
+            "streams": "5,590",
+            "date_added": "Nov 8, 2024"
+          },
+          {
+            "rank": "4",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "4,766",
+            "date_added": "Nov 8, 2024"
+          },
+          {
+            "rank": "5",
+            "name": "Música Electrónica Fiesta 🪩 Mejor EDM Éxitos 2025",
+            "made_by": "—",
+            "streams": "2,830",
+            "date_added": "Oct 18, 2024"
+          },
+          {
+            "rank": "6",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "2,500",
+            "date_added": "Oct 18, 2024"
+          },
+          {
+            "rank": "7",
+            "name": "La Mejor Musica Electronica 2025",
+            "made_by": "—",
+            "streams": "2,048",
+            "date_added": "Oct 18, 2024"
+          },
+          {
+            "rank": "8",
+            "name": "Dubstep Music Essentials by EKM.CO",
+            "made_by": "—",
+            "streams": "849",
+            "date_added": "Apr 15, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "TikTok Car Vibes 2025 🚗🎶🔥 – Viral Driving Songs",
+            "made_by": "—",
+            "streams": "533",
+            "date_added": "Apr 14, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "315",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "101",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "94",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "54",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "41",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Violence",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Oct 26, 2024"
+          },
+          {
+            "rank": "16",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "23",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "17",
+            "name": "Ultimate Vocal/Upbeat EDM Playlist",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Mar 13, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "2025 Western Canadian Music Award Nominees",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 22, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "FaceFondue2.0 ~ Fondueier",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 12, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Melodic Dubstep & Bass Mix 2025",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Oct 18, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "22",
+          "total": "401"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

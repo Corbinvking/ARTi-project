@@ -1,0 +1,291 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1F0DIm1bWIawL8dBETpQcO/song/5n7eXvWuzhOLeuNVVjMEgL/stats",
+  "scraped_at": "2025-10-24T09:30:54.763922",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "FUNK DAS ANTIGAS ✦ SÓ AS RELIQUIA!",
+            "made_by": "—",
+            "streams": "5,772",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "O tigrão vai te ensinar",
+            "made_by": "—",
+            "streams": "3,422",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Funk Nostalgia 2000s",
+            "made_by": "—",
+            "streams": "1,848",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Funk 2000 Clássicos",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "May 6, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "PRA DANÇAR NA ACADEMIA",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Jul 21, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "7",
+          "total": "96"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "FUNK DAS ANTIGAS ✦ SÓ AS RELIQUIA!",
+            "made_by": "—",
+            "streams": "1,002",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "O tigrão vai te ensinar",
+            "made_by": "—",
+            "streams": "877",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "Funk Nostalgia 2000s",
+            "made_by": "—",
+            "streams": "522",
+            "date_added": "May 5, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "34"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "FUNK DAS ANTIGAS ✦ SÓ AS RELIQUIA!",
+            "made_by": "—",
+            "streams": "37,049",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "O tigrão vai te ensinar",
+            "made_by": "—",
+            "streams": "17,878",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "3",
+            "name": "PERREO 🍑 RKT FUNK BOLICHERO 🍑 🥳",
+            "made_by": "—",
+            "streams": "8,657",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Phonk Gym Motivacional🔱",
+            "made_by": "—",
+            "streams": "8,102",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "5",
+            "name": "Funk Nostalgia 2000s",
+            "made_by": "—",
+            "streams": "7,682",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "6",
+            "name": "Funk 2000 Clássicos",
+            "made_by": "—",
+            "streams": "3,348",
+            "date_added": "May 6, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "838",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "566",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "486",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "10",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "307",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "WE GO JIM",
+            "made_by": "—",
+            "streams": "124",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "12",
+            "name": "AllTime Radio // Updated Weekly",
+            "made_by": "—",
+            "streams": "90",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "40",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "14",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "29",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "Now Loading: RemK",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Vit makt🍃",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 11, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "PRA DANÇAR NA ACADEMIA",
+            "made_by": "—",
+            "streams": "10",
+            "date_added": "Jul 21, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "19",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "KSHMR vibes",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "KILLMATTER - TAKEOVER",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jun 17, 2025"
+          },
+          {
+            "rank": "22",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "4",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "calourada.1  pp",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Aug 14, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "23",
+          "total": "383"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

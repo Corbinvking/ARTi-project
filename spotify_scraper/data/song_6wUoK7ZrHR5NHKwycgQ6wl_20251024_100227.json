@@ -1,0 +1,160 @@
+{
+  "url": "https://artists.spotify.com/c/artist/0UcCuYO0BxHn8HZjDF4tSB/song/6wUoK7ZrHR5NHKwycgQ6wl/stats",
+  "scraped_at": "2025-10-24T10:01:56.734289",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "9",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Chill Dub",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 29, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "51"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "535",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "447",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "131",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "Trancewave ⚡Trance Trap",
+            "made_by": "—",
+            "streams": "72",
+            "date_added": "Dec 13, 2024"
+          },
+          {
+            "rank": "5",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "49",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "43",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "39",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Brainable's Dubstep Playground",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "May 2, 2024"
+          },
+          {
+            "rank": "9",
+            "name": "Downtempo Space Bass/Dub👽",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "Jun 1, 2024"
+          },
+          {
+            "rank": "10",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "15",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "14",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Chill Dub",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "May 29, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "VoA ‘25",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Dec 7, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "13",
+          "total": "314"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

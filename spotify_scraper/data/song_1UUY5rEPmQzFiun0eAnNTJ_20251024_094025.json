@@ -1,0 +1,746 @@
+{
+  "url": "https://artists.spotify.com/c/artist/1WGex9YdmT4TZjmmMirZA8/song/1UUY5rEPmQzFiun0eAnNTJ/stats",
+  "scraped_at": "2025-10-24T09:39:53.122195",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "908",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "378",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "301",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "114",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "102",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "78",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Secret Extra LIT Playlist",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "sporda gaza getiren  şarkılar  >",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 31, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "The Goat Power",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "This Is Dirty Audio",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Wubby🦠",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "13",
+            "name": "ABSOLUTE WORLDIES 💃",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 6, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "14",
+          "total": "1,038"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "223",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "105",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "67",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "4",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "27",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "20",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "sporda gaza getiren  şarkılar  >",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 31, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "5",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "8",
+          "total": "375"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "Release Radar",
+            "made_by": "Spotify",
+            "streams": "60,690",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "2",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "7,520",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Spor yaparken gaza getiren şarkılar",
+            "made_by": "—",
+            "streams": "7,348",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "4",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "5,787",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "5,701",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Bass.🚬",
+            "made_by": "—",
+            "streams": "4,471",
+            "date_added": "Apr 29, 2025"
+          },
+          {
+            "rank": "7",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3,425",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Música para el Gym  (Motivación)",
+            "made_by": "—",
+            "streams": "3,144",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "9",
+            "name": "LOUD",
+            "made_by": "—",
+            "streams": "1,579",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "10",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "1,400",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "11",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "1,111",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "12",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "209",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "13",
+            "name": "sporda gaza getiren  şarkılar  >",
+            "made_by": "—",
+            "streams": "185",
+            "date_added": "May 31, 2025"
+          },
+          {
+            "rank": "14",
+            "name": "New EDM This Week - New EDM 2025 - New Dance Music",
+            "made_by": "—",
+            "streams": "143",
+            "date_added": "Apr 24, 2025"
+          },
+          {
+            "rank": "15",
+            "name": "Dirty Audio: Essentials",
+            "made_by": "—",
+            "streams": "92",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Secret Extra LIT Playlist",
+            "made_by": "—",
+            "streams": "84",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "17",
+            "name": "NEW EDM 2025 ⚡ EDM HITS 2025 ⚡ MUSICA ELECTRONICA 2025",
+            "made_by": "—",
+            "streams": "84",
+            "date_added": "Apr 24, 2025"
+          },
+          {
+            "rank": "18",
+            "name": "ドライブ | NIGHT DRIVE🚘🚔| 2025 [9.5] | Est. 2016",
+            "made_by": "—",
+            "streams": "71",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "19",
+            "name": "This Is Dirty Audio",
+            "made_by": "Spotify",
+            "streams": "62",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "20",
+            "name": "Electro",
+            "made_by": "—",
+            "streams": "52",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "21",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "51",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "22",
+            "name": "Limboo's Gym Playlist",
+            "made_by": "—",
+            "streams": "46",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "23",
+            "name": "New Dance Music Friday, New Music Friday Dance 2025",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "Apr 24, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Dunk 🥶",
+            "made_by": "—",
+            "streams": "44",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "25",
+            "name": "Squirt on a seal",
+            "made_by": "—",
+            "streams": "39",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "26",
+            "name": "Summer drives",
+            "made_by": "—",
+            "streams": "38",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "27",
+            "name": "Nylista",
+            "made_by": "—",
+            "streams": "36",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "28",
+            "name": "AS beatz🤙🏻",
+            "made_by": "—",
+            "streams": "35",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "29",
+            "name": "I’m peaking! Rocket League",
+            "made_by": "—",
+            "streams": "34",
+            "date_added": "May 8, 2025"
+          },
+          {
+            "rank": "30",
+            "name": "Repeat Rewind",
+            "made_by": "Spotify",
+            "streams": "34",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "31",
+            "name": "Beatport Best New Trap / Future Bass",
+            "made_by": "—",
+            "streams": "33",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "32",
+            "name": "TH2C",
+            "made_by": "—",
+            "streams": "24",
+            "date_added": "Jun 4, 2025"
+          },
+          {
+            "rank": "33",
+            "name": "Wubby🦠",
+            "made_by": "—",
+            "streams": "23",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "34",
+            "name": "Heavy Running Bass Music",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "35",
+            "name": "9,001",
+            "made_by": "—",
+            "streams": "21",
+            "date_added": "May 4, 2025"
+          },
+          {
+            "rank": "36",
+            "name": "Lattialista",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "37",
+            "name": "Your Daily Drive",
+            "made_by": "Spotify",
+            "streams": "19",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "38",
+            "name": "Let me cook",
+            "made_by": "—",
+            "streams": "17",
+            "date_added": "Sep 5, 2025"
+          },
+          {
+            "rank": "39",
+            "name": "zoomies 🏃🏻‍♀️💨",
+            "made_by": "—",
+            "streams": "16",
+            "date_added": "May 5, 2025"
+          },
+          {
+            "rank": "40",
+            "name": "Gym / Heavy Hitters 🔥",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "41",
+            "name": "Fixin Drills",
+            "made_by": "—",
+            "streams": "15",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "42",
+            "name": "Hot Sauce",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "43",
+            "name": "Rap / Trap US 💯🔥✅❤",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Jun 12, 2025"
+          },
+          {
+            "rank": "44",
+            "name": "Dope Fuckn Drop",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "May 15, 2025"
+          },
+          {
+            "rank": "45",
+            "name": "Vibin’thru’25 🤙🏻",
+            "made_by": "—",
+            "streams": "13",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "46",
+            "name": "Trap Nation",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "47",
+            "name": "Trap Dojo",
+            "made_by": "—",
+            "streams": "12",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "48",
+            "name": "DNB",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "49",
+            "name": "Fresh New EDM | 2025",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Apr 24, 2025"
+          },
+          {
+            "rank": "50",
+            "name": "Summer 25",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "May 17, 2025"
+          },
+          {
+            "rank": "51",
+            "name": "The Goat Power",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Aug 29, 2025"
+          },
+          {
+            "rank": "52",
+            "name": "ABSOLUTE WORLDIES 💃",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "May 6, 2025"
+          },
+          {
+            "rank": "53",
+            "name": "Fire 1.1",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "54",
+            "name": "r/Trap | Top weekly posts",
+            "made_by": "—",
+            "streams": "9",
+            "date_added": "Apr 26, 2025"
+          },
+          {
+            "rank": "55",
+            "name": "DA BACHELOR BOYZ",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "Jun 18, 2025"
+          },
+          {
+            "rank": "56",
+            "name": "Explicit",
+            "made_by": "—",
+            "streams": "8",
+            "date_added": "May 3, 2025"
+          },
+          {
+            "rank": "57",
+            "name": "AMPsculpt_5.1",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "58",
+            "name": "SPOR...",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "May 16, 2025"
+          },
+          {
+            "rank": "59",
+            "name": "GirlGang 🖕🏼",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "60",
+            "name": "New Friday Generation l  2 Thunders⚡️",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "61",
+            "name": "This Week in EDM | 2025",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "62",
+            "name": "UK",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "63",
+            "name": "Fuck Me Up",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 30, 2025"
+          },
+          {
+            "rank": "64",
+            "name": "5.2.25 ⚡️",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "65",
+            "name": "OLD & NEW SCHOOL RAP",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "66",
+            "name": "Rugby",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 1, 2025"
+          },
+          {
+            "rank": "67",
+            "name": "WOMP WOMP",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 28, 2025"
+          },
+          {
+            "rank": "68",
+            "name": "#Chill",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "Apr 30, 2025"
+          },
+          {
+            "rank": "69",
+            "name": "EDC Las Vegas 25'",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 2, 2025"
+          },
+          {
+            "rank": "70",
+            "name": "One spliff",
+            "made_by": "—",
+            "streams": "5",
+            "date_added": "May 30, 2025"
+          },
+          {
+            "rank": "71",
+            "name": "TON RADAAR DES SORTIES - new music friday",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Apr 25, 2025"
+          },
+          {
+            "rank": "72",
+            "name": "Release Radar",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Apr 27, 2025"
+          },
+          {
+            "rank": "73",
+            "name": "Hip Hop Dubstep Remixes",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "Jul 18, 2025"
+          },
+          {
+            "rank": "74",
+            "name": "EDCrue",
+            "made_by": "—",
+            "streams": "4",
+            "date_added": "May 20, 2025"
+          },
+          {
+            "rank": "75",
+            "name": "Bangers n Mash",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "May 9, 2025"
+          },
+          {
+            "rank": "76",
+            "name": "SICK VIBES N' DROPS",
+            "made_by": "—",
+            "streams": "3",
+            "date_added": "Apr 25, 2025"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "76",
+          "total": "3,940"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

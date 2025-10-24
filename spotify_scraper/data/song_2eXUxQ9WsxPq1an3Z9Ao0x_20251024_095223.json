@@ -1,0 +1,312 @@
+{
+  "url": "https://artists.spotify.com/c/artist/2cOY5jobwSKKjxdspNYEQU/song/2eXUxQ9WsxPq1an3Z9Ao0x/stats",
+  "scraped_at": "2025-10-24T09:51:54.374561",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "30",
+            "date_added": "Aug 19, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "8",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "3",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "6",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "3",
+          "total": "99"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "7day": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Aug 19, 2025"
+          },
+          {
+            "rank": "2",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "3",
+            "date_added": "Not available"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "2",
+          "total": "34"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "12months": {
+      "stats": {
+        "title": "Songs",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [
+          {
+            "rank": "1",
+            "name": "MOST POPULAR TIKTOK PHONKS 2025",
+            "made_by": "—",
+            "streams": "10,594",
+            "date_added": "Sep 28, 2024"
+          },
+          {
+            "rank": "2",
+            "name": "Energetic Songs 🗿",
+            "made_by": "—",
+            "streams": "2,122",
+            "date_added": "Sep 28, 2024"
+          },
+          {
+            "rank": "3",
+            "name": "Heavy Bass Beats😈",
+            "made_by": "—",
+            "streams": "1,718",
+            "date_added": "Sep 30, 2024"
+          },
+          {
+            "rank": "4",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "1,487",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "5",
+            "name": "Radio",
+            "made_by": "Spotify",
+            "streams": "538",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "6",
+            "name": "Mixes",
+            "made_by": "Spotify",
+            "streams": "312",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "7",
+            "name": "Smart Shuffle",
+            "made_by": "Spotify",
+            "streams": "257",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "8",
+            "name": "Daylist",
+            "made_by": "Spotify",
+            "streams": "242",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "9",
+            "name": "Rave type",
+            "made_by": "—",
+            "streams": "169",
+            "date_added": "Oct 13, 2024"
+          },
+          {
+            "rank": "10",
+            "name": "HOLLOWFY SELECTS (SOUL SOCIETY)",
+            "made_by": "—",
+            "streams": "126",
+            "date_added": "Aug 19, 2025"
+          },
+          {
+            "rank": "11",
+            "name": "Electro",
+            "made_by": "—",
+            "streams": "60",
+            "date_added": "Nov 27, 2024"
+          },
+          {
+            "rank": "12",
+            "name": "Buzzieebee Work/Everyday Playlist",
+            "made_by": "—",
+            "streams": "41",
+            "date_added": "Oct 29, 2024"
+          },
+          {
+            "rank": "13",
+            "name": "love brain heart control",
+            "made_by": "—",
+            "streams": "37",
+            "date_added": "Sep 24, 2024"
+          },
+          {
+            "rank": "14",
+            "name": "Your DJ",
+            "made_by": "Spotify",
+            "streams": "35",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "15",
+            "name": "GET LITTTT🔥🔥❤️‍🔥❤️‍🔥",
+            "made_by": "—",
+            "streams": "34",
+            "date_added": "May 27, 2025"
+          },
+          {
+            "rank": "16",
+            "name": "Dubstep Headbangers 🔥",
+            "made_by": "—",
+            "streams": "27",
+            "date_added": "Sep 17, 2024"
+          },
+          {
+            "rank": "17",
+            "name": "Weirdcore Catwalk Phonk",
+            "made_by": "—",
+            "streams": "25",
+            "date_added": "Dec 11, 2024"
+          },
+          {
+            "rank": "18",
+            "name": "< the dark >",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Dec 1, 2024"
+          },
+          {
+            "rank": "19",
+            "name": "HeadBanger",
+            "made_by": "—",
+            "streams": "22",
+            "date_added": "Sep 19, 2024"
+          },
+          {
+            "rank": "20",
+            "name": "DJ KAT🥂",
+            "made_by": "—",
+            "streams": "19",
+            "date_added": "Sep 26, 2024"
+          },
+          {
+            "rank": "21",
+            "name": "Music to lock in🔐",
+            "made_by": "—",
+            "streams": "18",
+            "date_added": "Oct 6, 2024"
+          },
+          {
+            "rank": "22",
+            "name": "Blend",
+            "made_by": "Spotify",
+            "streams": "16",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "23",
+            "name": "Kn¿where Festival❓️¿❔️",
+            "made_by": "—",
+            "streams": "14",
+            "date_added": "Apr 5, 2025"
+          },
+          {
+            "rank": "24",
+            "name": "Nephtanica's  EDM Playlist  2025",
+            "made_by": "—",
+            "streams": "11",
+            "date_added": "Sep 26, 2024"
+          },
+          {
+            "rank": "25",
+            "name": "On Repeat",
+            "made_by": "Spotify",
+            "streams": "11",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "26",
+            "name": "Your Top Songs 2024",
+            "made_by": "Spotify",
+            "streams": "10",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "27",
+            "name": "Sierra's Hard Training Playlist",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Sep 19, 2024"
+          },
+          {
+            "rank": "28",
+            "name": "𝐑𝐈𝐃𝐃𝐈𝐌 𝐍𝐎𝐓 𝐑𝐇𝐘𝐓𝐇𝐌",
+            "made_by": "—",
+            "streams": "7",
+            "date_added": "Oct 30, 2024"
+          },
+          {
+            "rank": "29",
+            "name": "Your Music Evolution 2024",
+            "made_by": "Spotify",
+            "streams": "7",
+            "date_added": "Not available"
+          },
+          {
+            "rank": "30",
+            "name": "Filthy/Hard Dub 😵",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Dec 24, 2024"
+          },
+          {
+            "rank": "31",
+            "name": "DUBSTEP 2K25 / BASS MUSIC / RIDDIM 💥",
+            "made_by": "—",
+            "streams": "6",
+            "date_added": "Sep 27, 2024"
+          }
+        ],
+        "playlist_stats": {
+          "showing": "31",
+          "total": "872"
+        },
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}
