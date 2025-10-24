@@ -800,33 +800,75 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
             )}
           </div>
           
-          {/* External Streaming Sources */}
-          <div className="p-4 border rounded-lg">
-            <div className="flex items-center gap-2 mb-4">
-              <Radio className="h-4 w-4" />
-              <span className="font-medium">External Streaming Sources</span>
+          {/* Algorithmic Streaming Data (External Sources) */}
+          <div className="p-4 border rounded-lg space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b">
+              <Radio className="h-5 w-5 text-green-600" />
+              <span className="font-semibold text-lg">Algorithmic Streaming Data</span>
+              <Badge variant="secondary">{algorithmicPlaylists.length} Playlists</Badge>
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold">
-                  {(campaignData?.radio_streams || 0).toLocaleString()}
+            
+            {algorithmicPlaylists.length > 0 ? (
+              <>
+                {/* Summary Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {(campaignData?.radio_streams || 0).toLocaleString()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Radio & Mixes</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {(campaignData?.discover_weekly_streams || 0).toLocaleString()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Discover Weekly</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {(campaignData?.total_algorithmic_streams || 0).toLocaleString()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Total Algorithmic</div>
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground">Radio Streams</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">
-                  {(campaignData?.discover_weekly_streams || 0).toLocaleString()}
+
+                {/* All Algorithmic Playlists */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground">All Spotify Algorithmic Playlists:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {algorithmicPlaylists.map((playlist: any) => (
+                      <Card key={playlist.id} className="p-3 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                        <div className="flex items-start gap-2">
+                          <Radio className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate" title={playlist.playlist_name}>
+                              {playlist.playlist_name}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              Spotify Official
+                            </div>
+                            <div className="mt-2 text-lg font-bold text-green-600">
+                              {(playlist.streams_28d || 0).toLocaleString()}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              streams (28d)
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground">Discover Weekly</div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Radio className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">No algorithmic streaming data available yet.</p>
+                <p className="text-xs mt-1">Data will appear once the Spotify scraper processes this campaign.</p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">
-                  {(campaignData?.total_algorithmic_streams || 0).toLocaleString()}
-                </div>
-                <div className="text-sm text-muted-foreground">Total External</div>
-              </div>
-            </div>
-            <div className="text-xs text-muted-foreground mt-3 text-center">
+            )}
+            
+            <div className="text-xs text-muted-foreground text-center pt-2 border-t">
               Last updated: {campaignData?.updated_at ? formatDate(campaignData.updated_at) : 'Not available'}
             </div>
           </div>
