@@ -225,21 +225,36 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       const songIds = songs?.map(s => s.id) || [];
       let radioStreams = 0;
       let discoverWeeklyStreams = 0;
+      let totalAlgorithmicStreams = 0;
       
       if (songIds.length > 0) {
         const { data: algorithmicPlaylists } = await supabase
           .from('campaign_playlists')
-          .select('playlist_name, streams_28d')
+          .select('playlist_name, playlist_curator, streams_28d, streams_7d, streams_12m')
           .in('campaign_id', songIds)
           .eq('is_algorithmic', true);
         
         if (algorithmicPlaylists) {
+          // Calculate Radio streams (includes "Radio", "Mixes", "Smart Shuffle", "Your DJ", etc.)
           radioStreams = algorithmicPlaylists
-            .filter(p => p.playlist_name?.toLowerCase().includes('radio'))
+            .filter(p => {
+              const name = p.playlist_name?.toLowerCase() || '';
+              const curator = p.playlist_curator?.toLowerCase() || '';
+              return (name.includes('radio') || 
+                      name.includes('mix') || 
+                      name.includes('shuffle') || 
+                      name.includes('your dj')) && 
+                     curator === 'spotify';
+            })
             .reduce((sum, p) => sum + (p.streams_28d || 0), 0);
           
+          // Calculate Discover Weekly streams
           discoverWeeklyStreams = algorithmicPlaylists
             .filter(p => p.playlist_name?.toLowerCase().includes('discover weekly'))
+            .reduce((sum, p) => sum + (p.streams_28d || 0), 0);
+          
+          // Calculate total algorithmic streams (all Spotify algorithmic playlists)
+          totalAlgorithmicStreams = algorithmicPlaylists
             .reduce((sum, p) => sum + (p.streams_28d || 0), 0);
         }
       }
@@ -270,6 +285,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         weekly_streams: totalWeekly,
         radio_streams: radioStreams,
         discover_weekly_streams: discoverWeeklyStreams,
+        total_algorithmic_streams: totalAlgorithmicStreams,
         track_url: songs?.[0]?.url || null, // First song's URL
         sfa: songs?.[0]?.sfa || null, // First song's SFA URL (scraped from Spotify for Artists)
         songs: songs || [],
@@ -805,7 +821,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold">
-                  {((campaignData?.radio_streams || 0) + (campaignData?.discover_weekly_streams || 0)).toLocaleString()}
+                  {(campaignData?.total_algorithmic_streams || 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">Total External</div>
               </div>
