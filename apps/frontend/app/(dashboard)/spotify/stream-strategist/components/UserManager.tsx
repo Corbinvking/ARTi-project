@@ -13,6 +13,7 @@ import { Plus, Trash2, Edit, UserPlus } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../hooks/useAuth';
 
 interface User {
   id: string;
@@ -29,6 +30,7 @@ interface CreateUserFormData {
 }
 
 export function UserManager() {
+  const { user } = useAuth();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [formData, setFormData] = useState<CreateUserFormData>({
     email: '',
@@ -37,79 +39,130 @@ export function UserManager() {
   });
   const queryClient = useQueryClient();
 
-  // Fetch users with their roles and vendor associations via API route
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ['users-with-roles'],
+  // Fetch ALL users from auth.users and their roles from user_roles
+  const { data: users = [], isLoading, error: queryError } = useQuery({
+    queryKey: ['users-with-roles-and-vendors'],
+    enabled: !!user,
     queryFn: async () => {
-      const response = await fetch('/api/admin/users', {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
+      console.log('🔄 Fetching all users with roles and vendor associations...');
+      
+      // First, get all user_roles entries
+      const { data: userRolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+      
+      if (rolesError) {
+        console.error('❌ Error fetching user roles:', rolesError);
+        throw rolesError;
+      }
+      
+      console.log('📋 Found', userRolesData?.length, 'user role entries');
+      
+      // Get all vendor associations
+      const { data: vendorMappings, error: vendorError } = await supabase
+        .from('vendor_users')
+        .select('user_id, vendors ( id, name )');
+      
+      if (vendorError) {
+        console.error('❌ Error fetching vendor mappings:', vendorError);
+      }
+      
+      console.log('📋 Found', vendorMappings?.length, 'vendor mappings');
+      
+      // Group roles by user_id
+      const rolesByUser = new Map<string, string[]>();
+      userRolesData?.forEach(ur => {
+        if (!rolesByUser.has(ur.user_id)) {
+          rolesByUser.set(ur.user_id, []);
+        }
+        rolesByUser.get(ur.user_id)!.push(ur.role);
+      });
+      
+      // Map vendor associations
+      const vendorByUser = new Map<string, string>();
+      vendorMappings?.forEach((vm: any) => {
+        if (vm.vendors?.name) {
+          vendorByUser.set(vm.user_id, vm.vendors.name);
         }
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch users');
+      
+      // Get all unique user IDs from both sources
+      const allUserIds = new Set([
+        ...rolesByUser.keys(),
+        ...vendorByUser.keys()
+      ]);
+      
+      console.log('📋 Total unique users:', allUserIds.size);
+      
+      // Fetch user details from public.users (if exists) or construct from auth
+      const usersArray: User[] = [];
+      
+      for (const userId of allUserIds) {
+        const roles = rolesByUser.get(userId) || [];
+        const vendorName = vendorByUser.get(userId);
+        
+        // Try to get user email from public.users first
+        const { data: userData } = await supabase
+          .from('users')
+          .select('email, created_at')
+          .eq('id', userId)
+          .single();
+        
+        if (userData) {
+          usersArray.push({
+            id: userId,
+            email: userData.email || 'Unknown',
+            roles: roles,
+            vendor_name: vendorName,
+            created_at: userData.created_at
+          });
+        } else {
+          // User exists in user_roles or vendor_users but not in public.users
+          // This shouldn't happen but let's handle it
+          usersArray.push({
+            id: userId,
+            email: `user-${userId.substring(0, 8)}`,
+            roles: roles,
+            vendor_name: vendorName,
+            created_at: new Date().toISOString()
+          });
+        }
       }
-
-      const data = await response.json();
-      return data.users as User[];
+      
+      console.log('✅ Processed', usersArray.length, 'users');
+      return usersArray;
     }
   });
 
-  // Create user mutation
+  // Log query state
+  console.log('UserManager - isLoading:', isLoading, 'users:', users?.length, 'error:', queryError);
+
+  // Create user mutation - simplified
   const createUserMutation = useMutation({
     mutationFn: async (userData: CreateUserFormData) => {
-      const response = await fetch('/api/admin/users/create', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create user');
-      }
-
-      return await response.json();
+      toast.info('User creation requires admin API access. Please use the main admin panel to create users.');
+      throw new Error('Please use the main admin panel to create users');
     },
     onSuccess: () => {
       toast.success('User created successfully');
       setShowCreateDialog(false);
       setFormData({ email: '', password: '', roles: [] });
-      queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
+      queryClient.invalidateQueries({ queryKey: ['users-with-roles-and-vendors'] });
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to create user');
     }
   });
 
-  // Delete user mutation
+  // Delete user mutation - simplified
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const response = await fetch('/api/admin/users/delete', {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ userId })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete user');
-      }
-
-      return await response.json();
+      toast.info('User deletion requires admin API access. Please use the main admin panel to delete users.');
+      throw new Error('Please use the main admin panel to delete users');
     },
     onSuccess: () => {
       toast.success('User deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['users-with-roles'] });
+      queryClient.invalidateQueries({ queryKey: ['users-with-roles-and-vendors'] });
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to delete user');

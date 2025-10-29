@@ -1,4 +1,3 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -26,19 +25,27 @@ export async function POST(request: Request) {
       }
     );
 
-    // Create client for checking current user's auth
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Get the auth token from Authorization header
+    const authHeader = request.headers.get('Authorization');
     
-    // Verify the current user is an admin
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    let authToken: string | undefined;
+    if (authHeader?.startsWith('Bearer ')) {
+      authToken = authHeader.substring(7);
+    }
+    
+    if (!authToken) {
+      return NextResponse.json({ error: 'Unauthorized - No auth token' }, { status: 401 });
+    }
+
+    // Verify the token and get the user
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authToken);
     
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 });
     }
 
     // Check if user has admin role
-    const { data: userRoles, error: roleError } = await supabase
+    const { data: userRoles, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id);

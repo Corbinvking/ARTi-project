@@ -1,12 +1,16 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    console.log('🔍 API Route - Admin Users GET request');
+    console.log('🔧 Environment check:');
+    console.log('  - NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('  - SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? `${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20)}...` : 'MISSING');
+    
     // Create admin client with service role
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,30 +19,54 @@ export async function GET() {
         auth: {
           autoRefreshToken: false,
           persistSession: false
+        },
+        db: {
+          schema: 'public'
         }
       }
     );
 
-    // Create client for checking current user's auth
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Get the auth token from Authorization header
+    const authHeader = request.headers.get('Authorization');
+    console.log('🔑 Authorization header:', authHeader ? 'Present' : 'Missing');
     
-    // Verify the current user is an admin
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    let authToken: string | undefined;
     
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authHeader?.startsWith('Bearer ')) {
+      authToken = authHeader.substring(7);
+      console.log('✅ Extracted token from Authorization header');
+    }
+    
+    if (!authToken) {
+      console.error('❌ No auth token found in Authorization header');
+      return NextResponse.json({ error: 'Unauthorized - No auth token' }, { status: 401 });
     }
 
+    // Verify the token and get the user
+    console.log('🔍 Verifying auth token...');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authToken);
+    
+    if (authError || !user) {
+      console.error('❌ Auth error:', authError);
+      return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 });
+    }
+
+    console.log('✅ Token verified for user:', user.email, user.id);
+
     // Check if user has admin role
-    const { data: userRoles, error: roleError } = await supabase
+    const { data: userRoles, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id);
 
+    console.log('📋 User roles:', userRoles, 'Error:', roleError);
+
     if (roleError || !userRoles?.some((r: any) => r.role === 'admin')) {
+      console.error('❌ Access denied - not admin. Roles:', userRoles);
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
+
+    console.log('✅ Admin access granted');
 
     // Fetch all users using admin client
     const { data: authUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
