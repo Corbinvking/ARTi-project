@@ -37,84 +37,45 @@ export function UserManager() {
   });
   const queryClient = useQueryClient();
 
-  // Fetch users with their roles and vendor associations
+  // Fetch users with their roles and vendor associations via API route
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users-with-roles'],
     queryFn: async () => {
-      // First get all users
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) throw authError;
+      const response = await fetch('/api/admin/users', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
-      // Then get roles and vendor associations for each user
-      const usersWithRoles = await Promise.all(
-        authUsers.users.map(async (user) => {
-          // Get roles
-          const { data: roles, error: rolesError } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', user.id);
-          
-          if (rolesError) {
-            console.warn('Error fetching roles for user:', user.id, rolesError);
-          }
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch users');
+      }
 
-          // Get vendor association if user has vendor role
-          const userRoles = roles?.map(r => r.role) || [];
-          let vendorName: string | undefined;
-          
-          if (userRoles.includes('vendor')) {
-            const { data: vendorMapping, error: vendorError } = await supabase
-              .from('vendor_users')
-              .select('vendors ( name )')
-              .eq('user_id', user.id)
-              .single();
-            
-            if (!vendorError && vendorMapping) {
-              vendorName = (vendorMapping as any).vendors?.name;
-            }
-          }
-
-          return {
-            id: user.id,
-            email: user.email || '',
-            roles: userRoles,
-            created_at: user.created_at,
-            vendor_name: vendorName
-          };
-        })
-      );
-
-      return usersWithRoles;
+      const data = await response.json();
+      return data.users as User[];
     }
   });
 
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: CreateUserFormData) => {
-      // Create user in auth
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: userData.password,
-        email_confirm: true
+      const response = await fetch('/api/admin/users/create', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
       });
 
-      if (error) throw error;
-
-      // Add roles to user_roles table
-      if (userData.roles.length > 0 && data.user) {
-        const roleInserts = userData.roles.map(role => ({
-          user_id: data.user!.id,
-          role: role as 'admin' | 'manager' | 'salesperson' | 'vendor'
-        }));
-
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert(roleInserts);
-
-        if (roleError) throw roleError;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create user');
       }
 
-      return data.user;
+      return await response.json();
     },
     onSuccess: () => {
       toast.success('User created successfully');
@@ -130,8 +91,21 @@ export function UserManager() {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      if (error) throw error;
+      const response = await fetch('/api/admin/users/delete', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete user');
+      }
+
+      return await response.json();
     },
     onSuccess: () => {
       toast.success('User deleted successfully');
