@@ -18,6 +18,24 @@ npm run dev
 # That's it! All 653 campaigns available instantly.
 ```
 
+### **⚠️ CRITICAL: You're Working on LIVE Production Data!**
+```
+Local Dev → Production Database (IMMEDIATELY)
+          ↓
+   Any change you make = Production change
+   
+   ✅ Frontend code → git push → Vercel deploys
+   ⚠️ Database changes → INSTANT production impact
+   ❌ NO staging environment
+   ❌ NO "deploy to production" for data
+```
+
+**Safety Guidelines:**
+- 🔒 Use SQL transactions (`BEGIN`/`COMMIT`/`ROLLBACK`) for risky changes
+- 💾 Create backups before major database modifications
+- 🧪 Test with temporary tables when possible
+- 🚨 Be extra careful with `UPDATE`, `DELETE`, `DROP` commands
+
 ### **What Changed?**
 - ❌ **OLD**: Local Supabase → Export → Upload → Import → Production
 - ✅ **NEW**: One production database for everything
@@ -28,6 +46,7 @@ npm run dev
 - ⚡ **Instant access** - All 653 campaigns available immediately
 - 🔄 **Real-time sync** - Changes visible everywhere instantly
 - 🎯 **No data drift** - Impossible by design
+- ⚡ **Simple deployment** - Just `git push` for frontend changes
 
 ---
 
@@ -454,7 +473,7 @@ link.artistinfluence.com {
    - Frontend changes in `apps/frontend/`
    - Hot-reload shows changes instantly
    - Test with real production data
-   - Changes to database are immediate (be careful!)
+   - ⚠️ **IMPORTANT:** Database changes are IMMEDIATE in production!
 
 4. **Test Your Changes**
    - Full-stack testing with real data
@@ -463,15 +482,89 @@ link.artistinfluence.com {
    - **Tip:** Use transactions for safe testing (see Phase 3.3)
 
 5. **Deploy to Production**
+
+   ### **For Frontend Changes (99% of your work):**
    ```bash
    git add .
    git commit -m "Feature: Your description"
    git push origin main
    
-   # Frontend deploys automatically via Vercel
-   # Database is already updated (you were working on it!)
-   # Backend requires manual pull on droplet if API changes
+   # ✅ Frontend deploys automatically via Vercel
+   # ✅ Database is already updated (you were working on production!)
+   # ✅ NO backend pull needed
    ```
+   
+   ### **For Backend API Changes (Rare):**
+   ```bash
+   # 1. Push your changes
+   git push origin main
+   
+   # 2. SSH to production droplet
+   ssh root@164.90.129.146
+   
+   # 3. Pull and restart
+   cd /root/arti-marketing-ops
+   git pull origin main
+   docker-compose -p arti-marketing-ops -f docker-compose.supabase-project.yml restart api
+   ```
+
+### **Understanding Database Changes ⚠️**
+
+**CRITICAL: Your local environment makes LIVE PRODUCTION changes!**
+
+Since your local dev connects directly to the production database:
+
+✅ **What happens automatically:**
+- Any database query you run → affects production immediately
+- Supabase Studio changes → affect production immediately  
+- Migration scripts → affect production immediately
+- Data imports/updates → affect production immediately
+
+❌ **What does NOT happen:**
+- There is NO staging database
+- There is NO "push to production" step for data
+- Changes are NOT reversible without backups
+
+**Best Practices for Database Changes:**
+
+1. **Use Transactions for Safety**
+   ```sql
+   BEGIN;
+   -- Make your changes
+   UPDATE spotify_campaigns SET status = 'test' WHERE id = 123;
+   -- Verify the change
+   SELECT * FROM spotify_campaigns WHERE id = 123;
+   -- If everything looks good:
+   COMMIT;
+   -- If something is wrong:
+   ROLLBACK;
+   ```
+
+2. **Create Backups Before Major Changes**
+   ```bash
+   # On production droplet
+   ssh root@164.90.129.146
+   docker exec supabase_db_arti-marketing-ops pg_dump -U postgres postgres > pre-change-backup.sql
+   ```
+
+3. **Test with Temporary Tables**
+   ```sql
+   -- Create test table
+   CREATE TABLE test_campaigns AS SELECT * FROM spotify_campaigns LIMIT 10;
+   -- Test your changes on test_campaigns first
+   -- Then apply to real table when confident
+   ```
+
+### **Quick Reference: What Requires Backend Pull?**
+
+| Change Type | Git Push | Backend Pull | Notes |
+|------------|----------|--------------|-------|
+| Frontend code (React/Next.js) | ✅ Yes | ❌ No | Vercel auto-deploys |
+| Database schema/data | ❌ N/A | ❌ No | Changes are immediate in production |
+| Backend API code (`apps/api/`) | ✅ Yes | ✅ Yes | Requires SSH + restart |
+| Docker configs | ✅ Yes | ✅ Yes | Requires SSH + restart |
+| Supabase migrations | ✅ Yes | ⚠️ Maybe | Run on droplet if file-based |
+| Environment variables | ❌ No | ✅ Yes | Update directly on Vercel/Droplet |
 
 ### **Data Migration Workflow (NEW - Not Needed!)**
 
