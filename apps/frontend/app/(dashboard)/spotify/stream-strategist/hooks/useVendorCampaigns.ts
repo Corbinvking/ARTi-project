@@ -75,10 +75,24 @@ export function useVendorCampaigns() {
       
       const playlistIds = playlists?.map(p => p.id) || [];
 
-      // Fetch campaigns; RLS ensures vendors see only campaigns where they have assigned playlists
+      // Fetch campaign allocations for this vendor to find which campaigns they're in
+      const { data: allocations, error: allocError } = await supabase
+        .from('campaign_allocations_performance')
+        .select('campaign_id')
+        .in('vendor_id', vendorIds);
+
+      if (allocError) throw allocError;
+
+      const campaignIdsWithAllocations = [...new Set(allocations?.map(a => a.campaign_id) || [])];
+      
+      if (campaignIdsWithAllocations.length === 0) return [];
+
+      // Fetch only campaigns where this vendor has allocations AND status is 'Active'
       const { data: campaigns, error: campaignError } = await supabase
         .from('campaign_groups')
-        .select('*');
+        .select('*')
+        .in('id', campaignIdsWithAllocations)
+        .eq('status', 'Active');
 
       if (campaignError) throw campaignError;
 
