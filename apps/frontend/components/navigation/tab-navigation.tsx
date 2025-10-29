@@ -60,7 +60,7 @@ export function TabNavigation() {
         case 'sales':
           return ['dashboard', 'instagram', 'spotify', 'youtube'].includes(tab.platform)
         case 'vendor':
-          return ['dashboard', 'spotify', 'soundcloud'].includes(tab.platform)
+          return false // Vendors don't see platform tabs - they only see vendor portal
         default:
           return false
       }
