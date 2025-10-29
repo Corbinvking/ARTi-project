@@ -95,6 +95,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const [expandedVendors, setExpandedVendors] = useState<Record<string, boolean>>({});
   const [vendorData, setVendorData] = useState<Record<string, any>>({});
   const [markingPaid, setMarkingPaid] = useState<Record<string, boolean>>({});
+  const [editingSfaUrl, setEditingSfaUrl] = useState(false);
+  const [sfaUrlInput, setSfaUrlInput] = useState('');
+  const [savingSfaUrl, setSavingSfaUrl] = useState(false);
   const { toast } = useToast();
   
   // Fetch vendor responses for this campaign
@@ -689,6 +692,77 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     }
   };
 
+  const saveSfaUrl = async () => {
+    if (!sfaUrlInput.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSavingSfaUrl(true);
+    
+    try {
+      // Update the sfa field in spotify_campaigns for this campaign's song
+      const { data: songs, error: songsError } = await supabase
+        .from('spotify_campaigns')
+        .select('id')
+        .eq('campaign_group_id', campaign.id)
+        .limit(1);
+
+      if (songsError) throw songsError;
+      
+      if (!songs || songs.length === 0) {
+        toast({
+          title: "Error",
+          description: "No campaign song found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('spotify_campaigns')
+        .update({ 
+          sfa: sfaUrlInput.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', songs[0].id);
+
+      if (error) throw error;
+      
+      // Update local state
+      setCampaignData(prev => ({ ...prev, sfa: sfaUrlInput.trim() }));
+      setEditingSfaUrl(false);
+      
+      toast({
+        title: "Success",
+        description: "Spotify for Artists link updated successfully",
+      });
+    } catch (error) {
+      console.error('Failed to update SFA URL:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update Spotify for Artists link",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingSfaUrl(false);
+    }
+  };
+
+  const startEditingSfaUrl = () => {
+    setSfaUrlInput(campaignData?.sfa || '');
+    setEditingSfaUrl(true);
+  };
+
+  const cancelEditingSfaUrl = () => {
+    setEditingSfaUrl(false);
+    setSfaUrlInput('');
+  };
+
   if (loading) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
@@ -784,20 +858,67 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                 <p className="font-medium">{getSalespersonName(campaignData?.salesperson)}</p>
               )}
             </div>
-            {campaignData?.sfa && (
-              <div className="col-span-2">
-                <Label className="text-muted-foreground">Spotify for Artists Link</Label>
-                <a 
-                  href={campaignData.sfa} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-primary hover:underline font-medium mt-1"
+            <div className="col-span-2">
+              <Label className="text-muted-foreground">Spotify for Artists Link</Label>
+              {editingSfaUrl ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    type="url"
+                    placeholder="https://artists.spotify.com/c/song/..."
+                    value={sfaUrlInput}
+                    onChange={(e) => setSfaUrlInput(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button 
+                    onClick={saveSfaUrl} 
+                    disabled={savingSfaUrl}
+                    size="sm"
+                  >
+                    {savingSfaUrl ? 'Saving...' : 'Save'}
+                  </Button>
+                  <Button 
+                    onClick={cancelEditingSfaUrl} 
+                    variant="outline"
+                    size="sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : campaignData?.sfa ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <a 
+                    href={campaignData.sfa} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-primary hover:underline font-medium"
+                  >
+                    View Stream Data on Spotify for Artists
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                  {canEditCampaign && (
+                    <Button 
+                      onClick={startEditingSfaUrl} 
+                      variant="outline"
+                      size="sm"
+                    >
+                      Edit
+                    </Button>
+                  )}
+                </div>
+              ) : canEditCampaign ? (
+                <Button 
+                  onClick={startEditingSfaUrl} 
+                  variant="outline"
+                  size="sm"
+                  className="mt-1"
                 >
-                  View Stream Data on Spotify for Artists
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
-            )}
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Spotify for Artists Link
+                </Button>
+              ) : (
+                <p className="text-sm text-muted-foreground mt-1">No Spotify for Artists link added</p>
+              )}
+            </div>
           </div>
           
           {/* Algorithmic Streaming Data (External Sources) */}
