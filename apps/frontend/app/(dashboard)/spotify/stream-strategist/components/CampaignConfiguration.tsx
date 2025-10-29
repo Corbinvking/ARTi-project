@@ -35,6 +35,7 @@ const campaignSchema = z.object({
   client: z.string().optional(), // Backward compatibility (unused in UI)
   client_id: z.string().optional(),
   track_url: z.string().url("Please enter a valid Spotify URL"),
+  sfa_url: z.string().url("Please enter a valid URL").optional().or(z.literal("")), // NEW: Spotify for Artists URL
   track_name: z.string().optional(),
   stream_goal: z.number().min(1, "Stream goal must be greater than 0"),
   budget: z.number().min(1, "Budget must be greater than 0"),
@@ -451,6 +452,23 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                   {trackName && (
                     <p className="text-sm text-accent">✓ Track: {trackName}</p>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sfa_url">Spotify for Artists URL (Optional)</Label>
+                  <Input
+                    id="sfa_url"
+                    placeholder="https://artists.spotify.com/c/song/..."
+                    className={errors.sfa_url ? "border-destructive" : ""}
+                    defaultValue={(initialData as any)?.sfa_url}
+                    {...register("sfa_url")}
+                  />
+                  {errors.sfa_url && (
+                    <p className="text-sm text-destructive">{errors.sfa_url.message}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Link to Spotify for Artists dashboard for this track
+                  </p>
                 </div>
               </CardContent>
             </Card>

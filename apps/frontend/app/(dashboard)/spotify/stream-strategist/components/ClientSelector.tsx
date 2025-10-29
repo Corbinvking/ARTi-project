@@ -42,8 +42,10 @@ export function ClientSelector({ value, onChange, placeholder = "Select client..
   const [newClientName, setNewClientName] = useState('');
   const [newClientEmails, setNewClientEmails] = useState('');
   
-  const { data: clients, refetch: refetchClients } = useClients();
+  const { data: clients, refetch: refetchClients, isLoading } = useClients();
   const createClient = useCreateClient();
+
+  console.log('ClientSelector - clients:', clients?.length || 0, 'isLoading:', isLoading);
 
   const selectedClient = clients?.find((client) => client.id === value);
 
@@ -95,21 +97,25 @@ export function ClientSelector({ value, onChange, placeholder = "Select client..
           <Command>
             <CommandInput placeholder="Search clients..." />
             <CommandList>
-              <CommandEmpty>No clients found.</CommandEmpty>
-              <CommandGroup>
-                {allowCreate && (
-                  <CommandItem
-                    onSelect={() => {
-                      setShowAddDialog(true);
-                      setOpen(false);
-                    }}
-                    className="font-medium text-primary"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add new client
-                  </CommandItem>
-                )}
-                {clients?.map((client) => (
+              {isLoading ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">Loading clients...</div>
+              ) : (
+                <>
+                  <CommandEmpty>No clients found.</CommandEmpty>
+                  <CommandGroup>
+                    {allowCreate && (
+                      <CommandItem
+                        onSelect={() => {
+                          setShowAddDialog(true);
+                          setOpen(false);
+                        }}
+                        className="font-medium text-primary"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add new client
+                      </CommandItem>
+                    )}
+                    {clients?.map((client) => (
                   <CommandItem
                     key={client.id}
                     onSelect={() => {
@@ -133,7 +139,9 @@ export function ClientSelector({ value, onChange, placeholder = "Select client..
                     </div>
                   </CommandItem>
                 ))}
-              </CommandGroup>
+                  </CommandGroup>
+                </>
+              )}
             </CommandList>
           </Command>
         </PopoverContent>
