@@ -154,6 +154,11 @@ export function useCampaignBuilder() {
         ? data.name.split(' - ')[0].trim()
         : data.name;
       
+      // Calculate end_date from start_date + duration_days
+      const startDate = new Date(data.start_date);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + (data.duration_days || 90));
+      
       // 1. Create campaign_group
       const campaignGroupPayload = {
         name: data.name,
@@ -162,9 +167,9 @@ export function useCampaignBuilder() {
         total_goal: data.stream_goal,
         total_budget: data.budget,
         start_date: data.start_date,
-        duration_days: data.duration_days,
+        end_date: endDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
         status: status === 'active' ? 'Active' : status === 'unreleased' ? 'Unreleased' : 'Draft',
-        salesperson: data.salesperson || null,
+        salesperson: (data as any).salesperson || null,
         notes: null
       };
       

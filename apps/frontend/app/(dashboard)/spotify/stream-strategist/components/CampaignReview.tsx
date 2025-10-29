@@ -96,7 +96,7 @@ export default function CampaignReview({
             await saveCampaign(campaignData, allocationsData, status === 'built' ? 'active' : status);
             console.log('✅ Campaign saved successfully');
           }
-          router.push('/campaigns');
+          router.push('/spotify/campaigns');
         } catch (error) {
       console.error('❌ Error launching/approving campaign:', error);
       console.error('Error details:', {
