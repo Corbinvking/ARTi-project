@@ -200,12 +200,37 @@ export const authService = {
 
   async signOut(): Promise<void> {
     console.log('🚪 Signing out...')
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      console.error('❌ Sign out error:', error.message)
-      throw error
+    try {
+      // Check if there's an active session first
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        console.log('ℹ️  No active session to sign out from')
+        // Clear any local storage anyway
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem('sb-' + window.location.hostname.replace(/\./g, '-') + '-auth-token')
+        }
+        return
+      }
+
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('❌ Sign out error:', error.message)
+        // Don't throw - just log and continue
+        // Clear local storage manually if signOut fails
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem('sb-' + window.location.hostname.replace(/\./g, '-') + '-auth-token')
+        }
+        return
+      }
+      console.log('✅ Signed out successfully')
+    } catch (error) {
+      console.error('💥 Sign out error:', error)
+      // Clear local storage manually as fallback
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('sb-' + window.location.hostname.replace(/\./g, '-') + '-auth-token')
+      }
     }
-    console.log('✅ Signed out successfully')
   },
 
   async getCurrentUser(): Promise<User | null> {
