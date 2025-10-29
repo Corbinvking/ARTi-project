@@ -20,6 +20,7 @@ import { useCreateCampaignSubmission } from '../hooks/useCampaignSubmissions';
 import { useSalespeople } from '../hooks/useSalespeople';
 import { useToast } from '../hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../hooks/useAuth';
 import { UNIFIED_GENRES } from '../lib/constants';
 import { supabase } from '../integrations/supabase/client';
 import { CheckCircle, RefreshCcw, Eye, CalendarIcon, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -28,6 +29,7 @@ import { format } from 'date-fns';
 export default function CampaignIntakePage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
   const { data: clients } = useClients();
   const { data: salespeople = [] } = useSalespeople();
   const { data: isVendorManager } = useIsVendorManager();
@@ -169,10 +171,25 @@ export default function CampaignIntakePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('🚀 Form submission started!');
+    console.log('Form data:', formData);
+    console.log('Current user:', user);
 
+    // Auto-populate salesperson if logged in
+    const finalSalesperson = formData.salesperson || user?.email || user?.user_metadata?.full_name || '';
+    
     // Validation
-    if (!formData.salesperson || !formData.campaign_name || !formData.price_paid || 
+    if (!finalSalesperson || !formData.campaign_name || !formData.price_paid || 
         !formData.stream_goal || !formData.start_date || !formData.track_url) {
+      console.log('❌ Validation failed:', {
+        salesperson: finalSalesperson,
+        campaign_name: formData.campaign_name,
+        price_paid: formData.price_paid,
+        stream_goal: formData.stream_goal,
+        start_date: formData.start_date,
+        track_url: formData.track_url
+      });
       toast({
         title: "Missing Required Fields",
         description: "Please fill in all required fields before submitting.",
@@ -270,7 +287,7 @@ export default function CampaignIntakePage() {
         track_url: formData.track_url,
         sfa_url: formData.sfa_url || null,
         notes: formData.notes,
-        salesperson: formData.salesperson,
+        salesperson: finalSalesperson,
         music_genres: formData.music_genres,
         territory_preferences: formData.territory_preferences,
         vendor_assignments: formData.vendor_assignments
@@ -522,9 +539,12 @@ export default function CampaignIntakePage() {
                         selected={formData.start_date ? new Date(formData.start_date + 'T12:00:00') : undefined}
                         onSelect={(date) => {
                           if (date) {
+                            console.log('📅 Date selected:', date);
                             // Create date at noon to avoid timezone issues
                             const adjustedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
-                            setFormData({...formData, start_date: format(adjustedDate, 'yyyy-MM-dd')});
+                            const dateString = format(adjustedDate, 'yyyy-MM-dd');
+                            console.log('📅 Setting start_date to:', dateString);
+                            setFormData({...formData, start_date: dateString});
                             // Close popover after selection by clicking outside
                             setTimeout(() => document.body.click(), 100);
                           }

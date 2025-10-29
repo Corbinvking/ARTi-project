@@ -85,6 +85,9 @@ export function useCreateCampaignSubmission() {
       
       const insertPayload = {
         ...submissionData,
+        client_id: submissionData.client_id || null,
+        sfa_url: submissionData.sfa_url || null,
+        vendor_assignments: submissionData.vendor_assignments || [],
         music_genres: submissionData.music_genres || [],
         territory_preferences: submissionData.territory_preferences || [],
         status: 'pending_approval',
@@ -102,6 +105,12 @@ export function useCreateCampaignSubmission() {
 
       if (error) {
         console.error('❌ Submission insert error:', error);
+        console.error('📋 Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
       return true;
