@@ -11,10 +11,10 @@ const nextConfig = {
     domains: [], // Add your image domains here when needed
   },
   output: 'standalone', // Better for containerization and Vercel
-  experimental: {
-    // Handle monorepo correctly - use absolute path in Vercel
-    outputFileTracingRoot: process.env.VERCEL ? undefined : require('path').join(__dirname, '../../'),
-  },
+  // experimental: {
+  //   // Disabled for Vercel compatibility - caused build issues with ES modules
+  //   outputFileTracingRoot: process.env.VERCEL ? undefined : require('path').join(__dirname, '../../'),
+  // },
   // Optimize for production
   swcMinify: true,
   compress: true,
