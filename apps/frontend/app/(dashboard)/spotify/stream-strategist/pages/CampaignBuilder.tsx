@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Layout from "../components/Layout";
 import CampaignConfiguration from "../components/CampaignConfiguration";
 import AIRecommendations from "../components/AIRecommendations";
+import { VendorRosterSelector } from "../components/VendorRosterSelector";
 import CampaignReview from "../components/CampaignReview";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -30,7 +31,7 @@ interface CampaignData {
 
 const steps = [
   { id: "configuration", title: "Configuration", description: "Basic campaign setup" },
-  { id: "recommendations", title: "AI Recommendations", description: "Playlist selection" },
+  { id: "recommendations", title: "Vendor Roster", description: "Select vendors and playlists" },
   { id: "review", title: "Review & Launch", description: "Final review" },
 ];
 
@@ -146,24 +147,12 @@ export default function CampaignBuilder() {
             />
           )}
           
-          {currentStep === "recommendations" && campaignData.stream_goal && campaignData.sub_genre && (
-            <AIRecommendations
-              campaignData={campaignData as CampaignData}
-              onNext={handleRecommendationsNext}
-              onBack={handleBack}
-            />
-          )}
-          
-          {currentStep === "recommendations" && (!campaignData.stream_goal || !campaignData.sub_genre) && (
-            <div className="max-w-4xl mx-auto">
-              <Card className="bg-card/50 border-border/50">
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground">Missing campaign data. Please go back and complete the configuration.</p>
-                  <Button variant="outline" onClick={handleBack} className="mt-4">
-                    Back to Configuration
-                  </Button>
-                </CardContent>
-              </Card>
+          {currentStep === "recommendations" && (
+            <div className="max-w-6xl mx-auto">
+              <VendorRosterSelector
+                onNext={handleRecommendationsNext}
+                onBack={handleBack}
+              />
             </div>
           )}
           
