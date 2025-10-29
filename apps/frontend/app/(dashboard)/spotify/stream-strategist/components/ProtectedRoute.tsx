@@ -34,7 +34,16 @@ export function ProtectedRoute({
       
       if (!hasRequiredRole) {
         console.log('Access denied - currentRole:', currentRole, 'required:', requiredRoles);
-        router.push('/dashboard'); // Redirect to dashboard instead of showing error
+        
+        // Role-based redirect
+        if (currentRole === 'vendor') {
+          console.log('Redirecting vendor to vendor dashboard');
+          router.push('/spotify/vendor');
+        } else if (currentRole === 'salesperson') {
+          router.push('/spotify/salesperson');
+        } else {
+          router.push('/dashboard');
+        }
         return;
       }
     }

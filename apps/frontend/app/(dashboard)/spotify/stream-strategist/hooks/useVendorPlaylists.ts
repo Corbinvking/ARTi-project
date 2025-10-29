@@ -29,17 +29,25 @@ export function useMyPlaylists() {
   return useQuery({
     queryKey: ['my-playlists'],
     queryFn: async () => {
+      console.log('🔍 useMyPlaylists: Starting query...');
+      
       // Get all vendor mappings for current user and prefer "Club Restricted"
       const { data: mappings, error: vendorError } = await supabase
         .from('vendor_users')
         .select('vendor_id, vendors ( id, name )');
 
+      console.log('📦 Vendor mappings:', mappings, 'Error:', vendorError);
+
       if (vendorError) throw vendorError;
       const rows = (mappings as any[]) || [];
-      if (rows.length === 0) return [];
+      if (rows.length === 0) {
+        console.log('⚠️ No vendor mappings found');
+        return [];
+      }
 
       const preferred = rows.find((r: any) => r.vendors?.name === 'Club Restricted') || rows[0];
       const vendorId = preferred.vendor_id as string;
+      console.log('✅ Using vendor:', preferred.vendors?.name, 'ID:', vendorId);
 
       // Then get playlists for this vendor
       const { data, error } = await supabase
@@ -47,6 +55,8 @@ export function useMyPlaylists() {
         .select('*')
         .eq('vendor_id', vendorId)
         .order('name');
+
+      console.log('📋 Playlists query result:', data, 'Error:', error);
 
       if (error) throw error;
       return data as Playlist[];

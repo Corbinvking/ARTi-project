@@ -1,10 +1,37 @@
+"use client"
+
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { MetricCard } from "@/components/dashboard/metric-card"
 import { PlatformOverview } from "@/components/dashboard/platform-overview"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { AnalyticsChart } from "@/components/dashboard/analytics-chart"
 import { Users, TrendingUp, MessageSquare, Eye, Calendar, Target } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const { user } = useAuth()
+
+  useEffect(() => {
+    // Auto-redirect based on role
+    if (user?.role === 'vendor') {
+      console.log('Vendor detected, redirecting to vendor portal')
+      router.push('/spotify/vendor')
+    } else if (user?.role === 'salesperson') {
+      router.push('/spotify/salesperson')
+    }
+  }, [user, router])
+
+  // Show loading while redirecting
+  if (user?.role === 'vendor' || user?.role === 'salesperson') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
