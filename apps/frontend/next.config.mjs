@@ -12,8 +12,8 @@ const nextConfig = {
   },
   output: 'standalone', // Better for containerization and Vercel
   experimental: {
-    // Handle monorepo correctly
-    outputFileTracingRoot: '../../',
+    // Handle monorepo correctly - use absolute path in Vercel
+    outputFileTracingRoot: process.env.VERCEL ? undefined : require('path').join(__dirname, '../../'),
   },
   // Optimize for production
   swcMinify: true,
