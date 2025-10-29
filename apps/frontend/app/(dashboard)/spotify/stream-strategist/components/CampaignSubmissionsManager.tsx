@@ -7,8 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { XCircle, Clock } from 'lucide-react';
-import { useCampaignSubmissions, useRejectCampaignSubmission } from '../hooks/useCampaignSubmissions';
+import { XCircle, Clock, Eye } from 'lucide-react';
+import { useCampaignSubmissions, useRejectCampaignSubmission, useApproveCampaignSubmission } from '../hooks/useCampaignSubmissions';
+import { SubmissionDetailModal } from './SubmissionDetailModal';
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from "next/navigation";
 
@@ -17,12 +18,15 @@ interface CampaignSubmissionsManagerProps {
 }
 
 export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSubmissionsManagerProps) {
-  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const router = useRouter();
 
   const { data: submissions = [], isLoading } = useCampaignSubmissions();
   const rejectMutation = useRejectCampaignSubmission();
+  const approveMutation = useApproveCampaignSubmission();
+  
+  const selectedSubmission = submissions.find(s => s.id === selectedSubmissionId) || null;
 
   // Scroll to highlighted submission when it becomes available
   useEffect(() => {
@@ -37,16 +41,27 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
     }
   }, [highlightSubmissionId, isLoading, submissions]);
 
-  const handleReject = async (submissionId: string) => {
-    if (!rejectionReason.trim()) return;
-    
-    await rejectMutation.mutateAsync({
-      submissionId,
-      reason: rejectionReason
-    });
-    
-    setRejectionReason('');
-    setSelectedSubmission(null);
+  const handleApprove = async (submissionId: string) => {
+    try {
+      await approveMutation.mutateAsync(submissionId);
+      setShowDetailModal(false);
+      setSelectedSubmissionId(null);
+    } catch (error) {
+      console.error('Failed to approve submission:', error);
+    }
+  };
+
+  const handleReject = async (submissionId: string, reason: string) => {
+    try {
+      await rejectMutation.mutateAsync({
+        submissionId,
+        reason
+      });
+      setShowDetailModal(false);
+      setSelectedSubmissionId(null);
+    } catch (error) {
+      console.error('Failed to reject submission:', error);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -198,60 +213,16 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
                   {submission.status === 'pending_approval' && (
                     <div className="flex gap-2 pt-1">
                        <Button
-                         onClick={() => router.push(`/campaign-builder/review/${submission.id}`)}
+                         onClick={() => {
+                           setSelectedSubmissionId(submission.id);
+                           setShowDetailModal(true);
+                         }}
                          size="sm"
                          className="bg-primary hover:bg-primary/90 text-xs h-7"
                        >
+                         <Eye className="h-3 w-3 mr-1" />
                          Review & Approve
                        </Button>
-
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs h-7"
-                            onClick={() => setSelectedSubmission(submission.id)}
-                          >
-                            Reject
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Reject Campaign Submission</DialogTitle>
-                            <DialogDescription>
-                              Please provide a reason for rejecting "{submission.campaign_name}"
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-2">
-                            <Label>Rejection Reason</Label>
-                            <Textarea
-                              value={rejectionReason}
-                              onChange={(e) => setRejectionReason(e.target.value)}
-                              placeholder="Please explain why this campaign is being rejected..."
-                              rows={3}
-                            />
-                          </div>
-                          <DialogFooter>
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setRejectionReason('');
-                                setSelectedSubmission(null);
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleReject(submission.id)}
-                              disabled={!rejectionReason.trim() || rejectMutation.isPending}
-                            >
-                              {rejectMutation.isPending ? 'Rejecting...' : 'Reject Campaign'}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
                     </div>
                    )}
                  </CardContent>
@@ -272,6 +243,20 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
           )}
         </div>
       </div>
+
+      {/* Submission Detail Modal */}
+      <SubmissionDetailModal
+        submission={selectedSubmission}
+        open={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedSubmissionId(null);
+        }}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        isApproving={approveMutation.isPending}
+        isRejecting={rejectMutation.isPending}
+      />
     </div>
   );
 }
