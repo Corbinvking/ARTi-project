@@ -66,10 +66,11 @@ interface AdminUser {
   email: string
   name: string
   role: "admin" | "manager" | "sales" | "vendor"
-  org_id: string
+  org_id?: string
   created_at: string
   last_sign_in_at?: string
   email_confirmed_at?: string
+  vendor_name?: string
   permissions?: Array<{
     platform: string
     can_read: boolean
@@ -107,32 +108,107 @@ export function UserManagement() {
     try {
       setLoading(true)
       
-      // Use secure API route for admin operations
-      console.log('🔄 Loading users via secure API...')
+      console.log('🔄 Loading users from Supabase (via user_roles)...')
       
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+      // Get all user_roles entries (same approach as Spotify Users tab)
+      const { data: userRolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
       
-      const response = await fetch(`${apiBaseUrl}/api/admin/users`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include'
+      if (rolesError) {
+        console.error('❌ Error fetching user roles:', rolesError)
+        toast.error('Failed to load user roles')
+        return
+      }
+      
+      console.log('📋 Found', userRolesData?.length, 'user role entries')
+      
+      // Get all vendor associations
+      const { data: vendorMappings, error: vendorError } = await supabase
+        .from('vendor_users')
+        .select('user_id, vendors ( id, name )')
+      
+      if (vendorError) {
+        console.error('❌ Error fetching vendor mappings:', vendorError)
+      }
+      
+      console.log('📋 Found', vendorMappings?.length, 'vendor mappings')
+      
+      // Get all user permissions
+      const { data: allPermissions, error: permError } = await supabase
+        .from('user_permissions')
+        .select('user_id, platform, can_read, can_write, can_delete')
+      
+      if (permError) {
+        console.error('❌ Permissions error:', permError)
+      }
+      
+      // Group roles by user_id
+      const rolesByUser = new Map<string, string>()
+      userRolesData?.forEach(ur => {
+        // For now, just take the first role (could be enhanced to support multiple)
+        if (!rolesByUser.has(ur.user_id)) {
+          rolesByUser.set(ur.user_id, ur.role)
+        }
       })
-
-      if (!response.ok) {
-        throw new Error(`Failed to load users: ${response.status}`)
-      }
-
-      const data = await response.json()
       
-      if (data.users && Array.isArray(data.users)) {
-        console.log('✅ Loaded users:', data.users.length)
-        setUsers(data.users)
-      } else {
-        console.error('Invalid users data format:', data)
-        toast.error('Invalid response format from server')
+      // Map vendor associations
+      const vendorByUser = new Map<string, string>()
+      vendorMappings?.forEach((vm: any) => {
+        if (vm.vendors?.name) {
+          vendorByUser.set(vm.user_id, vm.vendors.name)
+        }
+      })
+      
+      // Map permissions by user_id
+      const permsByUser = new Map<string, any[]>()
+      allPermissions?.forEach(p => {
+        if (!permsByUser.has(p.user_id)) {
+          permsByUser.set(p.user_id, [])
+        }
+        permsByUser.get(p.user_id)!.push({
+          platform: p.platform,
+          can_read: p.can_read,
+          can_write: p.can_write,
+          can_delete: p.can_delete
+        })
+      })
+      
+      // Get all unique user IDs from both sources
+      const allUserIds = new Set([
+        ...rolesByUser.keys(),
+        ...vendorByUser.keys()
+      ])
+      
+      console.log('📋 Total unique users:', allUserIds.size)
+      
+      // Fetch user details from public.users (if exists)
+      const usersArray: AdminUser[] = []
+      
+      for (const userId of allUserIds) {
+        const role = rolesByUser.get(userId) || 'vendor'
+        const vendorName = vendorByUser.get(userId)
+        
+        // Try to get user email from public.users first
+        const { data: userData } = await supabase
+          .from('users')
+          .select('email, full_name, created_at')
+          .eq('id', userId)
+          .single()
+        
+        usersArray.push({
+          id: userId,
+          email: userData?.email || `user-${userId.substring(0, 8)}`,
+          name: userData?.full_name || userData?.email?.split('@')[0] || 'Unknown',
+          role: role as AdminUser['role'],
+          created_at: userData?.created_at || new Date().toISOString(),
+          permissions: permsByUser.get(userId) || [],
+          vendor_name: vendorName
+        })
       }
+      
+      console.log('✅ Loaded users:', usersArray.length)
+      setUsers(usersArray)
       
     } catch (error) {
       console.error('❌ Failed to load users:', error)
@@ -507,6 +583,7 @@ export function UserManagement() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Vendor</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Login</TableHead>
               <TableHead>Actions</TableHead>
@@ -515,7 +592,7 @@ export function UserManagement() {
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No users found
                 </TableCell>
               </TableRow>
@@ -530,6 +607,15 @@ export function UserManagement() {
                     <Badge className={getRoleColor(user.role)} variant="secondary">
                       {user.role}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {user.vendor_name ? (
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                        {user.vendor_name}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">—</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge variant={user.email_confirmed_at ? "default" : "secondary"}>
