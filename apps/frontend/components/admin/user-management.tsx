@@ -108,17 +108,29 @@ export function UserManagement() {
     try {
       setLoading(true)
       
-      console.log('🔄 Loading users from Supabase (via user_roles)...')
+      console.log('🔄 Loading ALL users from public.users...')
       
-      // Get all user_roles entries (same approach as Spotify Users tab)
+      // FIRST: Get ALL users from public.users (which mirrors auth.users)
+      const { data: allUsersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, email, full_name, created_at, avatar_url')
+        .order('created_at', { ascending: false })
+      
+      if (usersError) {
+        console.error('❌ Error fetching users:', usersError)
+        toast.error('Failed to load users')
+        return
+      }
+      
+      console.log('📋 Found', allUsersData?.length, 'total users in public.users')
+      
+      // Get all user_roles entries
       const { data: userRolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role')
       
       if (rolesError) {
         console.error('❌ Error fetching user roles:', rolesError)
-        toast.error('Failed to load user roles')
-        return
       }
       
       console.log('📋 Found', userRolesData?.length, 'user role entries')
@@ -143,16 +155,14 @@ export function UserManagement() {
         console.error('❌ Permissions error:', permError)
       }
       
-      // Group roles by user_id
+      // Create lookup maps
       const rolesByUser = new Map<string, string>()
       userRolesData?.forEach(ur => {
-        // For now, just take the first role (could be enhanced to support multiple)
         if (!rolesByUser.has(ur.user_id)) {
           rolesByUser.set(ur.user_id, ur.role)
         }
       })
       
-      // Map vendor associations
       const vendorByUser = new Map<string, string>()
       vendorMappings?.forEach((vm: any) => {
         if (vm.vendors?.name) {
@@ -160,7 +170,6 @@ export function UserManagement() {
         }
       })
       
-      // Map permissions by user_id
       const permsByUser = new Map<string, any[]>()
       allPermissions?.forEach(p => {
         if (!permsByUser.has(p.user_id)) {
@@ -174,40 +183,18 @@ export function UserManagement() {
         })
       })
       
-      // Get all unique user IDs from both sources
-      const allUserIds = new Set([
-        ...rolesByUser.keys(),
-        ...vendorByUser.keys()
-      ])
+      // Map ALL users from public.users with their roles/vendors/permissions
+      const usersArray: AdminUser[] = allUsersData.map(user => ({
+        id: user.id,
+        email: user.email || `user-${user.id.substring(0, 8)}`,
+        name: user.full_name || user.email?.split('@')[0] || 'Unknown',
+        role: (rolesByUser.get(user.id) || 'vendor') as AdminUser['role'],
+        created_at: user.created_at,
+        permissions: permsByUser.get(user.id) || [],
+        vendor_name: vendorByUser.get(user.id)
+      }))
       
-      console.log('📋 Total unique users:', allUserIds.size)
-      
-      // Fetch user details from public.users (if exists)
-      const usersArray: AdminUser[] = []
-      
-      for (const userId of allUserIds) {
-        const role = rolesByUser.get(userId) || 'vendor'
-        const vendorName = vendorByUser.get(userId)
-        
-        // Try to get user email from public.users first
-        const { data: userData } = await supabase
-          .from('users')
-          .select('email, full_name, created_at')
-          .eq('id', userId)
-          .single()
-        
-        usersArray.push({
-          id: userId,
-          email: userData?.email || `user-${userId.substring(0, 8)}`,
-          name: userData?.full_name || userData?.email?.split('@')[0] || 'Unknown',
-          role: role as AdminUser['role'],
-          created_at: userData?.created_at || new Date().toISOString(),
-          permissions: permsByUser.get(userId) || [],
-          vendor_name: vendorName
-        })
-      }
-      
-      console.log('✅ Loaded users:', usersArray.length)
+      console.log('✅ Loaded ALL users:', usersArray.length)
       setUsers(usersArray)
       
     } catch (error) {
