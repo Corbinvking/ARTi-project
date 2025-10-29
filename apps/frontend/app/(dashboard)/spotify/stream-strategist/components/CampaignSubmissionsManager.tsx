@@ -26,6 +26,11 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
   const rejectMutation = useRejectCampaignSubmission();
   const approveMutation = useApproveCampaignSubmission();
   
+  console.log('CampaignSubmissionsManager - Submissions:', submissions.length, 'isLoading:', isLoading);
+  if (submissions.length > 0) {
+    console.log('CampaignSubmissionsManager - First submission:', submissions[0].campaign_name);
+  }
+  
   const selectedSubmission = submissions.find(s => s.id === selectedSubmissionId) || null;
 
   // Scroll to highlighted submission when it becomes available

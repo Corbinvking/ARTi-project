@@ -46,6 +46,7 @@ export function useCampaignSubmissions() {
   return useQuery({
     queryKey: ['campaign-submissions'],
     queryFn: async () => {
+      console.log('🔍 Fetching campaign submissions...');
       const { data, error } = await supabase
         .from('campaign_submissions')
         .select('*')
@@ -53,7 +54,11 @@ export function useCampaignSubmissions() {
         .order('created_at', { ascending: false })
         .limit(50); // Add limit for better performance
 
-      if (error) throw error;
+      console.log('📦 Submissions query result:', { data: data?.length || 0, error });
+      if (error) {
+        console.error('❌ Submissions query error:', error);
+        throw error;
+      }
       return data as CampaignSubmission[];
     },
     staleTime: 30000, // Cache for 30 seconds
