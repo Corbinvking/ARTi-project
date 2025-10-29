@@ -27,6 +27,7 @@ interface CampaignSubmission {
 }
 
 interface CreateSubmissionData {
+  client_id?: string | null;
   client_name: string;
   client_emails: string[];
   campaign_name: string;
@@ -35,10 +36,18 @@ interface CreateSubmissionData {
   start_date: string;
   duration_days: number;
   track_url: string;
+  sfa_url?: string | null;
   notes?: string;
   salesperson: string;
   music_genres: string[];
   territory_preferences: string[];
+  vendor_assignments?: Array<{
+    vendor_id: string;
+    vendor_name: string;
+    allocated_streams: number;
+    allocated_budget: number;
+    playlist_ids?: string[];
+  }>;
 }
 
 // Hook to fetch all submissions (for admin) - Only pending and rejected submissions for better performance
