@@ -151,6 +151,35 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
                     </div>
                   </div>
 
+                  {/* SFA URL - if provided */}
+                  {(submission as any).sfa_url && (
+                    <div className="text-xs">
+                      <span className="font-medium text-muted-foreground">Spotify for Artists: </span>
+                      <a 
+                        href={(submission as any).sfa_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        View SFA Dashboard
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Vendor Assignments - if any */}
+                  {(submission as any).vendor_assignments && (submission as any).vendor_assignments.length > 0 && (
+                    <div className="text-xs bg-primary/5 p-2 rounded border border-primary/20">
+                      <span className="font-medium">Vendor Assignments ({(submission as any).vendor_assignments.length}):</span>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {(submission as any).vendor_assignments.map((va: any, idx: number) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {va.vendor_name}: {va.allocated_streams.toLocaleString()} streams / ${va.allocated_budget.toLocaleString()}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Notes - Compact */}
                   {submission.notes && (
                     <div className="text-xs bg-muted/50 p-2 rounded">
