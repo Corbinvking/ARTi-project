@@ -81,15 +81,29 @@ export function useCreateCampaignSubmission() {
 
   return useMutation({
     mutationFn: async (submissionData: CreateSubmissionData) => {
-      const { error } = await supabase
+      console.log('📝 Creating submission with data:', submissionData);
+      
+      const insertPayload = {
+        ...submissionData,
+        music_genres: submissionData.music_genres || [],
+        territory_preferences: submissionData.territory_preferences || [],
+        status: 'pending_approval',
+        org_id: '00000000-0000-0000-0000-000000000001' // Add default org_id for RLS
+      };
+      
+      console.log('📦 Insert payload:', insertPayload);
+      
+      const { error, data } = await supabase
         .from('campaign_submissions')
-        .insert({
-          ...submissionData,
-          music_genres: submissionData.music_genres || [],
-          territory_preferences: submissionData.territory_preferences || []
-        });
+        .insert(insertPayload)
+        .select();
 
-      if (error) throw error;
+      console.log('📊 Insert result:', { error, data });
+
+      if (error) {
+        console.error('❌ Submission insert error:', error);
+        throw error;
+      }
       return true;
     },
     onSuccess: () => {
