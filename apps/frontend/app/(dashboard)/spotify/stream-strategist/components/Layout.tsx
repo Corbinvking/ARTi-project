@@ -132,7 +132,12 @@ const getNavItemsForRole = (currentRole: string | null) => {
 
   if (currentRole === 'vendor') {
     return [
-      ...baseItems,
+      {
+        title: "Dashboard",
+        href: "/spotify/vendor",
+        icon: Home,
+        hotkey: "Ctrl+1"
+      },
       {
         title: "My Playlists",
         href: "/spotify/vendor/playlists",
@@ -144,12 +149,6 @@ const getNavItemsForRole = (currentRole: string | null) => {
         href: "/spotify/vendor/requests",
         icon: History,
         hotkey: "Ctrl+3"
-      },
-      {
-        title: "Vendor Dashboard",
-        href: "/spotify/vendor",
-        icon: DollarSign,
-        hotkey: "Ctrl+4"
       }
     ];
   }
