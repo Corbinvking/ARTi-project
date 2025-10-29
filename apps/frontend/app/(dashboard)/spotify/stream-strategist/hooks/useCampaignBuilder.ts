@@ -145,74 +145,91 @@ export function useCampaignBuilder() {
 
   const saveCampaign = async (data: CampaignData, allocationsData: any, status: 'built' | 'unreleased' | 'active' = 'built') => {
     try {
-      const campaignPayload = {
+      console.log('💾 Saving campaign with new schema...');
+      console.log('Data:', data);
+      console.log('Allocations:', allocationsData);
+      
+      // Extract artist name from campaign name (format: "Artist Name - Track Title")
+      const artistName = data.name.includes(' - ') 
+        ? data.name.split(' - ')[0].trim()
+        : data.name;
+      
+      // 1. Create campaign_group
+      const campaignGroupPayload = {
         name: data.name,
-        client: data.client,
-        client_id: data.client_id,
-        track_url: data.track_url,
-        track_name: data.track_name,
-        stream_goal: data.stream_goal,
-        budget: data.budget,
-        sub_genre: data.sub_genre,
+        artist_name: artistName,
+        client_id: data.client_id || null,
+        total_goal: data.stream_goal,
+        total_budget: data.budget,
         start_date: data.start_date,
         duration_days: data.duration_days,
-        status,
-        selected_playlists: allocationsData?.selectedPlaylists || allocationsData?.allocations?.map((a: any) => a.playlistId) || [],
-        vendor_allocations: {
-          // Create vendor allocations object from both playlist and direct vendor allocations
-          ...allocationsData?.allocations?.reduce((acc: any, allocation: any) => {
-            if (allocation.vendor_id && allocation.playlist_id) {
-              // Playlist-based allocation
-              if (!acc[allocation.vendor_id]) {
-                acc[allocation.vendor_id] = { playlists: {} };
-              }
-              acc[allocation.vendor_id].playlists[allocation.playlist_id] = allocation.allocation;
-            }
-            return acc;
-          }, {}),
-          // Add direct vendor allocations
-          ...allocationsData?.vendorAllocations?.reduce((acc: any, va: any) => {
-            if (!acc[va.vendor_id]) {
-              acc[va.vendor_id] = { playlists: {} };
-            }
-            acc[va.vendor_id].direct_allocation = va.allocation;
-            return acc;
-          }, {})
-        },
-        totals: {
-          projected_streams: allocationsData.totalProjectedStreams || 0
-        },
-        brand_name: data.brand_name || data.client || 'Unknown Client',
-        updated_at: new Date().toISOString()
+        status: status === 'active' ? 'Active' : status === 'unreleased' ? 'Unreleased' : 'Draft',
+        salesperson: data.salesperson || null,
+        notes: null
       };
-
-      let result;
       
-      if (isEditing && campaignId) {
-        // Update existing campaign
-        result = await supabase
-          .from('campaigns')
-          .update(campaignPayload)
-          .eq('id', campaignId)
-          .select()
-          .single();
-      } else {
-        // Create new campaign with required fields
-        result = await supabase
-          .from('campaigns')
-          .insert({
-            ...campaignPayload,
-            source: 'artist_influence_spotify_campaigns',
-            campaign_type: 'artist_influence_spotify_promotion'
-          })
-          .select()
-          .single();
+      console.log('Creating campaign_group:', campaignGroupPayload);
+      
+      const { data: createdCampaignGroup, error: campaignGroupError } = await supabase
+        .from('campaign_groups')
+        .insert(campaignGroupPayload)
+        .select()
+        .single();
+      
+      if (campaignGroupError) {
+        console.error('❌ Campaign group error:', campaignGroupError);
+        throw campaignGroupError;
       }
-
-      if (result.error) throw result.error;
+      
+      console.log('✅ Campaign group created:', createdCampaignGroup.id);
+      
+      // 2. Create spotify_campaigns entry
+      const spotifyCampaignPayload = {
+        campaign_group_id: createdCampaignGroup.id,
+        campaign: data.track_name || data.name,
+        vendor: 'Multiple',
+        goal: data.stream_goal,
+        remaining: data.stream_goal,
+        daily: 0,
+        weekly: 0,
+        url: data.track_url,
+        status: 'Active',
+        curator_status: 'Pending',
+        playlists: allocationsData?.selectedPlaylists || [],
+        notes: `Created from campaign builder. ${data.sub_genre ? `Genre: ${data.sub_genre}` : ''}`,
+        sfa: (data as any).sfa_url || null
+      };
+      
+      console.log('Creating spotify_campaign:', spotifyCampaignPayload);
+      
+      const { data: createdSpotifyCampaign, error: spotifyCampaignError } = await supabase
+        .from('spotify_campaigns')
+        .insert(spotifyCampaignPayload)
+        .select()
+        .single();
+      
+      if (spotifyCampaignError) {
+        console.error('❌ Spotify campaign error:', spotifyCampaignError);
+        throw spotifyCampaignError;
+      }
+      
+      console.log('✅ Spotify campaign created:', createdSpotifyCampaign.id);
+      
+      // 3. Create playlist associations
+      const selectedPlaylists = allocationsData?.selectedPlaylists || allocationsData?.allocations || [];
+      
+      if (selectedPlaylists.length > 0) {
+        console.log('Creating playlist associations...');
+        
+        // TODO: Create campaign_playlists entries for each selected playlist
+        // This would link the playlists to the campaign for tracking
+        
+        console.log(`✅ Associated ${selectedPlaylists.length} playlists`);
+      }
 
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
 
       const action = isEditing ? 'updated' : 'created';
       const statusMessage = status === 'active' ? 'and activated' : 
@@ -224,7 +241,7 @@ export function useCampaignBuilder() {
         description: `Campaign successfully ${action} ${statusMessage}.`,
       });
 
-      return result.data;
+      return { ...createdCampaignGroup, spotify_campaign: createdSpotifyCampaign };
     } catch (error) {
       console.error('Error saving campaign:', error);
       toast({

@@ -147,12 +147,38 @@ export function VendorRosterSelector({ onNext, onBack }: VendorRosterSelectorPro
   ).filter(Boolean);
 
   const totalDailyStreams = selectedPlaylistsList.reduce((sum, p) => sum + (p?.avg_daily_streams || 0), 0);
-  const totalCost = selectedPlaylistsList.reduce((sum, p) => {
+  
+  // Calculate total cost for 90 days
+  const totalCostPerDay = selectedPlaylistsList.reduce((sum, p) => {
     const vendor = p?.vendor;
     if (!vendor?.cost_per_1k_streams) return sum;
     const dailyCost = (p.avg_daily_streams || 0) / 1000 * vendor.cost_per_1k_streams;
     return sum + dailyCost;
   }, 0);
+  
+  const totalCost = totalCostPerDay * 90; // Assume 90-day campaign
+  
+  const handleNext = () => {
+    // Convert selected playlists to the format expected by CampaignReview
+    const selectedPlaylistObjects = selectedPlaylistsList.map(playlist => ({
+      id: playlist.id,
+      name: playlist.name,
+      url: playlist.url,
+      vendor_name: playlist.vendor?.name,
+      genres: playlist.genres || [],
+      status: 'Pending',
+      streams_allocated: playlist.avg_daily_streams || 0,
+      cost_per_stream: playlist.vendor?.cost_per_1k_streams ? (playlist.vendor.cost_per_1k_streams / 1000) : 0
+    }));
+    
+    onNext({
+      playlistIds: Array.from(selectedPlaylists),
+      selectedPlaylists: selectedPlaylistObjects,
+      allocations: selectedPlaylistObjects,
+      totalProjectedStreams: totalDailyStreams * 90, // 90-day projection
+      totalCost: totalCost
+    });
+  };
 
   const isLoading = vendorsLoading || playlistsLoading;
 
@@ -369,7 +395,7 @@ export function VendorRosterSelector({ onNext, onBack }: VendorRosterSelectorPro
           Back
         </Button>
         <Button
-          onClick={() => onNext({ playlistIds: Array.from(selectedPlaylists) })}
+          onClick={handleNext}
           disabled={selectedPlaylists.size === 0}
         >
           Continue with {selectedPlaylists.size} playlist{selectedPlaylists.size !== 1 ? 's' : ''}
