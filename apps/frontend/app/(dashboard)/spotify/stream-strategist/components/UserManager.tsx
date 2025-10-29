@@ -19,6 +19,7 @@ interface User {
   email: string;
   roles: string[];
   created_at: string;
+  vendor_name?: string; // Vendor association if user is a vendor
 }
 
 interface CreateUserFormData {
@@ -36,7 +37,7 @@ export function UserManager() {
   });
   const queryClient = useQueryClient();
 
-  // Fetch users with their roles
+  // Fetch users with their roles and vendor associations
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users-with-roles'],
     queryFn: async () => {
@@ -44,9 +45,10 @@ export function UserManager() {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
-      // Then get roles for each user
+      // Then get roles and vendor associations for each user
       const usersWithRoles = await Promise.all(
         authUsers.users.map(async (user) => {
+          // Get roles
           const { data: roles, error: rolesError } = await supabase
             .from('user_roles')
             .select('role')
@@ -54,19 +56,30 @@ export function UserManager() {
           
           if (rolesError) {
             console.warn('Error fetching roles for user:', user.id, rolesError);
-            return {
-              id: user.id,
-              email: user.email || '',
-              roles: [],
-              created_at: user.created_at
-            };
+          }
+
+          // Get vendor association if user has vendor role
+          const userRoles = roles?.map(r => r.role) || [];
+          let vendorName: string | undefined;
+          
+          if (userRoles.includes('vendor')) {
+            const { data: vendorMapping, error: vendorError } = await supabase
+              .from('vendor_users')
+              .select('vendors ( name )')
+              .eq('user_id', user.id)
+              .single();
+            
+            if (!vendorError && vendorMapping) {
+              vendorName = (vendorMapping as any).vendors?.name;
+            }
           }
 
           return {
             id: user.id,
             email: user.email || '',
-            roles: roles.map(r => r.role),
-            created_at: user.created_at
+            roles: userRoles,
+            created_at: user.created_at,
+            vendor_name: vendorName
           };
         })
       );
@@ -270,6 +283,7 @@ export function UserManager() {
                 <TableRow>
                   <TableHead>Email</TableHead>
                   <TableHead>Roles</TableHead>
+                  <TableHead>Vendor</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
@@ -296,6 +310,15 @@ export function UserManager() {
                           <Badge variant="outline">No roles</Badge>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {user.vendor_name ? (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                          {user.vendor_name}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {new Date(user.created_at).toLocaleDateString()}
