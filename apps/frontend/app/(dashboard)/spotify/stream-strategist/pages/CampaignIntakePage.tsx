@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Calendar } from '../components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { ClientSelector } from '../components/ClientSelector';
+import { VendorAssignmentStep } from '../components/VendorAssignmentStep';
 import { useClients } from '../hooks/useClients';
 import { useIsVendorManager } from '../hooks/useIsVendorManager';
 import { useCreateCampaignSubmission } from '../hooks/useCampaignSubmissions';
@@ -21,7 +22,7 @@ import { useToast } from '../hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { UNIFIED_GENRES } from '../lib/constants';
 import { supabase } from '../integrations/supabase/client';
-import { CheckCircle, RefreshCcw, Eye, CalendarIcon } from 'lucide-react';
+import { CheckCircle, RefreshCcw, Eye, CalendarIcon, ArrowLeft, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function CampaignIntakePage() {
@@ -31,6 +32,7 @@ export default function CampaignIntakePage() {
   const { data: salespeople = [] } = useSalespeople();
   const { data: isVendorManager } = useIsVendorManager();
 
+  const [currentStep, setCurrentStep] = useState(1); // Multi-step form
   const [formData, setFormData] = useState({
     salesperson: '',
     client_id: '',
@@ -42,9 +44,17 @@ export default function CampaignIntakePage() {
     start_date: '',
     duration_days: '90',
     track_url: '',
+    sfa_url: '',  // NEW: Spotify for Artists URL
     notes: '',
     music_genres: [] as string[],
-    territory_preferences: [] as string[]
+    territory_preferences: [] as string[],
+    vendor_assignments: [] as Array<{
+      vendor_id: string;
+      vendor_name: string;
+      allocated_streams: number;
+      allocated_budget: number;
+      playlist_ids?: string[];
+    }>
   });
   const [isNewClient, setIsNewClient] = useState(false);
   const [availableGenres, setAvailableGenres] = useState<string[]>([]);
@@ -249,6 +259,7 @@ export default function CampaignIntakePage() {
 
     try {
       await createSubmissionMutation.mutateAsync({
+        client_id: formData.client_id || null,
         client_name: isNewClient ? formData.client_name : selectedClientName || '',
         client_emails: emailsArray,
         campaign_name: formData.campaign_name,
@@ -257,10 +268,12 @@ export default function CampaignIntakePage() {
         start_date: formData.start_date,
         duration_days: parseInt(formData.duration_days),
         track_url: formData.track_url,
+        sfa_url: formData.sfa_url || null,
         notes: formData.notes,
         salesperson: formData.salesperson,
         music_genres: formData.music_genres,
-        territory_preferences: formData.territory_preferences
+        territory_preferences: formData.territory_preferences,
+        vendor_assignments: formData.vendor_assignments
       });
 
       // Show success dialog instead of resetting form immediately
@@ -295,23 +308,38 @@ export default function CampaignIntakePage() {
   ];
 
   const renderTrackUrlField = () => (
-    <div>
-      <Label>Track URL (Spotify) *</Label>
-      <Input
-        placeholder="https://open.spotify.com/track/..."
-        value={formData.track_url}
-        onChange={(e) => handleTrackUrlChange(e.target.value)}
-        required
-        disabled={isLoadingSpotify}
-      />
-      <p className="text-xs text-muted-foreground mt-1">
-        {isLoadingSpotify ? (
-          "🎵 Fetching track information from Spotify..."
-        ) : (
-          "Paste Spotify track URL to auto-populate campaign name and genres"
-        )}
-      </p>
-    </div>
+    <>
+      <div>
+        <Label>Track URL (Spotify) *</Label>
+        <Input
+          placeholder="https://open.spotify.com/track/..."
+          value={formData.track_url}
+          onChange={(e) => handleTrackUrlChange(e.target.value)}
+          required
+          disabled={isLoadingSpotify}
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          {isLoadingSpotify ? (
+            "🎵 Fetching track information from Spotify..."
+          ) : (
+            "Paste Spotify track URL to auto-populate campaign name and genres"
+          )}
+        </p>
+      </div>
+      
+      <div>
+        <Label>Spotify for Artists URL (Optional)</Label>
+        <Input
+          type="url"
+          placeholder="https://artists.spotify.com/c/song/..."
+          value={formData.sfa_url}
+          onChange={(e) => setFormData({...formData, sfa_url: e.target.value})}
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Link to Spotify for Artists dashboard for this track (if available)
+        </p>
+      </div>
+    </>
   );
 
   return (
@@ -571,6 +599,16 @@ export default function CampaignIntakePage() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Select preferred territories for playlist placement. Leave empty for global placement.
                 </p>
+              </div>
+
+              {/* Vendor Assignment Section */}
+              <div className="border-t pt-6 mt-6">
+                <VendorAssignmentStep
+                  assignments={formData.vendor_assignments}
+                  onChange={(assignments) => setFormData({...formData, vendor_assignments: assignments})}
+                  totalStreamGoal={parseInt(formData.stream_goal) || 0}
+                  totalBudget={parseFloat(formData.price_paid) || 0}
+                />
               </div>
 
               {/* Notes */}
