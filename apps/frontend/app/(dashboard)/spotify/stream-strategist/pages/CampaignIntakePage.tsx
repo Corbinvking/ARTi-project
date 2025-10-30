@@ -175,6 +175,9 @@ export default function CampaignIntakePage() {
     console.log('🚀 Form submission started!');
     console.log('Form data:', formData);
     console.log('Current user:', user);
+    console.log('🔍 Vendor assignments:', JSON.stringify(formData.vendor_assignments, null, 2));
+    console.log('🔍 Vendor assignments length:', formData.vendor_assignments.length);
+    console.log('🔍 Vendor assignments type:', typeof formData.vendor_assignments);
 
     // Auto-populate salesperson if logged in
     const finalSalesperson = formData.salesperson || user?.email || user?.user_metadata?.full_name || '';

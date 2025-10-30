@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../integrations/supabase/client';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -8,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Badge } from './ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useVendors } from '../hooks/useVendors';
-import { AlertCircle, Plus, Trash2, DollarSign, TrendingUp } from 'lucide-react';
+import { AlertCircle, Plus, Trash2, DollarSign, TrendingUp, Music, ChevronDown, ChevronRight } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 interface VendorAssignment {
   vendor_id: string;
@@ -33,8 +36,26 @@ export function VendorAssignmentStep({
 }: VendorAssignmentStepProps) {
   const { data: vendors = [] } = useVendors();
   const [selectedVendorId, setSelectedVendorId] = useState<string>('');
+  const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
   
   const activeVendors = vendors.filter(v => v.is_active);
+
+  // Fetch all playlists grouped by vendor
+  const { data: allPlaylists = [] } = useQuery({
+    queryKey: ['all-playlists'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('playlists')
+        .select(`
+          *,
+          vendor:vendors(id, name, cost_per_1k_streams, is_active)
+        `)
+        .order('name');
+      
+      if (error) throw error;
+      return data as any[];
+    },
+  });
   
   // Calculate totals
   const totalAllocatedStreams = assignments.reduce((sum, a) => sum + (a.allocated_streams || 0), 0);
@@ -81,6 +102,38 @@ export function VendorAssignmentStep({
           : a
       )
     );
+  };
+
+  const handleTogglePlaylist = (vendorId: string, playlistId: string) => {
+    onChange(
+      assignments.map(a => {
+        if (a.vendor_id !== vendorId) return a;
+        
+        const currentPlaylists = a.playlist_ids || [];
+        const newPlaylists = currentPlaylists.includes(playlistId)
+          ? currentPlaylists.filter(id => id !== playlistId)
+          : [...currentPlaylists, playlistId];
+        
+        return { ...a, playlist_ids: newPlaylists };
+      })
+    );
+  };
+
+  const handleToggleVendorExpansion = (vendorId: string) => {
+    setExpandedVendors(prev => {
+      const next = new Set(prev);
+      if (next.has(vendorId)) {
+        next.delete(vendorId);
+      } else {
+        next.add(vendorId);
+      }
+      return next;
+    });
+  };
+
+  // Get playlists for a specific vendor
+  const getVendorPlaylists = (vendorId: string) => {
+    return allPlaylists.filter(p => p.vendor_id === vendorId);
   };
 
   const handleAutoDistribute = (type: 'streams' | 'budget') => {
@@ -311,6 +364,65 @@ export function VendorAssignmentStep({
                           Cost per 1K streams: ${costPerStream.toFixed(2)}
                         </div>
                       )}
+
+                      {/* Playlist Selection */}
+                      <div className="mt-4 pt-4 border-t">
+                        <div 
+                          className="flex items-center justify-between cursor-pointer"
+                          onClick={() => handleToggleVendorExpansion(assignment.vendor_id)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm font-medium cursor-pointer">
+                              <Music className="h-4 w-4 inline mr-1" />
+                              Select Playlists (Optional)
+                            </Label>
+                            {assignment.playlist_ids && assignment.playlist_ids.length > 0 && (
+                              <Badge variant="secondary" className="text-xs">
+                                {assignment.playlist_ids.length} selected
+                              </Badge>
+                            )}
+                          </div>
+                          {expandedVendors.has(assignment.vendor_id) ? (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+
+                        {expandedVendors.has(assignment.vendor_id) && (
+                          <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
+                            {getVendorPlaylists(assignment.vendor_id).length > 0 ? (
+                              getVendorPlaylists(assignment.vendor_id).map(playlist => {
+                                const isSelected = assignment.playlist_ids?.includes(playlist.id);
+                                return (
+                                  <div
+                                    key={playlist.id}
+                                    className={`flex items-center gap-2 p-2 rounded border cursor-pointer transition-colors ${
+                                      isSelected
+                                        ? 'bg-primary/10 border-primary'
+                                        : 'hover:bg-muted/50'
+                                    }`}
+                                    onClick={() => handleTogglePlaylist(assignment.vendor_id, playlist.id)}
+                                  >
+                                    <Checkbox checked={isSelected} />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-sm font-medium truncate">{playlist.name}</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {playlist.follower_count?.toLocaleString() || 0} followers
+                                        {playlist.avg_daily_streams && ` • ~${playlist.avg_daily_streams.toLocaleString()}/day`}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <p className="text-sm text-muted-foreground text-center py-4">
+                                No playlists available for this vendor
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 );
