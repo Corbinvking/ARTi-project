@@ -221,15 +221,47 @@ export function useCampaignBuilder() {
       console.log('✅ Spotify campaign created:', createdSpotifyCampaign.id);
       
       // 3. Create playlist associations
-      const selectedPlaylists = allocationsData?.selectedPlaylists || allocationsData?.allocations || [];
+      const playlistIds = allocationsData?.playlistIds || [];
       
-      if (selectedPlaylists.length > 0) {
-        console.log('Creating playlist associations...');
+      if (playlistIds.length > 0) {
+        console.log('Creating playlist associations for campaign:', createdSpotifyCampaign.id);
+        console.log('Playlist IDs:', playlistIds);
         
-        // TODO: Create campaign_playlists entries for each selected playlist
-        // This would link the playlists to the campaign for tracking
+        const { data: playlistDetails, error: playlistFetchError } = await supabase
+          .from('playlists')
+          .select('id, name, vendor_id')
+          .in('id', playlistIds);
         
-        console.log(`✅ Associated ${selectedPlaylists.length} playlists`);
+        if (playlistFetchError) {
+          console.error('❌ Error fetching playlist details:', playlistFetchError);
+        } else if (playlistDetails && playlistDetails.length > 0) {
+          console.log('Fetched playlist details:', playlistDetails.length);
+          
+          // Create campaign_playlists entries
+          const campaignPlaylistsEntries = playlistDetails.map(playlist => ({
+            campaign_id: createdSpotifyCampaign.id,
+            playlist_name: playlist.name,
+            vendor_id: playlist.vendor_id,
+            playlist_curator: null, // Will be populated by scraper
+            org_id: '00000000-0000-0000-0000-000000000001'
+          }));
+          
+          console.log('Creating campaign_playlists entries:', campaignPlaylistsEntries);
+          
+          const { error: insertError } = await supabase
+            .from('campaign_playlists')
+            .insert(campaignPlaylistsEntries);
+          
+          if (insertError) {
+            console.error('❌ Error creating campaign_playlists entries:', insertError);
+          } else {
+            console.log(`✅ Created ${campaignPlaylistsEntries.length} campaign_playlists entries`);
+          }
+        } else {
+          console.log('⚠️ No playlist details found');
+        }
+      } else {
+        console.log('⚠️ No playlist IDs to associate');
       }
 
       // Invalidate relevant queries

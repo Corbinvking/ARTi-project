@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "../integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -132,6 +132,7 @@ type SortDirection = 'asc' | 'desc';
 
 export default function CampaignHistory() {
   const [searchParams] = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(() => {
     return searchParams?.get('tab') || 'campaigns';
   });
@@ -870,7 +871,7 @@ export default function CampaignHistory() {
                   Import Campaigns
                 </Button>
                 <Button
-                  onClick={() => setCreateCampaignOpen(true)}
+                  onClick={() => router.push('/spotify/campaign/new')}
                   size="sm"
                   className="gap-2"
                 >
