@@ -43,18 +43,16 @@ export const useVendorPayouts = () => {
       
       console.log('💰 [VendorPayouts] Allocations:', allocations?.length || 0, allocationsError?.message);
 
-      // Also fetch active/completed campaigns with vendor allocations that may not be in allocations table yet
+      // Also fetch active/completed campaigns 
       const { data: campaigns, error: campaignsError } = await supabase
         .from('campaign_groups')
         .select(`
           id,
           name,
           status,
-          start_date,
-          vendor_allocations
+          start_date
         `)
-        .in('status', ['Active', 'Completed'])
-        .not('vendor_allocations', 'is', null);
+        .in('status', ['Active', 'Completed']);
 
       // Fetch all vendors to get cost_per_1k_streams rates
       const { data: vendors, error: vendorsError } = await supabase
@@ -69,6 +67,11 @@ export const useVendorPayouts = () => {
       console.log('💰 [VendorPayouts] Campaigns:', campaigns?.length || 0, campaignsError?.message);
       console.log('💰 [VendorPayouts] SpotifyCampaigns:', spotifyCampaigns?.length || 0, spotifyCampaignsError?.message);
       console.log('💰 [VendorPayouts] Vendors:', vendors?.length || 0, vendorsError?.message);
+      
+      // Log sample spotify campaigns
+      if (spotifyCampaigns && spotifyCampaigns.length > 0) {
+        console.log('💰 [VendorPayouts] Sample SpotifyCampaign:', spotifyCampaigns[0]);
+      }
 
       if (allocationsError && campaignsError && vendorsError && spotifyCampaignsError) {
         throw allocationsError || campaignsError || vendorsError || spotifyCampaignsError;
@@ -95,9 +98,15 @@ export const useVendorPayouts = () => {
               sale_price: parseFloat(sc.sale_price) || 0,
               paid_vendor: sc.paid_vendor === true
             });
+          } else {
+            console.log('💰 [VendorPayouts] Could not find vendor ID for:', sc.vendor);
           }
+        } else {
+          console.log('💰 [VendorPayouts] Missing data for SpotifyCampaign:', sc);
         }
       });
+      
+      console.log('💰 [VendorPayouts] SpotifyCampaignPayments map size:', spotifyCampaignPayments.size);
 
       type RawAllocation = {
         campaign_id: string;
@@ -116,49 +125,6 @@ export const useVendorPayouts = () => {
       // Existing allocations from performance table
       if (allocations) {
         allPayoutData.push(...(allocations as RawAllocation[]));
-      }
-
-      // Also derive allocations from campaigns.vendor_allocations
-      if (campaigns) {
-        for (const campaign of campaigns) {
-          const vendorAllocations = (campaign as any).vendor_allocations || [];
-
-          // Backward compatibility: allow object map or array
-          const allocationsArray = Array.isArray(vendorAllocations)
-            ? vendorAllocations
-            : Object.entries(vendorAllocations).map(([vendorId, allocation]) => ({
-                vendor_id: vendorId,
-                ...(allocation as any),
-              }));
-
-          for (const allocation of allocationsArray) {
-            if (!allocation || typeof allocation !== 'object') continue;
-            const vendorId = (allocation as any).vendor_id;
-            if (!vendorId) continue;
-
-            const exists = allocations?.some(
-              (a: any) => a.campaign_id === campaign.id && a.vendor_id === vendorId
-            );
-            if (exists) continue;
-
-            const vendor = vendorMap.get(vendorId);
-            const allocatedStreams = (allocation as any).allocation || (allocation as any).allocatedStreams || 0;
-            const costPer1k = vendor?.cost_per_1k_streams || 0;
-            const costPerStream = costPer1k / 1000;
-
-            allPayoutData.push({
-              campaign_id: campaign.id,
-              vendor_id: vendorId,
-              allocated_streams: allocatedStreams,
-              predicted_streams: allocatedStreams,
-              actual_streams: allocatedStreams, // Until performance data arrives
-              cost_per_stream: costPerStream,
-              actual_cost_per_stream: costPerStream,
-              performance_score: 0,
-              completed_at: null,
-            });
-          }
-        }
       }
 
       // Also add Spotify campaign direct payment data to allPayoutData
