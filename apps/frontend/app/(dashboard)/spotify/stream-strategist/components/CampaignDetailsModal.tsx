@@ -1089,12 +1089,25 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : campaignPlaylists.length === 0 ? (
-              <div className="text-center p-8 text-muted-foreground">
+              <div className="text-center p-8 text-muted-foreground space-y-4">
                 <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium mb-2">No Vendor Playlist Data Yet</p>
                 <p className="text-sm">
                   Vendor playlist placement data will appear here once the Spotify scraper runs for this campaign.
                 </p>
+                
+                {/* Add manual playlist button */}
+                {canEditCampaign && (
+                  <Button
+                    onClick={() => setShowPlaylistSelector(true)}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Playlist Manually
+                  </Button>
+                )}
+                
                 {algorithmicPlaylists.length > 0 && (
                   <p className="text-sm mt-4 text-muted-foreground">
                     💡 <strong>Tip:</strong> This campaign has {algorithmicPlaylists.length} algorithmic playlist{algorithmicPlaylists.length !== 1 ? 's' : ''} with stream data.
@@ -1484,17 +1497,17 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
           campaignGenre={campaignData?.sub_genre}
           excludePlaylistIds={playlists.map(p => p.id)}
         />
-
-        {/* Edit Playlist Vendor Dialog */}
-        {editingPlaylist && (
-          <EditPlaylistVendorDialog
-            open={!!editingPlaylist}
-            onOpenChange={(open) => !open && setEditingPlaylist(null)}
-            playlist={editingPlaylist}
-            campaignId={campaign?.id}
-          />
-        )}
       </DialogContent>
+
+      {/* Edit Playlist Vendor Dialog - outside main Dialog to avoid nesting */}
+      {editingPlaylist && (
+        <EditPlaylistVendorDialog
+          open={!!editingPlaylist}
+          onOpenChange={(open) => !open && setEditingPlaylist(null)}
+          playlist={editingPlaylist}
+          campaignId={campaign?.id}
+        />
+      )}
     </Dialog>
   );
 }

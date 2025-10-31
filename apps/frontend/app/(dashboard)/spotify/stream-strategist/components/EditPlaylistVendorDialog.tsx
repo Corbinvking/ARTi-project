@@ -94,7 +94,14 @@ export function EditPlaylistVendorDialog({
   };
 
   const handleSave = async () => {
-    if (!playlist) return;
+    if (!playlist) {
+      toast({
+        title: "Error",
+        description: "No playlist selected",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setSaving(true);
     
@@ -134,6 +141,11 @@ export function EditPlaylistVendorDialog({
       setSaving(false);
     }
   };
+
+  // Early return if no playlist
+  if (!playlist) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
