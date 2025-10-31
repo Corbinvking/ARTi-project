@@ -40,7 +40,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar } from 'lucide-react';
+import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import { PlaylistSelector } from './PlaylistSelector';
@@ -54,6 +54,7 @@ import { VendorPerformanceChart } from './VendorPerformanceChart';
 import { useCampaignPerformanceData, useCampaignOverallPerformance } from '../hooks/useCampaignPerformanceData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useVendorPaymentData } from '../hooks/useVendorPayments';
+import { EditPlaylistVendorDialog } from './EditPlaylistVendorDialog';
 
 interface PlaylistWithStatus {
   id: string;
@@ -98,6 +99,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const [editingSfaUrl, setEditingSfaUrl] = useState(false);
   const [sfaUrlInput, setSfaUrlInput] = useState('');
   const [savingSfaUrl, setSavingSfaUrl] = useState(false);
+  const [editingPlaylist, setEditingPlaylist] = useState<any>(null);
   const { toast } = useToast();
   
   // Fetch vendor responses for this campaign
@@ -1162,6 +1164,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                         <TableHead className="text-right">Streams (28d)</TableHead>
                         <TableHead className="text-right">Streams (12m)</TableHead>
                         <TableHead>Date Added</TableHead>
+                        <TableHead className="w-20">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1191,6 +1194,15 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {playlist.date_added || 'Unknown'}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingPlaylist(playlist)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1472,6 +1484,16 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
           campaignGenre={campaignData?.sub_genre}
           excludePlaylistIds={playlists.map(p => p.id)}
         />
+
+        {/* Edit Playlist Vendor Dialog */}
+        {editingPlaylist && (
+          <EditPlaylistVendorDialog
+            open={!!editingPlaylist}
+            onOpenChange={(open) => !open && setEditingPlaylist(null)}
+            playlist={editingPlaylist}
+            campaignId={campaign?.id}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
