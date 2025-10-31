@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Search, Users, ExternalLink } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -247,90 +246,92 @@ export function PlaylistSelector({
         </div>
 
         {/* Playlist list */}
-        <ScrollArea className="flex-1 min-h-0">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              Loading playlists...
-            </div>
-          ) : sortedPlaylists.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No playlists match your criteria
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {sortedPlaylists.map(playlist => {
-                const isSelected = selectedPlaylists.has(playlist.id);
-                const genreMatch = campaignGenre && playlist.genres.includes(campaignGenre);
-                
-                return (
-                  <div 
-                    key={playlist.id}
-                    className={`cursor-pointer transition-all hover:bg-accent/50 border rounded px-3 py-2 flex items-center gap-3 ${
-                      isSelected ? 'border-primary bg-accent/20' : 'border-border'
-                    } ${genreMatch ? 'border-accent' : ''}`}
-                    onClick={() => togglePlaylistSelection(playlist.id)}
-                  >
-                    {/* Checkbox */}
-                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                      isSelected ? 'bg-primary border-primary' : 'border-border'
-                    }`}>
-                      {isSelected && (
-                        <div className="w-1.5 h-1.5 bg-primary-foreground rounded-sm"></div>
-                      )}
-                    </div>
+        <div className="flex-1 min-h-0 overflow-hidden border rounded-lg">
+          <div className="h-full overflow-y-auto">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                Loading playlists...
+              </div>
+            ) : sortedPlaylists.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No playlists match your criteria
+              </div>
+            ) : (
+              <div className="space-y-1 p-2">
+                {sortedPlaylists.map(playlist => {
+                  const isSelected = selectedPlaylists.has(playlist.id);
+                  const genreMatch = campaignGenre && playlist.genres.includes(campaignGenre);
+                  
+                  return (
+                    <div 
+                      key={playlist.id}
+                      className={`cursor-pointer transition-all hover:bg-accent/50 border rounded px-3 py-2 flex items-center gap-3 ${
+                        isSelected ? 'border-primary bg-accent/20' : 'border-border'
+                      } ${genreMatch ? 'border-accent' : ''}`}
+                      onClick={() => togglePlaylistSelection(playlist.id)}
+                    >
+                      {/* Checkbox */}
+                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                        isSelected ? 'bg-primary border-primary' : 'border-border'
+                      }`}>
+                        {isSelected && (
+                          <div className="w-1.5 h-1.5 bg-primary-foreground rounded-sm"></div>
+                        )}
+                      </div>
 
-                    {/* Playlist Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium text-sm truncate">{playlist.name}</h4>
-                        {genreMatch && (
-                          <Badge variant="default" className="text-xs flex-shrink-0">
-                            Match
-                          </Badge>
-                        )}
+                      {/* Playlist Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-sm truncate">{playlist.name}</h4>
+                          {genreMatch && (
+                            <Badge variant="default" className="text-xs flex-shrink-0">
+                              Match
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="font-mono">{playlist.avg_daily_streams.toLocaleString()} daily</span>
+                          {playlist.follower_count && (
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              {playlist.follower_count.toLocaleString()}
+                            </span>
+                          )}
+                          <Badge variant="secondary" className="text-xs">{playlist.vendor_name}</Badge>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="font-mono">{playlist.avg_daily_streams.toLocaleString()} daily</span>
-                        {playlist.follower_count && (
-                          <span className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            {playlist.follower_count.toLocaleString()}
-                          </span>
-                        )}
-                        <Badge variant="secondary" className="text-xs">{playlist.vendor_name}</Badge>
-                      </div>
-                    </div>
 
-                    {/* Genres and Link */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <div className="flex gap-1">
-                        {playlist.genres.slice(0, 2).map(genre => (
-                          <Badge key={genre} variant="outline" className="text-xs">
-                            {genre}
-                          </Badge>
-                        ))}
-                        {playlist.genres.length > 2 && (
-                          <span className="text-xs text-muted-foreground">
-                            +{playlist.genres.length - 2}
-                          </span>
-                        )}
+                      {/* Genres and Link */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex gap-1">
+                          {playlist.genres.slice(0, 2).map(genre => (
+                            <Badge key={genre} variant="outline" className="text-xs">
+                              {genre}
+                            </Badge>
+                          ))}
+                          {playlist.genres.length > 2 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{playlist.genres.length - 2}
+                            </span>
+                          )}
+                        </div>
+                        <a
+                          href={playlist.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline flex items-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
                       </div>
-                      <a
-                        href={playlist.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </ScrollArea>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
