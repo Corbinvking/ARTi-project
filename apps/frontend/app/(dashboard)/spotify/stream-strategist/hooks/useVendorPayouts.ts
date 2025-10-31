@@ -57,12 +57,39 @@ export const useVendorPayouts = () => {
         .from('vendors')
         .select('id, name, cost_per_1k_streams');
 
-      if (allocationsError && campaignsError && vendorsError) {
-        throw allocationsError || campaignsError || vendorsError;
+      // Fetch spotify_campaigns for direct payment tracking (paid_vendor, sale_price)
+      const { data: spotifyCampaigns, error: spotifyCampaignsError } = await supabase
+        .from('spotify_campaigns')
+        .select('id, campaign_group_id, vendor, paid_vendor, sale_price');
+
+      if (allocationsError && campaignsError && vendorsError && spotifyCampaignsError) {
+        throw allocationsError || campaignsError || vendorsError || spotifyCampaignsError;
       }
 
       const vendorMap = new Map((vendors || []).map((v: any) => [v.id, v]));
       const campaignsMap = new Map((campaigns || []).map((c: any) => [c.id, c]));
+      
+      // Create a lookup map of vendor name -> vendor ID
+      const vendorNameToIdMap = new Map<string, string>();
+      (vendors || []).forEach((v: any) => {
+        vendorNameToIdMap.set(v.name.toLowerCase(), v.id);
+      });
+      
+      // Create a map of campaign_group_id -> vendor payment info from spotify_campaigns
+      const spotifyCampaignPayments = new Map<string, { vendor_id: string; vendor_name: string; sale_price: number; paid_vendor: boolean }>();
+      (spotifyCampaigns || []).forEach((sc: any) => {
+        if (sc.campaign_group_id && sc.vendor && sc.sale_price) {
+          const vendorId = vendorNameToIdMap.get(sc.vendor.toLowerCase());
+          if (vendorId) {
+            spotifyCampaignPayments.set(sc.campaign_group_id, {
+              vendor_id: vendorId,
+              vendor_name: sc.vendor,
+              sale_price: parseFloat(sc.sale_price) || 0,
+              paid_vendor: sc.paid_vendor === true
+            });
+          }
+        }
+      });
 
       type RawAllocation = {
         campaign_id: string;
@@ -125,6 +152,34 @@ export const useVendorPayouts = () => {
           }
         }
       }
+
+      // Also add Spotify campaign direct payment data to allPayoutData
+      spotifyCampaignPayments.forEach((payment, campaignId) => {
+        // Check if already exists in allPayoutData
+        const exists = allPayoutData.some(
+          (a: any) => a.campaign_id === campaignId && a.vendor_id === payment.vendor_id
+        );
+        if (exists) return;
+        
+        const vendor = vendorMap.get(payment.vendor_id);
+        const costPer1k = vendor?.cost_per_1k_streams || 0;
+        const costPerStream = costPer1k / 1000;
+        
+        // Use sale_price to estimate allocated_streams if needed
+        const estimatedStreams = payment.sale_price / costPerStream;
+        
+        allPayoutData.push({
+          campaign_id: campaignId,
+          vendor_id: payment.vendor_id,
+          allocated_streams: estimatedStreams,
+          predicted_streams: estimatedStreams,
+          actual_streams: estimatedStreams,
+          cost_per_stream: costPerStream,
+          actual_cost_per_stream: costPerStream,
+          performance_score: 0,
+          completed_at: null,
+        });
+      });
 
       // Fetch campaign invoices separately and map by campaign_id
       const campaignIds = Array.from(
@@ -196,9 +251,18 @@ export const useVendorPayouts = () => {
 
         const invoiceArr = (invoicesByCampaign.get(campaign.id) || []) as any[];
         const invoice = invoiceArr[0];
+        
+        // Check for Spotify campaign payment data
+        const spotifyPayment = spotifyCampaignPayments.get(campaign.id);
+        const isPaidFromSpotify = spotifyPayment?.paid_vendor === true;
 
-        const amountOwed = (aggregatedAllocation.actual_streams || 0) * (aggregatedAllocation.cost_per_stream || 0);
-        const paymentStatus: 'paid' | 'unpaid' = invoice?.status === 'paid' ? 'paid' : 'unpaid';
+        // Use sale_price from spotify_campaigns if available, otherwise calculate
+        const amountOwed = spotifyPayment?.sale_price || 
+          ((aggregatedAllocation.actual_streams || 0) * (aggregatedAllocation.cost_per_stream || 0));
+        
+        // Payment status: check invoice first, then spotify paid_vendor, otherwise unpaid
+        const paymentStatus: 'paid' | 'unpaid' = 
+          invoice?.status === 'paid' || isPaidFromSpotify ? 'paid' : 'unpaid';
 
         const startDate = new Date(campaign.start_date);
         const completionDate = new Date(startDate);
