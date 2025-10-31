@@ -246,7 +246,7 @@ export function PlaylistSelector({
         </div>
 
         {/* Playlist list */}
-        <div className="flex-1 min-h-0 overflow-hidden border rounded-lg">
+        <div className="h-[400px] overflow-hidden border rounded-lg">
           <div className="h-full overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center py-8">
