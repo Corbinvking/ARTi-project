@@ -185,177 +185,123 @@ export function useApproveCampaignSubmission() {
         console.log('✅ Found existing client with ID:', clientId);
       }
 
-      // Run allocation algorithm to generate playlist recommendations for Spotify campaigns
-      console.log('🎵 Fetching playlists and vendors for allocation algorithm...');
-      const { data: playlists, error: playlistsError } = await supabase
-        .from('playlists')
-        .select(`
-          *,
-          vendor:vendors(*)
-        `);
-
-      if (playlistsError) {
-        console.error('❌ Error fetching playlists:', playlistsError);
-        throw new Error(`Failed to fetch playlists: ${playlistsError.message}`);
-      }
-
-      const { data: vendors, error: vendorsError } = await supabase
-        .from('vendors')
-        .select('*')
-        .eq('is_active', true);
-
-      if (vendorsError) {
-        console.error('❌ Error fetching vendors:', vendorsError);
-        throw new Error(`Failed to fetch vendors: ${vendorsError.message}`);
-      }
-
-      let algorithmRecommendations: any = {};
-      console.log(`🏪 Found ${vendors?.length || 0} vendors and ${playlists?.length || 0} playlists`);
-
-      if (playlists && playlists.length > 0 && vendors && vendors.length > 0) {
-        try {
-          console.log('🤖 Running allocation algorithm...');
-          // Import the allocation algorithm
-          const { allocateStreams } = await import('../lib/allocationAlgorithm');
-          
-          // Build vendor caps (assume max daily streams * duration for simplicity)
-          const vendorCaps: Record<string, number> = {};
-          vendors.forEach(vendor => {
-            const vendorPlaylists = playlists.filter(p => p.vendor_id === vendor.id);
-            const totalCapacity = vendorPlaylists.reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
-            vendorCaps[vendor.id] = Math.floor(totalCapacity * (submission.duration_days ?? 90));
-          });
-
-          const algorithmResult = await allocateStreams({
-            playlists: playlists,
-            goal: submission.stream_goal,
-            vendorCaps,
-            subGenre: (submission.music_genres || [])[0] || '',
-            durationDays: submission.duration_days ?? 90,
-            campaignGenres: submission.music_genres || [],
-            vendors,
-            campaignBudget: submission.price_paid
-          });
-
-          algorithmRecommendations = {
-            allocations: algorithmResult.allocations,
-            genreMatches: algorithmResult.genreMatches,
-            insights: algorithmResult.insights,
-            timestamp: new Date().toISOString()
-          };
-          console.log('✅ Algorithm completed successfully');
-        } catch (error) {
-          console.warn('⚠️ Algorithm failed, creating draft without recommendations:', error);
-        }
-      }
-
-      // Create active campaign directly (skip draft review)
-      console.log('📝 Creating active campaign...');
-      const { error: campaignError } = await supabase
-        .from('campaigns')
-        .insert({
-          name: submission.campaign_name,
-          brand_name: submission.campaign_name,
-          client: submission.client_name,
-          client_name: submission.client_name,
-          client_id: clientId,
-          track_url: submission.track_url,
-          track_name: submission.campaign_name.split(' - ')[1] || submission.campaign_name,
-          stream_goal: submission.stream_goal,
-          remaining_streams: submission.stream_goal,
-          budget: submission.price_paid,
-          start_date: submission.start_date,
-          status: 'active', // Set directly to active
-          duration_days: submission.duration_days ?? 90,
-          sub_genre: (submission.music_genres || []).join(', '),
-          music_genres: submission.music_genres || [],
-          territory_preferences: submission.territory_preferences || [],
-          selected_playlists: algorithmRecommendations?.allocations ? 
-            algorithmRecommendations.allocations.map((allocation: any) => {
-              const playlist = playlists?.find(p => p.id === allocation.playlistId);
-              return {
-                id: allocation.playlistId,
-                name: playlist?.name || 'Unknown Playlist',
-                url: playlist?.url || '',
-                vendor_name: playlist?.vendor?.name || 'Unknown Vendor',
-                genres: playlist?.genres || [],
-                status: 'Pending',
-                streams_allocated: allocation.streams,
-                cost_per_stream: allocation.costPerStream
-              };
-            }).filter(Boolean) : [],
-          vendor_allocations: algorithmRecommendations?.allocations ? 
-            algorithmRecommendations.allocations.reduce((acc: any, allocation: any) => {
-              acc[allocation.vendorId] = allocation.streams;
-              return acc;
-            }, {}) : {},
-          algorithm_recommendations: algorithmRecommendations,
-          pending_operator_review: false, // No review needed
-          totals: {},
-          results: {},
-          source: APP_CAMPAIGN_SOURCE_INTAKE,
-          campaign_type: APP_CAMPAIGN_TYPE,
-          salesperson: submission.salesperson,
-          notes: submission.notes || '',
-          submission_id: submissionId
-        });
-
-      if (campaignError) {
-        console.error('❌ Error creating campaign:', campaignError);
-        throw new Error(`Failed to create campaign: ${campaignError.message}`);
-      }
-      console.log('✅ Active campaign created successfully');
-
-      // Get the created campaign to use for vendor requests
-      const { data: createdCampaign, error: fetchCampaignError } = await supabase
-        .from('campaigns')
-        .select('id')
-        .eq('submission_id', submissionId)
+      // Create campaign using NEW schema (campaign_groups + spotify_campaigns + campaign_playlists)
+      console.log('📝 Creating campaign with new schema...');
+      
+      // Extract artist name from campaign name (format: "Artist Name - Track Title")
+      const artistName = submission.campaign_name.includes(' - ') 
+        ? submission.campaign_name.split(' - ')[0].trim()
+        : submission.campaign_name;
+      
+      // Calculate end_date from start_date + duration_days
+      const startDate = new Date(submission.start_date);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + (submission.duration_days || 90));
+      
+      // 1. Create campaign_group
+      const campaignGroupPayload = {
+        name: submission.campaign_name,
+        artist_name: artistName,
+        client_id: clientId || null,
+        total_goal: submission.stream_goal,
+        total_budget: submission.price_paid,
+        start_date: submission.start_date,
+        end_date: endDate.toISOString().split('T')[0],
+        status: 'Active',
+        salesperson: submission.salesperson || null,
+        notes: submission.notes || null
+      };
+      
+      console.log('Creating campaign_group:', campaignGroupPayload);
+      
+      const { data: createdCampaignGroup, error: campaignGroupError } = await supabase
+        .from('campaign_groups')
+        .insert(campaignGroupPayload)
+        .select()
         .single();
-
-      // Create vendor requests if we have algorithm recommendations
-      if (algorithmRecommendations?.allocations && createdCampaign) {
-        console.log('🏢 Creating vendor requests...');
+      
+      if (campaignGroupError) {
+        console.error('❌ Campaign group error:', campaignGroupError);
+        throw campaignGroupError;
+      }
+      
+      console.log('✅ Campaign group created:', createdCampaignGroup.id);
+      
+      // 2. Create spotify_campaigns entry
+      const spotifyCampaignPayload = {
+        campaign_group_id: createdCampaignGroup.id,
+        campaign: submission.campaign_name,
+        vendor: 'Multiple',
+        goal: submission.stream_goal,
+        remaining: submission.stream_goal,
+        daily: 0,
+        weekly: 0,
+        url: submission.track_url,
+        status: 'Active',
+        curator_status: 'Pending',
+        playlists: (submission as any).vendor_assignments?.flatMap((va: any) => va.playlist_ids || []) || [],
+        notes: `Created from submission approval. ${submission.music_genres ? `Genres: ${submission.music_genres.join(', ')}` : ''}`,
+        sfa: (submission as any).sfa_url || null
+      };
+      
+      console.log('Creating spotify_campaign:', spotifyCampaignPayload);
+      
+      const { data: createdSpotifyCampaign, error: spotifyCampaignError } = await supabase
+        .from('spotify_campaigns')
+        .insert(spotifyCampaignPayload)
+        .select()
+        .single();
+      
+      if (spotifyCampaignError) {
+        console.error('❌ Spotify campaign error:', spotifyCampaignError);
+        throw spotifyCampaignError;
+      }
+      
+      console.log('✅ Spotify campaign created:', createdSpotifyCampaign.id);
+      
+      // 3. Create campaign_playlists entries from vendor_assignments
+      const vendorAssignments = (submission as any).vendor_assignments || [];
+      console.log('Processing vendor assignments:', vendorAssignments.length);
+      
+      if (vendorAssignments.length > 0) {
+        // Get all playlist IDs from vendor assignments
+        const allPlaylistIds = vendorAssignments.flatMap((va: any) => va.playlist_ids || []);
         
-        try {
-          // Group playlists by vendor from algorithm recommendations
-          const vendorGroups: Record<string, string[]> = {};
-          const allocations = algorithmRecommendations.allocations;
+        if (allPlaylistIds.length > 0) {
+          console.log('Fetching playlist details for', allPlaylistIds.length, 'playlists...');
           
-          // Process allocations to group by vendor
-          if (Array.isArray(allocations)) {
-            allocations.forEach((allocation: any) => {
-              if (allocation.playlistId && allocation.vendorId) {
-                if (!vendorGroups[allocation.vendorId]) {
-                  vendorGroups[allocation.vendorId] = [];
-                }
-                vendorGroups[allocation.vendorId].push(allocation.playlistId);
-              }
-            });
-          }
-
-          // Create vendor requests
-          if (Object.keys(vendorGroups).length > 0) {
-            const vendorRequests = Object.entries(vendorGroups).map(([vendorId, playlistIds]) => ({
-              campaign_id: createdCampaign.id,
-              vendor_id: vendorId,
-              playlist_ids: playlistIds,
-              status: 'pending',
-              requested_at: new Date().toISOString()
+          const { data: playlistDetails, error: playlistFetchError } = await supabase
+            .from('playlists')
+            .select('id, name, vendor_id, vendor:vendors(id, name)')
+            .in('id', allPlaylistIds);
+          
+          if (playlistFetchError) {
+            console.error('❌ Error fetching playlist details:', playlistFetchError);
+          } else if (playlistDetails && playlistDetails.length > 0) {
+            console.log('Fetched playlist details:', playlistDetails.length);
+            
+            // Create campaign_playlists entries
+            const campaignPlaylistsEntries = playlistDetails.map(playlist => ({
+              campaign_id: createdSpotifyCampaign.id,
+              playlist_name: playlist.name,
+              vendor_id: playlist.vendor_id,
+              playlist_curator: (playlist as any).vendor?.name || null, // Set vendor name as curator
+              is_algorithmic: false, // These are vendor playlists
+              org_id: '00000000-0000-0000-0000-000000000001'
             }));
-
-            const { error: requestsError } = await supabase
-              .from('campaign_vendor_requests')
-              .insert(vendorRequests);
-
-            if (requestsError) {
-              console.error('⚠️ Error creating vendor requests (non-critical):', requestsError);
+            
+            console.log('Creating campaign_playlists entries:', campaignPlaylistsEntries);
+            
+            const { error: insertError } = await supabase
+              .from('campaign_playlists')
+              .insert(campaignPlaylistsEntries);
+            
+            if (insertError) {
+              console.error('❌ Error creating campaign_playlists entries:', insertError);
             } else {
-              console.log('✅ Created', vendorRequests.length, 'vendor requests');
+              console.log(`✅ Created ${campaignPlaylistsEntries.length} campaign_playlists entries`);
             }
           }
-        } catch (error) {
-          console.error('⚠️ Error processing vendor requests (non-critical):', error);
         }
       }
 
@@ -385,6 +331,7 @@ export function useApproveCampaignSubmission() {
       });
       queryClient.invalidateQueries({ queryKey: ['campaign-submissions'] });
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       queryClient.invalidateQueries({ queryKey: ['vendor-campaign-requests'] });
     },

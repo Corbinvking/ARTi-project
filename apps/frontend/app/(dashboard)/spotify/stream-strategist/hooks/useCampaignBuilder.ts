@@ -229,7 +229,7 @@ export function useCampaignBuilder() {
         
         const { data: playlistDetails, error: playlistFetchError } = await supabase
           .from('playlists')
-          .select('id, name, vendor_id')
+          .select('id, name, vendor_id, vendor:vendors(id, name)')
           .in('id', playlistIds);
         
         if (playlistFetchError) {
@@ -242,7 +242,8 @@ export function useCampaignBuilder() {
             campaign_id: createdSpotifyCampaign.id,
             playlist_name: playlist.name,
             vendor_id: playlist.vendor_id,
-            playlist_curator: null, // Will be populated by scraper
+            playlist_curator: (playlist as any).vendor?.name || null, // Set vendor name as curator
+            is_algorithmic: false, // These are vendor playlists
             org_id: '00000000-0000-0000-0000-000000000001'
           }));
           
