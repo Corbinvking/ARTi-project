@@ -173,6 +173,16 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       
       console.log('✅ Found playlists - Vendor:', vendorPlaylists.length, 'Algorithmic:', algorithmicPlaylists.length);
       
+      // Debug: Log algorithmic playlists to see what's being included
+      if (algorithmicPlaylists.length > 0) {
+        console.log('🔍 Algorithmic playlists:', algorithmicPlaylists.map((p: any) => ({
+          name: p.playlist_name,
+          is_algorithmic: p.is_algorithmic,
+          vendor_id: p.vendor_id,
+          vendor_name: p.vendors?.name
+        })));
+      }
+      
       return {
         vendor: vendorPlaylists,
         algorithmic: algorithmicPlaylists
