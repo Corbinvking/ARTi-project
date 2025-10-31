@@ -336,6 +336,7 @@ export function VendorPayoutManager() {
                   <TableHead className="w-8"></TableHead>
                   <TableHead>Vendor / Campaign</TableHead>
                   <TableHead>Amount Owed</TableHead>
+                  <TableHead>Amount Paid</TableHead>
                   <TableHead>Streams</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Completion Date</TableHead>
@@ -389,6 +390,14 @@ export function VendorPayoutManager() {
                           </div>
                           <div className="text-xs text-muted-foreground">
                             Total owed
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-bold text-lg text-green-600">
+                            ${vendor.amount_paid.toFixed(2)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Amount paid
                           </div>
                         </TableCell>
                         <TableCell>
@@ -490,6 +499,11 @@ export function VendorPayoutManager() {
                                   )}
                                 </div>
                               )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm text-green-600 font-medium">
+                                {campaign.payment_status === 'paid' ? `$${campaign.amount_owed.toFixed(2)}` : '$0.00'}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">

@@ -23,6 +23,7 @@ export interface VendorPayoutSummary {
   vendor_id: string;
   vendor_name: string;
   total_owed: number;
+  amount_paid: number;
   unpaid_campaigns: number;
   paid_campaigns: number;
   campaigns: VendorPayout[];
@@ -92,17 +93,19 @@ export const useVendorPayouts = () => {
         if (sc.campaign_group_id && sc.vendor && sc.sale_price) {
           const vendorId = vendorNameToIdMap.get(sc.vendor.toLowerCase());
           if (vendorId) {
+            // Parse sale_price, handling string format like "$400.00" or numeric
+            const salePriceStr = String(sc.sale_price).replace(/[$,]/g, '');
+            const salePrice = parseFloat(salePriceStr) || 0;
+            
             spotifyCampaignPayments.set(sc.campaign_group_id, {
               vendor_id: vendorId,
               vendor_name: sc.vendor,
-              sale_price: parseFloat(sc.sale_price) || 0,
-              paid_vendor: sc.paid_vendor === true
+              sale_price: salePrice,
+              paid_vendor: sc.paid_vendor === 'true' || sc.paid_vendor === true
             });
           } else {
-            console.log('💰 [VendorPayouts] Could not find vendor ID for:', sc.vendor);
+            // Silently skip unknown vendors to reduce noise
           }
-        } else {
-          console.log('💰 [VendorPayouts] Missing data for SpotifyCampaign:', sc);
         }
       });
       
@@ -228,7 +231,7 @@ export const useVendorPayouts = () => {
         
         // Check for Spotify campaign payment data
         const spotifyPayment = spotifyCampaignPayments.get(campaign.id);
-        const isPaidFromSpotify = spotifyPayment?.paid_vendor === true;
+        const isPaidFromSpotify = spotifyPayment?.paid_vendor === true || spotifyPayment?.paid_vendor === 'true';
 
         // Use sale_price from spotify_campaigns if available, otherwise calculate
         const amountOwed = spotifyPayment?.sale_price || 
@@ -263,6 +266,7 @@ export const useVendorPayouts = () => {
             vendor_id: vendor.id,
             vendor_name: vendor.name,
             total_owed: 0,
+            amount_paid: 0,
             unpaid_campaigns: 0,
             paid_campaigns: 0,
             campaigns: [],
@@ -272,13 +276,17 @@ export const useVendorPayouts = () => {
         const summary = vendorPayouts.get(vendor.id)!;
         summary.campaigns.push(payoutData);
         summary.total_owed += amountOwed;
-        if (paymentStatus === 'paid') summary.paid_campaigns += 1;
-        else summary.unpaid_campaigns += 1;
+        if (paymentStatus === 'paid') {
+          summary.paid_campaigns += 1;
+          summary.amount_paid += amountOwed;
+        } else {
+          summary.unpaid_campaigns += 1;
+        }
       });
 
       const result = Array.from(vendorPayouts.values());
       console.log('💰 [VendorPayouts] Final result:', result.length, 'vendors with payout data');
-      result.forEach(v => console.log(`   - ${v.vendor_name}: ${v.campaigns.length} campaigns, $${v.total_owed}`));
+      result.forEach(v => console.log(`   - ${v.vendor_name}: ${v.campaigns.length} campaigns, $${v.total_owed} total, $${v.amount_paid} paid`));
       
       return result;
     }
