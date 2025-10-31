@@ -1167,60 +1167,59 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
 
                 {/* Playlists Table */}
                 <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Playlist Name</TableHead>
-                        <TableHead>Vendor</TableHead>
-                        <TableHead>Curator</TableHead>
-                        <TableHead className="text-right">Streams (7d)</TableHead>
-                        <TableHead className="text-right">Streams (28d)</TableHead>
-                        <TableHead className="text-right">Streams (12m)</TableHead>
-                        <TableHead>Date Added</TableHead>
-                        <TableHead className="w-20">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {campaignPlaylists.map((playlist: any) => (
-                        <TableRow key={playlist.id}>
-                          <TableCell className="font-medium max-w-[250px]">
-                            <div className="truncate" title={playlist.playlist_name}>
-                              {playlist.playlist_name}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {playlist.vendors?.name || 'Unknown'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {playlist.playlist_curator || '—'}
-                          </TableCell>
-                          <TableCell className="text-right font-mono">
-                            {(playlist.streams_7d || 0).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right font-mono font-medium">
-                            {(playlist.streams_28d || 0).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right font-mono">
-                            {(playlist.streams_12m || 0).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {playlist.date_added || 'Unknown'}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setEditingPlaylist(playlist)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
+                  <div className="max-h-[400px] overflow-auto">
+                    <Table>
+                      <TableHeader className="sticky top-0 bg-background z-10">
+                        <TableRow>
+                          <TableHead className="py-2">Playlist Name</TableHead>
+                          <TableHead className="py-2">Vendor</TableHead>
+                          <TableHead className="py-2">Curator</TableHead>
+                          <TableHead className="text-right py-2">7d</TableHead>
+                          <TableHead className="text-right py-2">28d</TableHead>
+                          <TableHead className="text-right py-2">12m</TableHead>
+                          <TableHead className="w-16 py-2">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {campaignPlaylists.map((playlist: any) => (
+                          <TableRow key={playlist.id}>
+                            <TableCell className="font-medium py-2 max-w-[200px]">
+                              <div className="truncate text-sm" title={playlist.playlist_name}>
+                                {playlist.playlist_name}
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-2">
+                              <Badge variant="outline" className="text-xs">
+                                {playlist.vendors?.name || 'Unknown'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-xs py-2">
+                              {playlist.playlist_curator || '—'}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-xs py-2">
+                              {(playlist.streams_7d || 0).toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right font-mono font-medium text-xs py-2">
+                              {(playlist.streams_28d || 0).toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-xs py-2">
+                              {(playlist.streams_12m || 0).toLocaleString()}
+                            </TableCell>
+                            <TableCell className="py-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingPlaylist(playlist)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
 
                 {/* Vendor Performance Breakdown */}
