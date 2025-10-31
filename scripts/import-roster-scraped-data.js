@@ -333,16 +333,40 @@ async function processDataFile(fileData) {
   
   console.log(`   📊 Found ${allPlaylists.size} unique playlists`);
   
+  // First, load all vendor playlists to link them properly
+  const { data: vendorPlaylists, error: vendorPlaylistsError } = await supabase
+    .from('playlists')
+    .select('id, name, vendor_id, vendor:vendors(id, name)');
+  
+  if (vendorPlaylistsError) {
+    console.error(`   ⚠️  Error fetching vendor playlists: ${vendorPlaylistsError.message}`);
+  }
+  
+  // Create a lookup map: playlist name -> vendor info
+  const playlistVendorMap = new Map();
+  if (vendorPlaylists) {
+    for (const playlist of vendorPlaylists) {
+      playlistVendorMap.set(playlist.name, {
+        vendor_id: playlist.vendor_id,
+        vendor_name: playlist.vendor?.name || null
+      });
+    }
+  }
+  
   // Process each playlist - directly create/update campaign_playlists records
   for (const [playlistKey, playlistData] of allPlaylists) {
     try {
+      // Try to find the vendor for this playlist
+      const vendorInfo = playlistVendorMap.get(playlistData.name);
+      const isAlgorithmic = !vendorInfo || !vendorInfo.vendor_id;
+      const playlistCurator = vendorInfo?.vendor_name || playlistData.curator;
+      
       // Check if this campaign-playlist link already exists
       const { data: existing, error: findError } = await supabase
         .from('campaign_playlists')
         .select('id')
         .eq('campaign_id', campaign.id)
         .eq('playlist_name', playlistData.name)
-        .eq('playlist_curator', playlistData.curator)
         .maybeSingle();
       
       if (findError && findError.code !== 'PGRST116') {
@@ -351,16 +375,23 @@ async function processDataFile(fileData) {
         continue;
       }
       
+      const baseUpdateData = {
+        vendor_id: vendorInfo?.vendor_id || null,
+        playlist_curator: playlistCurator,
+        streams_28d: playlistData.streams['28day'] || 0,
+        streams_7d: playlistData.streams['7day'] || 0,
+        streams_12m: playlistData.streams['12months'] || 0,
+        date_added: playlistData.date_added,
+        last_scraped: new Date().toISOString()
+      };
+      
       if (existing) {
         // Update existing record
         const { error: updateError } = await supabase
           .from('campaign_playlists')
           .update({
-            streams_28d: playlistData.streams['28day'] || 0,
-            streams_7d: playlistData.streams['7day'] || 0,
-            streams_12m: playlistData.streams['12months'] || 0,
-            date_added: playlistData.date_added,
-            last_scraped: new Date().toISOString(),
+            ...baseUpdateData,
+            is_algorithmic: isAlgorithmic,
             updated_at: new Date().toISOString()
           })
           .eq('id', existing.id);
@@ -377,12 +408,8 @@ async function processDataFile(fileData) {
           .insert({
             campaign_id: campaign.id,
             playlist_name: playlistData.name,
-            playlist_curator: playlistData.curator,
-            streams_28d: playlistData.streams['28day'] || 0,
-            streams_7d: playlistData.streams['7day'] || 0,
-            streams_12m: playlistData.streams['12months'] || 0,
-            date_added: playlistData.date_added,
-            last_scraped: new Date().toISOString()
+            ...baseUpdateData,
+            is_algorithmic: isAlgorithmic
           });
         
         if (insertError) {
