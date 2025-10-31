@@ -48,7 +48,7 @@ import { useCampaignVendorResponses } from '../hooks/useCampaignVendorResponses'
 import { useIsVendorManager } from '../hooks/useIsVendorManager';
 import { useAuth } from '../hooks/useAuth';
 import { useSalespeople } from '../hooks/useSalespeople';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { VendorGroupedPlaylistView } from './VendorGroupedPlaylistView';
 import { VendorPerformanceChart } from './VendorPerformanceChart';
 import { useCampaignPerformanceData, useCampaignOverallPerformance } from '../hooks/useCampaignPerformanceData';
@@ -101,6 +101,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const [savingSfaUrl, setSavingSfaUrl] = useState(false);
   const [editingPlaylist, setEditingPlaylist] = useState<any>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Fetch vendor responses for this campaign
   console.log('🔧 [v1.0.1-DEBUG] About to call useCampaignVendorResponses with ID:', campaign?.id);
@@ -312,14 +313,14 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       }
       
       // Parse selected_playlists with proper status handling
-      if (data?.selected_playlists && Array.isArray(data.selected_playlists) && data.selected_playlists.length > 0) {
+      if (campaignGroup?.selected_playlists && Array.isArray(campaignGroup.selected_playlists) && campaignGroup.selected_playlists.length > 0) {
         // Check if selected_playlists contains string IDs or full objects
-        const isStringArray = typeof data.selected_playlists[0] === 'string';
+        const isStringArray = typeof campaignGroup.selected_playlists[0] === 'string';
         
         if (isStringArray) {
           // Fetch full playlist details from database
           try {
-            const playlistIds = data.selected_playlists.filter((id): id is string => typeof id === 'string');
+            const playlistIds = campaignGroup.selected_playlists.filter((id): id is string => typeof id === 'string');
             const { data: playlistDetails } = await supabase
               .from('playlists')
               .select(`*, vendor:vendors(id, name)`)
@@ -350,17 +351,17 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
           }
         } else {
           // Already full objects, just normalize
-          const playlistsWithStatus = (data.selected_playlists as any[]).map(playlist => ({
+          const playlistsWithStatus = (campaignGroup.selected_playlists as any[]).map(playlist => ({
             ...playlist,
             status: playlist.status || 'Pending',
             placed_date: playlist.placed_date || null
           }));
           setPlaylists(playlistsWithStatus);
         }
-      } else if (((data?.algorithm_recommendations as any)?.allocations) && Array.isArray((data.algorithm_recommendations as any).allocations)) {
+      } else if (((campaignGroup?.algorithm_recommendations as any)?.allocations) && Array.isArray((campaignGroup.algorithm_recommendations as any).allocations)) {
         // Fallback to algorithm recommendations
         try {
-          const allocations = (data.algorithm_recommendations as any).allocations;
+          const allocations = (campaignGroup.algorithm_recommendations as any).allocations;
           const playlistIds = allocations.map((a: any) => a.playlistId).filter(Boolean);
           if (playlistIds.length > 0) {
             const { data: playlistDetails } = await supabase
@@ -475,42 +476,55 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   };
 
   const addPlaylists = async (selectedPlaylists: any[]) => {
-    const newPlaylists = selectedPlaylists.map(playlist => ({
-      id: playlist.id,
-      name: playlist.name,
-      url: playlist.url,
-      vendor_name: playlist.vendor_name,
-      status: 'Pending' as const,
-      placed_date: null
-    }));
-
-    const updatedPlaylists = [...playlists, ...newPlaylists];
-    setPlaylists(updatedPlaylists);
+    if (!campaign?.id) return;
 
     try {
-      const { error } = await supabase
-        .from('campaign_groups')
-        .update({ 
-          selected_playlists: updatedPlaylists as any,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', campaign!.id);
+      // Get the spotify_campaign (song) for this campaign group
+      const { data: songs, error: songsError } = await supabase
+        .from('spotify_campaigns')
+        .select('id')
+        .eq('campaign_group_id', campaign.id)
+        .limit(1);
 
-      if (error) throw error;
+      if (songsError || !songs || songs.length === 0) {
+        throw new Error('No campaign song found');
+      }
+
+      const campaignSongId = songs[0].id;
+
+      // Create campaign_playlists entries for each selected playlist
+      const campaignPlaylistsEntries = selectedPlaylists.map(playlist => ({
+        campaign_id: campaignSongId,
+        playlist_name: playlist.name,
+        vendor_id: playlist.vendor_id,
+        playlist_curator: playlist.vendor_name || null,
+        is_algorithmic: false,
+        streams_28d: 0,
+        streams_7d: 0,
+        streams_12m: 0,
+        org_id: '00000000-0000-0000-0000-000000000001'
+      }));
+
+      const { error: insertError } = await supabase
+        .from('campaign_playlists')
+        .insert(campaignPlaylistsEntries);
+
+      if (insertError) throw insertError;
+
+      // Invalidate queries to refresh the playlist list
+      queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign.id] });
       
       toast({
         title: "Success",
-        description: `Added ${newPlaylists.length} playlist${newPlaylists.length !== 1 ? 's' : ''} to campaign`,
+        description: `Added ${selectedPlaylists.length} playlist${selectedPlaylists.length !== 1 ? 's' : ''} to campaign`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to add playlists:', error);
       toast({
         title: "Error",
-        description: "Failed to add playlists",
+        description: error.message || "Failed to add playlists",
         variant: "destructive",
       });
-      // Revert on error
-      fetchCampaignDetails();
     }
   };
 
