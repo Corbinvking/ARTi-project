@@ -257,77 +257,75 @@ export function PlaylistSelector({
               No playlists match your criteria
             </div>
           ) : (
-            <div className="space-y-3 p-1">
+            <div className="space-y-1">
               {sortedPlaylists.map(playlist => {
                 const isSelected = selectedPlaylists.has(playlist.id);
                 const genreMatch = campaignGenre && playlist.genres.includes(campaignGenre);
                 
                 return (
-                  <Card 
+                  <div 
                     key={playlist.id}
-                    className={`cursor-pointer transition-all hover:bg-accent/50 ${
-                      isSelected ? 'border-primary bg-accent/20' : ''
+                    className={`cursor-pointer transition-all hover:bg-accent/50 border rounded px-3 py-2 flex items-center gap-3 ${
+                      isSelected ? 'border-primary bg-accent/20' : 'border-border'
                     } ${genreMatch ? 'border-accent' : ''}`}
                     onClick={() => togglePlaylistSelection(playlist.id)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-medium">{playlist.name}</h4>
-                            {genreMatch && (
-                              <Badge variant="default" className="text-xs">
-                                Genre Match
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                            <span>{playlist.avg_daily_streams.toLocaleString()} daily streams</span>
-                            {playlist.follower_count && (
-                              <span className="flex items-center gap-1">
-                                <Users className="h-3 w-3" />
-                                {playlist.follower_count.toLocaleString()} followers
-                              </span>
-                            )}
-                          </div>
+                    {/* Checkbox */}
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                      isSelected ? 'bg-primary border-primary' : 'border-border'
+                    }`}>
+                      {isSelected && (
+                        <div className="w-1.5 h-1.5 bg-primary-foreground rounded-sm"></div>
+                      )}
+                    </div>
 
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="secondary">{playlist.vendor_name}</Badge>
-                            {playlist.genres.slice(0, 3).map(genre => (
-                              <Badge key={genre} variant="outline" className="text-xs">
-                                {genre}
-                              </Badge>
-                            ))}
-                            {playlist.genres.length > 3 && (
-                              <span className="text-xs text-muted-foreground">
-                                +{playlist.genres.length - 3} more
-                              </span>
-                            )}
-                          </div>
-
-                          <a
-                            href={playlist.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline flex items-center gap-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            View Playlist
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        </div>
-                        
-                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                          isSelected ? 'bg-primary border-primary' : 'border-border'
-                        }`}>
-                          {isSelected && (
-                            <div className="w-2 h-2 bg-primary-foreground rounded-sm"></div>
-                          )}
-                        </div>
+                    {/* Playlist Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-sm truncate">{playlist.name}</h4>
+                        {genreMatch && (
+                          <Badge variant="default" className="text-xs flex-shrink-0">
+                            Match
+                          </Badge>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span className="font-mono">{playlist.avg_daily_streams.toLocaleString()} daily</span>
+                        {playlist.follower_count && (
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {playlist.follower_count.toLocaleString()}
+                          </span>
+                        )}
+                        <Badge variant="secondary" className="text-xs">{playlist.vendor_name}</Badge>
+                      </div>
+                    </div>
+
+                    {/* Genres and Link */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex gap-1">
+                        {playlist.genres.slice(0, 2).map(genre => (
+                          <Badge key={genre} variant="outline" className="text-xs">
+                            {genre}
+                          </Badge>
+                        ))}
+                        {playlist.genres.length > 2 && (
+                          <span className="text-xs text-muted-foreground">
+                            +{playlist.genres.length - 2}
+                          </span>
+                        )}
+                      </div>
+                      <a
+                        href={playlist.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline flex items-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
                 );
               })}
             </div>
