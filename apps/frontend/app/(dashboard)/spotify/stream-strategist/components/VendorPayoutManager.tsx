@@ -394,7 +394,7 @@ export function VendorPayoutManager() {
                         </TableCell>
                         <TableCell>
                           <div className="font-bold text-lg text-green-600">
-                            ${vendor.amount_paid.toFixed(2)}
+                            ${(vendor.amount_paid || 0).toFixed(2)}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             Amount paid
