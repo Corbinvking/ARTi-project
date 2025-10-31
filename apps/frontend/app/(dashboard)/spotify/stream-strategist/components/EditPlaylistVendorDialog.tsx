@@ -62,7 +62,7 @@ export function EditPlaylistVendorDialog({
   // Initialize form values when playlist changes
   useEffect(() => {
     if (playlist) {
-      setVendorId(playlist.vendor_id || '');
+      setVendorId(playlist.vendor_id || 'none');
       setPlaylistCurator(playlist.playlist_curator || '');
       setIsAlgorithmic(playlist.is_algorithmic || false);
     }
@@ -110,7 +110,7 @@ export function EditPlaylistVendorDialog({
       const { error } = await supabase
         .from('campaign_playlists')
         .update({
-          vendor_id: vendorId || null,
+          vendor_id: vendorId === 'none' ? null : (vendorId || null),
           playlist_curator: playlistCurator || null,
           is_algorithmic: isAlgorithmic,
           updated_at: new Date().toISOString()
@@ -198,7 +198,7 @@ export function EditPlaylistVendorDialog({
                 <SelectValue placeholder={vendorsLoading ? "Loading..." : "Select vendor"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {vendors.map((vendor) => (
                   <SelectItem key={vendor.id} value={vendor.id}>
                     {vendor.name}
