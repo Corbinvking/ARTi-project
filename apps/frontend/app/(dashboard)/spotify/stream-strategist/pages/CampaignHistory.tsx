@@ -510,7 +510,16 @@ export default function CampaignHistory() {
 
   const handleDelete = (campaignId: string) => {
     if (confirm("Are you sure you want to delete this campaign? This action cannot be undone.")) {
-      deleteCampaignMutation.mutate(campaignId);
+      deleteCampaignMutation.mutate(campaignId, {
+        onSuccess: () => {
+          setDetailsModal({ open: false });
+          setSelectedCampaigns(prev => {
+            const updated = new Set(prev);
+            updated.delete(campaignId);
+            return updated;
+          });
+        }
+      });
     }
   };
 
