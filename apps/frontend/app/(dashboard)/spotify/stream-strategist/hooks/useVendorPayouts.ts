@@ -32,12 +32,16 @@ export const useVendorPayouts = () => {
   return useQuery({
     queryKey: ['vendor-payouts'],
     queryFn: async (): Promise<VendorPayoutSummary[]> => {
+      console.log('💰 [VendorPayouts] Starting to fetch vendor payouts...');
+      
       // Fetch campaign allocations with vendor and campaign data
       const { data: allocations, error: allocationsError } = await supabase
         .from('campaign_allocations_performance')
         .select(
           `id, campaign_id, vendor_id, allocated_streams, predicted_streams, actual_streams, cost_per_stream, actual_cost_per_stream, performance_score, completed_at`
         );
+      
+      console.log('💰 [VendorPayouts] Allocations:', allocations?.length || 0, allocationsError?.message);
 
       // Also fetch active/completed campaigns with vendor allocations that may not be in allocations table yet
       const { data: campaigns, error: campaignsError } = await supabase
@@ -61,6 +65,10 @@ export const useVendorPayouts = () => {
       const { data: spotifyCampaigns, error: spotifyCampaignsError } = await supabase
         .from('spotify_campaigns')
         .select('id, campaign_group_id, vendor, paid_vendor, sale_price');
+      
+      console.log('💰 [VendorPayouts] Campaigns:', campaigns?.length || 0, campaignsError?.message);
+      console.log('💰 [VendorPayouts] SpotifyCampaigns:', spotifyCampaigns?.length || 0, spotifyCampaignsError?.message);
+      console.log('💰 [VendorPayouts] Vendors:', vendors?.length || 0, vendorsError?.message);
 
       if (allocationsError && campaignsError && vendorsError && spotifyCampaignsError) {
         throw allocationsError || campaignsError || vendorsError || spotifyCampaignsError;
@@ -302,7 +310,11 @@ export const useVendorPayouts = () => {
         else summary.unpaid_campaigns += 1;
       });
 
-      return Array.from(vendorPayouts.values());
+      const result = Array.from(vendorPayouts.values());
+      console.log('💰 [VendorPayouts] Final result:', result.length, 'vendors with payout data');
+      result.forEach(v => console.log(`   - ${v.vendor_name}: ${v.campaigns.length} campaigns, $${v.total_owed}`));
+      
+      return result;
     }
   });
 };
