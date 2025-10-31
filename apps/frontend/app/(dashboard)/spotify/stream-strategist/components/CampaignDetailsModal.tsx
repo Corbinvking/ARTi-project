@@ -40,7 +40,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit } from 'lucide-react';
+import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import { PlaylistSelector } from './PlaylistSelector';
@@ -55,6 +55,7 @@ import { useCampaignPerformanceData, useCampaignOverallPerformance } from '../ho
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useVendorPaymentData } from '../hooks/useVendorPayments';
 import { EditPlaylistVendorDialog } from './EditPlaylistVendorDialog';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 interface PlaylistWithStatus {
   id: string;
@@ -824,6 +825,18 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               Vendor Payments
             </TabsTrigger>
           </TabsList>
+
+          {/* SFA Link Missing Alert */}
+          {!campaignData?.sfa && (
+            <Alert variant="destructive" className="border-amber-500 bg-amber-50 dark:bg-amber-950">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-800 dark:text-amber-200">Missing Spotify for Artists Link</AlertTitle>
+              <AlertDescription className="text-amber-700 dark:text-amber-300">
+                This campaign does not have a Spotify for Artists link. Without this link, real-time streaming data cannot be populated from the scraper. 
+                {canEditCampaign && ' Please add the SFA link in the Campaign Details section below.'}
+              </AlertDescription>
+            </Alert>
+          )}
 
           <TabsContent value="overview" className="space-y-6">
           {/* Campaign Info */}
