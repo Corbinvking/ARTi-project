@@ -168,18 +168,29 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       }
       
       // Separate vendor playlists from algorithmic playlists
-      const vendorPlaylists = (data || []).filter((p: any) => !p.is_algorithmic);
-      const algorithmicPlaylists = (data || []).filter((p: any) => p.is_algorithmic);
+      // Algorithmic = is_algorithmic is true AND playlist_curator is 'Spotify' AND no vendor_id
+      const algorithmicPlaylists = (data || []).filter((p: any) => 
+        p.is_algorithmic === true && 
+        !p.vendor_id && 
+        (p.playlist_curator?.toLowerCase() === 'spotify' || !p.playlist_curator)
+      );
+      
+      // Vendor playlists = everything else (has vendor_id OR is_algorithmic is false)
+      const vendorPlaylists = (data || []).filter((p: any) => 
+        !p.is_algorithmic || 
+        p.vendor_id || 
+        (p.playlist_curator && p.playlist_curator.toLowerCase() !== 'spotify')
+      );
       
       console.log('✅ Found playlists - Vendor:', vendorPlaylists.length, 'Algorithmic:', algorithmicPlaylists.length);
       
-      // Debug: Log algorithmic playlists to see what's being included
+      // Debug: Log algorithmic playlists to verify they're all Spotify official
       if (algorithmicPlaylists.length > 0) {
-        console.log('🔍 Algorithmic playlists:', algorithmicPlaylists.map((p: any) => ({
+        console.log('🔍 Algorithmic playlists (Spotify only):', algorithmicPlaylists.map((p: any) => ({
           name: p.playlist_name,
+          curator: p.playlist_curator,
           is_algorithmic: p.is_algorithmic,
-          vendor_id: p.vendor_id,
-          vendor_name: p.vendors?.name
+          vendor_id: p.vendor_id
         })));
       }
       
