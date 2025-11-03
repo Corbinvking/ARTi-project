@@ -10,7 +10,10 @@
  */
 
 const { createClient } = require('@supabase/supabase-js');
+
+// Load environment variables - try both .env.local and production.env
 require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: 'apps/api/production.env' });
 
 // Use native fetch if available (Node 18+), otherwise use https/http
 const fetch = globalThis.fetch || (async (url, options = {}) => {
@@ -49,7 +52,8 @@ const fetch = globalThis.fetch || (async (url, options = {}) => {
 });
 
 // Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
+// Production: use kong endpoint, Local: use public URL
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseKey) {
@@ -159,7 +163,7 @@ async function enrichTrackMetadata() {
   // Fetch all tracks with URLs
   const { data: tracks, error } = await supabase
     .from('spotify_campaigns')
-    .select('id, campaign_group_id, url, artist_name')
+    .select('id, campaign_group_id, url, campaign, track_name, artist_name')
     .not('url', 'is', null)
     .order('id');
 
@@ -202,7 +206,13 @@ async function enrichTrackMetadata() {
       const { error: updateError } = await supabase
         .from('spotify_campaigns')
         .update({
+          track_name: spotifyData.name,
           artist_name: spotifyData.artists.map(a => a.name).join(', '),
+          primary_genre: spotifyData.genres[0] || null,
+          all_genres: spotifyData.genres,
+          track_popularity: spotifyData.popularity,
+          track_duration_ms: spotifyData.duration_ms,
+          release_date: spotifyData.release_date,
           updated_at: new Date().toISOString(),
         })
         .eq('id', track.id);
@@ -218,12 +228,11 @@ async function enrichTrackMetadata() {
         const { error: groupUpdateError } = await supabase
           .from('campaign_groups')
           .update({
-            // Store genres in notes for now (or create a dedicated column later)
-            notes: `Genres: ${spotifyData.genres.join(', ')}`,
+            primary_genre: spotifyData.genres[0],
+            all_genres: spotifyData.genres,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', track.campaign_group_id)
-          .is('notes', null); // Only update if notes is empty
+          .eq('id', track.campaign_group_id);
         
         if (groupUpdateError) {
           console.warn(`   ⚠️  Could not update genres for campaign group ${track.campaign_group_id}`);

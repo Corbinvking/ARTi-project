@@ -9,6 +9,7 @@ ADD COLUMN IF NOT EXISTS all_genres TEXT[]; -- Array of all genres from all arti
 -- Add track metadata columns if not already present
 ALTER TABLE spotify_campaigns 
 ADD COLUMN IF NOT EXISTS track_name TEXT,
+ADD COLUMN IF NOT EXISTS artist_name TEXT,
 ADD COLUMN IF NOT EXISTS track_popularity INTEGER,
 ADD COLUMN IF NOT EXISTS track_duration_ms INTEGER,
 ADD COLUMN IF NOT EXISTS release_date DATE;
