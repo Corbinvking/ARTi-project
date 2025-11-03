@@ -169,7 +169,7 @@ export async function insightsRoutes(fastify: FastifyInstance) {
   })
 
   // AI-powered semantic search for campaigns
-  fastify.post('/ai-search/similar-campaigns', async (request, reply) => {
+  fastify.post('/ai-search/similar-campaigns', async (_request, reply) => {
     try {
       console.log('AI search route called');
       return reply.send({

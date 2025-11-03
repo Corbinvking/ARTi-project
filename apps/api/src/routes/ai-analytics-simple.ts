@@ -139,7 +139,7 @@ export default async function aiAnalyticsSimpleRoutes(fastify: FastifyInstance) 
   });
 
   // Health check
-  fastify.get('/ai-analytics/health', async (request, reply) => {
+  fastify.get('/ai-analytics/health', async (_request, reply) => {
     try {
       const { count } = await supabase
         .from('campaign_groups')

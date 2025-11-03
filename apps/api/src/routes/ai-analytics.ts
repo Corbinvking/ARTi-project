@@ -32,7 +32,7 @@ async function generateEmbedding(text: string): Promise<number[]> {
     throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as any;
   return data.data[0].embedding;
 }
 
@@ -76,7 +76,7 @@ Format your response in a friendly, professional tone. Use bullet points for lis
     throw new Error(`OpenRouter chat API error: ${response.status} - ${errorText}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as any;
   return data.choices[0].message.content;
 }
 
@@ -86,7 +86,7 @@ export default async function aiAnalyticsRoutes(fastify: FastifyInstance) {
   // AI Analytics Chat Endpoint
   fastify.post<AIAnalyticsRequest>('/ai-analytics', async (request: FastifyRequest<AIAnalyticsRequest>, reply: FastifyReply) => {
     try {
-      const { query, conversationHistory = [] } = request.body;
+      const { query } = request.body;
 
       if (!query) {
         return reply.code(400).send({ error: 'Query is required' });
@@ -133,7 +133,7 @@ export default async function aiAnalyticsRoutes(fastify: FastifyInstance) {
   });
 
   // Health check for AI analytics
-  fastify.get('/ai-analytics/health', async (request, reply) => {
+  fastify.get('/ai-analytics/health', async (_request, reply) => {
     try {
       // Check if embeddings exist
       const { count, error } = await supabase
