@@ -6,6 +6,7 @@ import { providersRoutes } from './providers';
 import { adminRoutes } from './admin';
 import { insightsRoutes } from './insights';
 import aiAnalyticsRoutes from './ai-analytics-simple'; // Using simple version for now
+import { spotifyWebApiRoutes } from './spotify-web-api';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -29,6 +30,9 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // AI Analytics routes (RAG-based analytics chat)
   await server.register(aiAnalyticsRoutes, { prefix: '/api' });
+
+  // Spotify Web API routes (metadata enrichment)
+  await server.register(spotifyWebApiRoutes, { prefix: '/api' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {

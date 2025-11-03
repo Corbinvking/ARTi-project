@@ -41,9 +41,9 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres
 # =============================================================================
 # External Integrations
 # =============================================================================
-# Spotify API (optional)
-SPOTIFY_CLIENT_ID=your-spotify-client-id
-SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
+# Spotify Web API (for metadata enrichment)
+SPOTIFY_CLIENT_ID=294f0422469444b5b4b0178ce438b5b8
+SPOTIFY_CLIENT_SECRET=7320687e4ceb475b82c2f3a543eb2f9e
 SPOTIFY_REDIRECT_URI=http://localhost:3001/api/providers/spotify/callback
 
 # OpenAI API (optional)
