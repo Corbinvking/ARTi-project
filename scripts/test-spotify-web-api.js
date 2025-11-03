@@ -5,7 +5,30 @@
  * and data retrieval before running the full enrichment script.
  */
 
-const fetch = require('node-fetch');
+// Use native fetch if available (Node 18+), otherwise use https
+const fetch = globalThis.fetch || (async (url) => {
+  const https = require('https');
+  const http = require('http');
+  const { URL } = require('url');
+  
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(url);
+    const client = parsedUrl.protocol === 'https:' ? https : http;
+    
+    client.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        resolve({
+          ok: res.statusCode >= 200 && res.statusCode < 300,
+          status: res.statusCode,
+          json: async () => JSON.parse(data),
+          text: async () => data,
+        });
+      });
+    }).on('error', reject);
+  });
+});
 
 const API_BASE_URL = process.env.API_URL || 'http://localhost:3001';
 
