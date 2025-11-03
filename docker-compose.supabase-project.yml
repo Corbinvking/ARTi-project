@@ -67,6 +67,8 @@ services:
       - JWT_SECRET=@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw
       - REDIS_URL=redis://supabase_redis_arti-marketing-ops:6379
       - DATABASE_URL=postgresql://postgres:postgres@supabase_db_arti-marketing-ops:5432/postgres
+      - SPOTIFY_CLIENT_ID=294f0422469444b5b4b0178ce438b5b8
+      - SPOTIFY_CLIENT_SECRET=7320687e4ceb475b82c2f3a543eb2f9e
     networks:
       - supabase_network_arti-marketing-ops
     depends_on:
