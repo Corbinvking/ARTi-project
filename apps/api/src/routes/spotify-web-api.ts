@@ -150,8 +150,10 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
     logger.info(results, 'Playlist enrichment completed');
     
     return {
-      success: true,
-      ...results,
+      status: 'completed',
+      success_count: results.success,
+      failed_count: results.failed,
+      details: results.details,
     };
   });
 
@@ -247,8 +249,10 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
     logger.info(results, 'Track enrichment completed');
     
     return {
-      success: true,
-      ...results,
+      status: 'completed',
+      success_count: results.success,
+      failed_count: results.failed,
+      details: results.details,
     };
   });
 

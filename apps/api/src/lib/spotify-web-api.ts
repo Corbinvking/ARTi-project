@@ -91,7 +91,7 @@ class SpotifyWebAPIClient {
       throw new Error(`Spotify authentication failed: ${response.status}`);
     }
 
-    const data: SpotifyTokenResponse = await response.json();
+    const data = await response.json() as SpotifyTokenResponse;
     this.accessToken = data.access_token;
     // Set expiry with 5 minute buffer
     this.tokenExpiry = Date.now() + ((data.expires_in - 300) * 1000);
@@ -134,7 +134,7 @@ class SpotifyWebAPIClient {
       throw new Error(`Spotify API error: ${response.status} - ${errorText}`);
     }
 
-    return response.json();
+    return response.json() as Promise<T>;
   }
 
   /**
@@ -212,11 +212,11 @@ class SpotifyWebAPIClient {
     try {
       // Handle open.spotify.com URLs
       const openMatch = url.match(new RegExp(`open\\.spotify\\.com/${type}/([a-zA-Z0-9]+)`));
-      if (openMatch) return openMatch[1];
+      if (openMatch) return openMatch[1] || null;
 
       // Handle spotify: URIs
       const uriMatch = url.match(new RegExp(`spotify:${type}:([a-zA-Z0-9]+)`));
-      if (uriMatch) return uriMatch[1];
+      if (uriMatch) return uriMatch[1] || null;
 
       // Assume it's already an ID if no URL pattern matches
       if (/^[a-zA-Z0-9]+$/.test(url)) return url;
