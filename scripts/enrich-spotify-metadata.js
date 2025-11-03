@@ -11,9 +11,9 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-// Load environment variables - try both .env.local and production.env
-require('dotenv').config({ path: '.env.local' });
+// Load environment variables - production.env first, then .env.local overrides
 require('dotenv').config({ path: 'apps/api/production.env' });
+require('dotenv').config({ path: '.env.local', override: true });
 
 // Use native fetch if available (Node 18+), otherwise use https/http
 const fetch = globalThis.fetch || (async (url, options = {}) => {
