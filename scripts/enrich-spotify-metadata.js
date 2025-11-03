@@ -134,8 +134,8 @@ async function enrichPlaylistFollowers() {
       console.log(`   ✅ ${playlist.name} (${playlist.vendor?.name || 'No vendor'}): ${spotifyData.followers.toLocaleString()} followers`);
       updated++;
 
-      // Rate limiting
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Rate limiting - increased to 500ms to avoid hitting Spotify's limits
+      await new Promise(resolve => setTimeout(resolve, 500));
 
     } catch (error) {
       console.error(`   ❌ Error processing ${playlist.name}:`, error.message);
@@ -242,8 +242,8 @@ async function enrichTrackMetadata() {
       console.log(`   ✅ ${spotifyData.name} by ${spotifyData.artists.map(a => a.name).join(', ')} | Genres: ${spotifyData.genres.join(', ') || 'None'}`);
       updated++;
 
-      // Rate limiting
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Rate limiting - increased to 500ms to avoid hitting Spotify's limits
+      await new Promise(resolve => setTimeout(resolve, 500));
 
     } catch (error) {
       console.error(`   ❌ Error processing track ${track.id}:`, error.message);
