@@ -98,9 +98,13 @@ export default function AddPlaylistModal({ open, onOpenChange, vendorId, editing
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["playlists", vendorId] });
+      // Invalidate all playlist-related queries
+      queryClient.invalidateQueries({ queryKey: ["playlists"] });
       queryClient.invalidateQueries({ queryKey: ["vendor-playlists"] });
       queryClient.invalidateQueries({ queryKey: ["all-playlists"] });
+      queryClient.invalidateQueries({ queryKey: ["my-playlists"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      
       toast({
         title: "Success",
         description: editingPlaylist ? "Playlist updated successfully" : "Playlist added successfully",
