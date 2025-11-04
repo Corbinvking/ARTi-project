@@ -218,6 +218,20 @@ ALTER TABLE public.campaign_allocations_performance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vendor_users ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist, then recreate
+DROP POLICY IF EXISTS "vendors_org_isolation" ON public.vendors;
+DROP POLICY IF EXISTS "playlists_org_isolation" ON public.playlists;
+DROP POLICY IF EXISTS "clients_org_isolation" ON public.clients;
+DROP POLICY IF EXISTS "salespeople_org_isolation" ON public.salespeople;
+DROP POLICY IF EXISTS "campaign_submissions_org_isolation" ON public.campaign_submissions;
+DROP POLICY IF EXISTS "stream_strategist_campaigns_org_isolation" ON public.stream_strategist_campaigns;
+DROP POLICY IF EXISTS "weekly_updates_org_isolation" ON public.weekly_updates;
+DROP POLICY IF EXISTS "performance_entries_org_isolation" ON public.performance_entries;
+DROP POLICY IF EXISTS "campaign_vendor_requests_org_isolation" ON public.campaign_vendor_requests;
+DROP POLICY IF EXISTS "campaign_allocations_performance_org_isolation" ON public.campaign_allocations_performance;
+DROP POLICY IF EXISTS "user_roles_org_isolation" ON public.user_roles;
+DROP POLICY IF EXISTS "vendor_users_org_isolation" ON public.vendor_users;
+
 -- Create RLS policies for org isolation
 CREATE POLICY "vendors_org_isolation" ON public.vendors
   FOR ALL USING (org_id IN (SELECT org_id FROM memberships WHERE user_id = auth.uid()));
@@ -281,6 +295,15 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
+
+-- Drop existing triggers if they exist, then recreate
+DROP TRIGGER IF EXISTS update_vendors_updated_at ON public.vendors;
+DROP TRIGGER IF EXISTS update_playlists_updated_at ON public.playlists;
+DROP TRIGGER IF EXISTS update_clients_updated_at ON public.clients;
+DROP TRIGGER IF EXISTS update_salespeople_updated_at ON public.salespeople;
+DROP TRIGGER IF EXISTS update_stream_strategist_campaigns_updated_at ON public.stream_strategist_campaigns;
+DROP TRIGGER IF EXISTS update_campaign_vendor_requests_updated_at ON public.campaign_vendor_requests;
+DROP TRIGGER IF EXISTS update_campaign_allocations_performance_updated_at ON public.campaign_allocations_performance;
 
 -- Create triggers for updated_at columns
 CREATE TRIGGER update_vendors_updated_at
