@@ -201,23 +201,37 @@ BEGIN
     END IF;
 END \$\$;
 
--- Link to campaign (check if already exists first)
-INSERT INTO campaign_playlists (
-    campaign_id, playlist_name, playlist_curator, playlist_url, playlist_spotify_id,
-    playlist_follower_count, streams_7d, streams_28d, streams_12m
-)
-SELECT
-    $CAMPAIGN_ID,
-    '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
-    '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
-    '$PLAYLIST_URL',
-    '$PLAYLIST_ID',
-    ${FOLLOWER_COUNT:-0},
-    0, 0, 0
-WHERE NOT EXISTS (
-    SELECT 1 FROM campaign_playlists 
-    WHERE campaign_id = $CAMPAIGN_ID AND playlist_url = '$PLAYLIST_URL'
-);
+-- Link to campaign or update existing
+DO \$\$
+BEGIN
+    -- Try to find existing campaign_playlist entry
+    IF EXISTS (
+        SELECT 1 FROM campaign_playlists 
+        WHERE campaign_id = $CAMPAIGN_ID AND playlist_url = '$PLAYLIST_URL'
+    ) THEN
+        -- Update existing entry with spotify_id and follower count
+        UPDATE campaign_playlists SET
+            playlist_spotify_id = '$PLAYLIST_ID',
+            playlist_follower_count = ${FOLLOWER_COUNT:-0},
+            playlist_name = '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
+            playlist_curator = '$(echo "$OWNER_NAME" | sed "s/'/''/g")'
+        WHERE campaign_id = $CAMPAIGN_ID AND playlist_url = '$PLAYLIST_URL';
+    ELSE
+        -- Insert new entry
+        INSERT INTO campaign_playlists (
+            campaign_id, playlist_name, playlist_curator, playlist_url, playlist_spotify_id,
+            playlist_follower_count, streams_7d, streams_28d, streams_12m
+        ) VALUES (
+            $CAMPAIGN_ID,
+            '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
+            '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
+            '$PLAYLIST_URL',
+            '$PLAYLIST_ID',
+            ${FOLLOWER_COUNT:-0},
+            0, 0, 0
+        );
+    END IF;
+END \$\$;
 EOSQL
         
         ((ENRICHED++))
