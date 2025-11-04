@@ -168,7 +168,7 @@ BEGIN
             track_count = ${TRACK_COUNT:-0},
             owner_name = '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
             spotify_id = '$PLAYLIST_ID',
-            genres = '$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb
+            genres = ARRAY(SELECT jsonb_array_elements_text('$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb))
         WHERE id = playlist_id_var;
     ELSE
         -- Insert new
@@ -181,7 +181,7 @@ BEGIN
             ${TRACK_COUNT:-0},
             '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
             $([ -n "$VENDOR_ID" ] && echo "'$VENDOR_ID'" || echo "NULL"),
-            '$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb,
+            ARRAY(SELECT jsonb_array_elements_text('$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb)),
             0
         );
     END IF;
