@@ -185,16 +185,65 @@ export default function PlaylistsPage() {
   const { data: allPlaylists, isLoading: allPlaylistsLoading } = useQuery({
     queryKey: ['all-playlists'],
     queryFn: async (): Promise<PlaylistWithVendor[]> => {
-      const { data, error } = await supabase
+      // Get all playlists
+      const { data: playlistData, error: playlistError } = await supabase
         .from('playlists')
-        .select(`
-          *,
-          vendor:vendors(id, name, cost_per_1k_streams, is_active)
-        `)
+        .select('*')
         .order('avg_daily_streams', { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (playlistError) {
+        console.error('❌ Error fetching playlists:', playlistError);
+        throw playlistError;
+      }
+      
+      console.log('📊 Total playlists fetched:', playlistData?.length);
+      console.log('📊 Sample playlist:', playlistData?.[0]);
+      console.log('📊 Genres sample:', playlistData?.[0]?.genres);
+      console.log('📊 Follower count sample:', playlistData?.[0]?.follower_count);
+      
+      // For each playlist, try to find its vendor
+      const playlistsWithVendor: PlaylistWithVendor[] = await Promise.all(
+        (playlistData || []).map(async (playlist) => {
+          // If playlist has vendor_id, fetch vendor data
+          if (playlist.vendor_id) {
+            const { data: vendorData } = await supabase
+              .from('vendors')
+              .select('id, name, cost_per_1k_streams, is_active')
+              .eq('id', playlist.vendor_id)
+              .single();
+            
+            return {
+              ...playlist,
+              vendor: vendorData || { id: '', name: 'Unknown', cost_per_1k_streams: 0, is_active: false }
+            };
+          } else {
+            // Try to find vendor from campaign_playlists
+            const { data: campaignPlaylist } = await supabase
+              .from('campaign_playlists')
+              .select('vendor_id, vendors(id, name, cost_per_1k_streams, is_active)')
+              .eq('playlist_spotify_id', playlist.spotify_id)
+              .limit(1)
+              .single();
+            
+            if (campaignPlaylist?.vendors) {
+              return {
+                ...playlist,
+                vendor: campaignPlaylist.vendors as any
+              };
+            }
+            
+            // No vendor found - return with empty vendor
+            return {
+              ...playlist,
+              vendor: { id: '', name: 'No Vendor', cost_per_1k_streams: 0, is_active: false }
+            };
+          }
+        })
+      );
+      
+      console.log('✅ Processed playlists with vendors:', playlistsWithVendor.length);
+      
+      return playlistsWithVendor;
     }
   });
 
