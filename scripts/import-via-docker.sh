@@ -69,7 +69,7 @@ BEGIN
 
     -- Import campaigns
     INSERT INTO spotify_campaigns (
-        campaign_name, client, vendor, url, goal, remaining, daily, weekly,
+        campaign, client, vendor, url, goal, remaining, daily, weekly,
         sale_price, start_date, status, curator_status, playlists, sfa_link,
         notes, historical_playlists, playlist_links, paid_vendor,
         update_client_verified, notify_vendor, ask_for_sfa, org_id, client_id, vendor_id
@@ -105,7 +105,7 @@ BEGIN
         (SELECT id FROM vendors WHERE name = t.vendor LIMIT 1)
     FROM temp_campaigns t
     WHERE t.campaign IS NOT NULL AND t.campaign != ''
-    ON CONFLICT (campaign_name) DO NOTHING;
+    ON CONFLICT (campaign) DO NOTHING;
 
     GET DIAGNOSTICS import_count = ROW_COUNT;
     
