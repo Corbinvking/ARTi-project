@@ -157,33 +157,47 @@ DO \$\$
 DECLARE
     playlist_id_var UUID;
 BEGIN
-    -- Try to find existing playlist
-    SELECT id INTO playlist_id_var FROM playlists WHERE url = '$PLAYLIST_URL';
+    -- Try to find existing playlist by spotify_id (most reliable)
+    SELECT id INTO playlist_id_var FROM playlists WHERE spotify_id = '$PLAYLIST_ID';
     
     IF playlist_id_var IS NOT NULL THEN
-        -- Update existing
+        -- Update existing (found by spotify_id)
         UPDATE playlists SET
             name = '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
             follower_count = ${FOLLOWER_COUNT:-0},
             track_count = ${TRACK_COUNT:-0},
             owner_name = '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
-            spotify_id = '$PLAYLIST_ID',
             genres = ARRAY(SELECT jsonb_array_elements_text('$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb))
         WHERE id = playlist_id_var;
     ELSE
-        -- Insert new
-        INSERT INTO playlists (name, url, spotify_id, follower_count, track_count, owner_name, vendor_id, genres, avg_daily_streams)
-        VALUES (
-            '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
-            '$PLAYLIST_URL',
-            '$PLAYLIST_ID',
-            ${FOLLOWER_COUNT:-0},
-            ${TRACK_COUNT:-0},
-            '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
-            $([ -n "$VENDOR_ID" ] && echo "'$VENDOR_ID'" || echo "NULL"),
-            ARRAY(SELECT jsonb_array_elements_text('$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb)),
-            0
-        );
+        -- Try to find by URL if spotify_id didn't match
+        SELECT id INTO playlist_id_var FROM playlists WHERE url = '$PLAYLIST_URL';
+        
+        IF playlist_id_var IS NOT NULL THEN
+            -- Update existing (found by URL)
+            UPDATE playlists SET
+                name = '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
+                spotify_id = '$PLAYLIST_ID',
+                follower_count = ${FOLLOWER_COUNT:-0},
+                track_count = ${TRACK_COUNT:-0},
+                owner_name = '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
+                genres = ARRAY(SELECT jsonb_array_elements_text('$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb))
+            WHERE id = playlist_id_var;
+        ELSE
+            -- Insert new (doesn't exist by spotify_id or URL)
+            INSERT INTO playlists (name, url, spotify_id, follower_count, track_count, owner_name, vendor_id, genres, avg_daily_streams)
+            VALUES (
+                '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
+                '$PLAYLIST_URL',
+                '$PLAYLIST_ID',
+                ${FOLLOWER_COUNT:-0},
+                ${TRACK_COUNT:-0},
+                '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
+                $([ -n "$VENDOR_ID" ] && echo "'$VENDOR_ID'" || echo "NULL"),
+                ARRAY(SELECT jsonb_array_elements_text('$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb)),
+                0
+            );
+        END IF;
     END IF;
 END \$\$;
 
