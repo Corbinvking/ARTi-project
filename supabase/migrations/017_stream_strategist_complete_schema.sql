@@ -688,6 +688,41 @@ ALTER TABLE public.vendor_reliability_scores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workflow_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workflow_executions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist, then recreate
+DROP POLICY IF EXISTS "creators_org_isolation" ON public.creators;
+DROP POLICY IF EXISTS "tags_org_isolation" ON public.tags;
+DROP POLICY IF EXISTS "algorithm_learning_log_org_isolation" ON public.algorithm_learning_log;
+DROP POLICY IF EXISTS "analytics_notes_org_isolation" ON public.analytics_notes;
+DROP POLICY IF EXISTS "campaign_ab_tests_org_isolation" ON public.campaign_ab_tests;
+DROP POLICY IF EXISTS "campaign_compliance_checkpoints_org_isolation" ON public.campaign_compliance_checkpoints;
+DROP POLICY IF EXISTS "campaign_creators_org_isolation" ON public.campaign_creators;
+DROP POLICY IF EXISTS "campaign_invoices_org_isolation" ON public.campaign_invoices;
+DROP POLICY IF EXISTS "campaign_posts_org_isolation" ON public.campaign_posts;
+DROP POLICY IF EXISTS "client_credits_org_isolation" ON public.client_credits;
+DROP POLICY IF EXISTS "client_report_settings_org_isolation" ON public.client_report_settings;
+DROP POLICY IF EXISTS "content_verification_logs_org_isolation" ON public.content_verification_logs;
+DROP POLICY IF EXISTS "creator_ml_features_org_isolation" ON public.creator_ml_features;
+DROP POLICY IF EXISTS "dashboard_configs_org_isolation" ON public.dashboard_configs;
+DROP POLICY IF EXISTS "fraud_detection_alerts_org_isolation" ON public.fraud_detection_alerts;
+DROP POLICY IF EXISTS "genre_correlation_matrix_org_isolation" ON public.genre_correlation_matrix;
+DROP POLICY IF EXISTS "market_intelligence_org_isolation" ON public.market_intelligence;
+DROP POLICY IF EXISTS "ml_model_versions_org_isolation" ON public.ml_model_versions;
+DROP POLICY IF EXISTS "payment_history_org_isolation" ON public.payment_history;
+DROP POLICY IF EXISTS "performance_alerts_org_isolation" ON public.performance_alerts;
+DROP POLICY IF EXISTS "playlist_performance_history_org_isolation" ON public.playlist_performance_history;
+DROP POLICY IF EXISTS "post_analytics_org_isolation" ON public.post_analytics;
+DROP POLICY IF EXISTS "post_performance_tracking_org_isolation" ON public.post_performance_tracking;
+DROP POLICY IF EXISTS "report_exports_org_isolation" ON public.report_exports;
+DROP POLICY IF EXISTS "report_schedules_org_isolation" ON public.report_schedules;
+DROP POLICY IF EXISTS "sales_goals_org_isolation" ON public.sales_goals;
+DROP POLICY IF EXISTS "sales_performance_tracking_org_isolation" ON public.sales_performance_tracking;
+DROP POLICY IF EXISTS "smart_deadlines_org_isolation" ON public.smart_deadlines;
+DROP POLICY IF EXISTS "team_goals_org_isolation" ON public.team_goals;
+DROP POLICY IF EXISTS "vendor_compliance_scores_org_isolation" ON public.vendor_compliance_scores;
+DROP POLICY IF EXISTS "vendor_reliability_scores_org_isolation" ON public.vendor_reliability_scores;
+DROP POLICY IF EXISTS "workflow_rules_org_isolation" ON public.workflow_rules;
+DROP POLICY IF EXISTS "workflow_executions_org_isolation" ON public.workflow_executions;
+
 -- Create RLS policies for org isolation on all new tables
 CREATE POLICY "creators_org_isolation" ON public.creators
   FOR ALL USING (org_id IN (SELECT org_id FROM memberships WHERE user_id = auth.uid()));
