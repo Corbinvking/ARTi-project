@@ -97,6 +97,59 @@ while IFS=$'\t' read -r CAMPAIGN_ID CAMPAIGN_NAME PLAYLIST_LINKS; do
         echo "    ✅ $PLAYLIST_NAME"
         echo "    👥 ${FOLLOWER_COUNT:-0} followers"
         
+        # Extract artist IDs from first 10 tracks to fetch genres
+        ARTIST_IDS=$(echo "$SPOTIFY_DATA" | python3 -c "
+import sys, json, re
+try:
+    # Try JSON parsing first
+    data = json.loads(sys.stdin.read())
+    artists = []
+    for item in data.get('tracks', {}).get('items', [])[:10]:
+        track = item.get('track')
+        if track and track.get('artists'):
+            for artist in track['artists'][:1]:
+                if artist.get('id'):
+                    artists.append(artist['id'])
+    print(','.join(list(set(artists))[:5]))
+except Exception as e:
+    # Fallback to regex if JSON fails
+    content = sys.stdin.read() if hasattr(sys.stdin, 'read') else ''
+    ids = re.findall(r'\"artists\":\[\{\"[^\"]*\"id\":\"([a-zA-Z0-9]+)\"', content)
+    print(','.join(list(set(ids))[:5]))
+" 2>/dev/null <<< "$SPOTIFY_DATA")
+        
+        # Fetch genres from artists if we have artist IDs
+        GENRES_JSON='{}'
+        if [ -n "$ARTIST_IDS" ] && [ "$ARTIST_IDS" != "" ]; then
+            echo "    🎸 Fetching genres from artists..."
+            ARTISTS_DATA=$(curl -s -X GET "https://api.spotify.com/v1/artists?ids=$ARTIST_IDS" \
+                -H "Authorization: Bearer $ACCESS_TOKEN" 2>/dev/null)
+            
+            GENRES_JSON=$(echo "$ARTISTS_DATA" | python3 -c "
+import sys, json
+from collections import Counter
+try:
+    data = json.load(sys.stdin)
+    all_genres = []
+    for artist in data.get('artists', []):
+        if artist and artist.get('genres'):
+            all_genres.extend(artist['genres'])
+    # Get top 3 most common genres
+    genre_counts = Counter(all_genres)
+    top_genres = [g for g, _ in genre_counts.most_common(3)]
+    print(json.dumps(top_genres))
+except:
+    print('[]')
+" 2>/dev/null <<< "$ARTISTS_DATA")
+            
+            # Display genres if found
+            GENRE_COUNT=$(echo "$GENRES_JSON" | python3 -c "import sys, json; print(len(json.loads(sys.stdin.read())))" 2>/dev/null || echo "0")
+            if [ "$GENRE_COUNT" -gt 0 ]; then
+                GENRE_LIST=$(echo "$GENRES_JSON" | python3 -c "import sys, json; print(', '.join(json.loads(sys.stdin.read())))" 2>/dev/null)
+                echo "    🎵 Genres: $GENRE_LIST"
+            fi
+        fi
+        
         # Insert or update in playlists table
         docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres << EOSQL
 -- Check if playlist exists, then insert or update
@@ -114,7 +167,8 @@ BEGIN
             follower_count = ${FOLLOWER_COUNT:-0},
             track_count = ${TRACK_COUNT:-0},
             owner_name = '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
-            spotify_id = '$PLAYLIST_ID'
+            spotify_id = '$PLAYLIST_ID',
+            genres = '$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb
         WHERE id = playlist_id_var;
     ELSE
         -- Insert new
@@ -127,7 +181,7 @@ BEGIN
             ${TRACK_COUNT:-0},
             '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
             $([ -n "$VENDOR_ID" ] && echo "'$VENDOR_ID'" || echo "NULL"),
-            '{}',
+            '$(echo "$GENRES_JSON" | sed "s/'/''/g")'::jsonb,
             0
         );
     END IF;
