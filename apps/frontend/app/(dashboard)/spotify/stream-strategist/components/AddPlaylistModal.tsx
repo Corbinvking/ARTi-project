@@ -179,10 +179,13 @@ export default function AddPlaylistModal({ open, onOpenChange, vendorId, editing
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🔍 Submit clicked - validating form data:', formData);
+    
     // Basic validation - only name, url, and vendor are truly required
     if (!formData.name || !formData.url || !formData.vendor_id) {
+      console.log('❌ Validation failed: missing required fields');
       toast({
-        title: "Error",
+        title: "Validation Error",
         description: "Please fill in playlist name, URL, and select a vendor",
         variant: "destructive",
       });
@@ -191,14 +194,16 @@ export default function AddPlaylistModal({ open, onOpenChange, vendorId, editing
     
     // For new playlists, require at least one genre
     if (!editingPlaylist && formData.genres.length === 0) {
+      console.log('❌ Validation failed: new playlist requires genres');
       toast({
-        title: "Error",
+        title: "Genres Required",
         description: "Please select at least one genre for new playlists",
         variant: "destructive",
       });
       return;
     }
     
+    console.log('✅ Validation passed - submitting mutation');
     playlistMutation.mutate(formData);
   };
 
