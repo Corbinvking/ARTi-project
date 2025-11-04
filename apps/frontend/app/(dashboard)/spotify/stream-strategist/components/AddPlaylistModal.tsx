@@ -178,14 +178,27 @@ export default function AddPlaylistModal({ open, onOpenChange, vendorId, editing
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.url || formData.genres.length === 0 || !formData.vendor_id) {
+    
+    // Basic validation - only name, url, and vendor are truly required
+    if (!formData.name || !formData.url || !formData.vendor_id) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields including vendor selection",
+        description: "Please fill in playlist name, URL, and select a vendor",
         variant: "destructive",
       });
       return;
     }
+    
+    // For new playlists, require at least one genre
+    if (!editingPlaylist && formData.genres.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one genre for new playlists",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     playlistMutation.mutate(formData);
   };
 
