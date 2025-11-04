@@ -40,7 +40,7 @@ echo ""
 # Get campaigns with playlist links from database
 echo "📊 Fetching campaigns from database..."
 CAMPAIGNS=$(docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -t -A -F $'\t' -c \
-  "SELECT id, campaign, playlist_links FROM spotify_campaigns WHERE playlist_links IS NOT NULL AND playlist_links != '' LIMIT 10;")
+  "SELECT id, campaign, playlist_links FROM spotify_campaigns WHERE playlist_links IS NOT NULL AND playlist_links != '';")
 
 if [ -z "$CAMPAIGNS" ]; then
     echo "⚠️  No campaigns with playlist links found"
@@ -99,32 +99,46 @@ while IFS=$'\t' read -r CAMPAIGN_ID CAMPAIGN_NAME PLAYLIST_LINKS; do
         
         # Insert or update in playlists table
         docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres << EOSQL
--- Upsert into playlists table
-INSERT INTO playlists (name, url, spotify_id, follower_count, track_count, owner_name, vendor_id, genres, avg_daily_streams)
-VALUES (
-    '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
-    '$PLAYLIST_URL',
-    '$PLAYLIST_ID',
-    ${FOLLOWER_COUNT:-0},
-    ${TRACK_COUNT:-0},
-    '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
-    $([ -n "$VENDOR_ID" ] && echo "'$VENDOR_ID'" || echo "NULL"),
-    '{}',
-    0
-)
-ON CONFLICT (url) DO UPDATE SET
-    name = EXCLUDED.name,
-    follower_count = EXCLUDED.follower_count,
-    track_count = EXCLUDED.track_count,
-    owner_name = EXCLUDED.owner_name,
-    spotify_id = EXCLUDED.spotify_id;
+-- Check if playlist exists, then insert or update
+DO \$\$
+DECLARE
+    playlist_id_var UUID;
+BEGIN
+    -- Try to find existing playlist
+    SELECT id INTO playlist_id_var FROM playlists WHERE url = '$PLAYLIST_URL';
+    
+    IF playlist_id_var IS NOT NULL THEN
+        -- Update existing
+        UPDATE playlists SET
+            name = '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
+            follower_count = ${FOLLOWER_COUNT:-0},
+            track_count = ${TRACK_COUNT:-0},
+            owner_name = '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
+            spotify_id = '$PLAYLIST_ID'
+        WHERE id = playlist_id_var;
+    ELSE
+        -- Insert new
+        INSERT INTO playlists (name, url, spotify_id, follower_count, track_count, owner_name, vendor_id, genres, avg_daily_streams)
+        VALUES (
+            '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
+            '$PLAYLIST_URL',
+            '$PLAYLIST_ID',
+            ${FOLLOWER_COUNT:-0},
+            ${TRACK_COUNT:-0},
+            '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
+            $([ -n "$VENDOR_ID" ] && echo "'$VENDOR_ID'" || echo "NULL"),
+            '{}',
+            0
+        );
+    END IF;
+END \$\$;
 
--- Link to campaign
+-- Link to campaign (check if already exists first)
 INSERT INTO campaign_playlists (
     campaign_id, playlist_name, playlist_curator, playlist_url, playlist_spotify_id,
     playlist_follower_count, streams_7d, streams_28d, streams_12m
 )
-VALUES (
+SELECT
     $CAMPAIGN_ID,
     '$(echo "$PLAYLIST_NAME" | sed "s/'/''/g")',
     '$(echo "$OWNER_NAME" | sed "s/'/''/g")',
@@ -132,8 +146,10 @@ VALUES (
     '$PLAYLIST_ID',
     ${FOLLOWER_COUNT:-0},
     0, 0, 0
-)
-ON CONFLICT DO NOTHING;
+WHERE NOT EXISTS (
+    SELECT 1 FROM campaign_playlists 
+    WHERE campaign_id = $CAMPAIGN_ID AND playlist_url = '$PLAYLIST_URL'
+);
 EOSQL
         
         ((ENRICHED++))
