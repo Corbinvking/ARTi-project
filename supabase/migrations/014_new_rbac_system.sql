@@ -35,6 +35,9 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Drop trigger if it exists, then recreate
+DROP TRIGGER IF EXISTS update_user_permissions_updated_at ON public.user_permissions;
+
 CREATE TRIGGER update_user_permissions_updated_at 
     BEFORE UPDATE ON public.user_permissions 
     FOR EACH ROW 
