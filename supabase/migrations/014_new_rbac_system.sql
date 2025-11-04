@@ -188,6 +188,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Enable RLS on user_permissions table
 ALTER TABLE public.user_permissions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist, then recreate
+DROP POLICY IF EXISTS "Users can view own permissions" ON public.user_permissions;
+DROP POLICY IF EXISTS "Admins can view all permissions" ON public.user_permissions;
+DROP POLICY IF EXISTS "Admins can insert permissions" ON public.user_permissions;
+DROP POLICY IF EXISTS "Admins can update permissions" ON public.user_permissions;
+DROP POLICY IF EXISTS "Admins can delete permissions" ON public.user_permissions;
+
 -- Create RLS policies
 -- Users can see their own permissions
 CREATE POLICY "Users can view own permissions" ON public.user_permissions
