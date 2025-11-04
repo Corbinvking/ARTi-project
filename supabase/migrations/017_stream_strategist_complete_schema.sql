@@ -933,6 +933,31 @@ CREATE INDEX IF NOT EXISTS idx_workflow_rules_enabled ON public.workflow_rules(i
 CREATE INDEX IF NOT EXISTS idx_workflow_executions_org_id ON public.workflow_executions(org_id);
 CREATE INDEX IF NOT EXISTS idx_workflow_executions_workflow_rule_id ON public.workflow_executions(workflow_rule_id);
 
+-- Drop existing triggers if they exist, then recreate
+DROP TRIGGER IF EXISTS update_creators_updated_at ON public.creators;
+DROP TRIGGER IF EXISTS update_analytics_notes_updated_at ON public.analytics_notes;
+DROP TRIGGER IF EXISTS update_campaign_ab_tests_updated_at ON public.campaign_ab_tests;
+DROP TRIGGER IF EXISTS update_campaign_compliance_checkpoints_updated_at ON public.campaign_compliance_checkpoints;
+DROP TRIGGER IF EXISTS update_campaign_creators_updated_at ON public.campaign_creators;
+DROP TRIGGER IF EXISTS update_campaign_invoices_updated_at ON public.campaign_invoices;
+DROP TRIGGER IF EXISTS update_campaign_posts_updated_at ON public.campaign_posts;
+DROP TRIGGER IF EXISTS update_client_report_settings_updated_at ON public.client_report_settings;
+DROP TRIGGER IF EXISTS update_content_verification_logs_updated_at ON public.content_verification_logs;
+DROP TRIGGER IF EXISTS update_creator_ml_features_updated_at ON public.creator_ml_features;
+DROP TRIGGER IF EXISTS update_dashboard_configs_updated_at ON public.dashboard_configs;
+DROP TRIGGER IF EXISTS update_fraud_detection_alerts_updated_at ON public.fraud_detection_alerts;
+DROP TRIGGER IF EXISTS update_market_intelligence_updated_at ON public.market_intelligence;
+DROP TRIGGER IF EXISTS update_ml_model_versions_updated_at ON public.ml_model_versions;
+DROP TRIGGER IF EXISTS update_payment_history_updated_at ON public.payment_history;
+DROP TRIGGER IF EXISTS update_post_performance_tracking_updated_at ON public.post_performance_tracking;
+DROP TRIGGER IF EXISTS update_report_schedules_updated_at ON public.report_schedules;
+DROP TRIGGER IF EXISTS update_sales_goals_updated_at ON public.sales_goals;
+DROP TRIGGER IF EXISTS update_sales_performance_tracking_updated_at ON public.sales_performance_tracking;
+DROP TRIGGER IF EXISTS update_smart_deadlines_updated_at ON public.smart_deadlines;
+DROP TRIGGER IF EXISTS update_team_goals_updated_at ON public.team_goals;
+DROP TRIGGER IF EXISTS update_vendor_compliance_scores_updated_at ON public.vendor_compliance_scores;
+DROP TRIGGER IF EXISTS update_workflow_rules_updated_at ON public.workflow_rules;
+
 -- Create triggers for updated_at columns on tables that need them
 CREATE TRIGGER update_creators_updated_at
   BEFORE UPDATE ON public.creators
