@@ -204,14 +204,71 @@ export default function PlaylistsPage() {
     queryFn: async (): Promise<Playlist[]> => {
       if (!selectedVendor) return [];
       
-      const { data, error } = await supabase
+      // First try to get playlists that have vendor_id set
+      const { data: directPlaylists, error: directError } = await supabase
         .from('playlists')
         .select('*')
         .eq('vendor_id', selectedVendor)
         .order('avg_daily_streams', { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (directError) {
+        console.error('❌ Error fetching direct playlists:', directError);
+      }
+      
+      // Also get playlists from campaign_playlists table (vendor assignments)
+      const { data: campaignPlaylists, error: campaignError } = await supabase
+        .from('campaign_playlists')
+        .select('playlist_spotify_id')
+        .eq('vendor_id', selectedVendor);
+      
+      if (campaignError) {
+        console.error('❌ Error fetching campaign playlists:', campaignError);
+      }
+      
+      console.log('🔍 Found', directPlaylists?.length || 0, 'direct playlists');
+      console.log('🔍 Found', campaignPlaylists?.length || 0, 'campaign playlist links');
+      
+      // Get unique spotify_ids from campaign_playlists
+      const spotifyIds = [...new Set(
+        (campaignPlaylists || [])
+          .map((cp: any) => cp.playlist_spotify_id)
+          .filter(Boolean)
+      )];
+      
+      console.log('🎯 Unique spotify IDs:', spotifyIds.length);
+      
+      // Fetch full playlist data for those spotify_ids
+      let enrichedPlaylists: any[] = [];
+      if (spotifyIds.length > 0) {
+        const { data: enrichedData, error: enrichedError } = await supabase
+          .from('playlists')
+          .select('*')
+          .in('spotify_id', spotifyIds);
+        
+        if (enrichedError) {
+          console.error('❌ Error fetching enriched playlists:', enrichedError);
+        } else {
+          enrichedPlaylists = enrichedData || [];
+          console.log('✅ Fetched', enrichedPlaylists.length, 'enriched playlists');
+          console.log('📊 Sample enriched playlist:', enrichedPlaylists[0]);
+        }
+      }
+      
+      // Combine and deduplicate
+      const allPlaylists = [...(directPlaylists || []), ...enrichedPlaylists];
+      const uniquePlaylistsMap = new Map();
+      allPlaylists.forEach(p => {
+        if (!uniquePlaylistsMap.has(p.id)) {
+          uniquePlaylistsMap.set(p.id, p);
+        }
+      });
+      
+      const result = Array.from(uniquePlaylistsMap.values())
+        .sort((a, b) => (b.avg_daily_streams || 0) - (a.avg_daily_streams || 0));
+      
+      console.log('🎵 Total unique playlists for vendor:', result.length);
+      
+      return result;
     },
     enabled: !!selectedVendor
   });
