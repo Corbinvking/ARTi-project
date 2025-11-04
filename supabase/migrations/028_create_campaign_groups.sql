@@ -54,6 +54,12 @@ CREATE INDEX IF NOT EXISTS idx_spotify_campaigns_campaign_group_id ON public.spo
 -- Enable RLS
 ALTER TABLE public.campaign_groups ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist, then recreate
+DROP POLICY IF EXISTS "Enable read access for all users" ON public.campaign_groups;
+DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON public.campaign_groups;
+DROP POLICY IF EXISTS "Enable update for authenticated users only" ON public.campaign_groups;
+DROP POLICY IF EXISTS "Enable delete for authenticated users only" ON public.campaign_groups;
+
 -- Create RLS policies
 CREATE POLICY "Enable read access for all users" ON public.campaign_groups
   FOR SELECT USING (true);

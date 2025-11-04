@@ -23,13 +23,19 @@ CREATE TABLE IF NOT EXISTS campaign_playlists (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_campaign_playlists_campaign_id ON campaign_playlists(campaign_id);
-CREATE INDEX idx_campaign_playlists_vendor_id ON campaign_playlists(vendor_id);
-CREATE INDEX idx_campaign_playlists_org_id ON campaign_playlists(org_id);
-CREATE INDEX idx_campaign_playlists_playlist_name ON campaign_playlists(playlist_name);
+CREATE INDEX IF NOT EXISTS idx_campaign_playlists_campaign_id ON campaign_playlists(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_playlists_vendor_id ON campaign_playlists(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_playlists_org_id ON campaign_playlists(org_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_playlists_playlist_name ON campaign_playlists(playlist_name);
 
 -- RLS Policies
 ALTER TABLE campaign_playlists ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist, then recreate
+DROP POLICY IF EXISTS "Users can view campaign playlists in their org" ON campaign_playlists;
+DROP POLICY IF EXISTS "Users can insert campaign playlists in their org" ON campaign_playlists;
+DROP POLICY IF EXISTS "Users can update campaign playlists in their org" ON campaign_playlists;
+DROP POLICY IF EXISTS "Users can delete campaign playlists in their org" ON campaign_playlists;
 
 CREATE POLICY "Users can view campaign playlists in their org"
   ON campaign_playlists FOR SELECT
@@ -55,6 +61,9 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Drop existing trigger if it exists, then recreate
+DROP TRIGGER IF EXISTS campaign_playlists_updated_at ON campaign_playlists;
 
 CREATE TRIGGER campaign_playlists_updated_at
   BEFORE UPDATE ON campaign_playlists

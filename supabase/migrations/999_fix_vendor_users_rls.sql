@@ -1,8 +1,11 @@
 -- Fix RLS policies for vendor_users table
 -- Vendors need to be able to see their own vendor_users association
 
--- Drop existing restrictive policy
+-- Drop existing policies
 DROP POLICY IF EXISTS "vendor_users_org_isolation" ON public.vendor_users;
+DROP POLICY IF EXISTS "vendors_can_view_own_mapping" ON public.vendor_users;
+DROP POLICY IF EXISTS "admin_manager_can_view_vendor_mappings" ON public.vendor_users;
+DROP POLICY IF EXISTS "admin_manager_can_manage_vendor_mappings" ON public.vendor_users;
 
 -- Create new policies
 -- 1. Vendors can view their own mapping

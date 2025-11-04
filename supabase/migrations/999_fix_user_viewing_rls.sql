@@ -1,7 +1,12 @@
 -- Fix RLS policies to allow admins to view user_roles and vendor_users
 
--- Drop existing restrictive policies
+-- Drop existing policies
 DROP POLICY IF EXISTS "user_roles_org_isolation" ON public.user_roles;
+DROP POLICY IF EXISTS "admins_managers_view_all_user_roles" ON public.user_roles;
+DROP POLICY IF EXISTS "users_view_own_role" ON public.user_roles;
+DROP POLICY IF EXISTS "admins_managers_manage_user_roles" ON public.user_roles;
+DROP POLICY IF EXISTS "admin_manager_can_view_vendor_mappings" ON public.vendor_users;
+DROP POLICY IF EXISTS "admins_managers_view_vendor_mappings" ON public.vendor_users;
 
 -- Allow admins and managers to view all user roles
 CREATE POLICY "admins_managers_view_all_user_roles"
@@ -38,8 +43,6 @@ CREATE POLICY "admins_managers_manage_user_roles"
   );
 
 -- Also ensure vendor_users has proper policies
-DROP POLICY IF EXISTS "admin_manager_can_view_vendor_mappings" ON public.vendor_users;
-
 CREATE POLICY "admins_managers_view_vendor_mappings"
   ON public.vendor_users FOR SELECT
   USING (
