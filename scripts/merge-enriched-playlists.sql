@@ -1,7 +1,24 @@
 -- Merge enriched playlist data into vendor playlists
 -- This updates playlists that have vendor_id with data from enriched playlists
 
--- Step 1: Update by exact name match (case-sensitive)
+-- Step 1: Temporarily store enriched data in a temp table
+CREATE TEMP TABLE enriched_data AS
+SELECT 
+    name,
+    follower_count,
+    genres,
+    url,
+    spotify_id,
+    track_count,
+    owner_name
+FROM playlists
+WHERE vendor_id IS NULL AND follower_count > 0;
+
+-- Step 2: Delete enriched playlists (will recreate data in vendor playlists)
+DELETE FROM playlists
+WHERE vendor_id IS NULL AND follower_count > 0;
+
+-- Step 3: Update vendor playlists with enriched data
 UPDATE playlists AS vendor_playlist
 SET 
     follower_count = enriched.follower_count,
@@ -11,40 +28,10 @@ SET
     track_count = enriched.track_count,
     owner_name = enriched.owner_name,
     updated_at = NOW()
-FROM playlists AS enriched
+FROM enriched_data AS enriched
 WHERE 
     vendor_playlist.vendor_id IS NOT NULL
-    AND enriched.vendor_id IS NULL
-    AND enriched.follower_count > 0
-    AND vendor_playlist.name = enriched.name
-    AND vendor_playlist.follower_count = 0;  -- Only update if not already enriched
-
--- Step 2: Update by spotify_id match (for any that have matching IDs)
-UPDATE playlists AS vendor_playlist
-SET 
-    follower_count = enriched.follower_count,
-    genres = enriched.genres,
-    url = enriched.url,
-    track_count = enriched.track_count,
-    owner_name = enriched.owner_name,
-    updated_at = NOW()
-FROM playlists AS enriched
-WHERE 
-    vendor_playlist.vendor_id IS NOT NULL
-    AND enriched.vendor_id IS NULL
-    AND enriched.follower_count > 0
-    AND enriched.spotify_id IS NOT NULL
-    AND vendor_playlist.spotify_id = enriched.spotify_id
-    AND vendor_playlist.follower_count = 0;
-
--- Step 3: Delete duplicate enriched playlists (keep vendor ones)
-DELETE FROM playlists
-WHERE 
-    vendor_id IS NULL
-    AND follower_count > 0
-    AND name IN (
-        SELECT name FROM playlists WHERE vendor_id IS NOT NULL AND follower_count > 0
-    );
+    AND vendor_playlist.name = enriched.name;
 
 -- Show results
 SELECT 
@@ -54,4 +41,3 @@ SELECT
     COUNT(*) FILTER (WHERE array_length(genres, 1) > 0) as with_genres,
     COUNT(*) FILTER (WHERE vendor_id IS NOT NULL AND follower_count > 0) as vendor_playlists_enriched
 FROM playlists;
-
