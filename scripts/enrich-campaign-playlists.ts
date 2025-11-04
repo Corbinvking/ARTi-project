@@ -170,8 +170,8 @@ async function main() {
     // Find campaign in database
     const { data: campaign } = await supabase
       .from('spotify_campaigns')
-      .select('id, campaign_name, vendor_id')
-      .eq('campaign_name', campaignName)
+      .select('id, campaign, vendor_id')
+      .eq('campaign', campaignName)
       .single();
 
     if (!campaign) {
