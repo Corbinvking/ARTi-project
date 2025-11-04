@@ -12,18 +12,26 @@ SPOTIFY_CLIENT_SECRET="${SPOTIFY_CLIENT_SECRET:-7320687e4ceb475b82c2f3a543eb2f9e
 
 # Get Spotify access token
 echo "🔑 Getting Spotify access token..."
-AUTH_STRING=$(echo -n "$SPOTIFY_CLIENT_ID:$SPOTIFY_CLIENT_SECRET" | base64)
+AUTH_STRING=$(echo -n "$SPOTIFY_CLIENT_ID:$SPOTIFY_CLIENT_SECRET" | base64 -w 0)
 TOKEN_RESPONSE=$(curl -s -X POST "https://accounts.spotify.com/api/token" \
   -H "Authorization: Basic $AUTH_STRING" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=client_credentials")
 
-ACCESS_TOKEN=$(echo $TOKEN_RESPONSE | grep -oP '"access_token":"\K[^"]+')
+# Parse JSON response
+ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | python3 -c "import sys, json; print(json.load(sys.stdin).get('access_token', ''))" 2>/dev/null)
 
 if [ -z "$ACCESS_TOKEN" ]; then
     echo "❌ Failed to get Spotify access token"
     echo "Response: $TOKEN_RESPONSE"
-    exit 1
+    echo ""
+    echo "Trying alternative parsing..."
+    # Fallback: use sed
+    ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+    if [ -z "$ACCESS_TOKEN" ]; then
+        echo "❌ Still failed. Check your Spotify credentials."
+        exit 1
+    fi
 fi
 
 echo "✅ Access token obtained"
