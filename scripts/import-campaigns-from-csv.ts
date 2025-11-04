@@ -42,6 +42,7 @@ async function main() {
   console.log('🚀 Starting campaign import from CSV...\n');
 
   // Initialize Supabase client
+  // In production, use the internal Docker network URL
   const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321';
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   
@@ -49,7 +50,14 @@ async function main() {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is required');
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  console.log(`🔗 Connecting to Supabase at: ${supabaseUrl}\n`);
+
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
 
   // Read CSV file
   const csvPath = path.join(process.cwd(), 'Spotify Playlisting-Active Campaigns (1).csv');
@@ -88,7 +96,14 @@ async function main() {
 
   for (let i = 0; i < records.length; i++) {
     const record = records[i];
-    const campaignName = record.Campaign;
+    const campaignName = record.Campaign?.trim();
+
+    // Skip if campaign name is empty
+    if (!campaignName) {
+      console.log(`[${i + 1}/${records.length}] Skipping empty campaign name\n`);
+      results.skipped++;
+      continue;
+    }
 
     try {
       console.log(`[${i + 1}/${records.length}] Importing: ${campaignName}`);
