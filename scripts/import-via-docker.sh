@@ -70,7 +70,7 @@ BEGIN
     -- Import campaigns
     INSERT INTO spotify_campaigns (
         campaign, client, vendor, url, goal, remaining, daily, weekly,
-        sale_price, start_date, status, curator_status, playlists, sfa_link,
+        sale_price, start_date, status, curator_status, playlists, sfa,
         notes, historical_playlists, playlist_links, paid_vendor,
         update_client_verified, notify_vendor, ask_for_sfa, org_id, client_id, vendor_id
     )
