@@ -96,8 +96,7 @@ BEGIN
         (SELECT id FROM clients WHERE name = t.client LIMIT 1),
         (SELECT id FROM vendors WHERE name = t.vendor LIMIT 1)
     FROM temp_campaigns t
-    WHERE t.campaign IS NOT NULL AND t.campaign != ''
-    ON CONFLICT (campaign) DO NOTHING;
+    WHERE t.campaign IS NOT NULL AND t.campaign != '';
 
     GET DIAGNOSTICS import_count = ROW_COUNT;
     
