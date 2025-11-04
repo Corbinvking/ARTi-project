@@ -337,6 +337,18 @@ export default function PlaylistsPage() {
     console.log('🔍 Search term:', searchTerm);
   }, [vendors, filteredVendors, showInactive, searchTerm]);
 
+  // Debug logging for playlists
+  useEffect(() => {
+    if (allPlaylists && allPlaylists.length > 0) {
+      console.log('🎵 All playlists loaded:', allPlaylists.length);
+      console.log('🎵 First playlist:', allPlaylists[0]);
+      console.log('🎵 Genres type:', typeof allPlaylists[0]?.genres);
+      console.log('🎵 Genres value:', allPlaylists[0]?.genres);
+      console.log('🎵 Genres is array:', Array.isArray(allPlaylists[0]?.genres));
+      console.log('🎵 Follower count:', allPlaylists[0]?.follower_count);
+    }
+  }, [allPlaylists]);
+
   const filteredPlaylists = viewMode === 'table' 
     ? allPlaylists?.filter(playlist => {
         const matchesSearch = playlist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -811,30 +823,36 @@ export default function PlaylistsPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {playlist.genres.slice(0, 3).map((genre) => (
-                        <Badge key={genre} variant="secondary" className="text-xs">
-                          {genre}
-                        </Badge>
-                            ))}
-                            {playlist.genres.length > 3 && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <Badge variant="outline" className="text-xs cursor-help">
-                                      +{playlist.genres.length - 3}
-                                    </Badge>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <div className="flex flex-wrap gap-1">
-                                      {playlist.genres.slice(3).map((genre) => (
-                                        <Badge key={genre} variant="secondary" className="text-xs">
-                                          {genre}
+                            {(playlist.genres && Array.isArray(playlist.genres) && playlist.genres.length > 0) ? (
+                              <>
+                                {playlist.genres.slice(0, 3).map((genre) => (
+                                  <Badge key={genre} variant="secondary" className="text-xs">
+                                    {genre}
+                                  </Badge>
+                                ))}
+                                {playlist.genres.length > 3 && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Badge variant="outline" className="text-xs cursor-help">
+                                          +{playlist.genres.length - 3}
                                         </Badge>
-                                      ))}
-                                    </div>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <div className="flex flex-wrap gap-1">
+                                          {playlist.genres.slice(3).map((genre) => (
+                                            <Badge key={genre} variant="secondary" className="text-xs">
+                                              {genre}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
                             )}
                           </div>
                         </TableCell>
@@ -1235,30 +1253,36 @@ export default function PlaylistsPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
-                              {playlist.genres.slice(0, 2).map((genre) => (
-                                <Badge key={genre} variant="secondary" className="text-xs">
-                                  {genre}
-                                </Badge>
-                              ))}
-                              {playlist.genres.length > 2 && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <Badge variant="outline" className="text-xs cursor-help">
-                                        +{playlist.genres.length - 2}
-                                      </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <div className="flex flex-wrap gap-1">
-                                        {playlist.genres.slice(2).map((genre) => (
-                                          <Badge key={genre} variant="secondary" className="text-xs">
-                                            {genre}
+                              {(playlist.genres && Array.isArray(playlist.genres) && playlist.genres.length > 0) ? (
+                                <>
+                                  {playlist.genres.slice(0, 2).map((genre) => (
+                                    <Badge key={genre} variant="secondary" className="text-xs">
+                                      {genre}
+                                    </Badge>
+                                  ))}
+                                  {playlist.genres.length > 2 && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger>
+                                          <Badge variant="outline" className="text-xs cursor-help">
+                                            +{playlist.genres.length - 2}
                                           </Badge>
-                                        ))}
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <div className="flex flex-wrap gap-1">
+                                            {playlist.genres.slice(2).map((genre) => (
+                                              <Badge key={genre} variant="secondary" className="text-xs">
+                                                {genre}
+                                              </Badge>
+                                            ))}
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">-</span>
                               )}
                             </div>
                           </TableCell>
