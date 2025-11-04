@@ -71,8 +71,8 @@ BEGIN
     INSERT INTO spotify_campaigns (
         campaign, client, vendor, url, goal, remaining, daily, weekly,
         sale_price, start_date, status, curator_status, playlists, sfa,
-        notes, historical_playlists, playlist_links, paid_vendor,
-        update_client_verified, notify_vendor, ask_for_sfa, org_id, client_id, vendor_id
+        notes, historical_playlists, playlist_links,
+        update_client_verified, client_id, vendor_id
     )
     SELECT 
         t.campaign,
@@ -84,11 +84,7 @@ BEGIN
         t.daily,
         t.weekly,
         t.sale_price,
-        CASE 
-            WHEN t.start_date IS NOT NULL AND t.start_date != '' THEN
-                TO_DATE(t.start_date, 'MM/DD/YYYY')
-            ELSE NULL
-        END,
+        t.start_date,
         t.status,
         t.curator_status,
         t.playlists,
@@ -96,11 +92,7 @@ BEGIN
         t.notes,
         t.playlists,
         t.sp_playlist_stuff,
-        t.paid_vendor = 'checked',
         t.update_client = 'checked',
-        t.notify_vendor = 'checked',
-        t.ask_for_sfa = 'checked',
-        default_org_id,
         (SELECT id FROM clients WHERE name = t.client LIMIT 1),
         (SELECT id FROM vendors WHERE name = t.vendor LIMIT 1)
     FROM temp_campaigns t
@@ -112,8 +104,8 @@ BEGIN
     RAISE NOTICE '✅ Imported % campaigns', import_count;
     
     -- Create missing clients
-    INSERT INTO clients (name, org_id)
-    SELECT DISTINCT t.client, default_org_id
+    INSERT INTO clients (name)
+    SELECT DISTINCT t.client
     FROM temp_campaigns t
     WHERE t.client IS NOT NULL 
       AND t.client != ''
@@ -121,8 +113,8 @@ BEGIN
     ON CONFLICT DO NOTHING;
     
     -- Create missing vendors
-    INSERT INTO vendors (name, org_id, max_daily_streams)
-    SELECT DISTINCT t.vendor, default_org_id, 10000
+    INSERT INTO vendors (name, max_daily_streams)
+    SELECT DISTINCT t.vendor, 10000
     FROM temp_campaigns t
     WHERE t.vendor IS NOT NULL 
       AND t.vendor != ''
