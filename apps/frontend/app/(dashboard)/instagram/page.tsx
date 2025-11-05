@@ -1,21 +1,17 @@
-import { PlatformPlaceholder } from "@/components/platform/platform-placeholder"
-import { Instagram } from "lucide-react"
+"use client"
+
+import { SeedstormApp } from "./seedstorm-builder/components/SeedstormApp"
+import { ProtectedRoute } from "./seedstorm-builder/components/ProtectedRoute"
+import Index from "./seedstorm-builder/pages/Index"
 
 export default function InstagramPage() {
   return (
-    <PlatformPlaceholder
-      platform="Instagram"
-      icon={Instagram}
-      status="connected"
-      description="Manage your Instagram content and engagement"
-      features={[
-        "Post scheduling and publishing",
-        "Story management",
-        "Engagement analytics",
-        "Hashtag optimization",
-        "Follower insights",
-        "Content performance tracking",
-      ]}
-    />
+    <div className="h-full w-full">
+      <SeedstormApp>
+        <ProtectedRoute requiredPermissions={['view_instagram']}>
+          <Index />
+        </ProtectedRoute>
+      </SeedstormApp>
+    </div>
   )
 }
