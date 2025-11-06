@@ -1,21 +1,17 @@
-import { PlatformPlaceholder } from "@/components/platform/platform-placeholder"
-import { Youtube } from "lucide-react"
+"use client"
+
+import { VidiHealthApp } from "./vidi-health-flow/components/VidiHealthApp"
+import { ProtectedRoute } from "./vidi-health-flow/components/auth/ProtectedRoute"
+import Index from "./vidi-health-flow/pages/Index"
 
 export default function YouTubePage() {
   return (
-    <PlatformPlaceholder
-      platform="YouTube"
-      icon={Youtube}
-      status="disconnected"
-      description="Manage your YouTube channel and video content"
-      features={[
-        "Video upload and management",
-        "Channel analytics",
-        "Subscriber insights",
-        "Revenue tracking",
-        "Comment moderation",
-        "Thumbnail optimization",
-      ]}
-    />
+    <div className="h-full w-full">
+      <VidiHealthApp>
+        <ProtectedRoute>
+          <Index />
+        </ProtectedRoute>
+      </VidiHealthApp>
+    </div>
   )
 }
