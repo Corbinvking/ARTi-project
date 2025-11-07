@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Target, 
   TrendingUp, 
@@ -83,23 +82,18 @@ export const CampaignManagementDashboard = ({ creators, campaigns }: CampaignMan
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a campaign to analyze" />
-            </SelectTrigger>
-            <SelectContent>
-              {campaigns.map(campaign => (
-                <SelectItem key={campaign.id} value={campaign.id}>
-                  <div className="flex items-center gap-2">
-                    <span>{campaign.campaign_name}</span>
-                    <Badge variant="outline" className="text-xs capitalize">
-                      {campaign.status}
-                    </Badge>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={selectedCampaignId || ''}
+            onChange={(e) => setSelectedCampaignId(e.target.value)}
+            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="">Select a campaign to analyze</option>
+            {campaigns.map(campaign => (
+              <option key={campaign.id} value={campaign.id}>
+                {campaign.campaign_name} - {campaign.status}
+              </option>
+            ))}
+          </select>
         </CardContent>
       </Card>
 

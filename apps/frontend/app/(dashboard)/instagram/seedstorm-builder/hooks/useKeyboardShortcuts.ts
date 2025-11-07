@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
 export interface KeyboardShortcut {
@@ -54,7 +54,7 @@ export const useGlobalShortcuts = (
 ) => {
   const router = useRouter();
 
-  const shortcuts: KeyboardShortcut[] = [
+  const shortcuts: KeyboardShortcut[] = useMemo(() => [
     {
       key: 'k',
       ctrl: true,
@@ -108,7 +108,7 @@ export const useGlobalShortcuts = (
       description: 'Go to campaigns history',
       action: () => router.push('/instagram/campaigns')
     }
-  ];
+  ], [router, openSearch, openNewCreator, openExport, openHelp]);
 
   useKeyboardShortcuts(shortcuts);
   return shortcuts;

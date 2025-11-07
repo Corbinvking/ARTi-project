@@ -1,6 +1,10 @@
+'use client'
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { Activity, Zap, TrendingUp, AlertTriangle, Brain } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { CampaignHealthDashboard } from "./CampaignHealthDashboard";
 import { QuickActionsPanel } from "./QuickActionsPanel";
@@ -20,6 +24,9 @@ interface EnhancedDashboardProps {
 }
 
 export const EnhancedDashboard = ({ creators, campaigns, onCampaignClick }: EnhancedDashboardProps) => {
+  const [activeTab, setActiveTab] = useState("overview");
+  const [intelligenceSubTab, setIntelligenceSubTab] = useState("predictions");
+
   return (
     <div className="space-y-6">
       {/* Command Center Header */}
@@ -37,110 +44,167 @@ export const EnhancedDashboard = ({ creators, campaigns, onCampaignClick }: Enha
       </Card>
 
       {/* Main Dashboard Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
+      <div className="space-y-6">
+        <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full">
+          <Button
+            variant="ghost"
+            onClick={() => setActiveTab("overview")}
+            className={cn(
+              "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 gap-2",
+              activeTab === "overview" && "bg-background text-foreground shadow-sm"
+            )}
+          >
             <TrendingUp className="h-4 w-4" />
             Overview
-          </TabsTrigger>
-          <TabsTrigger value="intelligence" className="flex items-center gap-2">
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setActiveTab("intelligence")}
+            className={cn(
+              "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 gap-2",
+              activeTab === "intelligence" && "bg-background text-foreground shadow-sm"
+            )}
+          >
             <Brain className="h-4 w-4" />
             Intelligence
-          </TabsTrigger>
-          <TabsTrigger value="health" className="flex items-center gap-2">
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setActiveTab("health")}
+            className={cn(
+              "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 gap-2",
+              activeTab === "health" && "bg-background text-foreground shadow-sm"
+            )}
+          >
             <AlertTriangle className="h-4 w-4" />
             Health
-          </TabsTrigger>
-          <TabsTrigger value="actions" className="flex items-center gap-2">
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setActiveTab("actions")}
+            className={cn(
+              "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 gap-2",
+              activeTab === "actions" && "bg-background text-foreground shadow-sm"
+            )}
+          >
             <Zap className="h-4 w-4" />
             Actions
-          </TabsTrigger>
-          <TabsTrigger value="pipeline" className="flex items-center gap-2">
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setActiveTab("pipeline")}
+            className={cn(
+              "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 gap-2",
+              activeTab === "pipeline" && "bg-background text-foreground shadow-sm"
+            )}
+          >
             <Activity className="h-4 w-4" />
             Pipeline
-          </TabsTrigger>
-        </TabsList>
+          </Button>
+        </div>
 
         {/* Overview Tab - Enhanced with Creator Scoring */}
-        <TabsContent value="overview" className="space-y-6">
-          <DashboardWidgets 
-            creators={creators} 
-            campaigns={campaigns} 
-            onCampaignClick={onCampaignClick}
-          />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <SmartRecommendations 
+        {activeTab === "overview" && (
+          <div className="space-y-6">
+            <DashboardWidgets 
               creators={creators} 
-              campaigns={campaigns}
+              campaigns={campaigns} 
+              onCampaignClick={onCampaignClick}
             />
-            <CreatorScoring 
-              creators={creators}
-              campaigns={campaigns}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <SmartRecommendations 
+                creators={creators} 
+                campaigns={campaigns}
+              />
+              <CreatorScoring 
+                creators={creators}
+                campaigns={campaigns}
+              />
+            </div>
           </div>
-        </TabsContent>
+        )}
 
         {/* Intelligence Tab - AI Predictions and Analytics */}
-        <TabsContent value="intelligence" className="space-y-6">
-          <Tabs defaultValue="predictions" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="predictions">Predictions</TabsTrigger>
-              <TabsTrigger value="ml-dashboard">ML System</TabsTrigger>
-            </TabsList>
+        {activeTab === "intelligence" && (
+          <div className="space-y-6">
+            <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full">
+              <Button
+                variant="ghost"
+                onClick={() => setIntelligenceSubTab("predictions")}
+                className={cn(
+                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1",
+                  intelligenceSubTab === "predictions" && "bg-background text-foreground shadow-sm"
+                )}
+              >
+                Predictions
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setIntelligenceSubTab("ml-dashboard")}
+                className={cn(
+                  "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1",
+                  intelligenceSubTab === "ml-dashboard" && "bg-background text-foreground shadow-sm"
+                )}
+              >
+                ML System
+              </Button>
+            </div>
             
-            <TabsContent value="predictions">
+            {intelligenceSubTab === "predictions" && (
               <PredictiveAnalytics 
                 creators={creators}
                 campaigns={campaigns}
               />
-            </TabsContent>
+            )}
             
-            <TabsContent value="ml-dashboard">
+            {intelligenceSubTab === "ml-dashboard" && (
               <MLDashboard 
                 creators={creators}
                 campaigns={campaigns}
               />
-            </TabsContent>
-          </Tabs>
-        </TabsContent>
+            )}
+          </div>
+        )}
 
         {/* Health Tab - Campaign Health Dashboard */}
-        <TabsContent value="health">
+        {activeTab === "health" && (
           <CampaignHealthDashboard />
-        </TabsContent>
+        )}
 
         {/* Actions Tab - Quick Actions Panel */}
-        <TabsContent value="actions" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <QuickActionsPanel />
-            <div className="space-y-6">
-              {/* Additional action components can go here */}
-              <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-primary" />
-                    Automation Hub
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-                    <p className="text-muted-foreground">Automated workflows coming soon</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Set up rules for automatic status updates and notifications
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+        {activeTab === "actions" && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <QuickActionsPanel />
+              <div className="space-y-6">
+                {/* Additional action components can go here */}
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-primary" />
+                      Automation Hub
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                      <p className="text-muted-foreground">Automated workflows coming soon</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Set up rules for automatic status updates and notifications
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
-        </TabsContent>
+        )}
 
         {/* Pipeline Tab - Progress Tracking */}
-        <TabsContent value="pipeline">
+        {activeTab === "pipeline" && (
           <ProgressTrackingPipeline />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 };

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Users, 
   TrendingUp, 
@@ -186,29 +185,27 @@ export const CreatorScoring = ({ creators, campaigns }: CreatorScoringProps) => 
               />
             </div>
             
-            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sort by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="performance">Performance Score</SelectItem>
-                <SelectItem value="reliability">Reliability Score</SelectItem>
-                <SelectItem value="efficiency">Cost Efficiency</SelectItem>
-                <SelectItem value="tier">Tier Level</SelectItem>
-              </SelectContent>
-            </Select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="performance">Performance Score</option>
+              <option value="reliability">Reliability Score</option>
+              <option value="efficiency">Cost Efficiency</option>
+              <option value="tier">Tier Level</option>
+            </select>
 
-            <Select value={filterBy} onValueChange={(value: any) => setFilterBy(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by score..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Tiers</SelectItem>
-                <SelectItem value="high">High Tier</SelectItem>
-                <SelectItem value="medium">Medium Tier</SelectItem>
-                <SelectItem value="developing">Developing Tier</SelectItem>
-              </SelectContent>
-            </Select>
+            <select
+              value={filterBy}
+              onChange={(e) => setFilterBy(e.target.value as any)}
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="all">All Tiers</option>
+              <option value="high">High Tier</option>
+              <option value="medium">Medium Tier</option>
+              <option value="developing">Developing Tier</option>
+            </select>
           </div>
         </CardContent>
       </Card>

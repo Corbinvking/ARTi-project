@@ -55,46 +55,35 @@ export default function InstagramLayout({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col">
-        {/* Instagram Navigation */}
-        <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container flex h-14 items-center">
-            <div className="mr-4 flex">
-              <Link href="/instagram" className="mr-6 flex items-center space-x-2">
-                <span className="font-bold">Instagram Manager</span>
-              </Link>
-            </div>
-            <div className="flex flex-1 items-center space-x-2 justify-end md:justify-between">
-              <nav className="flex items-center space-x-6 text-sm font-medium">
-                {instagramNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href || 
-                    (item.href !== "/instagram" && pathname.startsWith(item.href));
-                  
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-2 transition-colors hover:text-foreground/80",
-                        isActive ? "text-foreground" : "text-foreground/60"
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="hidden sm:inline-block">{item.title}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
+      {/* Instagram Sub-Navigation */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-6">
+        <div className="container mx-auto flex h-12 items-center px-4">
+          <div className="flex items-center space-x-6 text-sm font-medium">
+            {instagramNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || 
+                (item.href !== "/instagram" && pathname.startsWith(item.href));
+              
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-2 transition-colors hover:text-foreground/80",
+                    isActive ? "text-foreground" : "text-foreground/60"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="hidden sm:inline-block">{item.title}</span>
+                </Link>
+              );
+            })}
           </div>
-        </nav>
-
-        {/* Content */}
-        <div className="flex-1">
-          {children}
         </div>
-      </div>
+      </nav>
+
+      {/* Content */}
+      {children}
     </QueryClientProvider>
   );
 }

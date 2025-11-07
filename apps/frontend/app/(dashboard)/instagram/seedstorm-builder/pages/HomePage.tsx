@@ -3,7 +3,7 @@ import { Button } from "../components/ui/button";
 import { useRouter } from "next/navigation";
 import { Activity, Target, Users, Zap, Database, BarChart3, Search, HelpCircle } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { EnhancedDashboard } from "../components/EnhancedDashboard";
 import { GlobalSearch } from "../components/GlobalSearch";
 import { KeyboardShortcutsHelp } from "../components/KeyboardShortcutsHelp";
@@ -17,20 +17,13 @@ import { useQuery } from "@tanstack/react-query";
 const HomePage = () => {
   const router = useRouter();
   const { toast } = useToast();
-  const [stats, setStats] = useState({
-    totalCreators: 0,
-    totalReach: 0,
-    algorithmAccuracy: 95
-  });
-  const [creators, setCreators] = useState<any[]>([]);
-  const [campaigns, setCampaigns] = useState<any[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Fetch creators from Supabase using public RPC
-  const { data: creatorsData = [] } = useQuery({
+  const { data: creators = [] } = useQuery({
     queryKey: ['creators'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_public_creators');
@@ -40,7 +33,7 @@ const HomePage = () => {
   });
 
   // Fetch campaigns from Supabase
-  const { data: campaignsData = [] } = useQuery({
+  const { data: campaigns = [] } = useQuery({
     queryKey: ['campaigns'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -51,27 +44,29 @@ const HomePage = () => {
     }
   });
 
-  useEffect(() => {
-    setCreators(creatorsData);
-    setCampaigns(campaignsData);
-    
-    const totalCreators = creatorsData.length;
-    const totalReach = creatorsData.reduce((sum, creator) => sum + creator.followers, 0);
+  // Calculate stats using useMemo to avoid infinite loops
+  const stats = useMemo(() => {
+    const totalCreators = creators.length;
+    const totalReach = creators.reduce((sum: number, creator: any) => sum + (creator.followers || 0), 0);
     
     // Calculate algorithm accuracy based on campaigns
-    const totalCampaigns = campaignsData.length;
-    const activeCampaigns = campaignsData.filter(c => c.status === 'active').length;
+    const totalCampaigns = campaigns.length;
+    const activeCampaigns = campaigns.filter((c: any) => c.status === 'active').length;
     const accuracy = totalCampaigns > 0 ? Math.round((activeCampaigns / totalCampaigns) * 100) : 95;
 
-    setStats({ totalCreators, totalReach, algorithmAccuracy: accuracy });
-  }, [creatorsData, campaignsData]);
+    return { totalCreators, totalReach, algorithmAccuracy: accuracy };
+  }, [creators, campaigns]);
+
+  // Memoize keyboard shortcut callbacks
+  const handleOpenSearch = useCallback(() => setIsSearchOpen(true), []);
+  const handleOpenHelp = useCallback(() => setIsHelpOpen(true), []);
 
   // Global keyboard shortcuts
   useGlobalShortcuts(
-    () => setIsSearchOpen(true),
+    handleOpenSearch,
     undefined, // Add creator - will be handled by specific pages
     undefined, // Export - will be handled by specific pages
-    () => setIsHelpOpen(true)
+    handleOpenHelp
   );
 
   const handleCampaignClick = (campaign: any) => {
@@ -80,11 +75,11 @@ const HomePage = () => {
   };
 
   const handleStatusUpdate = async (campaignId: string, newStatus: string) => {
-    const updatedCampaigns = campaigns.map(c => 
-      c.id === campaignId ? { ...c, status: newStatus } : c
-    );
-    setCampaigns(updatedCampaigns);
-    // Note: Would need to implement campaign update function in localStorage
+    // TODO: Implement with React Query mutation to update campaign in Supabase
+    toast({
+      title: "Update Campaign",
+      description: "Campaign status update will be implemented with React Query mutations",
+    });
   };
 
   const featureCards = [
