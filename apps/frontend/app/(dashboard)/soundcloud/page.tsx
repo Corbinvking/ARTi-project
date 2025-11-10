@@ -1,22 +1,22 @@
-import { PlatformPlaceholder } from "@/components/platform/platform-placeholder"
-import { Headphones } from "lucide-react"
+"use client"
+
+import { Suspense } from "react"
+import UnifiedOverview from "./soundcloud-app/components/dashboard/UnifiedOverview"
 
 export default function SoundCloudPage() {
+  // Using main dashboard auth - no separate auth wrapper needed
   return (
-    <PlatformPlaceholder
-      platform="SoundCloud"
-      icon={Headphones}
-      status="connected"
-      description="Manage your SoundCloud tracks and community"
-      features={[
-        "Track upload and management",
-        "Play count analytics",
-        "Listener demographics",
-        "Comment management",
-        "Playlist curation",
-        "Community engagement",
-      ]}
-      comingSoon={true}
-    />
+    <div className="h-full w-full p-6">
+      <Suspense fallback={
+        <div className="min-h-[400px] flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-sm text-muted-foreground">Loading SoundCloud...</p>
+          </div>
+        </div>
+      }>
+        <UnifiedOverview />
+      </Suspense>
+    </div>
   )
 }
