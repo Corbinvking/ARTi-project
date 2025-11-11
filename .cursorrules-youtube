@@ -1,0 +1,977 @@
+# Cursor Rules for YouTube Manager App (vidi-health-flow)
+
+## Project Context
+
+This is the **YouTube campaign management platform** for Artist Influence. It manages YouTube influencer campaigns where clients pay to have their content promoted through YouTube channels.
+
+**Integration Status**: ✅ Successfully integrated into unified ARTi dashboard  
+**Original Repo**: https://github.com/Corbinvking/vidi-health-flow.git  
+**Integration Date**: November 2025  
+**Location**: `apps/frontend/app/(dashboard)/youtube/`
+
+---
+
+## Architecture Overview
+
+### Routing Architecture
+
+**Type**: Next.js App Router (migrated from React Router)  
+**Base Path**: `/youtube/*`  
+**Pattern**: All internal routes MUST be prefixed with `/youtube/`
+
+```typescript
+// ✅ CORRECT - has /youtube/ prefix
+router.push('/youtube/campaigns')
+<Link href="/youtube/settings">
+
+// ❌ WRONG - missing prefix
+router.push('/campaigns')
+<Link href="/settings">
+```
+
+### File Structure
+
+```
+youtube/
+├── layout.tsx                    # QueryClient provider + navigation
+├── loading.tsx                   # Loading states
+├── page.tsx                      # Main dashboard wrapper
+├── campaigns/page.tsx            # Campaign list route
+├── campaign-intake/page.tsx      # Campaign creation route
+├── clients/page.tsx              # Client management route
+├── vendor-payments/page.tsx      # Vendor payment route
+├── users/page.tsx                # User management route
+├── settings/page.tsx             # Settings route
+├── system-health/page.tsx        # System health route
+├── help/page.tsx                 # Help & support route
+└── vidi-health-flow/             # Original app source
+    ├── components/               # UI components
+    │   ├── admin/                # Admin-specific components
+    │   ├── auth/                 # Authentication components
+    │   ├── campaigns/            # Campaign-related components
+    │   ├── clients/              # Client management components
+    │   ├── dashboard/            # Dashboard components
+    │   ├── layout/               # Layout components
+    │   ├── navigation/           # Navigation components
+    │   ├── settings/             # Settings components
+    │   ├── users/                # User management components
+    │   ├── youtube/              # YouTube-specific components
+    │   ├── ui/                   # shadcn-ui components
+    │   └── VidiHealthApp.tsx     # App wrapper component
+    ├── contexts/
+    │   └── AuthContext.tsx       # Authentication context
+    ├── hooks/                    # Custom React hooks
+    │   ├── useCampaigns.ts       # Campaign data hooks
+    │   ├── useSettings.ts        # Settings hooks
+    │   ├── useSystemHealth.ts    # System health hooks
+    │   └── useValidation.ts      # Validation hooks
+    ├── integrations/
+    │   └── supabase/
+    │       ├── client.ts         # Supabase client config
+    │       └── types.ts          # Database type definitions
+    ├── lib/
+    │   ├── constants.ts          # App constants
+    │   ├── utils.ts              # Utility functions
+    │   ├── youtube.ts            # YouTube-specific utilities
+    │   └── vendorPaymentCalculator.ts
+    └── pages/                    # Page components
+        ├── Dashboard.tsx         # Main dashboard
+        ├── Campaigns.tsx         # Campaign list
+        ├── CampaignDetail.tsx    # Campaign detail view
+        ├── CampaignIntake.tsx    # Campaign creation
+        └── ...                   # Other pages
+```
+
+---
+
+## Critical Patterns & Rules
+
+### 1. Routing (Next.js App Router)
+
+**ALWAYS use Next.js router hooks, NEVER React Router**:
+
+```typescript
+// ✅ CORRECT
+"use client"
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+
+const router = useRouter();
+const pathname = usePathname();
+const searchParams = useSearchParams();
+
+router.push('/youtube/campaigns');
+router.back();
+const tab = searchParams?.get('tab'); // Note: optional chaining!
+
+<Link href="/youtube/campaigns">Campaigns</Link>
+
+// ❌ WRONG - Never use these
+import { useNavigate, useLocation, NavLink } from 'react-router-dom';
+```
+
+**URL Prefix Rules**:
+- Internal YouTube routes: `/youtube/*` (required)
+- External routes: No prefix (e.g., `/login`, `/dashboard`)
+- Other apps: Their prefix (e.g., `/instagram/*`, `/spotify/*`)
+
+**Search Params Safety**:
+```typescript
+// ✅ ALWAYS use optional chaining
+const tab = searchParams?.get('tab');
+const filter = searchParams?.get('filter') || 'all';
+
+// ❌ NEVER do this (can crash)
+const tab = searchParams.get('tab');
+```
+
+### 2. Authentication Pattern
+
+**CRITICAL**: Uses auth metadata only, NO database queries for user profiles!
+
+```typescript
+// ✅ CORRECT - Auth metadata pattern
+const { data: userData } = await supabase.auth.getUser();
+const user = userData.user;
+const role = user.user_metadata?.role || user.app_metadata?.role || 'admin';
+
+const profile = {
+  id: user.id,
+  email: user.email,
+  first_name: user.user_metadata?.first_name,
+  last_name: user.user_metadata?.last_name,
+  role: role
+};
+
+// ❌ WRONG - Never query these tables
+const { data } = await supabase.from('user_profiles').select('*');
+const { data } = await supabase.from('user_roles').select('*');
+```
+
+**Why**: Avoids database schema dependencies, RLS policy issues, and infinite recursion errors.
+
+**User Roles**:
+- `admin` - Full access to all features
+- `manager` - Can view and edit campaigns, limited admin features
+- `salesperson` - Limited to own campaigns and client interactions
+
+**Role Checking**:
+```typescript
+const { profile, isAdmin, isManager, isSalesperson, hasRole } = useAuth();
+
+// Role-based rendering
+{isAdmin && <AdminOnlyFeature />}
+{(isAdmin || isManager) && <ManagerFeature />}
+{hasRole('admin') && <AdminContent />}
+
+// Role-based routing (in ProtectedRoute)
+<ProtectedRoute requiredRole="admin">
+  <AdminPage />
+</ProtectedRoute>
+```
+
+### 3. Supabase Integration
+
+**Configuration**:
+```typescript
+// Location: vidi-health-flow/integrations/supabase/client.ts
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      'x-application': 'vidi-health-flow'  // Identifies this app in logs
+    }
+  }
+});
+```
+
+**Database Tables** (key ones):
+- `youtube_campaigns` - Campaign records
+- `youtube_clients` - Client information
+- `youtube_vendors` - Vendor/influencer data
+- `youtube_campaign_videos` - Video tracking
+- `youtube_payments` - Payment records
+- `youtube_settings` - App settings
+
+**Query Pattern**:
+```typescript
+// ✅ CORRECT - Always handle errors
+const { data, error } = await supabase
+  .from('youtube_campaigns')
+  .select('*')
+  .eq('status', 'active')
+  .order('created_at', { ascending: false });
+
+if (error) {
+  console.error('Error fetching campaigns:', error);
+  toast({ title: "Error", description: error.message, variant: "destructive" });
+  return;
+}
+
+// Use data
+setCampaigns(data);
+```
+
+### 4. State Management (React Query)
+
+**Pattern**: Use React Query for all server state
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// ✅ Query pattern
+const { data, isLoading, error, refetch } = useQuery({
+  queryKey: ['campaigns', filters],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from('youtube_campaigns')
+      .select('*');
+    if (error) throw error;
+    return data;
+  },
+  staleTime: 1000 * 60 * 5, // 5 minutes
+});
+
+// ✅ Mutation pattern
+const queryClient = useQueryClient();
+
+const createCampaignMutation = useMutation({
+  mutationFn: async (campaignData) => {
+    const { data, error } = await supabase
+      .from('youtube_campaigns')
+      .insert([campaignData])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+  onSuccess: () => {
+    // Invalidate relevant queries
+    queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    toast({ title: "Success", description: "Campaign created!" });
+  },
+  onError: (error) => {
+    toast({ title: "Error", description: error.message, variant: "destructive" });
+  }
+});
+```
+
+**Query Invalidation** (important!):
+```typescript
+// After mutations, invalidate related queries
+queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
+queryClient.invalidateQueries({ queryKey: ['vendor-payments'] });
+queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+```
+
+### 5. Component Patterns
+
+**All components MUST**:
+- Use `"use client"` directive at the top (we're in Next.js App Router)
+- Export both named and default exports for compatibility
+- Use TypeScript with proper types
+- Handle loading and error states
+
+```typescript
+"use client"
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+
+interface MyCampaignComponentProps {
+  campaignId: string;
+  onUpdate?: () => void;
+}
+
+export function MyCampaignComponent({ campaignId, onUpdate }: MyCampaignComponentProps) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleClick = () => {
+    router.push(`/youtube/campaigns/${campaignId}`);
+  };
+  
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  
+  return (
+    <div>
+      <Button onClick={handleClick}>View Campaign</Button>
+    </div>
+  );
+}
+
+// ✅ Export both for compatibility
+export { MyCampaignComponent };
+export default MyCampaignComponent;
+```
+
+**UI Components**: Use shadcn-ui components from `@/components/ui/`
+```typescript
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { toast } from '@/hooks/use-toast';
+```
+
+### 6. Import Path Rules
+
+**CRITICAL**: All imports must use correct relative paths based on file depth
+
+```typescript
+// From: components/campaigns/CreateCampaignModal.tsx
+import { supabase } from "../../integrations/supabase/client";  // Up 2 levels
+import { useAuth } from "../../contexts/AuthContext";           // Up 2 levels
+import { SERVICE_TYPES } from "../../lib/constants";            // Up 2 levels
+
+// From: components/VidiHealthApp.tsx
+import { AuthProvider } from "../contexts/AuthContext";         // Up 1 level
+import { Toaster } from "@/components/ui/toaster";              // Absolute (shared UI)
+
+// From: pages/Dashboard.tsx
+import { supabase } from "../integrations/supabase/client";     // Up 1 level
+import { useAuth } from "../contexts/AuthContext";              // Up 1 level
+
+// From: hooks/useCampaigns.ts
+import { supabase } from "../integrations/supabase/client";     // Up 1 level
+```
+
+**Rule**: Count directory depth, use `../` for each level to reach `vidi-health-flow/`
+
+### 7. Error Handling
+
+**Always handle errors gracefully**:
+
+```typescript
+// ✅ Database query error handling
+try {
+  const { data, error } = await supabase
+    .from('youtube_campaigns')
+    .select('*');
+  
+  if (error) throw error;
+  
+  // Success handling
+  setCampaigns(data);
+} catch (error) {
+  console.error('Error fetching campaigns:', error);
+  toast({
+    title: "Error",
+    description: error.message || "Failed to fetch campaigns",
+    variant: "destructive"
+  });
+}
+
+// ✅ Async operation error handling
+const handleSubmit = async (formData) => {
+  setIsLoading(true);
+  try {
+    await createCampaign(formData);
+    toast({ title: "Success", description: "Campaign created!" });
+    router.push('/youtube/campaigns');
+  } catch (error) {
+    toast({ 
+      title: "Error", 
+      description: error.message, 
+      variant: "destructive" 
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+```
+
+### 8. Type Safety
+
+**Always use TypeScript types**:
+
+```typescript
+// ✅ Import database types
+import type { Database } from "../integrations/supabase/types";
+
+type YouTubeCampaign = Database['public']['Tables']['youtube_campaigns']['Row'];
+type YouTubeCampaignInsert = Database['public']['Tables']['youtube_campaigns']['Insert'];
+type YouTubeCampaignUpdate = Database['public']['Tables']['youtube_campaigns']['Update'];
+
+// ✅ Define component prop types
+interface CampaignTableProps {
+  campaigns: YouTubeCampaign[];
+  onEdit: (campaign: YouTubeCampaign) => void;
+  onDelete: (campaignId: string) => void;
+}
+
+// ✅ Type hook return values
+const useCampaigns = () => {
+  const [campaigns, setCampaigns] = useState<YouTubeCampaign[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
+  
+  return { campaigns, isLoading, error };
+};
+```
+
+---
+
+## Common Patterns & Constants
+
+### Service Types
+
+```typescript
+// From lib/constants.ts
+export const SERVICE_TYPES = {
+  DEDICATED: 'dedicated',
+  NON_DEDICATED: 'non-dedicated',
+  COMMUNITY_POST: 'community-post',
+  YOUTUBE_SHORT: 'youtube-short',
+} as const;
+
+export const SERVICE_TYPE_LABELS = {
+  [SERVICE_TYPES.DEDICATED]: 'Dedicated Video',
+  [SERVICE_TYPES.NON_DEDICATED]: 'Non-Dedicated Video',
+  [SERVICE_TYPES.COMMUNITY_POST]: 'Community Post',
+  [SERVICE_TYPES.YOUTUBE_SHORT]: 'YouTube Short',
+};
+```
+
+### Campaign Status
+
+```typescript
+export const CAMPAIGN_STATUS = {
+  DRAFT: 'draft',
+  PENDING: 'pending',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+} as const;
+```
+
+### Payment Status
+
+```typescript
+export const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  PAID: 'paid',
+  FAILED: 'failed',
+  CANCELLED: 'cancelled',
+} as const;
+```
+
+---
+
+## Key Features & Components
+
+### 1. Campaign Management
+
+**Location**: `components/campaigns/`, `pages/Campaigns.tsx`
+
+**Key Components**:
+- `CreateCampaignModal` - Create new campaigns
+- `CampaignTable` - Display campaign list
+- `CampaignDetail` - View/edit campaign details
+- `CampaignSettingsModal` - Campaign configuration
+
+**Key Hooks**:
+- `useCampaigns()` - Fetch and manage campaign data
+- `useValidation()` - Form validation
+
+### 2. Campaign Intake
+
+**Location**: `pages/CampaignIntake.tsx`
+
+**Purpose**: Multi-step form for creating new campaigns with:
+- Client selection
+- Service type selection
+- Budget and pricing
+- Video requirements
+- Vendor assignment
+
+### 3. Vendor Payments
+
+**Location**: `components/dashboard/VendorPaymentsTable.tsx`, `pages/VendorPayments.tsx`
+
+**Features**:
+- Track payments to vendors/influencers
+- Calculate payment amounts based on service type
+- Payment history and audit log
+- Payment status tracking
+
+**Calculator**: `lib/vendorPaymentCalculator.ts`
+
+### 4. Dashboard
+
+**Location**: `pages/Dashboard.tsx`, `components/dashboard/`
+
+**Key Metrics**:
+- Active campaigns count
+- Total revenue
+- Pending payments
+- Campaign health status
+- Performance trends
+
+**Components**:
+- `HealthMetricsGrid` - KPI cards
+- `CampaignHealthChart` - Visual campaign status
+- `PerformanceTrends` - Trend analysis
+- `WeeklySummary` - Week-over-week stats
+
+### 5. User Management
+
+**Location**: `pages/Users.tsx`, `components/users/`
+
+**Features**:
+- Admin-only feature
+- Create/edit/delete users
+- Role assignment
+- User activity tracking
+
+### 6. System Health
+
+**Location**: `pages/SystemHealth.tsx`, `components/admin/SystemHealthDashboard.tsx`
+
+**Monitors**:
+- Database connection status
+- API response times
+- Error rates
+- Active user sessions
+
+### 7. Settings
+
+**Location**: `pages/Settings.tsx`, `components/settings/`
+
+**Configurable**:
+- Pricing rules per service type
+- Email notification preferences
+- Default campaign settings
+- System-wide configurations
+
+---
+
+## Database Schema (Key Tables)
+
+### youtube_campaigns
+
+```typescript
+{
+  id: string;                    // UUID
+  client_id: string;             // FK to youtube_clients
+  campaign_name: string;
+  service_type: string;          // See SERVICE_TYPES
+  budget: number;
+  status: string;                // See CAMPAIGN_STATUS
+  start_date: string;            // ISO date
+  end_date: string;              // ISO date
+  created_at: string;
+  updated_at: string;
+  created_by: string;            // User ID
+}
+```
+
+### youtube_clients
+
+```typescript
+{
+  id: string;                    // UUID
+  client_name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### youtube_vendors
+
+```typescript
+{
+  id: string;                    // UUID
+  vendor_name: string;
+  channel_name: string;
+  subscriber_count?: number;
+  email: string;
+  payment_method?: string;
+  notes?: string;
+  created_at: string;
+}
+```
+
+### youtube_campaign_videos
+
+```typescript
+{
+  id: string;                    // UUID
+  campaign_id: string;           // FK to youtube_campaigns
+  video_url: string;
+  video_title?: string;
+  view_count?: number;
+  like_count?: number;
+  comment_count?: number;
+  upload_date?: string;
+  status: string;
+  created_at: string;
+}
+```
+
+### youtube_payments
+
+```typescript
+{
+  id: string;                    // UUID
+  campaign_id: string;           // FK to youtube_campaigns
+  vendor_id: string;             // FK to youtube_vendors
+  amount: number;
+  status: string;                // See PAYMENT_STATUS
+  payment_date?: string;
+  notes?: string;
+  created_at: string;
+}
+```
+
+---
+
+## Testing Patterns
+
+### Manual Testing Checklist
+
+After making changes, test:
+- [ ] Page loads without errors
+- [ ] Navigation works (all links)
+- [ ] Data loads correctly
+- [ ] Forms submit successfully
+- [ ] Error handling works
+- [ ] Loading states display
+- [ ] Toast notifications appear
+- [ ] Auth check works (protected routes)
+
+### Browser Console
+
+Check for:
+- ✅ `✅ YouTube profile loaded: user@example.com role: admin`
+- ✅ No red error messages
+- ✅ Network requests succeed (200 status)
+- ❌ No 404/406 errors
+- ❌ No "Cannot read properties of undefined"
+- ❌ No infinite loops or excessive re-renders
+
+### Build Testing
+
+```bash
+cd apps/frontend
+pnpm run build
+
+# Should see:
+# ✓ Compiled successfully
+# Route (app)                Size     First Load JS
+# ○ /youtube                 ...      ...
+# ○ /youtube/campaigns       ...      ...
+```
+
+---
+
+## Troubleshooting Guide
+
+### Build Errors
+
+**"Module not found" (import path)**:
+```typescript
+// ❌ Wrong depth
+import { supabase } from "../../../integrations/supabase/client";
+
+// ✅ Correct - recalculate from file location
+import { supabase } from "../../integrations/supabase/client";
+```
+
+**"Unterminated string constant"**:
+```typescript
+// ❌ Mismatched quotes
+import { x } from "../path';
+
+// ✅ Consistent quotes
+import { x } from "../path";
+```
+
+### Runtime Errors
+
+**"Cannot read properties of undefined (reading 'get')"**:
+```typescript
+// ❌ Missing optional chaining
+const tab = searchParams.get('tab');
+
+// ✅ Add optional chaining
+const tab = searchParams?.get('tab');
+```
+
+**"useNavigate is not defined"**:
+```typescript
+// ❌ Using React Router
+import { useNavigate } from 'react-router-dom';
+
+// ✅ Use Next.js router
+import { useRouter } from 'next/navigation';
+```
+
+**"Element type is invalid"**:
+```typescript
+// ❌ Missing export
+export default MyComponent;
+
+// ✅ Both exports
+export { MyComponent };
+export default MyComponent;
+```
+
+### Database Errors
+
+**"Could not find the table 'user_profiles'"**:
+- ✅ Use auth metadata pattern (no user_profiles queries)
+- ❌ Don't query user_profiles, user_roles, or profiles tables
+
+**"Infinite recursion detected in policy"**:
+- ✅ Check RLS policies on affected table
+- ✅ Avoid queries that trigger policy loops
+- ✅ Use auth metadata instead
+
+---
+
+## Performance Considerations
+
+### Query Optimization
+
+```typescript
+// ✅ Good - specific fields
+.select('id, campaign_name, status, created_at')
+
+// ❌ Bad - selecting everything
+.select('*')
+
+// ✅ Good - use indexes
+.eq('status', 'active')  // If status is indexed
+.order('created_at', { ascending: false })
+
+// ✅ Good - pagination
+.range(0, 49)  // First 50 records
+```
+
+### React Query Stale Time
+
+```typescript
+// Adjust based on data update frequency
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,  // 5 minutes for relatively static data
+      retry: 1,                   // Retry once on failure
+    },
+  },
+});
+```
+
+### Component Memoization
+
+```typescript
+import { memo, useMemo, useCallback } from 'react';
+
+// ✅ Memoize expensive components
+export const CampaignTable = memo(({ campaigns, onEdit }) => {
+  // Component logic
+});
+
+// ✅ Memoize expensive calculations
+const filteredCampaigns = useMemo(() => {
+  return campaigns.filter(c => c.status === 'active');
+}, [campaigns]);
+
+// ✅ Memoize callbacks
+const handleEdit = useCallback((campaignId) => {
+  router.push(`/youtube/campaigns/${campaignId}`);
+}, [router]);
+```
+
+---
+
+## Security Considerations
+
+### Client-Side Data Filtering
+
+```typescript
+// ❌ Never trust client-side filtering for security
+const campaigns = await supabase
+  .from('youtube_campaigns')
+  .select('*');
+// Then filter by user
+
+// ✅ Always filter in database (RLS policies handle this)
+const { data: campaigns } = await supabase
+  .from('youtube_campaigns')
+  .select('*');
+// RLS policies automatically filter by user role
+```
+
+### Input Validation
+
+```typescript
+// ✅ Always validate user input
+import { z } from 'zod';
+
+const campaignSchema = z.object({
+  campaign_name: z.string().min(1, "Campaign name is required"),
+  budget: z.number().positive("Budget must be positive"),
+  service_type: z.enum(['dedicated', 'non-dedicated', 'community-post', 'youtube-short']),
+});
+
+const validateCampaign = (data) => {
+  try {
+    campaignSchema.parse(data);
+    return { success: true };
+  } catch (error) {
+    return { success: false, errors: error.errors };
+  }
+};
+```
+
+### Sensitive Data
+
+```typescript
+// ❌ Never log sensitive data
+console.log('Payment info:', paymentDetails);
+
+// ✅ Log safely
+console.log('Payment created:', paymentDetails.id);
+```
+
+---
+
+## Deployment Considerations
+
+### Environment Variables (Production)
+
+Required in `.env.local`:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://db.artistinfluence.com
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
+
+### Build Command
+
+```bash
+cd apps/frontend
+pnpm run build
+```
+
+### Verify Deployment
+
+- [ ] All routes accessible
+- [ ] Auth flow works
+- [ ] Database queries succeed
+- [ ] No console errors
+- [ ] Performance acceptable
+
+---
+
+## Code Quality Rules
+
+### ESLint / TypeScript
+
+- ✅ No `any` types (use proper types)
+- ✅ All props typed with interfaces
+- ✅ All functions have return types
+- ✅ No unused variables
+- ✅ No console.log in production (use proper logging)
+
+### Code Style
+
+- ✅ Use functional components (not class components)
+- ✅ Use hooks (useState, useEffect, etc.)
+- ✅ Destructure props
+- ✅ Use optional chaining (`?.`) for nullable values
+- ✅ Use nullish coalescing (`??`) for default values
+- ✅ Async/await over promises.then()
+
+### File Naming
+
+- ✅ Components: PascalCase (`CampaignTable.tsx`)
+- ✅ Hooks: camelCase with `use` prefix (`useCampaigns.ts`)
+- ✅ Utilities: camelCase (`vendorPaymentCalculator.ts`)
+- ✅ Constants: UPPER_SNAKE_CASE in file (`SERVICE_TYPES`)
+
+---
+
+## Quick Reference Commands
+
+```bash
+# Development
+cd apps/frontend
+pnpm run dev
+# Visit: http://localhost:3000/youtube
+
+# Build
+pnpm run build
+
+# Type check
+pnpm run type-check
+
+# Lint
+pnpm run lint
+
+# Format
+pnpm run format
+```
+
+---
+
+## Integration History
+
+**Initial Import**: November 2025  
+**Issues Encountered**: 10+ (all resolved)  
+**Time to Integrate**: ~10 hours (learning)  
+**Status**: ✅ Production ready
+
+**Key Fixes Applied**:
+1. ✅ Router migration (React Router → Next.js)
+2. ✅ Auth pattern (metadata-only, no DB queries)
+3. ✅ Import paths (corrected for depth)
+4. ✅ Export consistency (named + default)
+5. ✅ Null safety (optional chaining)
+6. ✅ Quote consistency
+
+**Documentation Created**:
+- `YOUTUBE-SETUP-COMPLETE.md`
+- `YOUTUBE-DATABASE-FIX.md`
+- `YOUTUBE-IMPORT-PATH-FIX.md`
+- `YOUTUBE-QUOTE-FIX.md`
+- `YOUTUBE-SEARCHPARAMS-FIX.md`
+- This file (`.cursorrules-youtube`)
+
+---
+
+## When in Doubt
+
+1. ✅ Check this file first
+2. ✅ Look at existing working components (e.g., `Dashboard.tsx`)
+3. ✅ Check `QUICK-REFERENCE-CHEAT-SHEET.md`
+4. ✅ Review YouTube fix docs (`YOUTUBE-*.md`)
+5. ✅ Test frequently (don't accumulate errors)
+
+---
+
+**Last Updated**: November 6, 2025  
+**Maintained By**: ARTi Engineering Team  
+**Integration Status**: ✅ Complete & Stable
+
