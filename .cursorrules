@@ -1,0 +1,349 @@
+# Cursor Rules for ARTi Spotify Platform
+
+## Project Context
+
+This is a **Spotify playlist campaign management platform** for Artist Influence. It manages music promotion campaigns where artists pay vendors to place their songs on Spotify playlists.
+
+## Database Schema Understanding
+
+### Core Tables (CRITICAL - Never modify structure without migration)
+
+**spotify_campaigns** - Individual song placements
+- Primary key: `id` (integer)
+- Campaign name stored in column: `campaign` (NOT campaign_name!)
+- Links to: clients (client_id), vendors (vendor_id), campaign_groups (campaign_group_id)
+- Has playlist data in: `playlist_links` (text) - from CSV "SP Playlist Stuff" column
+- Enriched with: track_name, artist_name, primary_genre, all_genres[], track_popularity
+
+**campaign_groups** - Campaign containers (can have multiple songs)
+- Primary key: `id` (uuid)
+- Links multiple spotify_campaigns together
+- Frontend expects this structure for campaign lists
+
+**campaign_playlists** - Links songs to playlists with performance data
+- Primary key: `id` (uuid)
+- campaign_id → spotify_campaigns.id (integer, NOT uuid!)
+- Has vendor_id to link to vendors
+- Critical columns: playlist_spotify_id, playlist_follower_count, playlist_url
+- is_algorithmic flag for Spotify-owned playlists
+
+**playlists** - Aggregated playlist data
+- Primary key: `id` (uuid)
+- vendor_id can be NULL (not all playlists have vendor assignments)
+- genres is text[] (PostgreSQL array, NOT jsonb!)
+- spotify_id is unique constraint (VARCHAR 22)
+- Used for vendor playlist displays
+
+## Code Patterns to Follow
+
+### Database Queries
+
+**ALWAYS check column names before querying:**
+```typescript
+// CORRECT
+.eq('campaign', campaignName)  // Column is 'campaign'
+.eq('spotify_id', playlistId)  // Column is 'spotify_id'
+
+// WRONG - will fail!
+.eq('campaign_name', name)  // No such column!
+.eq('playlist_id', id)       // No such column!
+```
+
+**When updating playlists with genres:**
+```sql
+-- CORRECT - genres is text[]
+genres = ARRAY(SELECT jsonb_array_elements_text('["pop", "rock"]'::jsonb))
+
+-- WRONG - type mismatch!
+genres = '["pop", "rock"]'::jsonb
+```
+
+### Query Invalidation Pattern
+
+**ALWAYS invalidate related queries after mutations:**
+```typescript
+// After updating a playlist
+queryClient.invalidateQueries({ queryKey: ["playlists"] });
+queryClient.invalidateQueries({ queryKey: ["vendor-playlists"] });
+queryClient.invalidateQueries({ queryKey: ["all-playlists"] });
+queryClient.invalidateQueries({ queryKey: ["my-playlists"] });
+```
+
+### Safe Array Rendering
+
+**ALWAYS check if array exists before .map():**
+```typescript
+// CORRECT
+{(playlist.genres && Array.isArray(playlist.genres) && playlist.genres.length > 0) ? (
+  playlist.genres.map(...)
+) : (
+  <span>-</span>
+)}
+
+// WRONG - will crash if genres is null/undefined
+{playlist.genres.map(...)}
+```
+
+## Common Pitfalls to Avoid
+
+### 1. Duplicate Playlists
+- Playlists can exist multiple times with same name but different IDs
+- Some have vendor_id set (old), some don't (enriched)
+- ALWAYS match by spotify_id when possible, fallback to name
+- Use cleanup scripts to remove duplicates
+
+### 2. Vendor_id Null Issue
+- Enriched playlists often have vendor_id = NULL
+- Query `.eq('vendor_id', vendorId)` will miss them
+- ALSO query campaign_playlists table by vendor_id to get playlist_spotify_id
+- Then fetch from playlists by spotify_id
+
+### 3. Genre Type Confusion
+- Database: `text[]` (PostgreSQL array)
+- TypeScript: `string[]`
+- When inserting from JSON: Convert using ARRAY(SELECT jsonb_array_elements_text(...))
+
+### 4. Campaign ID Type Confusion
+- campaign_groups.id is UUID
+- spotify_campaigns.id is INTEGER
+- campaign_playlists.campaign_id references INTEGER (spotify_campaigns.id)
+
+## Spotify Web API Integration
+
+### Authentication Flow
+1. Client Credentials Flow (server-side only)
+2. Token cached for ~1 hour
+3. Auto-refreshes on expiry
+4. Rate limit: 200ms delay between requests
+
+### Fetching Playlist Genres
+Genres come from ARTISTS, not playlists!
+```
+1. Fetch playlist → get tracks
+2. Extract artist IDs from tracks
+3. Fetch artists → get genres
+4. Aggregate top 3 most common genres
+5. Store as text[] array
+```
+
+### Important Endpoints
+- GET `/api/spotify-web-api/playlist/:id` - Fetch playlist metadata
+- GET `/api/spotify-web-api/track/:id` - Fetch track + artist genres
+- POST `/api/spotify-web-api/enrich-playlists` - Bulk enrich
+
+## Frontend Query Patterns
+
+### Fetching Vendor Playlists
+
+**The correct pattern** (as of 2025-11-04):
+```typescript
+// 1. Get direct playlists (vendor_id set)
+const { data: directPlaylists } = await supabase
+  .from('playlists')
+  .select('*')
+  .eq('vendor_id', selectedVendor);
+
+// 2. Get playlist IDs from campaign_playlists
+const { data: campaignPlaylists } = await supabase
+  .from('campaign_playlists')
+  .select('playlist_spotify_id')
+  .eq('vendor_id', selectedVendor);
+
+// 3. Fetch full playlist data for those IDs
+const spotifyIds = campaignPlaylists.map(cp => cp.playlist_spotify_id).filter(Boolean);
+const { data: enrichedPlaylists } = await supabase
+  .from('playlists')
+  .select('*')
+  .in('spotify_id', spotifyIds);
+
+// 4. Combine and deduplicate
+const allPlaylists = [...directPlaylists, ...enrichedPlaylists];
+// Remove duplicates by ID
+```
+
+### Algorithmic Playlist Filtering
+
+**Strict filtering required:**
+```typescript
+const algorithmicPlaylists = data.filter((p: any) => 
+  p.is_algorithmic === true && 
+  !p.vendor_id && 
+  (p.playlist_curator?.toLowerCase() === 'spotify' || !p.playlist_curator)
+);
+```
+
+## Migration Best Practices
+
+### Always Use Idempotent Migrations
+
+**CORRECT:**
+```sql
+-- Drop before creating to handle re-runs
+DROP POLICY IF EXISTS "policy_name" ON table_name;
+CREATE POLICY "policy_name" ON table_name ...;
+
+DROP TRIGGER IF EXISTS trigger_name ON table_name;
+CREATE TRIGGER trigger_name ...;
+
+-- Use IF NOT EXISTS
+CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
+ALTER TABLE table_name ADD COLUMN IF NOT EXISTS column_name type;
+```
+
+**WRONG:**
+```sql
+-- Will fail on re-run!
+CREATE POLICY "policy_name" ON table_name ...;
+CREATE TRIGGER trigger_name ...;
+```
+
+### Fixing Migration Conflicts
+
+If migration fails with "already exists" error:
+```bash
+# Remove from migration history
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "
+DELETE FROM supabase_migrations.schema_migrations WHERE version = 'XXX';
+"
+
+# Fix migration to use DROP IF EXISTS
+# Re-run
+npx supabase migration up
+```
+
+## Scripts Execution Order
+
+### Initial Setup (First Time)
+```bash
+1. bash scripts/simple-import.sh              # Import campaigns from CSV
+2. npx supabase migration up                  # Apply schema updates
+3. bash scripts/enrich-playlists-direct.sh    # Fetch Spotify metadata
+4. docker exec ... < merge-enriched-playlists.sql  # Merge into vendor playlists
+5. docker exec ... < cleanup-unenriched-playlists.sql  # Remove duplicates
+```
+
+### Regular Maintenance (Weekly)
+```bash
+1. bash scripts/enrich-playlists-direct.sh    # Update follower counts
+2. docker exec ... < merge-enriched-playlists.sql  # Update vendor playlists
+```
+
+### After CSV Import
+```bash
+1. Upload CSV to server
+2. bash scripts/simple-import.sh
+3. bash scripts/enrich-playlists-direct.sh
+4. docker exec ... < merge-enriched-playlists.sql
+```
+
+## Environment Variables
+
+### Production API Container
+```bash
+SPOTIFY_CLIENT_ID=294f0422469444b5b4b0178ce438b5b8
+SPOTIFY_CLIENT_SECRET=7320687e4ceb475b82c2f3a543eb2f9e
+SUPABASE_URL=http://kong:8000  # Internal Docker network
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+
+### For Running Scripts on Production
+```bash
+# Use external URL (scripts run on host, not in container)
+export SUPABASE_URL="https://api.artistinfluence.com"
+export SUPABASE_SERVICE_ROLE_KEY="eyJ..."
+export SPOTIFY_CLIENT_ID="294f0422469444b5b4b0178ce438b5b8"
+export SPOTIFY_CLIENT_SECRET="7320687e4ceb475b82c2f3a543eb2f9e"
+```
+
+## Testing Commands
+
+### Verify Data in Database
+```bash
+# Check enriched playlists
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "
+SELECT COUNT(*) as total, 
+       COUNT(*) FILTER (WHERE follower_count > 0) as with_followers,
+       COUNT(*) FILTER (WHERE array_length(genres, 1) > 0) as with_genres
+FROM playlists;
+"
+
+# Check campaign-playlist links
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "
+SELECT COUNT(*) FROM campaign_playlists WHERE playlist_spotify_id IS NOT NULL;
+"
+
+# Check vendor assignments
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "
+SELECT v.name, COUNT(p.id) as playlist_count
+FROM vendors v
+LEFT JOIN playlists p ON v.id = p.vendor_id
+GROUP BY v.name
+ORDER BY playlist_count DESC;
+"
+```
+
+### Test Spotify API
+```bash
+# Test from API server
+curl http://localhost:3002/api/spotify-web-api/playlist/37i9dQZF1DXcBWIGoYBM5M
+
+# Test authentication
+API_URL=http://localhost:3002 node scripts/test-spotify-web-api.js
+```
+
+## File Locations
+
+### Backend
+- API routes: `apps/api/src/routes/spotify-web-api.ts`
+- Spotify client: `apps/api/src/lib/spotify-web-api.ts`
+- Environment: `apps/api/production.env`
+
+### Frontend
+- Playlists page: `apps/frontend/app/(dashboard)/spotify/stream-strategist/pages/PlaylistsPage.tsx`
+- Campaign details: `components/CampaignDetailsModal.tsx`
+- Playlist selector: `components/PlaylistSelector.tsx`
+- Edit dialog: `components/EditPlaylistVendorDialog.tsx`
+- Vendor payouts hook: `hooks/useVendorPayouts.ts`
+
+### Scripts
+- Enrichment: `scripts/enrich-playlists-direct.sh`
+- Import: `scripts/simple-import.sh`
+- Merge: `scripts/merge-enriched-playlists.sql`
+- Cleanup: `scripts/cleanup-unenriched-playlists.sql`
+
+### Migrations
+- Metadata columns: `supabase/migrations/036_add_playlist_metadata_columns.sql`
+- Track metadata: `supabase/migrations/037_add_spotify_metadata_columns.sql`
+- Nullable vendor: `supabase/migrations/041_make_vendor_id_nullable.sql`
+
+## When Things Go Wrong
+
+### UI shows no data but database has data
+1. Check browser console for query errors
+2. Verify SUPABASE_URL in frontend env vars
+3. Hard refresh browser (Ctrl+Shift+R)
+4. Check if vendor_id is NULL (run merge script)
+
+### Enrichment script fails
+1. Check Spotify credentials
+2. Verify API server is running
+3. Check rate limiting (increase delay if throttled)
+4. Verify database connection
+
+### Migration fails
+1. Add `DROP ... IF EXISTS` before all CREATE statements
+2. Remove from schema_migrations table
+3. Re-run migration
+
+### Duplicate data appearing
+1. Run cleanup-unenriched-playlists.sql
+2. Run merge-enriched-playlists.sql
+3. Check for playlists with same name but different IDs
+
+---
+
+**Last successful enrichment**: 2025-11-04 (1,394 campaigns, 386 playlists enriched)
+**Last database cleanup**: 2025-11-04 (359 fake playlists removed)
+**Current playlist count**: 149 (all with real Spotify URLs)
+**Enriched playlists**: 28 (with follower counts and genres)
+
