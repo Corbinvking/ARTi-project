@@ -8,7 +8,7 @@
 
 ## 🏗️ Architecture Overview
 
-### Database Schema
+### Database Schema -test
 
 The Spotify platform uses multiple interconnected tables:
 
