@@ -1,0 +1,1243 @@
+# Cursor Rules for ARTi SoundCloud Platform
+
+## Project Context
+
+This is a **SoundCloud repost campaign management platform** integrated into the ARTi unified dashboard at `/soundcloud/*`. It manages campaigns where artists pay for reposts from established SoundCloud artists ("members") to gain exposure and plays.
+
+---
+
+## 🏗️ Integration Architecture
+
+### Location in Project
+```
+apps/frontend/app/(dashboard)/soundcloud/
+├── layout.tsx                    # QueryClientProvider + Navigation
+├── page.tsx                      # Entry point → UnifiedOverview
+├── loading.tsx                   # Loading state
+├── dashboard/                    # 9 sub-route pages
+│   ├── analytics/page.tsx
+│   ├── automation/page.tsx
+│   ├── campaigns/page.tsx
+│   ├── genres/page.tsx
+│   ├── health/page.tsx
+│   ├── members/page.tsx
+│   ├── planner/page.tsx
+│   ├── queue/page.tsx
+│   └── settings/page.tsx
+└── soundcloud-app/               # Core application (migrated from React Router)
+    ├── components/               # 150+ components
+    │   ├── dashboard/            # 56 dashboard components
+    │   ├── admin/                # 7 admin/genre components
+    │   ├── calendar/             # 4 calendar components
+    │   ├── portal/               # 19 member portal components
+    │   └── ui/                   # 62 custom UI components
+    ├── contexts/
+    │   └── AuthContext.tsx       # ⚠️ METADATA-ONLY auth (CRITICAL!)
+    ├── hooks/                    # 22 custom hooks
+    ├── integrations/supabase/
+    │   ├── client.ts             # Supabase client config
+    │   └── types.ts              # Database types (2700+ lines, 57 tables)
+    ├── lib/
+    ├── pages/                    # Legacy page components
+    ├── types/
+    └── utils/
+```
+
+### Key Architectural Decisions
+
+1. **Nested in Unified Dashboard** - Inherits auth from main dashboard
+2. **Next.js App Router** - Migrated from React Router v6
+3. **Metadata-Only Auth** - No database queries in auth context (prevents RLS issues)
+4. **Query Key Prefixing** - All keys start with `soundcloud-` to avoid conflicts
+5. **Relative Imports** - Within `soundcloud-app/`, use relative paths (not `@/` alias)
+
+---
+
+## 🗄️ Database Schema
+
+### Core Tables (10 Primary, 47 Supporting = 57 Total)
+
+#### 1. **`soundcloud_campaigns`** - Campaign management
+```sql
+Key Columns:
+- id (uuid, PK)
+- campaign_name (text) - Campaign title
+- artist_name (text) - Artist name
+- track_url (text) - SoundCloud track URL
+- track_id (text) - SoundCloud track ID
+- status (text) - 'draft', 'active', 'paused', 'completed', 'cancelled'
+- start_date, end_date (date)
+- goal_plays, goal_likes, goal_reposts, goal_comments (integer)
+- budget (decimal), spent (decimal)
+- client_id (uuid) - FK to clients
+- assigned_members (text[]) - Array of member IDs
+- targeting (jsonb) - Genre/demographic targeting
+```
+
+#### 2. **`members`** - SoundCloud reposting artists
+```sql
+Key Columns:
+- id (uuid, PK)
+- name (text) - Member name
+- primary_email (text) - Contact email
+- emails (text[]) - All associated emails
+- soundcloud_url (text) - SoundCloud profile URL
+- soundcloud_id (text) - SoundCloud user ID
+- soundcloud_followers (integer) - Follower count
+- status (text) - 'active', 'inactive', 'suspended', 'pending'
+- size_tier (text) - 'nano', 'micro', 'medium', 'macro', 'mega'
+- primary_genres (text[]) - Main genres (PostgreSQL array)
+- all_genres (text[]) - All genre tags
+- monthly_repost_limit (integer) - Max reposts per month
+- submissions_this_month (integer) - Current month count
+- net_credits (integer) - Credit balance
+- avg_plays_per_repost (decimal) - Performance metric
+- engagement_rate (decimal) - Engagement %
+- reliability_score (decimal) - 0-100 reliability
+```
+
+#### 3. **`campaign_members`** - Campaign-member assignments
+```sql
+Key Columns:
+- id (uuid, PK)
+- campaign_id (uuid) - FK to soundcloud_campaigns
+- member_id (uuid) - FK to members
+- status (text) - 'assigned', 'accepted', 'declined', 'completed'
+- credits_offered (integer) - Credits for this assignment
+- repost_url (text) - URL of repost
+- actual_plays, actual_likes, actual_reposts (integer)
+```
+
+#### 4. **`queue_items`** - Submission queue management
+```sql
+Key Columns:
+- id (uuid, PK)
+- submission_id (uuid) - FK to submissions
+- member_id (uuid) - FK to members
+- status (text) - 'pending', 'processing', 'accepted', 'rejected', 'completed'
+- priority (integer) - Queue priority (higher = more urgent)
+- assigned_to (uuid) - Staff member assigned
+- position_in_queue (integer)
+- deadline (timestamp)
+```
+
+#### 5. **`submissions`** - Track submissions from artists
+```sql
+Key Columns:
+- id (uuid, PK)
+- artist_name, artist_email (text)
+- track_url, track_title (text)
+- genre (text), subgenres (text[])
+- status (text) - 'new', 'reviewing', 'approved', 'rejected', 'archived'
+- submission_type (text) - 'regular', 'premium', 'urgent'
+- priority_score (decimal)
+```
+
+#### 6. **`attribution_snapshots`** - Daily performance tracking
+```sql
+Key Columns:
+- id (uuid, PK)
+- parent_id (uuid) - Campaign or member ID
+- parent_type (text) - 'campaign' or 'member'
+- snapshot_date (date)
+- day_index (integer) - Days since campaign start
+- plays, likes, reposts, comments, followers (integer)
+- collection_source (text) - 'api', 'scraper', 'manual'
+```
+
+#### 7. **`genres`** - Genre taxonomy with hierarchy
+```sql
+Key Columns:
+- id (uuid, PK)
+- name (text) - Genre name
+- slug (text) - URL-safe slug
+- parent_id (uuid) - FK to parent genre (for subgenres)
+- level (integer) - Hierarchy level (0 = top-level)
+- related_genres (text[]) - Similar genres
+- member_count (integer), avg_reach (decimal)
+```
+
+#### 8. **`automation_rules`** - Workflow automation
+```sql
+Key Columns:
+- id (uuid, PK)
+- name, description (text)
+- trigger_type (text) - 'submission_received', 'campaign_ended', etc.
+- trigger_conditions (jsonb) - Condition logic
+- actions (jsonb) - Actions to perform
+- is_active (boolean)
+- execution_count (integer)
+```
+
+#### 9. **`receipt_links`** - Campaign receipts/proofs
+```sql
+Key Columns:
+- id (uuid, PK)
+- campaign_id (uuid) - FK to soundcloud_campaigns
+- member_id (uuid) - FK to members
+- receipt_url (text) - URL to receipt/screenshot
+- receipt_type (text) - 'screenshot', 'analytics', 'invoice'
+- verified (boolean)
+```
+
+#### 10. **`analytics_events`** - Event tracking
+```sql
+Key Columns:
+- id (uuid, PK)
+- event_type (text) - 'page_view', 'action', 'error'
+- event_name (text)
+- user_id, session_id (uuid)
+- properties (jsonb) - Event data
+- context (jsonb) - Browser/device info
+```
+
+### Supporting Tables (47 more)
+- `clients`, `vendors`, `notifications`, `email_templates`
+- `communication_logs`, `credit_transactions`, `performance_metrics`
+- `audit_logs`, `anomaly_detections`, `predictive_models`
+- `integration_configs`, `workflow_executions`, `calendar_events`
+- And 34 more...
+
+---
+
+## 🚨 CRITICAL CODE PATTERNS (MUST FOLLOW)
+
+### 1. Authentication - METADATA-ONLY (NO DATABASE QUERIES!)
+
+**⚠️ THIS IS THE MOST CRITICAL PATTERN - NEVER VIOLATE THIS!**
+
+```typescript
+// ✅ CORRECT - Use metadata only (in AuthContext.tsx)
+const fetchUserData = async (userId: string, userEmail: string) => {
+  try {
+    // Get user from auth (NO DATABASE QUERY)
+    const { data: userData } = await supabase.auth.getUser();
+    const authUser = userData.user;
+
+    if (!authUser) {
+      setUserRoles([]);
+      setMember(null);
+      return;
+    }
+
+    // ✅ Get roles from metadata (NOT database!)
+    const metadataRoles = authUser.user_metadata?.roles || authUser.app_metadata?.roles || [];
+    const role = authUser.user_metadata?.role || authUser.app_metadata?.role;
+    
+    // Combine roles
+    const allRoles: string[] = [];
+    if (role) allRoles.push(role);
+    if (Array.isArray(metadataRoles)) allRoles.push(...metadataRoles);
+    
+    // Default to admin for development
+    const finalRoles = allRoles.length > 0 ? allRoles : ['admin'];
+    setUserRoles(finalRoles);
+
+    // ✅ Get member status from metadata (NOT database!)
+    const isMemberFlag = authUser.user_metadata?.is_member || false;
+    const memberData = authUser.user_metadata?.member_data;
+
+    if (isMemberFlag || memberData) {
+      setMember({
+        id: userId,
+        name: memberData?.name || authUser.user_metadata?.name || 'Member',
+        primary_email: userEmail,
+        emails: memberData?.emails || [userEmail],
+        status: memberData?.status || 'active',
+        size_tier: memberData?.size_tier || 'standard',
+        // ... build entirely from metadata
+      });
+    } else {
+      setMember(null);
+    }
+
+    console.log('✅ SoundCloud auth loaded from metadata:', authUser.email, 'roles:', finalRoles);
+  } catch (error) {
+    console.error('❌ Error loading auth:', error);
+    setUserRoles([]);
+    setMember(null);
+  }
+};
+```
+
+```typescript
+// ❌ WRONG - NEVER DO THIS IN AUTH CONTEXT!
+const { data: roles } = await supabase
+  .from('user_roles')
+  .select('*')
+  .eq('user_id', userId);  // NO! Will cause RLS errors!
+
+const { data: member } = await supabase
+  .from('members')
+  .select('*')
+  .eq('email', userEmail);  // NO! Schema mismatch risk!
+```
+
+**Why this is critical:**
+- Prevents Row Level Security (RLS) policy errors
+- Avoids schema mismatches between auth tables and members table
+- Main dashboard already handles auth - SoundCloud just reads metadata
+- Database queries in auth context = instant production failures
+
+---
+
+### 2. Import Paths - RELATIVE WITHIN soundcloud-app/
+
+**Within `soundcloud-app/` directory: ALWAYS use relative imports**
+
+```typescript
+// ✅ CORRECT - Relative paths within soundcloud-app/
+// Location: soundcloud-app/components/dashboard/CampaignsPage.tsx
+import { supabase } from '../../integrations/supabase/client'
+import { Button } from '../ui/button'
+import { Card } from '../ui/card'
+import { useCampaignReachData } from '../../hooks/useCampaignReachData'
+import { useToast as useSoundCloudToast } from '../../hooks/use-toast'
+
+// ✅ CORRECT - Absolute paths ONLY for main dashboard shared components
+import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
+
+// ❌ WRONG - @/ alias doesn't work in nested structure
+import { supabase } from '@/integrations/supabase/client'  // Will fail!
+import { Button } from '@/components/ui/button'            // Will fail!
+import { useCampaignReachData } from '@/hooks/useCampaignReachData'  // Will fail!
+```
+
+**Import Depth Guide:**
+```typescript
+// From: soundcloud-app/components/dashboard/SomeComponent.tsx
+import { Component } from '../ui/component'                // Up 1, into ui/
+import { supabase } from '../../integrations/supabase/client'  // Up 2, into integrations/
+import { useHook } from '../../hooks/useHook'              // Up 2, into hooks/
+import { util } from '../../utils/util'                    // Up 2, into utils/
+
+// From: soundcloud-app/hooks/useSomeHook.ts
+import { supabase } from '../integrations/supabase/client'  // Up 1
+import { Component } from '../components/ui/component'      // Up 1, into components/ui/
+
+// From: soundcloud-app/components/ui/CustomComponent.tsx
+import { supabase } from '../../integrations/supabase/client'  // Up 2
+import { useHook } from '../../hooks/useHook'                   // Up 2
+
+// From: soundcloud-app/components/admin/AdminComponent.tsx
+import { UIComponent } from '../ui/component'               // Up 1 (sibling), into ui/
+import { supabase } from '../../integrations/supabase/client'  // Up 2
+```
+
+**Why this matters:**
+- `@/` alias resolves to `apps/frontend/`, not `apps/frontend/app/(dashboard)/soundcloud/soundcloud-app/`
+- Nested structure breaks TypeScript path resolution
+- Relative imports always work regardless of nesting depth
+
+---
+
+### 3. Navigation - ALWAYS Include /soundcloud/ Prefix
+
+**ALL internal navigation MUST include `/soundcloud/` prefix:**
+
+```typescript
+// ✅ CORRECT - Next.js router with prefix
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+
+const router = useRouter()
+
+// Navigation calls
+router.push("/soundcloud/dashboard/campaigns")
+router.push("/soundcloud/dashboard/members")
+router.push("/soundcloud/dashboard/analytics")
+router.replace("/soundcloud/dashboard/queue")
+
+// Links
+<Link href="/soundcloud/dashboard/campaigns">View Campaigns</Link>
+<Link href="/soundcloud/dashboard/members">Browse Members</Link>
+<Link href="/soundcloud">Back to Dashboard</Link>
+
+// Dynamic routes
+router.push(`/soundcloud/dashboard/campaigns?id=${campaignId}`)
+router.push(`/soundcloud/dashboard/members?genre=${genre}`)
+```
+
+```typescript
+// ❌ WRONG - Missing prefix navigates OUTSIDE SoundCloud section!
+router.push("/dashboard/campaigns")     // Goes to main dashboard, not SoundCloud!
+router.push("/members")                 // Goes to root /members, not SoundCloud!
+<Link href="/campaigns">Campaigns</Link>  // Wrong section!
+
+// ❌ WRONG - Don't use React Router (this is Next.js!)
+import { useNavigate } from "react-router-dom"  // NO! Wrong framework!
+const navigate = useNavigate()                   // Will crash at runtime!
+navigate("/campaigns")                           // Wrong hook entirely!
+```
+
+**In navigation components:**
+```typescript
+// navigation.tsx
+const navItems = [
+  { label: "Dashboard", path: "/soundcloud", icon: Home },
+  { label: "Planner", path: "/soundcloud/dashboard/planner", icon: Calendar },
+  { label: "Campaigns", path: "/soundcloud/dashboard/campaigns", icon: Music },
+  { label: "Queue", path: "/soundcloud/dashboard/queue", icon: ListMusic },
+  { label: "Members", path: "/soundcloud/dashboard/members", icon: Users },
+  { label: "Analytics", path: "/soundcloud/dashboard/analytics", icon: BarChart3 },
+  { label: "Health", path: "/soundcloud/dashboard/health", icon: Activity },
+  { label: "Automation", path: "/soundcloud/dashboard/automation", icon: Zap },
+  { label: "Genres", path: "/soundcloud/dashboard/genres", icon: Tag },
+  { label: "Settings", path: "/soundcloud/dashboard/settings", icon: Settings },
+];
+```
+
+---
+
+### 4. Router Migration - React Router → Next.js
+
+**Complete migration checklist:**
+
+```typescript
+// ❌ OLD (React Router v6)
+import { useNavigate, useLocation, useSearchParams, Navigate } from "react-router-dom"
+
+const navigate = useNavigate()
+const location = useLocation()
+const [searchParams, setSearchParams] = useSearchParams()
+
+// Navigation
+navigate("/campaigns")
+navigate("/campaigns", { replace: true })
+navigate(-1)  // Go back
+
+// Get current location
+const currentPath = location.pathname
+const state = location.state
+
+// Query params
+const tab = searchParams.get("tab")
+setSearchParams({ tab: "overview" })
+
+// Conditional redirect
+if (!isAuthorized) {
+  return <Navigate to="/login" replace />
+}
+
+// Links
+<Link to="/campaigns">Campaigns</Link>
+```
+
+```typescript
+// ✅ NEW (Next.js App Router)
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import Link from "next/link"
+
+const router = useRouter()
+const pathname = usePathname()
+const searchParams = useSearchParams()
+
+// Navigation
+router.push("/soundcloud/dashboard/campaigns")
+router.replace("/soundcloud/dashboard/campaigns")
+router.back()  // Go back
+
+// Get current location
+const currentPath = pathname
+
+// Query params - ⚠️ ALWAYS USE OPTIONAL CHAINING!
+const tab = searchParams?.get("tab") || "overview"
+const filter = searchParams?.get("filter") ?? ""
+
+// Update query params (requires new URL)
+const params = new URLSearchParams(searchParams?.toString())
+params.set("tab", "overview")
+router.push(`${pathname}?${params.toString()}`)
+
+// Conditional redirect
+if (!isAuthorized) {
+  router.replace("/login")
+  return null  // Return null while redirecting
+}
+
+// Links
+<Link href="/soundcloud/dashboard/campaigns">Campaigns</Link>
+```
+
+**⚠️ CRITICAL: Optional Chaining for searchParams**
+
+```typescript
+// ✅ CORRECT - Safe with optional chaining
+const tab = searchParams?.get("tab") || "overview"
+const page = parseInt(searchParams?.get("page") || "1")
+const filters = {
+  genre: searchParams?.get("genre") ?? "",
+  status: searchParams?.get("status") ?? "",
+}
+
+// ❌ WRONG - Will crash if searchParams is null/undefined
+const tab = searchParams.get("tab") || "overview"  // Runtime error!
+const page = parseInt(searchParams.get("page"))    // Crash!
+```
+
+**Why optional chaining is required:**
+- Next.js `useSearchParams()` can return `null` during SSR
+- React Router always returned an object
+- Missing optional chaining = production crashes
+
+---
+
+### 5. React Query - Query Key Prefixing
+
+**ALWAYS prefix query keys with `soundcloud-` to avoid conflicts:**
+
+```typescript
+// ✅ CORRECT - Platform-prefixed keys
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+
+// Fetch campaigns
+const { data: campaigns, isLoading, error } = useQuery({
+  queryKey: ["soundcloud-campaigns"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("soundcloud_campaigns")
+      .select("*")
+      .order("created_at", { ascending: false })
+    
+    if (error) throw error
+    return data
+  },
+  staleTime: 60000,  // 1 minute
+})
+
+// Fetch with filters
+const { data: members } = useQuery({
+  queryKey: ["soundcloud-members", { genre: selectedGenre, status: "active" }],
+  queryFn: async () => {
+    let query = supabase
+      .from("members")
+      .select("*")
+      .eq("status", "active")
+    
+    if (selectedGenre) {
+      query = query.contains("primary_genres", [selectedGenre])
+    }
+    
+    const { data, error } = await query
+    if (error) throw error
+    return data
+  },
+})
+
+// Fetch single item
+const { data: campaign } = useQuery({
+  queryKey: ["soundcloud-campaigns", campaignId],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("soundcloud_campaigns")
+      .select(`
+        *,
+        members:campaign_members(
+          member_id,
+          status,
+          member:members(name, soundcloud_followers)
+        )
+      `)
+      .eq("id", campaignId)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+  enabled: !!campaignId,  // Only run if campaignId exists
+})
+```
+
+```typescript
+// ❌ WRONG - Generic keys will conflict!
+const { data } = useQuery({
+  queryKey: ["campaigns"],  // Conflicts with Spotify campaigns!
+  queryFn: /* ... */
+})
+
+const { data } = useQuery({
+  queryKey: ["members"],  // Too generic, may conflict
+  queryFn: /* ... */
+})
+```
+
+**Query Invalidation After Mutations:**
+
+```typescript
+const queryClient = useQueryClient()
+
+// After creating/updating campaign
+const createCampaign = useMutation({
+  mutationFn: async (newCampaign) => {
+    const { data, error } = await supabase
+      .from("soundcloud_campaigns")
+      .insert(newCampaign)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+  onSuccess: () => {
+    // Invalidate all related queries
+    queryClient.invalidateQueries({ queryKey: ["soundcloud-campaigns"] })
+    queryClient.invalidateQueries({ queryKey: ["soundcloud-analytics"] })
+    queryClient.invalidateQueries({ queryKey: ["soundcloud-members"] })  // If assignments changed
+    
+    toast({ title: "Campaign created successfully!" })
+  },
+  onError: (error) => {
+    toast({
+      title: "Error creating campaign",
+      description: error.message,
+      variant: "destructive",
+    })
+  },
+})
+
+// After updating member
+const updateMember = useMutation({
+  mutationFn: async ({ memberId, updates }) => {
+    const { data, error } = await supabase
+      .from("members")
+      .update(updates)
+      .eq("id", memberId)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["soundcloud-members"] })
+    queryClient.invalidateQueries({ queryKey: ["soundcloud-campaigns"] })  // If campaigns show member data
+  },
+})
+```
+
+**Standard Query Key Patterns:**
+```typescript
+["soundcloud-campaigns"]                              // All campaigns
+["soundcloud-campaigns", campaignId]                  // Single campaign
+["soundcloud-campaigns", { status: "active" }]        // Filtered campaigns
+
+["soundcloud-members"]                                // All members
+["soundcloud-members", memberId]                      // Single member
+["soundcloud-members", { genre: "hip-hop" }]          // Filtered members
+
+["soundcloud-queue"]                                  // All queue items
+["soundcloud-queue", { status: "pending" }]           // Filtered queue
+
+["soundcloud-analytics", { dateRange: "7d" }]         // Analytics with params
+["soundcloud-submissions", { status: "new" }]         // Submissions
+["soundcloud-genres"]                                 // Genre taxonomy
+```
+
+---
+
+### 6. Safe Array Rendering
+
+**PostgreSQL arrays can be NULL - ALWAYS check before mapping:**
+
+```typescript
+// ✅ CORRECT - Comprehensive safety checks
+{member.primary_genres && 
+ Array.isArray(member.primary_genres) && 
+ member.primary_genres.length > 0 ? (
+  <div className="flex flex-wrap gap-2">
+    {member.primary_genres.map((genre, index) => (
+      <Badge key={`${genre}-${index}`} variant="secondary">
+        {genre}
+      </Badge>
+    ))}
+  </div>
+) : (
+  <span className="text-sm text-muted-foreground">No genres</span>
+)}
+
+// ✅ CORRECT - With default empty array
+const genres = member.primary_genres || []
+{genres.length > 0 ? (
+  genres.map(genre => <Badge key={genre}>{genre}</Badge>)
+) : (
+  <span>No genres</span>
+)}
+
+// ✅ CORRECT - Optional chaining
+{member?.primary_genres?.map((genre, idx) => (
+  <Badge key={`genre-${idx}`}>{genre}</Badge>
+)) ?? <span>No genres</span>}
+```
+
+```typescript
+// ❌ WRONG - Will crash if array is null/undefined!
+{member.primary_genres.map(genre => (
+  <Badge key={genre}>{genre}</Badge>
+))}
+
+// ❌ WRONG - Missing Array.isArray check
+{member.primary_genres && member.primary_genres.map(...)}  // Still unsafe!
+```
+
+**PostgreSQL Array Type Handling:**
+```typescript
+// In database: text[] (PostgreSQL array)
+// In TypeScript: string[] | null
+
+// Type-safe handling
+const primaryGenres: string[] = member.primary_genres ?? []
+const allGenres: string[] = Array.isArray(member.all_genres) ? member.all_genres : []
+
+// Filtering arrays
+const hipHopMembers = members.filter(m => 
+  m.primary_genres?.includes("hip-hop")
+)
+
+// Checking array contains
+const hasGenre = (member: Member, genre: string): boolean => {
+  return Array.isArray(member.primary_genres) && member.primary_genres.includes(genre)
+}
+```
+
+---
+
+### 7. Number Formatting (No AnimatedCounter)
+
+**AnimatedCounter doesn't exist - use toLocaleString():**
+
+```typescript
+// ✅ CORRECT - Simple number formatting
+{totalPlays.toLocaleString()}  // 1,234,567
+{memberCount.toLocaleString()}  // 543
+
+// ✅ CORRECT - Currency formatting
+{budget.toLocaleString('en-US', { 
+  style: 'currency', 
+  currency: 'USD',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})}  // $1,235
+
+{spent.toLocaleString('en-US', { 
+  style: 'currency', 
+  currency: 'USD' 
+})}  // $1,234.56
+
+// ✅ CORRECT - Percentage formatting
+{(engagementRate * 100).toFixed(2)}%  // 12.34%
+{(conversionRate * 100).toFixed(1)}%  // 5.6%
+
+// ✅ CORRECT - Compact notation for large numbers
+{followers.toLocaleString('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+})}  // 1.2M or 543K
+
+// ✅ CORRECT - With fallbacks for null/undefined
+{(totalPlays ?? 0).toLocaleString()}
+{budget?.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) ?? '$0'}
+```
+
+```typescript
+// ❌ WRONG - AnimatedCounter doesn't exist in main dashboard!
+import { AnimatedCounter } from "@/components/ui/animated-counter"  // Module not found!
+<AnimatedCounter value={totalPlays} duration={1000} />
+
+// ❌ WRONG - LoadingSkeleton is wrong name
+import { LoadingSkeleton } from "@/components/ui/loading-skeleton"  // Wrong name!
+<LoadingSkeleton />
+
+// ✅ CORRECT - Use Skeleton (correct name)
+import { Skeleton } from "@/components/ui/skeleton"
+<Skeleton className="h-12 w-full" />
+```
+
+---
+
+### 8. Database Query Patterns
+
+```typescript
+// Basic fetch with ordering
+const { data, error } = await supabase
+  .from("soundcloud_campaigns")
+  .select("*")
+  .order("created_at", { ascending: false })
+  .limit(50)
+
+// Fetch with relations (joins)
+const { data } = await supabase
+  .from("soundcloud_campaigns")
+  .select(`
+    *,
+    client:clients(id, name, email),
+    members:campaign_members(
+      id,
+      status,
+      credits_offered,
+      member:members(
+        id,
+        name,
+        soundcloud_followers,
+        primary_genres
+      )
+    )
+  `)
+  .eq("status", "active")
+
+// Filter with multiple conditions
+const { data } = await supabase
+  .from("members")
+  .select("*")
+  .eq("status", "active")
+  .gte("soundcloud_followers", 1000)
+  .contains("primary_genres", ["hip-hop"])
+  .order("soundcloud_followers", { ascending: false })
+
+// Text search
+const { data } = await supabase
+  .from("members")
+  .select("*")
+  .ilike("name", `%${searchTerm}%`)
+
+// Array contains (for text[] columns)
+const { data } = await supabase
+  .from("members")
+  .select("*")
+  .contains("primary_genres", [genre])
+
+// Insert with returning
+const { data, error } = await supabase
+  .from("soundcloud_campaigns")
+  .insert({
+    campaign_name: "New Campaign",
+    artist_name: "Artist",
+    track_url: "https://soundcloud.com/...",
+    status: "draft",
+    client_id: clientId,
+  })
+  .select()
+  .single()
+
+// Update with returning
+const { data, error } = await supabase
+  .from("soundcloud_campaigns")
+  .update({ status: "active", start_date: new Date().toISOString() })
+  .eq("id", campaignId)
+  .select()
+  .single()
+
+// Upsert (insert or update)
+const { data, error } = await supabase
+  .from("members")
+  .upsert({
+    id: memberId,
+    soundcloud_followers: newFollowerCount,
+    last_active: new Date().toISOString(),
+  }, {
+    onConflict: "id",
+  })
+  .select()
+
+// Delete
+const { error } = await supabase
+  .from("queue_items")
+  .delete()
+  .eq("id", queueItemId)
+
+// Count
+const { count, error } = await supabase
+  .from("soundcloud_campaigns")
+  .select("*", { count: "exact", head: true })
+  .eq("status", "active")
+
+// Aggregations
+const { data } = await supabase
+  .rpc("get_campaign_stats", {
+    campaign_id: campaignId,
+  })
+```
+
+---
+
+## 🎨 UI Component Patterns
+
+### Using Shared Components
+
+```typescript
+// ✅ Shared components from main dashboard (use @/ alias)
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Progress } from "@/components/ui/progress"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { AlertCircle, CheckCircle2, XCircle, Info } from "lucide-react"
+```
+
+### Custom SoundCloud UI Components
+
+```typescript
+// ✅ Custom components (use relative paths)
+import { SoundCloudReachEstimator } from '../ui/soundcloud-reach-estimator'
+import { InteractiveCard } from '../ui/interactive-card'
+import { ScrollReveal } from '../ui/scroll-reveal'
+```
+
+### Loading States
+
+```typescript
+// Loading skeleton
+if (isLoading) {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-24 w-full" />
+      <div className="grid grid-cols-3 gap-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+    </div>
+  )
+}
+
+// Error state
+if (error) {
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex items-center gap-2 text-destructive">
+          <AlertCircle className="h-5 w-5" />
+          <div>
+            <p className="font-semibold">Error loading data</p>
+            <p className="text-sm text-muted-foreground">{error.message}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Empty state
+if (data.length === 0) {
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="text-center py-12">
+          <Info className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No campaigns found</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Get started by creating your first campaign
+          </p>
+          <Button onClick={() => setShowCreateModal(true)}>
+            Create Campaign
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+---
+
+## ⚠️ Common Pitfalls & Solutions
+
+### 1. Import Path Failures
+**Symptom**: `Module not found: Can't resolve '@/...'`
+
+**Cause**: Using `@/` alias within `soundcloud-app/` subdirectories
+
+**Solution**:
+```typescript
+// ❌ WRONG
+import { supabase } from '@/integrations/supabase/client'
+
+// ✅ CORRECT
+import { supabase } from '../../integrations/supabase/client'
+```
+
+### 2. Router Context Errors
+**Symptom**: `useNavigate() may be used only in the context of a <Router> component`
+
+**Cause**: Still using React Router hooks instead of Next.js
+
+**Solution**:
+```typescript
+// ❌ WRONG
+import { useNavigate } from "react-router-dom"
+
+// ✅ CORRECT
+import { useRouter } from "next/navigation"
+```
+
+### 3. Auth Errors / Getting Logged Out
+**Symptom**: Redirected to login when visiting `/soundcloud`
+
+**Cause**: 
+- `page.tsx` wrapping children in separate `AuthProvider`
+- Database queries in `AuthContext.tsx`
+
+**Solution**:
+- Remove `AuthProvider` wrapper from `page.tsx`
+- Ensure `AuthContext.tsx` only uses metadata
+- Main dashboard layout already provides auth
+
+### 4. searchParams Crashes
+**Symptom**: `Cannot read property 'get' of null`
+
+**Cause**: Missing optional chaining on `useSearchParams()`
+
+**Solution**:
+```typescript
+// ❌ WRONG
+const tab = searchParams.get("tab")
+
+// ✅ CORRECT
+const tab = searchParams?.get("tab")
+```
+
+### 5. Array Rendering Crashes
+**Symptom**: `Cannot read property 'map' of null`
+
+**Cause**: Not checking if array exists before mapping
+
+**Solution**:
+```typescript
+// ❌ WRONG
+{genres.map(g => <Badge>{g}</Badge>)}
+
+// ✅ CORRECT
+{genres && Array.isArray(genres) && genres.length > 0 ? (
+  genres.map(g => <Badge key={g}>{g}</Badge>)
+) : (
+  <span>No genres</span>
+)}
+```
+
+### 6. Query Key Collisions
+**Symptom**: Wrong data showing up or stale data
+
+**Cause**: Generic query keys conflicting with other platforms
+
+**Solution**:
+```typescript
+// ❌ WRONG
+queryKey: ["campaigns"]
+
+// ✅ CORRECT
+queryKey: ["soundcloud-campaigns"]
+```
+
+### 7. Type Errors in Database Queries
+**Symptom**: TypeScript type errors
+
+**Cause**: Database schema changed or types not regenerated
+
+**Solution**:
+1. Check `integrations/supabase/types.ts`
+2. Regenerate if needed:
+```bash
+npx supabase gen types typescript --project-id YOUR_PROJECT_ID > types.ts
+```
+3. Use explicit type casting:
+```typescript
+const { data } = await supabase
+  .from("soundcloud_campaigns")
+  .select<"*", Campaign>("*")
+```
+
+---
+
+## 📦 Dependencies (SoundCloud-Specific)
+
+```json
+{
+  "dependencies": {
+    "@xyflow/react": "^12.9.2",              // GenreMindMap visual graph
+    "react-beautiful-dnd": "^13.1.1",        // DraggableGenreManager
+    "framer-motion": "^12.23.24",            // Animations & scroll effects
+    "recharts": "^3.2.1",                    // Analytics charts
+    "date-fns": "^4.1.0",                    // Date utilities
+    "@supabase/supabase-js": "^2.57.4",      // Database client
+    "@tanstack/react-query": "^5.90.2",      // State management
+    "react-hook-form": "^7.63.0",            // Form handling
+    "zod": "^3.25.67"                        // Schema validation
+  }
+}
+```
+
+### Install if Missing
+
+```bash
+cd apps/frontend
+pnpm add @xyflow/react react-beautiful-dnd framer-motion
+```
+
+---
+
+## 🧪 Testing & Debugging
+
+### Development Server
+```bash
+cd apps/frontend
+pnpm run dev
+# Visit http://localhost:3000/soundcloud
+```
+
+### Production Build
+```bash
+pnpm run build
+# Should complete with no errors
+```
+
+### Database Queries (via psql)
+```bash
+# Campaign count
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "
+SELECT COUNT(*) as total, status, COUNT(*) as count
+FROM soundcloud_campaigns
+GROUP BY status;
+"
+
+# Member statistics
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "
+SELECT 
+  size_tier,
+  COUNT(*) as member_count,
+  AVG(soundcloud_followers) as avg_followers,
+  AVG(reliability_score) as avg_reliability
+FROM members
+WHERE status = 'active'
+GROUP BY size_tier
+ORDER BY avg_followers DESC;
+"
+
+# Queue status
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "
+SELECT status, COUNT(*), AVG(priority) as avg_priority
+FROM queue_items
+GROUP BY status
+ORDER BY avg_priority DESC;
+"
+
+# Genre distribution
+docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres -c "
+SELECT 
+  unnest(primary_genres) as genre,
+  COUNT(*) as member_count
+FROM members
+WHERE status = 'active'
+GROUP BY genre
+ORDER BY member_count DESC
+LIMIT 20;
+"
+```
+
+### Browser DevTools Checks
+```javascript
+// Check auth state
+await supabase.auth.getUser()
+
+// Check session
+await supabase.auth.getSession()
+
+// Test query
+await supabase.from('soundcloud_campaigns').select('*').limit(1)
+
+// Check React Query cache
+window.__REACT_QUERY_DEVTOOLS_GLOBAL_HOOK__
+```
+
+---
+
+## 🚀 Deployment Checklist
+
+### Pre-Deployment
+- [ ] All imports use correct paths (relative within `soundcloud-app/`)
+- [ ] All React Router code migrated to Next.js
+- [ ] Auth uses metadata-only (no database queries in `AuthContext.tsx`)
+- [ ] All query keys prefixed with `soundcloud-`
+- [ ] All navigation includes `/soundcloud/` prefix
+- [ ] Optional chaining on all `searchParams?.get()`
+- [ ] Production build passes: `pnpm run build`
+- [ ] No console errors in browser
+- [ ] All 10 routes render correctly
+
+### Environment Variables
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+```
+
+### Database Verification
+1. Verify all 57 tables exist
+2. Check RLS policies
+3. Test queries with production credentials
+4. Verify indexes for performance
+
+---
+
+## 📚 Additional Resources
+
+- **`SOUNDCLOUD-PLATFORM-COMPLETE-GUIDE.md`** - Comprehensive documentation
+- **`SOUNDCLOUD-INTEGRATION-TIPS.md`** - Integration lessons learned
+- **`SPOTIFY-PLATFORM-COMPLETE-GUIDE.md`** - Similar platform for reference
+- [Next.js App Router Docs](https://nextjs.org/docs/app)
+- [Supabase JS Client](https://supabase.com/docs/reference/javascript)
+- [TanStack Query](https://tanstack.com/query/latest)
+
+---
+
+**Integration Date**: 2025-11-11  
+**Files**: 218 files, 57,057 lines of code  
+**Build Status**: ✅ Passing  
+**Production Ready**: ✅ Yes
+
+---
+
+## 🎯 Quick Reference
+
+### Routes
+- `/soundcloud` - Dashboard
+- `/soundcloud/dashboard/planner` - Calendar
+- `/soundcloud/dashboard/campaigns` - Campaigns
+- `/soundcloud/dashboard/queue` - Queue
+- `/soundcloud/dashboard/members` - Members
+- `/soundcloud/dashboard/analytics` - Analytics
+- `/soundcloud/dashboard/health` - Health
+- `/soundcloud/dashboard/automation` - Automation
+- `/soundcloud/dashboard/genres` - Genres
+- `/soundcloud/dashboard/settings` - Settings
+
+### Most Used Files
+- `soundcloud-app/integrations/supabase/client.ts` - Database client
+- `soundcloud-app/contexts/AuthContext.tsx` - Auth (metadata-only!)
+- `soundcloud-app/components/dashboard/UnifiedOverview.tsx` - Main dashboard
+- `soundcloud-app/components/dashboard/CampaignsPage.tsx` - Campaigns
+- `soundcloud-app/components/dashboard/MembersPage.tsx` - Members
+- `soundcloud-app/hooks/useCampaignReachData.ts` - Reach calculations
+
+### Critical Reminders
+1. ⚠️ **NEVER** query database in `AuthContext.tsx`
+2. ⚠️ Use relative imports within `soundcloud-app/`
+3. ⚠️ Include `/soundcloud/` prefix in all navigation
+4. ⚠️ Use optional chaining: `searchParams?.get()`
+5. ⚠️ Prefix query keys: `["soundcloud-campaigns"]`
+6. ⚠️ Check arrays before mapping
+7. ⚠️ Use `.toLocaleString()` not `AnimatedCounter`
+
+---
+
+**End of SoundCloud Platform Cursor Rules**
+
