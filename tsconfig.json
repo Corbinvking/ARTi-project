@@ -14,7 +14,9 @@
     "moduleResolution": "node"
   },
   "include": [
-    "scripts/**/*.ts"
+    "scripts/import-youtube-campaigns.ts",
+    "scripts/import-instagram-campaigns.ts",
+    "scripts/import-soundcloud-submissions.ts"
   ],
   "exclude": [
     "node_modules",
