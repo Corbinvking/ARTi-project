@@ -7,6 +7,58 @@
 
 ---
 
+## 🎉 Current Status & Import Statistics
+
+**Database Status:** ✅ **OPERATIONAL**  
+**CSV Data Import:** ✅ **COMPLETED** (November 13, 2024)
+
+### Import Results
+
+| Metric | Value |
+|--------|-------|
+| **CSV File** | `IG Seeding-All Campaigns.csv` |
+| **Total Rows** | 110 campaigns |
+| **Successfully Imported** | 102 campaigns (92.7% success rate) |
+| **Errors** | 0 campaigns |
+| **Skipped** | 8 campaigns (missing or invalid data) |
+| **Database Total** | 263 campaigns (102 new + 161 existing) |
+
+### Schema Notes
+
+**⚠️ Important:** The current `instagram_campaigns` table uses the simplified schema from migration 011 (CSV import structure with TEXT columns), not the full schema from migration 035 (with proper types, enums, UUIDs).
+
+**Current Schema (migration 011):**
+- Table: `instagram_campaigns`
+- ID Type: `INTEGER` (serial)
+- Columns: All TEXT type (campaign, clients, start_date, price, spend, etc.)
+- Purpose: Direct CSV import storage
+
+**Future Migration Needed:**
+Migration 035 defined a new structure with:
+- UUID primary keys
+- Proper DECIMAL types for budget/spend
+- JSONB for totals/results
+- References to `creators` table
+- Sub-tables: `instagram_campaign_creators`, `instagram_campaign_posts`, `instagram_post_analytics`
+
+However, migration 035 used `CREATE TABLE IF NOT EXISTS`, so it didn't overwrite the existing table from migration 011.
+
+### Import Script
+
+**Location:** `scripts/import-instagram-campaigns.ts`
+
+**Features:**
+- Direct mapping from CSV columns to database columns
+- Handles currency parsing (removes $ signs)
+- Maps status values (Active → active, Unreleased → draft, Complete → completed)
+- Stores tracker URLs and notes
+
+**Schema Compatibility:**
+- ✅ Uses existing table structure (migration 011)
+- ⚠️ Does not use advanced features from migration 035 (creators, posts, analytics)
+
+---
+
 ## 📋 Table of Contents
 
 1. [Overview](#overview)
