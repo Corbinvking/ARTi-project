@@ -227,7 +227,7 @@ async function main() {
     // Skip campaigns with no valid service types
     if (serviceTypes.length === 0) {
       console.log(`  ⏭️  Skipped: ${campaignName} (no valid service type)`);
-      skipped++;
+      skippedCount++;
       continue;
     }
     
