@@ -88,6 +88,7 @@ async function main() {
     columns: true,
     skip_empty_lines: true,
     trim: true,
+    bom: true, // Handle BOM (Byte Order Mark) at start of CSV
   });
   
   console.log(`📄 Found ${rows.length} rows in CSV\n`);
