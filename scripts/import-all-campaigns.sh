@@ -56,11 +56,9 @@ if [ ! -d "node_modules" ]; then
   echo ""
 fi
 
-# Compile TypeScript
+# Compile TypeScript (using tsconfig.json)
 echo "🔨 Compiling TypeScript..."
-npx tsc scripts/import-youtube-campaigns.ts --esModuleInterop --resolveJsonModule --outDir dist/scripts
-npx tsc scripts/import-instagram-campaigns.ts --esModuleInterop --resolveJsonModule --outDir dist/scripts
-npx tsc scripts/import-soundcloud-submissions.ts --esModuleInterop --resolveJsonModule --outDir dist/scripts
+npx tsc
 echo "✅ Compilation complete"
 echo ""
 
