@@ -248,8 +248,6 @@ async function main() {
       invoice_status: INVOICE_MAP[firstRow.Invoice] || 'tbd',
       comments_sheet_url: firstRow.Comments || null,
       in_fixer: firstRow['In Fixer?']?.toLowerCase() === 'checked' || firstRow['In Fixer?']?.toLowerCase() === 'yes',
-      technical_setup_complete: false,
-      youtube_api_enabled: false,
       current_views: 0,
       current_likes: 0,
       current_comments: 0,
