@@ -215,11 +215,21 @@ async function main() {
     const videoId = extractVideoId(youtubeUrl);
     
     // Build service_types array for multi-service campaigns
-    const serviceTypes = rows.map(row => ({
-      service_type: SERVICE_TYPE_MAP[row['Service Type']] || row['Service Type'].toLowerCase().replace(/\s+/g, '_'),
-      goal_views: parseInteger(row.Goal),
-      current_views: 0, // Will be updated by YouTube API later
-    }));
+    // Filter out rows with empty/invalid service types
+    const serviceTypes = rows
+      .filter(row => row['Service Type'] && row['Service Type'].trim() !== '')
+      .map(row => ({
+        service_type: SERVICE_TYPE_MAP[row['Service Type']] || row['Service Type'].toLowerCase().replace(/\s+/g, '_'),
+        goal_views: parseInteger(row.Goal),
+        current_views: 0, // Will be updated by YouTube API later
+      }));
+    
+    // Skip campaigns with no valid service types
+    if (serviceTypes.length === 0) {
+      console.log(`  ⏭️  Skipped: ${campaignName} (no valid service type)`);
+      skipped++;
+      continue;
+    }
     
     // Sum up total goal views
     const totalGoalViews = serviceTypes.reduce((sum, st) => sum + st.goal_views, 0);

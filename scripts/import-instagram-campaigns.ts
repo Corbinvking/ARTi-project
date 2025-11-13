@@ -132,23 +132,25 @@ async function main() {
       results.tracker_url = row.Tracker;
     }
     
-    // Prepare campaign data
+    // Prepare campaign data (using existing table schema from migration 011)
     const campaignData = {
-      org_id: DEFAULT_ORG_ID,
-      name: campaignName,
-      brand_name: row.Clients || 'Unknown',
-      budget: price,
-      description: description,
-      status: STATUS_MAP[row.Status] || 'draft',
-      totals: totals,
-      results: results,
-      music_genres: [], // Not in CSV
-      content_types: [], // Not in CSV
-      territory_preferences: [], // Not in CSV
-      post_types: [], // Not in CSV
-      creator_count: 1, // Default
-      selected_creators: [],
-      public_access_enabled: false,
+      campaign: campaignName,
+      clients: row.Clients || 'Unknown',
+      start_date: row['Start Date'] || null,
+      price: row.Price || null,
+      spend: row.Spend || null,
+      remaining: row.Remaining || null,
+      sound_url: row['Sound URL'] || null,
+      status: row.Status || null,
+      tracker: row.Tracker || null,
+      campaign_started: row['Campaign Started'] || null,
+      send_tracker: row['Send Tracker'] || null,
+      send_final_report: row['Send Final Report'] || null,
+      invoice: row.Invoice || null,
+      salespeople: row.Salespeople || null,
+      report_notes: row['Report Notes'] || null,
+      client_notes: row['Client Notes'] || null,
+      paid_ops: row['Paid Ops?'] || null,
     };
     
     // Insert campaign
