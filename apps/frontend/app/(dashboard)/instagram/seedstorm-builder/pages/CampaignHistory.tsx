@@ -21,8 +21,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Campaign } from "../lib/types";
-import { getCampaigns, deleteCampaign, formatNumber, formatCurrency } from "../lib/localStorage";
+import { deleteCampaign, formatNumber, formatCurrency } from "../lib/localStorage";
 import { supabase } from "../integrations/supabase/client";
+import { useInstagramCampaigns, FormattedCampaign } from "../hooks/useInstagramCampaigns";
 
 import { exportCampaignCSV } from "../lib/csvUtils";
 import { AddResultsForm } from "../components/AddResultsForm";
@@ -38,9 +39,29 @@ import { toast } from "../hooks/use-toast";
 type SortOption = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'budget-desc' | 'budget-asc' | 'status' | 'creators-desc' | 'creators-asc' | 'spend-desc' | 'spend-asc';
 
 const CampaignHistory = () => {
+  console.log('🌟 CampaignHistory component rendered');
   const router = useRouter();
   const location = useLocation();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  
+  // Use the real Instagram campaigns hook
+  console.log('🔨 About to call useInstagramCampaigns hook');
+  const { 
+    campaigns: dbCampaigns, 
+    loading, 
+    refetch,
+    totalCampaigns,
+    activeCampaigns 
+  } = useInstagramCampaigns();
+  
+  console.log('📦 Hook returned:', { 
+    dbCampaignsLength: dbCampaigns?.length, 
+    loading, 
+    totalCampaigns,
+    activeCampaigns 
+  });
+  
+  // Convert to Campaign type for compatibility
+  const [campaigns, setCampaigns] = useState<any[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -62,23 +83,48 @@ const CampaignHistory = () => {
     publicAccess: undefined,
   });
 
+  // Convert dbCampaigns to Campaign format when they change
   useEffect(() => {
-    loadCampaigns();
+    if (dbCampaigns && dbCampaigns.length > 0) {
+      const converted = dbCampaigns.map(c => ({
+        id: c.id,
+        campaign_name: c.name,
+        brand_name: c.brand,
+        budget: c.budget,
+        status: c.status,
+        date_created: c.createdAt.toISOString(),
+        selected_creators: [], // Will be loaded separately if needed
+        totals: {
+          totalSpend: c.totalSpend,
+          remaining: c.remaining
+        },
+        public_access_enabled: false,
+        salesperson: c.salesperson,
+        notes: c.notes,
+        tracker: c.tracker,
+        soundUrl: c.soundUrl
+      }));
+      setCampaigns(converted);
+      console.log(`✅ Displaying ${converted.length} campaigns in Campaign History`);
+    } else if (!loading) {
+      setCampaigns([]);
+    }
+  }, [dbCampaigns, loading]);
 
-    // Set up real-time subscription for campaign updates
+  // Set up real-time subscription for campaign updates
+  useEffect(() => {
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('instagram-campaigns-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'campaigns'
+          table: 'instagram_campaigns' // Correct table name!
         },
         (payload) => {
-          console.log('Campaign database change detected:', payload);
-          // Reload campaigns when any change happens
-          loadCampaigns();
+          console.log('Instagram campaign change detected:', payload);
+          refetch(); // Use the hook's refetch function
         }
       )
       .subscribe();
@@ -86,7 +132,7 @@ const CampaignHistory = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [refetch]);
 
   // Handle specific campaign navigation from global search
   useEffect(() => {
@@ -97,20 +143,6 @@ const CampaignHistory = () => {
       }
     }
   }, [campaigns, location.state]);
-
-  async function loadCampaigns() {
-    try {
-      const loadedCampaigns = await getCampaigns();
-      setCampaigns(loadedCampaigns);
-    } catch (error) {
-      console.error('Error loading campaigns:', error);
-      toast({
-        title: "Loading Error",
-        description: "Failed to load campaigns",
-        variant: "destructive",
-      });
-    }
-  }
 
   const filteredCampaigns = useMemo(() => {
     let filtered = campaigns;
@@ -863,6 +895,23 @@ const CampaignHistory = () => {
           </div>
         )}
 
+        {/* Loading Indicator */}
+        {loading && (
+          <Card className="mb-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+            <CardHeader>
+              <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 animate-spin" />
+                Loading Campaigns from Database...
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-blue-700 dark:text-blue-300 text-sm">
+                Fetching Instagram campaigns...
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -870,7 +919,8 @@ const CampaignHistory = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Campaigns</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{campaigns.length}</div>
+              <div className="text-2xl font-bold">{totalCampaigns || campaigns.length}</div>
+              {loading && <p className="text-xs text-muted-foreground mt-1">Loading...</p>}
             </CardContent>
           </Card>
           <Card>

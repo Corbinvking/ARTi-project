@@ -10,9 +10,8 @@ import { KeyboardShortcutsHelp } from "../components/KeyboardShortcutsHelp";
 import { CampaignDetailsModal } from "../components/CampaignDetailsModal";
 import { useGlobalShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useToast } from "../hooks/use-toast";
-import { Creator, Campaign } from "../lib/types";
-import { supabase } from "../integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useInstagramCampaigns } from "../hooks/useInstagramCampaigns";
+import { useInstagramCreators } from "../hooks/useInstagramCreators";
 
 const HomePage = () => {
   const router = useRouter();
@@ -22,40 +21,44 @@ const HomePage = () => {
   const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  // Fetch creators from Supabase using public RPC
-  const { data: creators = [] } = useQuery({
-    queryKey: ['creators'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_public_creators');
-      if (error) throw error;
-      return data || [];
-    }
-  });
+  // Fetch real Instagram campaigns from database
+  const {
+    campaigns,
+    loading: campaignsLoading,
+    totalCampaigns,
+    activeCampaigns,
+    completedCampaigns,
+    totalBudget,
+    totalSpend
+  } = useInstagramCampaigns();
 
-  // Fetch campaigns from Supabase
-  const { data: campaigns = [] } = useQuery({
-    queryKey: ['campaigns'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select('*');
-      if (error) throw error;
-      return data || [];
-    }
-  });
+  // Fetch real creators from database
+  const {
+    creators,
+    loading: creatorsLoading,
+    totalCreators,
+    totalReach,
+    averageEngagement
+  } = useInstagramCreators();
 
   // Calculate stats using useMemo to avoid infinite loops
   const stats = useMemo(() => {
-    const totalCreators = creators.length;
-    const totalReach = creators.reduce((sum: number, creator: any) => sum + (creator.followers || 0), 0);
-    
-    // Calculate algorithm accuracy based on campaigns
-    const totalCampaigns = campaigns.length;
-    const activeCampaigns = campaigns.filter((c: any) => c.status === 'active').length;
-    const accuracy = totalCampaigns > 0 ? Math.round((activeCampaigns / totalCampaigns) * 100) : 95;
+    // Calculate algorithm accuracy based on campaign success rate
+    const accuracy = totalCampaigns > 0 
+      ? Math.round((completedCampaigns / totalCampaigns) * 100) 
+      : 95;
 
-    return { totalCreators, totalReach, algorithmAccuracy: accuracy };
-  }, [creators, campaigns]);
+    return { 
+      totalCreators, 
+      totalReach, 
+      algorithmAccuracy: accuracy,
+      totalCampaigns,
+      activeCampaigns,
+      totalBudget,
+      totalSpend,
+      averageEngagement
+    };
+  }, [totalCreators, totalReach, totalCampaigns, activeCampaigns, completedCampaigns, totalBudget, totalSpend, averageEngagement]);
 
   // Memoize keyboard shortcut callbacks
   const handleOpenSearch = useCallback(() => setIsSearchOpen(true), []);
@@ -192,6 +195,59 @@ const HomePage = () => {
             </Card>
           ))}
         </div>
+
+        {/* Data Status Indicator */}
+        {(campaignsLoading || creatorsLoading) && (
+          <Card className="mb-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+            <CardHeader>
+              <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                <Database className="h-5 w-5 animate-pulse" />
+                Loading Instagram Data...
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-blue-700 dark:text-blue-300 text-sm">
+                Fetching {campaignsLoading ? "campaigns" : ""}
+                {campaignsLoading && creatorsLoading ? " and " : ""}
+                {creatorsLoading ? "creators" : ""} from database...
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Data Summary Card */}
+        {!campaignsLoading && !creatorsLoading && (totalCampaigns > 0 || totalCreators > 0) && (
+          <Card className="mb-6 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+            <CardHeader>
+              <CardTitle className="text-green-900 dark:text-green-100 flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Live Database Connection
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-green-700 dark:text-green-300 font-semibold">Total Campaigns</p>
+                  <p className="text-2xl font-bold text-green-900 dark:text-green-100">{totalCampaigns}</p>
+                </div>
+                <div>
+                  <p className="text-green-700 dark:text-green-300 font-semibold">Active</p>
+                  <p className="text-2xl font-bold text-green-900 dark:text-green-100">{activeCampaigns}</p>
+                </div>
+                <div>
+                  <p className="text-green-700 dark:text-green-300 font-semibold">Total Budget</p>
+                  <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+                    ${totalBudget.toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-green-700 dark:text-green-300 font-semibold">Creators</p>
+                  <p className="text-2xl font-bold text-green-900 dark:text-green-100">{totalCreators}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Enhanced Dashboard */}
         <div className="mb-12">

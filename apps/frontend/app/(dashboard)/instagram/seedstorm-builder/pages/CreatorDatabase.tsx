@@ -136,45 +136,52 @@ const CreatorDatabase = () => {
   const loadCreators = async () => {
     setIsLoading(true);
     try {
-      // Try to load from Supabase first, fallback to localStorage
-      let loadedCreators: Creator[] = [];
-      try {
-        const supabaseCreators = await getSupabaseCreators();
-        if (supabaseCreators.length > 0) {
-          // Convert Supabase creators to UI format
-          loadedCreators = supabaseCreators.map(creator => ({
-            id: creator.id,
-            instagram_handle: creator.instagram_handle,
-            email: '', // Email not available in public RPC for security
-            base_country: creator.base_country,
-            followers: Number(creator.followers),
-            median_views_per_video: Number(creator.median_views_per_video),
-            engagement_rate: Number(creator.engagement_rate),
-            reel_rate: creator.reel_rate || 0,
-            carousel_rate: creator.carousel_rate || 0,
-            story_rate: creator.story_rate || 0,
-            content_types: creator.content_types || [],
-            music_genres: creator.music_genres || [],
-            audience_countries: creator.audience_territories || [],
-            created_at: creator.created_at,
-            updated_at: creator.updated_at
-          }));
-        } else {
-          // Fallback to localStorage if no creators in Supabase
-          loadedCreators = await getCreators();
-        }
-      } catch (supabaseError) {
-        console.warn('Failed to load from Supabase, using localStorage:', supabaseError);
-        loadedCreators = await getCreators();
+      // Load creators directly from the creators table
+      const { data, error } = await supabase
+        .from('creators')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
       }
+
+      if (!data || data.length === 0) {
+        console.log('No creators found in database');
+        setCreators([]);
+        return;
+      }
+
+      console.log(`✅ Loaded ${data.length} creators from database`);
+
+      // Convert Supabase creators to UI format
+      const loadedCreators: Creator[] = data.map(creator => ({
+        id: creator.id,
+        instagram_handle: creator.instagram_handle,
+        email: creator.email || '',
+        base_country: creator.base_country,
+        followers: Number(creator.followers) || 0,
+        median_views_per_video: Number(creator.median_views_per_video) || 0,
+        engagement_rate: Number(creator.engagement_rate) || 0,
+        reel_rate: creator.reel_rate || 0,
+        carousel_rate: creator.carousel_rate || 0,
+        story_rate: creator.story_rate || 0,
+        content_types: Array.isArray(creator.content_types) ? creator.content_types : [],
+        music_genres: Array.isArray(creator.music_genres) ? creator.music_genres : [],
+        audience_countries: Array.isArray(creator.audience_territories) ? creator.audience_territories : [],
+        created_at: creator.created_at,
+        updated_at: creator.updated_at
+      }));
       
       setCreators(loadedCreators);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ Error loading creators:', error);
       toast({
         title: "Error", 
-        description: "Failed to load creators",
+        description: error.message || "Failed to load creators from database",
         variant: "destructive"
       });
+      setCreators([]);
     } finally {
       setIsLoading(false);
     }

@@ -13,11 +13,18 @@ export default function InstagramCampaignsPage() {
   const { data: campaigns = [], isLoading } = useQuery({
     queryKey: ['instagram-campaigns'],
     queryFn: async () => {
+      console.log('📡 Fetching Instagram campaigns...');
       const { data, error } = await supabase
         .from('instagram_campaigns')
         .select('*')
         .order('created_at', { ascending: false });
-      if (error) throw error;
+      
+      if (error) {
+        console.error('❌ Error fetching campaigns:', error);
+        throw error;
+      }
+      
+      console.log(`✅ Fetched ${data?.length || 0} campaigns:`, data?.[0]);
       return data || [];
     }
   });
@@ -67,40 +74,54 @@ export default function InstagramCampaignsPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {campaigns.map((campaign: any) => (
-            <Card key={campaign.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{campaign.name}</CardTitle>
-                  <Badge className={getStatusColor(campaign.status)}>
-                    {campaign.status}
-                  </Badge>
-                </div>
-                <CardDescription>{campaign.brand_name}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Budget:</span>
-                    <span className="font-medium">${campaign.budget?.toLocaleString() || 0}</span>
+          {campaigns.map((campaign: any) => {
+            // Parse price from TEXT to number
+            const priceStr = campaign.price || '$0';
+            const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
+            
+            return (
+              <Card key={campaign.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-xl">{campaign.campaign || 'Untitled Campaign'}</CardTitle>
+                    <Badge className={getStatusColor(campaign.status || 'draft')}>
+                      {campaign.status || 'draft'}
+                    </Badge>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Creators:</span>
-                    <span className="font-medium">{campaign.creator_count || 0}</span>
+                  <CardDescription>{campaign.clients || 'No client'}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Price:</span>
+                      <span className="font-medium">{campaign.price || '$0'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Spend:</span>
+                      <span className="font-medium">{campaign.spend || '$0'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Remaining:</span>
+                      <span className="font-medium">{campaign.remaining || '$0'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Salesperson:</span>
+                      <span className="font-medium">{campaign.salespeople || 'N/A'}</span>
+                    </div>
+                    {campaign.start_date && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Start Date:</span>
+                        <span className="font-medium">{campaign.start_date}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Created:</span>
-                    <span className="font-medium">
-                      {new Date(campaign.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-                <Button variant="outline" className="w-full mt-4">
-                  View Details
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                  <Button variant="outline" className="w-full mt-4">
+                    View Details
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
