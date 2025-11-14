@@ -134,7 +134,9 @@ export const VendorPaymentsTable = () => {
   const calculateSinglePayment = async (campaignId: string) => {
     setCalculatingPayments(prev => new Set(prev).add(campaignId));
     try {
-      const result = await calculateVendorPayment(campaignId);
+      // Find campaign data to avoid re-fetching
+      const campaignData = campaigns.find(c => c.id === campaignId);
+      const result = await calculateVendorPayment(campaignId, campaignData);
       setVendorPayments(prev => new Map(prev).set(campaignId, result));
       if (result.error) {
         toast({
@@ -164,15 +166,17 @@ export const VendorPaymentsTable = () => {
   };
 
   const calculateAllPayments = async () => {
-    const campaignIds = filteredAndSortedCampaigns.map(c => c.id);
+    const campaignsToCalculate = filteredAndSortedCampaigns;
+    const campaignIds = campaignsToCalculate.map(c => c.id);
     setCalculatingPayments(new Set(campaignIds));
     
     let successCount = 0;
     let errorCount = 0;
     
     try {
+      // Pass campaign data directly to avoid re-fetching each one
       const results = await Promise.allSettled(
-        campaignIds.map(id => calculateVendorPayment(id))
+        campaignsToCalculate.map(campaign => calculateVendorPayment(campaign.id, campaign))
       );
       
       const paymentMap = new Map();

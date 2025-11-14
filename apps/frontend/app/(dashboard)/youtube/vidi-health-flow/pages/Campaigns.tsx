@@ -37,14 +37,16 @@ export default function Campaigns() {
   };
 
   const handleExport = () => {
-    const headers = ['Campaign Name', 'Client', 'Status', 'Views', 'Goal', 'Revenue'];
+    const headers = ['Campaign Name', 'Client', 'Salesperson', 'Status', 'Views', 'Goal', 'Revenue', 'Service Types'];
     const rows = campaigns.map(campaign => [
       campaign.campaign_name,
-      campaign.clients?.name || 'N/A',
+      campaign.youtube_clients?.name || 'N/A',
+      campaign.youtube_salespersons?.name || 'N/A',
       campaign.status,
       campaign.current_views || 0,
       campaign.goal_views || 0,
-      '$' + (campaign.sale_price || 0).toLocaleString()
+      '$' + (campaign.sale_price || 0).toLocaleString(),
+      Array.isArray(campaign.service_types) ? campaign.service_types.map((s: any) => s.service_type).join(', ') : 'N/A'
     ]);
 
     const csvContent = [headers, ...rows].map(row => 
@@ -55,7 +57,7 @@ export default function Campaigns() {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `campaigns_export.csv`);
+    link.setAttribute('download', `youtube_campaigns_export.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -63,7 +65,7 @@ export default function Campaigns() {
 
     toast({
       title: "Export Complete",
-      description: "Campaign data exported successfully.",
+      description: "YouTube campaign data exported successfully.",
     });
   };
 

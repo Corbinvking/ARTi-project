@@ -17,56 +17,183 @@ export interface VendorPaymentResult {
   error?: string;
 }
 
-export async function calculateVendorPayment(campaignId: string): Promise<VendorPaymentResult> {
+// Default pricing rates (used when youtube_pricing_tiers table doesn't exist)
+const DEFAULT_PRICING_RATES: Record<string, number> = {
+  'ww_display': 1.20,
+  'ww_website': 1.20,
+  'ww_skip': 1.40,
+  'ww_website_ads': 1.20,
+  'us_display': 6.50,
+  'us_website': 6.50,
+  'us_website_ads': 6.50,
+  'us_skip': 6.50,
+  'us_eur_website': 6.50,
+  'latam_display': 2.80,
+  'latam_website': 2.80,
+  'latam_skip': 2.80,
+  'eur_display': 6.50,
+  'eur_website': 6.50,
+  'eur_skip': 6.50,
+  'asia_website': 3.00,
+  'mena_display': 3.50,
+  'cad_display': 6.50,
+  'cad_website': 6.50,
+  'cad_skip': 6.50,
+  'aus_display': 6.50,
+  'aus_website': 6.50,
+  'aus_skip': 6.50,
+  'youtube_eng_ad': 0.00,
+  'engagements_only': 0.00,
+  'custom': 0.00
+};
+
+// Cache to track if pricing_tiers table exists (avoid repeated 404s)
+let pricingTableExists: boolean | null = null;
+const pricingRateCache = new Map<string, number>();
+
+// Helper function to get pricing rate (with caching to avoid repeated 404s)
+async function getPricingRate(serviceType: string, views: number): Promise<number> {
+  const cacheKey = `${serviceType}_${Math.floor(views / 10000)}`;
+  
+  // Check cache first
+  if (pricingRateCache.has(cacheKey)) {
+    return pricingRateCache.get(cacheKey)!;
+  }
+  
+  // If we know table doesn't exist, use default immediately
+  if (pricingTableExists === false) {
+    const rate = DEFAULT_PRICING_RATES[serviceType] || 0;
+    pricingRateCache.set(cacheKey, rate);
+    return rate;
+  }
+  
+  // Try to fetch from database
   try {
-    const { data, error } = await supabase.rpc('calculate_vendor_payment', {
-      campaign_uuid: campaignId
-    });
+    const { data: pricingTier, error: pricingError } = await supabase
+      .from('youtube_pricing_tiers')
+      .select('cost_per_1k_views')
+      .eq('service_type', serviceType)
+      .lte('tier_min_views', views)
+      .or(`tier_max_views.gte.${views},tier_max_views.is.null`)
+      .order('tier_min_views', { ascending: false })
+      .limit(1)
+      .single();
 
-    if (error) {
-      console.error('Error calculating vendor payment:', error);
+    if (pricingError) {
+      // If 404, table doesn't exist - remember this
+      if (pricingError.code === 'PGRST116' || pricingError.message?.includes('relation') || pricingError.message?.includes('does not exist')) {
+        pricingTableExists = false;
+        console.log('💡 youtube_pricing_tiers table not found, using default rates');
+      }
+      const rate = DEFAULT_PRICING_RATES[serviceType] || 0;
+      pricingRateCache.set(cacheKey, rate);
+      return rate;
+    }
+
+    if (pricingTier?.cost_per_1k_views) {
+      pricingTableExists = true;
+      const rate = parseFloat(pricingTier.cost_per_1k_views.toString());
+      pricingRateCache.set(cacheKey, rate);
+      return rate;
+    }
+    
+    // No matching tier found, use default
+    const rate = DEFAULT_PRICING_RATES[serviceType] || 0;
+    pricingRateCache.set(cacheKey, rate);
+    return rate;
+    
+  } catch (e) {
+    // Any error, use default
+    pricingTableExists = false;
+    const rate = DEFAULT_PRICING_RATES[serviceType] || 0;
+    pricingRateCache.set(cacheKey, rate);
+    return rate;
+  }
+}
+
+export async function calculateVendorPayment(
+  campaignId: string,
+  campaignData?: any // Optional: pass campaign data to avoid re-fetching
+): Promise<VendorPaymentResult> {
+  try {
+    // Use provided campaign data or fetch if not provided
+    let campaign = campaignData;
+    
+    if (!campaign) {
+      const { data, error: campaignError } = await supabase
+        .from('youtube_campaigns')
+        .select('*')
+        .eq('id', campaignId)
+        .single();
+
+      if (campaignError || !data) {
+        console.warn('Campaign not found for payment calculation:', campaignId);
+        return {
+          total_cost: 0,
+          breakdown: [],
+          campaign_id: campaignId,
+          error: campaignError?.message || 'Campaign not found'
+        };
+      }
+      campaign = data;
+    }
+
+    // Use calculated_vendor_payment if already set
+    if (campaign.calculated_vendor_payment) {
       return {
-        total_cost: 0,
+        total_cost: parseFloat(campaign.calculated_vendor_payment.toString()),
         breakdown: [],
-        campaign_id: campaignId,
-        error: `Database error: ${error.message}`
+        campaign_id: campaignId
       };
     }
 
-    // Handle null or undefined response
-    if (!data) {
-      return {
-        total_cost: 0,
-        breakdown: [],
-        campaign_id: campaignId,
-        error: 'No payment data returned'
-      };
-    }
+    // Simple calculation based on current_views and service_types
+    let total_cost = 0;
+    const breakdown: VendorPaymentBreakdown[] = [];
 
-    // Handle scalar responses (common cause of "cannot extract elements" error)
-    if (typeof data === 'number' || typeof data === 'string') {
-      return {
-        total_cost: typeof data === 'number' ? data : 0,
-        breakdown: [],
-        campaign_id: campaignId,
-        error: typeof data === 'string' ? data : undefined
-      };
-    }
+    // Handle multi-service campaigns (service_types is JSONB array)
+    if (campaign.service_types && Array.isArray(campaign.service_types)) {
+      for (const service of campaign.service_types) {
+        const views = service.current_views || 0;
+        const serviceType = service.service_type;
+        
+        // Use cached/optimized rate lookup
+        const rate = await getPricingRate(serviceType, views);
+        const cost = (views / 1000) * rate;
+        
+        total_cost += cost;
+        breakdown.push({
+          service_type: serviceType as ServiceType,
+          views,
+          rate_per_1k: rate,
+          cost
+        });
+      }
+    } else {
+      // Fallback: single service type
+      const views = campaign.current_views || 0;
+      const serviceType = campaign.service_type;
 
-    // Type assertion for the returned JSON data
-    const result = data as unknown as {
-      total_cost: number;
-      breakdown: VendorPaymentBreakdown[];
-      campaign_id: string;
-      error?: string;
-    };
+      if (serviceType) {
+        const rate = await getPricingRate(serviceType, views);
+        const cost = (views / 1000) * rate;
+        
+        total_cost = cost;
+        breakdown.push({
+          service_type: serviceType as ServiceType,
+          views,
+          rate_per_1k: rate,
+          cost
+        });
+      }
+    }
 
     return {
-      total_cost: result.total_cost || 0,
-      breakdown: Array.isArray(result.breakdown) ? result.breakdown : [],
-      campaign_id: result.campaign_id || campaignId,
-      error: result.error
+      total_cost,
+      breakdown,
+      campaign_id: campaignId
     };
+
   } catch (error) {
     console.error('Error calculating vendor payment:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

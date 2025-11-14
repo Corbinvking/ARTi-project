@@ -71,9 +71,9 @@ import { useCampaigns } from "../../hooks/useCampaigns";
 import { CampaignSettingsModal } from "../campaigns/CampaignSettingsModal";
 
 import type { Database } from "../../integrations/supabase/types";
-  type Campaign = Database['public']['Tables']['campaigns']['Row'] & {
-  clients?: { id: string; name: string; email: string | null; company: string | null } | null;
-  salespersons?: { id: string; name: string; email: string | null } | null;
+type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'] & {
+  youtube_clients?: { id: string; name: string; email: string | null; company: string | null } | null;
+  youtube_salespersons?: { id: string; name: string; email: string | null } | null;
 };
 
 type SortField = 'campaign_name' | 'client' | 'health' | 'status' | 'service_types' | 'views' | 'wow_change' | 'likes_comments' | 'start_date';
@@ -373,7 +373,7 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
     let filtered = campaigns.filter(campaign => {
       // Search filter
       const matchesSearch = campaign.campaign_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (campaign.clients?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (campaign.youtube_clients?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (campaign.genre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         campaign.status.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -423,8 +423,8 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
           bValue = b.campaign_name.toLowerCase();
           break;
         case 'client':
-          aValue = (a.clients?.name || '').toLowerCase();
-          bValue = (b.clients?.name || '').toLowerCase();
+          aValue = (a.youtube_clients?.name || '').toLowerCase();
+          bValue = (b.youtube_clients?.name || '').toLowerCase();
           break;
         case 'health':
           aValue = calculateHealthScore(a, manualOverrides[a.id] ?? ((a as any).manual_progress || 0));
@@ -749,7 +749,7 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                     </TableCell>
                      <TableCell>
                        <div className="font-medium text-sm">
-                         {campaign.clients?.company || campaign.clients?.name || 'No client'}
+                         {campaign.youtube_clients?.company || campaign.youtube_clients?.name || 'No client'}
                        </div>
                      </TableCell>
                     <TableCell>
