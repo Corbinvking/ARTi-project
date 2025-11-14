@@ -1,0 +1,35 @@
+# Supabase Studio (Self-Hosted Admin Panel)
+db.artistinfluence.com {
+    # HTTP Basic Authentication
+    # Username: admin, Password: ArtistInfluence2025!
+    basicauth {
+        admin $2a$14$lkjyVobdbpE0i9HS8Ug9zO/HeR.BEi.OpxG5HVzHB.jQ0MjIEjNMK
+    }
+    
+    reverse_proxy localhost:54323 {
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        
+        # Health check for Studio
+        health_uri /
+        health_interval 30s
+        health_timeout 10s
+    }
+    
+    # Security headers for Supabase Studio
+    header X-Frame-Options "SAMEORIGIN"
+    header X-Content-Type-Options "nosniff"
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    
+    # Logging
+    log {
+        output file /var/log/caddy/supabase.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+        format json
+        level INFO
+    }
+}
+

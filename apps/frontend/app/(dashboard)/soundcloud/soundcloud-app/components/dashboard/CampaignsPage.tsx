@@ -103,16 +103,33 @@ export default function CampaignsPage() {
 
   const fetchCampaigns = async () => {
     try {
+      // Query soundcloud_submissions since that's where the imported campaigns are
       const { data, error } = await supabase
-        .from('soundcloud_campaigns')
-        .select(`
-          *,
-          client:soundcloud_clients(name, email)
-        `)
+        .from('soundcloud_submissions')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCampaigns(data || []);
+      
+      // Transform submissions to match campaign structure
+      const transformedData = (data || []).map(submission => ({
+        id: submission.id,
+        track_name: submission.track_url?.split('/').pop() || 'Unknown Track',
+        track_url: submission.track_url,
+        artist_name: submission.artist_name || 'Unknown Artist',
+        status: submission.status || 'new',
+        goal_reposts: 0,
+        price_usd: 0,
+        start_date: submission.support_date,
+        end_date: null,
+        created_at: submission.created_at,
+        client: {
+          name: submission.artist_name || 'Unknown',
+          email: ''
+        }
+      }));
+      
+      setCampaigns(transformedData);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       toast({
@@ -194,7 +211,7 @@ export default function CampaignsPage() {
   const deleteCampaign = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('soundcloud_campaigns')
+        .from('soundcloud_submissions')
         .delete()
         .eq('id', id);
 
@@ -228,7 +245,7 @@ export default function CampaignsPage() {
   const updateCampaignStatus = async (campaignId: string, newStatus: string) => {
     try {
       const { error } = await supabase
-        .from('soundcloud_campaigns')
+        .from('soundcloud_submissions')
         .update({ status: newStatus })
         .eq('id', campaignId);
 

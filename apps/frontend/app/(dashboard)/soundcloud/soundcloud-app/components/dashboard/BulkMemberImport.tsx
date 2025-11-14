@@ -351,7 +351,7 @@ export const BulkMemberImport: React.FC<BulkMemberImportProps> = ({
 
         // Insert member
         const { data: insertedMember, error: memberError } = await supabase
-          .from('members')
+          .from('soundcloud_members')
           .insert(memberData)
           .select('id')
           .single();
@@ -360,7 +360,7 @@ export const BulkMemberImport: React.FC<BulkMemberImportProps> = ({
 
         // Create repost credit wallet
         const { error: walletError } = await supabase
-          .from('repost_credit_wallet')
+          .from('soundcloud_repost_credit_wallet')
           .insert({
             member_id: insertedMember.id,
             balance: memberData.monthly_repost_limit,

@@ -31,7 +31,7 @@ Set these environment variables:
 
 ```bash
 export SUPABASE_URL="https://api.artistinfluence.com"
-export SUPABASE_SERVICE_ROLE_KEY="your-service-role-key-here"
+export SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"
 ```
 
 **⚠️ Important:** Use the **SERVICE_ROLE_KEY**, not the ANON_KEY. The service role key bypasses RLS policies and is required for data import.

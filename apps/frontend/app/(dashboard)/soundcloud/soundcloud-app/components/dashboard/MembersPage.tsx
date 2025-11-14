@@ -173,16 +173,16 @@ export const MembersPage = () => {
       // Fetch members, genre families, and subgenres in parallel
       const [membersResponse, familiesResponse, subgenresResponse] = await Promise.all([
         supabase
-          .from('members')
+          .from('soundcloud_members')
           .select('*')
           .order(sortBy, { ascending: sortDirection === 'asc' }),
         supabase
-          .from('genre_families')
+          .from('soundcloud_genre_families')
           .select('*')
           .eq('active', true)
           .order('name'),
         supabase
-          .from('subgenres')
+          .from('soundcloud_subgenres')
           .select('*')
           .eq('active', true)
           .order('name')
@@ -296,7 +296,7 @@ export const MembersPage = () => {
     try {
       const newDbStatus = mapDisplayStatusToDb(newDisplayStatus);
       const { error } = await supabase
-        .from('members')
+        .from('soundcloud_members')
         .update({ status: newDbStatus })
         .eq('id', memberId);
 
@@ -382,7 +382,7 @@ export const MembersPage = () => {
     
     // 1. First get member_account IDs to delete integration_status records
     const { data: memberAccounts } = await supabase
-      .from('member_accounts')
+      .from('soundcloud_member_accounts')
       .select('id')
       .eq('member_id', memberId);
 
@@ -391,7 +391,7 @@ export const MembersPage = () => {
       
       // Delete integration_status records
       const { error: integrationError } = await supabase
-        .from('integration_status')
+        .from('soundcloud_integration_status')
         .delete()
         .in('member_account_id', accountIds);
       
@@ -400,7 +400,7 @@ export const MembersPage = () => {
 
     // 2. Delete member_accounts (references members)
     const { error: accountsError } = await supabase
-      .from('member_accounts')
+      .from('soundcloud_member_accounts')
       .delete()
       .eq('member_id', memberId);
     
@@ -408,38 +408,32 @@ export const MembersPage = () => {
 
     // 3. Delete other related records
     const { error: avoidListError } = await supabase
-      .from('avoid_list_items')
+      .from('soundcloud_avoid_list_items')
       .delete()
       .eq('member_id', memberId);
     if (avoidListError) throw avoidListError;
 
-    const { error: cohortsError } = await supabase
-      .from('member_cohorts')
-      .delete()
-      .eq('member_id', memberId);
-    if (cohortsError) throw cohortsError;
-
     const { error: genresError } = await supabase
-      .from('member_genres')
+      .from('soundcloud_member_genres')
       .delete()
       .eq('member_id', memberId);
     if (genresError) throw genresError;
 
     const { error: ledgerError } = await supabase
-      .from('repost_credit_ledger')
+      .from('soundcloud_repost_credit_ledger')
       .delete()
       .eq('member_id', memberId);
     if (ledgerError) throw ledgerError;
 
     const { error: walletError } = await supabase
-      .from('repost_credit_wallet')
+      .from('soundcloud_repost_credit_wallet')
       .delete()
       .eq('member_id', memberId);
     if (walletError) throw walletError;
 
     // 4. Finally delete the member
     const { error: memberError } = await supabase
-      .from('members')
+      .from('soundcloud_members')
       .delete()
       .eq('id', memberId);
     
@@ -537,7 +531,7 @@ export const MembersPage = () => {
   const updateInfluencePlannerStatus = async (memberId: string, newStatus: InfluencePlannerStatus) => {
     try {
       const { error } = await supabase
-        .from('members')
+        .from('soundcloud_members')
         .update({ influence_planner_status: newStatus })
         .eq('id', memberId);
 

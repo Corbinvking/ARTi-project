@@ -159,7 +159,7 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
       const soundcloudFollowers = soundcloudAnalysis?.success ? soundcloudAnalysis.followers || 0 : 0;
 
       const { data, error } = await supabase
-        .from('members')
+        .from('soundcloud_members')
         .insert({
           name: formData.name,
           primary_email: formData.primary_email,
