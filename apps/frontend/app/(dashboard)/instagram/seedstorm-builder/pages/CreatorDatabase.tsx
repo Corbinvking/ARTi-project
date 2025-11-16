@@ -24,6 +24,7 @@ import { useTagSync } from '../hooks/useTagSync';
 import { migrateCreatorsToSupabase, getSupabaseCreators } from '../lib/creatorMigration';
 import { toast } from "../hooks/use-toast";
 import { TableSkeleton, UploadProgress } from "../components/LoadingStates";
+import { supabase } from '../integrations/supabase/client';
 
 type SortField = 'instagram_handle' | 'followers' | 'median_views_per_video' | 'engagement_rate' | 'base_country' | 'reel_rate';
 type SortDirection = 'asc' | 'desc';
@@ -134,25 +135,35 @@ const CreatorDatabase = () => {
   }, [creators, searchFilters, sortField, sortDirection]);
 
   const loadCreators = async () => {
+    console.log('🔄 CreatorDatabase: Starting to load creators...');
     setIsLoading(true);
     try {
       // Load creators directly from the creators table
+      console.log('📡 CreatorDatabase: Querying creators table...');
       const { data, error } = await supabase
         .from('creators')
         .select('*')
         .order('created_at', { ascending: false });
 
+      console.log('📊 CreatorDatabase: Query result:', { 
+        dataLength: data?.length, 
+        error: error,
+        hasData: !!data,
+        firstCreator: data?.[0]
+      });
+
       if (error) {
+        console.error('❌ CreatorDatabase: Error fetching creators:', error);
         throw error;
       }
 
       if (!data || data.length === 0) {
-        console.log('No creators found in database');
+        console.log('⚠️ CreatorDatabase: No creators found in database');
         setCreators([]);
         return;
       }
 
-      console.log(`✅ Loaded ${data.length} creators from database`);
+      console.log(`✅ CreatorDatabase: Loaded ${data.length} creators from database`);
 
       // Convert Supabase creators to UI format
       const loadedCreators: Creator[] = data.map(creator => ({
@@ -173,9 +184,11 @@ const CreatorDatabase = () => {
         updated_at: creator.updated_at
       }));
       
+      console.log('💾 CreatorDatabase: Setting creators to state:', loadedCreators.length);
       setCreators(loadedCreators);
+      console.log('✨ CreatorDatabase: Creators state updated successfully');
     } catch (error: any) {
-      console.error('❌ Error loading creators:', error);
+      console.error('❌ CreatorDatabase: Error loading creators:', error);
       toast({
         title: "Error", 
         description: error.message || "Failed to load creators from database",
