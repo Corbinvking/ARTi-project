@@ -16,14 +16,30 @@ export default function InstagramCreatorsPage() {
   const { data: creators = [], isLoading } = useQuery({
     queryKey: ['instagram-creators'],
     queryFn: async () => {
+      console.log('🔄 Instagram Creators Page: Fetching creators...');
       const { data, error } = await supabase
         .from('creators')
         .select('*')
         .order('followers', { ascending: false });
-      if (error) throw error;
+      
+      console.log('📊 Instagram Creators Page: Query result:', {
+        dataLength: data?.length,
+        error: error,
+        hasData: !!data,
+        firstCreator: data?.[0]
+      });
+      
+      if (error) {
+        console.error('❌ Instagram Creators Page: Error:', error);
+        throw error;
+      }
+      
+      console.log(`✅ Instagram Creators Page: Loaded ${data?.length || 0} creators`);
       return data || [];
     }
   });
+  
+  console.log('🎨 Instagram Creators Page: Rendering with', creators.length, 'creators');
 
   const filteredCreators = creators.filter((creator: any) =>
     creator.instagram_handle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
