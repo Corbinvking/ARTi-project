@@ -413,7 +413,8 @@ export default function CampaignsPage() {
             <CardHeader>
               <CardTitle>All Campaigns ({filteredCampaigns.length})</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-visible">
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -579,7 +580,7 @@ export default function CampaignsPage() {
                         {campaign.start_date ? new Date(campaign.start_date).toLocaleDateString() : '-'}
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
+                        <DropdownMenu modal={false}>
                           <DropdownMenuTrigger asChild>
                             <Button 
                               variant="ghost" 
@@ -589,7 +590,11 @@ export default function CampaignsPage() {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="z-50 bg-white dark:bg-gray-800 shadow-lg border">
+                          <DropdownMenuContent 
+                            align="end" 
+                            className="z-[100] bg-white dark:bg-gray-800 shadow-lg border min-w-[180px]"
+                            sideOffset={5}
+                          >
                             <DropdownMenuItem 
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -634,6 +639,7 @@ export default function CampaignsPage() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
 
               {filteredCampaigns.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
