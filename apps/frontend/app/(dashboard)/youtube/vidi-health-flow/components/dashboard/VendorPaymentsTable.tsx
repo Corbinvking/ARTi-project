@@ -89,30 +89,74 @@ export const VendorPaymentsTable = () => {
   };
 
   const handleVendorPaidChange = async (campaignId: string, paid: boolean) => {
-    await updateCampaign(campaignId, { vendor_paid: paid });
+    try {
+      const { error } = await updateCampaign(campaignId, { vendor_paid: paid });
+      
+      if (error) throw error;
+      
+      toast({
+        title: paid ? "Payment Marked as Paid" : "Payment Marked as Unpaid",
+        description: `Vendor payment status updated successfully.`,
+      });
+    } catch (error) {
+      console.error('Error updating vendor payment status:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update payment status. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleBulkVendorPaidChange = async (paid: boolean) => {
-    const promises = selectedCampaigns.map(campaignId => 
-      updateCampaign(campaignId, { vendor_paid: paid })
-    );
-    await Promise.all(promises);
-    
-    // Send notification for bulk payment processing
-    if (paid) {
-      const totalAmount = selectedCampaigns.reduce((total, campaignId) => {
-        const payment = vendorPayments.get(campaignId);
-        return total + (payment?.total_cost || 0);
-      }, 0);
+    try {
+      const promises = selectedCampaigns.map(campaignId => 
+        updateCampaign(campaignId, { vendor_paid: paid })
+      );
       
-      try {
-        await sendBulkPaymentProcessed(selectedCampaigns, totalAmount);
-      } catch (error) {
-        console.error('Failed to send bulk payment notification:', error);
+      const results = await Promise.allSettled(promises);
+      
+      // Count successes and failures
+      const successCount = results.filter(r => r.status === 'fulfilled' && !r.value.error).length;
+      const failureCount = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.error)).length;
+      
+      // Send notification for bulk payment processing
+      if (paid && successCount > 0) {
+        const totalAmount = selectedCampaigns.reduce((total, campaignId) => {
+          const payment = vendorPayments.get(campaignId);
+          return total + (payment?.total_cost || 0);
+        }, 0);
+        
+        try {
+          await sendBulkPaymentProcessed(selectedCampaigns, totalAmount);
+        } catch (error) {
+          console.error('Failed to send bulk payment notification:', error);
+        }
       }
+      
+      // Show result toast
+      if (failureCount === 0) {
+        toast({
+          title: "Bulk Update Complete",
+          description: `Successfully updated ${successCount} campaign payment status${successCount > 1 ? 'es' : ''}.`,
+        });
+      } else {
+        toast({
+          title: "Bulk Update Partial",
+          description: `Updated ${successCount} campaigns. ${failureCount} failed.`,
+          variant: failureCount > successCount ? "destructive" : "default",
+        });
+      }
+      
+      setSelectedCampaigns([]);
+    } catch (error) {
+      console.error('Error in bulk vendor payment update:', error);
+      toast({
+        title: "Bulk Update Failed",
+        description: "Failed to update payment statuses. Please try again.",
+        variant: "destructive",
+      });
     }
-    
-    setSelectedCampaigns([]);
   };
 
   const handleSelectAll = (checked: boolean) => {

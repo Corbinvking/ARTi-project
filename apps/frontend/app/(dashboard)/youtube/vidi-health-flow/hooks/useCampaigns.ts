@@ -290,6 +290,61 @@ export const useCampaigns = () => {
     }
   };
 
+  // SALESPERSON CRUD OPERATIONS
+  const createSalesperson = async (salespersonData: Omit<Salesperson, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('youtube_salespersons')
+        .insert(salespersonData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['youtube-salespersons'] });
+      queryClient.invalidateQueries({ queryKey: ['youtube-campaigns'] }); // Campaigns have salesperson relations
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error creating YouTube salesperson:', error);
+      return { data: null, error };
+    }
+  };
+
+  const updateSalesperson = async (id: string, updates: Partial<Salesperson>) => {
+    try {
+      const { data, error } = await supabase
+        .from('youtube_salespersons')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['youtube-salespersons'] });
+      queryClient.invalidateQueries({ queryKey: ['youtube-campaigns'] }); // Campaigns have salesperson relations
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error updating YouTube salesperson:', error);
+      return { data: null, error };
+    }
+  };
+
+  const deleteSalesperson = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('youtube_salespersons')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['youtube-salespersons'] });
+      queryClient.invalidateQueries({ queryKey: ['youtube-campaigns'] }); // Campaigns might reference deleted salesperson
+      return { error: null };
+    } catch (error) {
+      console.error('Error deleting YouTube salesperson:', error);
+      return { error };
+    }
+  };
+
   return {
     campaigns,
     clients,
@@ -302,6 +357,9 @@ export const useCampaigns = () => {
     createClient,
     updateClient,
     deleteClient,
+    createSalesperson,
+    updateSalesperson,
+    deleteSalesperson,
     requestYouTubeAccess,
     triggerYouTubeStatsFetch
   };
