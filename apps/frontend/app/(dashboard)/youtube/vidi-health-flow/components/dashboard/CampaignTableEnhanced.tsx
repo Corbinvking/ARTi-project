@@ -1009,18 +1009,62 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                              )}
                            </>
                          )}
-                           <Button
-                             variant="ghost"
-                             size="sm"
-                             className="h-8 w-8 p-0"
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               handleYouTubeClick(campaign.youtube_url, campaign.campaign_name);
-                             }}
-                             title="Watch video"
-                           >
-                             <Play className="h-4 w-4" />
-                           </Button>
+                         <TooltipProvider>
+                           <Tooltip>
+                             <TooltipTrigger asChild>
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="h-8 w-8 p-0"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleYouTubeClick(campaign.youtube_url, campaign.campaign_name);
+                                 }}
+                               >
+                                 <Play className="h-4 w-4" />
+                               </Button>
+                             </TooltipTrigger>
+                             <TooltipContent>Watch video</TooltipContent>
+                           </Tooltip>
+                         </TooltipProvider>
+                         <TooltipProvider>
+                           <Tooltip>
+                             <TooltipTrigger asChild>
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="h-8 w-8 p-0"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleOpenCampaignModal(campaign, 'basic');
+                                 }}
+                               >
+                                 <Settings className="h-4 w-4" />
+                               </Button>
+                             </TooltipTrigger>
+                             <TooltipContent>Edit campaign</TooltipContent>
+                           </Tooltip>
+                         </TooltipProvider>
+                         <TooltipProvider>
+                           <Tooltip>
+                             <TooltipTrigger asChild>
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   setSelectedCampaign(campaign);
+                                   setSelectedCampaigns([campaign.id]);
+                                   setDeleteDialogOpen(true);
+                                 }}
+                               >
+                                 <Trash2 className="h-4 w-4" />
+                               </Button>
+                             </TooltipTrigger>
+                             <TooltipContent>Delete campaign</TooltipContent>
+                           </Tooltip>
+                         </TooltipProvider>
                        </div>
                      </TableCell>
                   </TableRow>
