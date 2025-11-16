@@ -4,15 +4,24 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, ExternalLink, Music, DollarSign, Calendar, User } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
+import { useInstagramCampaignMutations } from "../seedstorm-builder/hooks/useInstagramCampaignMutations";
 
 export default function InstagramCampaignsPage() {
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
+
+  const { updateCampaign, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
 
   // Fetch campaigns from Supabase
   const { data: campaigns = [], isLoading } = useQuery({
@@ -36,7 +45,44 @@ export default function InstagramCampaignsPage() {
 
   const handleViewDetails = (campaign: any) => {
     setSelectedCampaign(campaign);
+    setEditForm(campaign);
+    setIsEditMode(false);
     setIsDetailsOpen(true);
+  };
+
+  const handleEdit = () => {
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditForm(selectedCampaign);
+    setIsEditMode(false);
+  };
+
+  const handleSaveEdit = () => {
+    updateCampaign({
+      id: selectedCampaign.id,
+      updates: editForm
+    });
+    setIsEditMode(false);
+    setIsDetailsOpen(false);
+  };
+
+  const handleDelete = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    deleteCampaign(selectedCampaign.id);
+    setIsDeleteDialogOpen(false);
+    setIsDetailsOpen(false);
+  };
+
+  const updateField = (field: string, value: string) => {
+    setEditForm((prev: any) => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const getStatusColor = (status: string) => {
@@ -143,21 +189,80 @@ export default function InstagramCampaignsPage() {
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">
-              {selectedCampaign?.campaign || 'Campaign Details'}
-            </DialogTitle>
-            <DialogDescription>
-              Client: {selectedCampaign?.clients || 'N/A'}
-            </DialogDescription>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <DialogTitle className="text-2xl">
+                  {selectedCampaign?.campaign || 'Campaign Details'}
+                </DialogTitle>
+                <DialogDescription>
+                  Client: {selectedCampaign?.clients || 'N/A'}
+                </DialogDescription>
+              </div>
+              {!isEditMode && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEdit}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </Button>
+                </div>
+              )}
+              {isEditMode && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveEdit}
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              )}
+            </div>
           </DialogHeader>
 
           {selectedCampaign && (
             <div className="space-y-6">
               {/* Status Badge */}
               <div>
-                <Badge className={getStatusColor(selectedCampaign.status || 'draft')}>
-                  {selectedCampaign.status || 'Draft'}
-                </Badge>
+                {isEditMode ? (
+                  <select
+                    value={editForm.status || 'draft'}
+                    onChange={(e) => updateField('status', e.target.value)}
+                    className="px-3 py-1 border rounded-md"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="paused">Paused</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                ) : (
+                  <Badge className={getStatusColor(selectedCampaign.status || 'draft')}>
+                    {selectedCampaign.status || 'Draft'}
+                  </Badge>
+                )}
               </div>
 
               {/* Financial Details */}
@@ -170,20 +275,52 @@ export default function InstagramCampaignsPage() {
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Price</p>
-                    <p className="text-xl font-bold">{selectedCampaign.price || '$0'}</p>
+                    <p className="text-sm text-muted-foreground mb-1">Price</p>
+                    {isEditMode ? (
+                      <Input
+                        value={editForm.price || ''}
+                        onChange={(e) => updateField('price', e.target.value)}
+                        placeholder="$0"
+                      />
+                    ) : (
+                      <p className="text-xl font-bold">{selectedCampaign.price || '$0'}</p>
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Spend</p>
-                    <p className="text-xl font-bold">{selectedCampaign.spend || '$0'}</p>
+                    <p className="text-sm text-muted-foreground mb-1">Spend</p>
+                    {isEditMode ? (
+                      <Input
+                        value={editForm.spend || ''}
+                        onChange={(e) => updateField('spend', e.target.value)}
+                        placeholder="$0"
+                      />
+                    ) : (
+                      <p className="text-xl font-bold">{selectedCampaign.spend || '$0'}</p>
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Remaining</p>
-                    <p className="text-xl font-bold">{selectedCampaign.remaining || '$0'}</p>
+                    <p className="text-sm text-muted-foreground mb-1">Remaining</p>
+                    {isEditMode ? (
+                      <Input
+                        value={editForm.remaining || ''}
+                        onChange={(e) => updateField('remaining', e.target.value)}
+                        placeholder="$0"
+                      />
+                    ) : (
+                      <p className="text-xl font-bold">{selectedCampaign.remaining || '$0'}</p>
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Invoice Status</p>
-                    <p className="text-lg font-medium">{selectedCampaign.invoice || 'N/A'}</p>
+                    <p className="text-sm text-muted-foreground mb-1">Invoice Status</p>
+                    {isEditMode ? (
+                      <Input
+                        value={editForm.invoice || ''}
+                        onChange={(e) => updateField('invoice', e.target.value)}
+                        placeholder="N/A"
+                      />
+                    ) : (
+                      <p className="text-lg font-medium">{selectedCampaign.invoice || 'N/A'}</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -268,24 +405,38 @@ export default function InstagramCampaignsPage() {
               )}
 
               {/* Notes */}
-              {(selectedCampaign.report_notes || selectedCampaign.client_notes) && (
+              {(selectedCampaign.report_notes || selectedCampaign.client_notes || isEditMode) && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Notes</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {selectedCampaign.report_notes && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Report Notes:</p>
-                        <p className="text-sm">{selectedCampaign.report_notes}</p>
-                      </div>
-                    )}
-                    {selectedCampaign.client_notes && (
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground mb-1">Client Notes:</p>
-                        <p className="text-sm">{selectedCampaign.client_notes}</p>
-                      </div>
-                    )}
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Report Notes:</p>
+                      {isEditMode ? (
+                        <Textarea
+                          value={editForm.report_notes || ''}
+                          onChange={(e) => updateField('report_notes', e.target.value)}
+                          placeholder="Add report notes..."
+                          rows={3}
+                        />
+                      ) : (
+                        <p className="text-sm">{selectedCampaign.report_notes || '-'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Client Notes:</p>
+                      {isEditMode ? (
+                        <Textarea
+                          value={editForm.client_notes || ''}
+                          onChange={(e) => updateField('client_notes', e.target.value)}
+                          placeholder="Add client notes..."
+                          rows={3}
+                        />
+                      ) : (
+                        <p className="text-sm">{selectedCampaign.client_notes || '-'}</p>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -320,6 +471,29 @@ export default function InstagramCampaignsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Campaign?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{selectedCampaign?.campaign}"? 
+              This action cannot be undone and will permanently remove the campaign 
+              and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Campaign
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
