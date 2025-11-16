@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Table, 
   TableBody, 
@@ -32,7 +31,6 @@ import {
   Edit,
   Trash2,
   ExternalLink,
-  BarChart3,
   Mail,
   Eye,
   ChevronUp,
@@ -52,7 +50,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CampaignForm } from "./CampaignForm";
-import { CampaignAttributionAnalytics } from "./CampaignAttributionAnalytics";
 import { CampaignDetailModal } from "./CampaignDetailModal";
 import { useCampaignReachData } from "../../hooks/useCampaignReachData";
 import { formatReachPerformance, calculateReachProgress } from "../../utils/numberFormatting";
@@ -93,6 +90,38 @@ export default function CampaignsPage() {
   const { toast } = useToast();
   const { getTotalReach, loading: reachLoading } = useCampaignReachData();
 
+  // Helper function to extract clean track name from SoundCloud URL
+  const extractTrackName = (url: string): string => {
+    if (!url) return 'Unknown Track';
+    
+    try {
+      // Get the last part of the URL path
+      const urlPath = url.split('?')[0]; // Remove query parameters
+      const trackSlug = urlPath.split('/').pop() || '';
+      
+      if (!trackSlug) return 'Unknown Track';
+      
+      // URL decode
+      let decoded = decodeURIComponent(trackSlug);
+      
+      // Replace hyphens and underscores with spaces
+      decoded = decoded.replace(/[-_]/g, ' ');
+      
+      // Clean up extra spaces
+      decoded = decoded.replace(/\s+/g, ' ').trim();
+      
+      // Capitalize first letter of each word
+      decoded = decoded.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      
+      return decoded || 'Unknown Track';
+    } catch (error) {
+      console.warn('Failed to parse track name from URL:', url);
+      return 'Unknown Track';
+    }
+  };
+
   useEffect(() => {
     fetchCampaigns();
   }, []);
@@ -105,24 +134,30 @@ export default function CampaignsPage() {
     try {
       // Query soundcloud_submissions since that's where the imported campaigns are
       const { data, error } = await supabase
-        .from('soundcloud_submissions')
+        .from('soundcloud_submissions' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
       // Transform submissions to match campaign structure
-      const transformedData = (data || []).map(submission => ({
+      const transformedData = ((data || []) as any[]).map((submission: any) => ({
         id: submission.id,
-        track_name: submission.track_url?.split('/').pop() || 'Unknown Track',
+        // Use stored track_name if available, otherwise extract from URL
+        track_name: submission.track_name || extractTrackName(submission.track_url),
         track_url: submission.track_url,
         artist_name: submission.artist_name || 'Unknown Artist',
+        campaign_type: 'Repost Network', // Default for SoundCloud submissions
         status: submission.status || 'new',
-        goal_reposts: 0,
-        price_usd: 0,
+        goals: submission.expected_reach_planned || 0, // Map to expected field name
+        remaining_metrics: 0,
+        sales_price: 0,
+        invoice_status: 'pending',
         start_date: submission.support_date,
-        end_date: null,
+        submission_date: submission.submitted_at,
+        notes: submission.notes || '',
         created_at: submission.created_at,
+        client_id: submission.member_id || '',
         client: {
           name: submission.artist_name || 'Unknown',
           email: ''
@@ -298,50 +333,29 @@ export default function CampaignsPage() {
           <h1 className="text-3xl font-bold text-foreground">Campaigns</h1>
           <p className="text-muted-foreground">Manage and track SoundCloud promotional campaigns</p>
         </div>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Campaign
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Create New Campaign</DialogTitle>
+              <DialogDescription>
+                Set up a new SoundCloud promotional campaign
+              </DialogDescription>
+            </DialogHeader>
+            <CampaignForm 
+              onSuccess={() => {
+                setShowCreateDialog(false);
+                fetchCampaigns();
+              }} 
+            />
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <Tabs defaultValue="attribution" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="attribution" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Attribution Analytics
-          </TabsTrigger>
-          <TabsTrigger value="soundcloud-campaigns">SoundCloud Campaigns</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="attribution">
-          <CampaignAttributionAnalytics />
-        </TabsContent>
-
-        <TabsContent value="soundcloud-campaigns" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold">SoundCloud Campaigns</h2>
-              <p className="text-muted-foreground">Legacy campaign management system</p>
-            </div>
-            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Campaign
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Create New Campaign</DialogTitle>
-                  <DialogDescription>
-                    Set up a new SoundCloud promotional campaign
-                  </DialogDescription>
-                </DialogHeader>
-                <CampaignForm 
-                  onSuccess={() => {
-                    setShowCreateDialog(false);
-                    fetchCampaigns();
-                  }} 
-                />
-              </DialogContent>
-            </Dialog>
-          </div>
 
           {/* Filters */}
           <Card>
@@ -607,8 +621,6 @@ export default function CampaignsPage() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
 
       {/* Edit Campaign Dialog */}
       {editingCampaign && (

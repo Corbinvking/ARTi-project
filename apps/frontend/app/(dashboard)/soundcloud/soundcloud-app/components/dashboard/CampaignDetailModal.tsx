@@ -116,8 +116,9 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
     }
   };
 
-  const calculateProgress = (goals: number, totalReach: number) => {
-    if (!goals) return 0;
+  const calculateProgress = (goals: number | undefined | null, totalReach: number | undefined | null) => {
+    if (!goals || goals === 0) return 0;
+    if (!totalReach || totalReach === 0) return 0;
     return Math.max(0, Math.min(100, (totalReach / goals) * 100));
   };
 

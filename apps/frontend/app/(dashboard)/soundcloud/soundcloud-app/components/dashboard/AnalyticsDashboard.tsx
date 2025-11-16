@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../integrations/supabase/client';
+import { CampaignAttributionAnalytics } from './CampaignAttributionAnalytics';
 
 interface ExecutiveMetrics {
   totalRevenue: number;
@@ -382,11 +383,12 @@ export const AnalyticsDashboard: React.FC = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
           <TabsTrigger value="growth">Growth</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="attribution">Campaign Attribution</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -525,6 +527,10 @@ export const AnalyticsDashboard: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="attribution" className="space-y-4">
+          <CampaignAttributionAnalytics />
         </TabsContent>
       </Tabs>
     </div>

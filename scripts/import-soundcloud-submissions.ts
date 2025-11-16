@@ -229,6 +229,7 @@ async function main() {
       member_id: memberId,
       track_url: row.URL || `https://soundcloud.com/unknown/${track.toLowerCase().replace(/\s+/g, '-')}`,
       artist_name: artist,
+      track_name: track, // Store the parsed track name
       status: STATUS_MAP[row.Status] || 'new',
       submitted_at: parseTimestamp(row['Submit Date']) || new Date().toISOString(),
       support_date: parseDate(row['Start Date']),
