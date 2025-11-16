@@ -141,6 +141,13 @@ export default function CampaignsPage() {
       if (error) throw error;
       
       // Transform submissions to match campaign structure
+      // Map database status values to UI display values
+      const displayStatusMap: Record<string, string> = {
+        'new': 'Pending',
+        'approved': 'Active',
+        'rejected': 'Cancelled',
+      };
+      
       const transformedData = ((data || []) as any[]).map((submission: any) => ({
         id: submission.id,
         // Use stored track_name if available, otherwise extract from URL
@@ -148,7 +155,7 @@ export default function CampaignsPage() {
         track_url: submission.track_url,
         artist_name: submission.artist_name || 'Unknown Artist',
         campaign_type: 'Repost Network', // Default for SoundCloud submissions
-        status: submission.status || 'new',
+        status: displayStatusMap[submission.status] || 'Pending',
         goals: submission.expected_reach_planned || 0, // Map to expected field name
         remaining_metrics: 0,
         sales_price: 0,
@@ -157,7 +164,7 @@ export default function CampaignsPage() {
         submission_date: submission.submitted_at,
         notes: submission.notes || '',
         created_at: submission.created_at,
-        client_id: submission.member_id || '',
+        client_id: submission.client_id || submission.member_id || '',
         client: {
           name: submission.artist_name || 'Unknown',
           email: ''
@@ -279,9 +286,19 @@ export default function CampaignsPage() {
 
   const updateCampaignStatus = async (campaignId: string, newStatus: string) => {
     try {
+      // Map UI status values to database enum values
+      const statusMap: Record<string, string> = {
+        'Pending': 'new',
+        'Active': 'approved',
+        'Complete': 'approved',
+        'Cancelled': 'rejected',
+      };
+      
+      const dbStatus = statusMap[newStatus] || 'new';
+      
       const { error } = await supabase
-        .from('soundcloud_submissions')
-        .update({ status: newStatus })
+        .from('soundcloud_submissions' as any)
+        .update({ status: dbStatus })
         .eq('id', campaignId);
 
       if (error) throw error;

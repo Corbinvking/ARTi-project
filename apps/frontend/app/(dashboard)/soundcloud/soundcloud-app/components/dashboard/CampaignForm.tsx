@@ -136,11 +136,52 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
     setLoading(true);
 
     try {
+      // Default org ID (Artist Influence)
+      const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
+      
+      // Map form data to soundcloud_submissions schema
+      // Status mapping: Form uses capitalized values, database uses lowercase enum
+      const statusMap: Record<string, string> = {
+        'Pending': 'new',
+        'Active': 'approved',
+        'Complete': 'approved',
+        'Cancelled': 'rejected',
+      };
+      
+      const submissionData = {
+        org_id: DEFAULT_ORG_ID,
+        client_id: formData.client_id || null,
+        member_id: null, // Client campaigns don't have member_id
+        track_url: formData.track_url,
+        artist_name: formData.artist_name,
+        track_name: formData.track_name,
+        status: statusMap[formData.status] || 'new',
+        expected_reach_planned: formData.goals,
+        support_date: formData.start_date || null,
+        notes: formData.notes || null,
+        qa_flag: false,
+        need_live_link: false,
+        suggested_supporters: [],
+        expected_reach_min: 0,
+        expected_reach_max: 0,
+      };
+
       if (campaign?.id) {
-        // Update existing campaign
+        // Update existing campaign in soundcloud_submissions
+        const updateData = {
+          track_url: formData.track_url,
+          artist_name: formData.artist_name,
+          track_name: formData.track_name,
+          status: statusMap[formData.status] || 'new',
+          expected_reach_planned: formData.goals,
+          support_date: formData.start_date || null,
+          notes: formData.notes || null,
+          updated_at: new Date().toISOString(),
+        };
+
         const { error } = await supabase
-          .from('soundcloud_campaigns')
-          .update(formData)
+          .from('soundcloud_submissions' as any)
+          .update(updateData)
           .eq('id', campaign.id);
 
         if (error) throw error;
@@ -150,10 +191,16 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
           description: "Campaign updated successfully",
         });
       } else {
-        // Create new campaign
+        // Create new campaign in soundcloud_submissions
+        const insertData = {
+          ...submissionData,
+          submitted_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        };
+
         const { error } = await supabase
-          .from('soundcloud_campaigns')
-          .insert([formData]);
+          .from('soundcloud_submissions' as any)
+          .insert([insertData]);
 
         if (error) throw error;
 
