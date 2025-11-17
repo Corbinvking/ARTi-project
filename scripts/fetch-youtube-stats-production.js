@@ -15,13 +15,14 @@ const http = require('http');
 const args = process.argv.slice(2);
 const specificOrgId = args.find(arg => arg.startsWith('--org-id='))?.split('=')[1];
 
-// API endpoint (internal Docker network)
-const API_HOST = process.env.API_HOST || 'localhost';
-const API_PORT = process.env.API_PORT || '3001';
-const API_URL = `http://${API_HOST}:${API_PORT}`;
+// API endpoint - use external URL on production
+const API_HOST = process.env.API_HOST || 'api.artistinfluence.com';
+const API_PORT = process.env.API_PORT || '443';
+const API_PROTOCOL = API_PORT === '443' ? 'https' : 'http';
+const API_URL = `${API_PROTOCOL}://${API_HOST}${API_PORT === '443' || API_PORT === '80' ? '' : ':' + API_PORT}`;
 
-// Supabase config
-const SUPABASE_URL = process.env.SUPABASE_URL || 'http://kong:8000';
+// Supabase config - use external URL since script runs on host, not in Docker
+const SUPABASE_URL = process.env.SUPABASE_URL_EXTERNAL || process.env.SUPABASE_URL || 'https://api.artistinfluence.com';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 console.log('🎬 YouTube Stats Fetcher - Production');
@@ -71,10 +72,15 @@ function makeRequest(url, options = {}) {
 }
 
 /**
- * Fetch from Supabase
+ * Fetch from Supabase (via Kong gateway)
  */
 async function supabaseQuery(table, options = {}) {
-  let url = `${SUPABASE_URL}/rest/v1/${table}?`;
+  // If SUPABASE_URL is the API domain, add the rest path
+  const baseUrl = SUPABASE_URL.includes('artistinfluence.com') 
+    ? SUPABASE_URL
+    : SUPABASE_URL;
+    
+  let url = `${baseUrl}/rest/v1/${table}?`;
   
   if (options.select) url += `select=${options.select}&`;
   if (options.filter) {
@@ -89,7 +95,8 @@ async function supabaseQuery(table, options = {}) {
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
     }
   });
   

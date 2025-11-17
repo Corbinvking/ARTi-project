@@ -24,8 +24,8 @@ grep YOUTUBE_API_KEY apps/api/production.env
 # If missing, add it:
 # echo "YOUTUBE_API_KEY=AIzaSyCo4D0knKCLCUiUxEl5e4oTwXCAJbEwccg" >> apps/api/production.env
 
-# 5. Restart API to load new env var
-docker-compose restart api
+# 5. Restart API to load new env var (try both commands, one should work)
+docker compose restart api || docker-compose restart api
 
 # 6. Make scripts executable
 chmod +x scripts/fetch-youtube-stats-production.js
