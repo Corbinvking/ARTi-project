@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,9 +8,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Edit, Trash2, Search, CheckCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Edit, Trash2, Search, CheckCircle, Activity, TrendingUp } from 'lucide-react';
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { useToast } from "@/hooks/use-toast";
+import { ClientDetailModal } from "./ClientDetailModal";
+import { CampaignSettingsModal } from "../campaigns/CampaignSettingsModal";
+import type { Database } from "../../integrations/supabase/types";
+
+type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'];
 
 interface ClientForm {
   name: string;
@@ -21,12 +27,17 @@ interface ClientForm {
 }
 
 export function ClientsManagement() {
-  const { clients, createClient, updateClient, deleteClient, requestYouTubeAccess } = useCampaigns();
+  const { clients, campaigns, createClient, updateClient, deleteClient, requestYouTubeAccess } = useCampaigns();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<any>(null);
   const [youtubeAccessLoading, setYoutubeAccessLoading] = useState<string | null>(null);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [clientDetailModalOpen, setClientDetailModalOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [campaignModalOpen, setCampaignModalOpen] = useState(false);
+  const [campaignModalMode, setCampaignModalMode] = useState<'basic' | 'advanced'>('basic');
   const [formData, setFormData] = useState<ClientForm>({
     name: '',
     company: '',
@@ -34,6 +45,48 @@ export function ClientsManagement() {
     email2: '',
     email3: ''
   });
+
+  // Group campaigns by client and calculate stats
+  const clientStats = useMemo(() => {
+    const statsMap = new Map<string, { 
+      campaigns: Campaign[], 
+      total: number, 
+      active: number,
+      health: number 
+    }>();
+    
+    campaigns.forEach(campaign => {
+      if (campaign.client_id) {
+        if (!statsMap.has(campaign.client_id)) {
+          statsMap.set(campaign.client_id, { 
+            campaigns: [], 
+            total: 0, 
+            active: 0,
+            health: 0 
+          });
+        }
+        statsMap.get(campaign.client_id)!.campaigns.push(campaign);
+      }
+    });
+    
+    // Calculate stats for each client
+    statsMap.forEach((stats, clientId) => {
+      stats.total = stats.campaigns.length;
+      stats.active = stats.campaigns.filter(c => c.status === 'active').length;
+      
+      // Calculate average health
+      const healthScores = stats.campaigns.map(c => {
+        const goal = c.goal_views || 0;
+        const current = c.current_views || 0;
+        return goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
+      });
+      stats.health = healthScores.length > 0 
+        ? healthScores.reduce((sum, score) => sum + score, 0) / healthScores.length 
+        : 0;
+    });
+    
+    return statsMap;
+  }, [campaigns]);
 
   const resetForm = () => {
     setFormData({
@@ -145,6 +198,23 @@ export function ClientsManagement() {
     }
   };
 
+  const handleClientClick = (client: any) => {
+    setSelectedClient(client);
+    setClientDetailModalOpen(true);
+  };
+
+  const handleCampaignClick = (campaign: Campaign) => {
+    setSelectedCampaign(campaign);
+    setCampaignModalMode('basic');
+    setCampaignModalOpen(true);
+  };
+
+  const getHealthColor = (health: number) => {
+    if (health >= 80) return 'bg-green-100 text-green-700 border-green-300';
+    if (health >= 50) return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+    return 'bg-red-100 text-red-700 border-red-300';
+  };
+
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -157,7 +227,7 @@ export function ClientsManagement() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Clients Management</h2>
           <p className="text-muted-foreground">
-            Manage your client database and contact information.
+            Manage your client database. Click a client to view campaigns and details.
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={(open) => {
@@ -248,19 +318,20 @@ export function ClientsManagement() {
         </Dialog>
       </div>
 
+      {/* Clients Table */}
       <Card>
         <CardHeader>
           <CardTitle>Clients ({filteredClients.length})</CardTitle>
           <CardDescription>
-            Search and manage your client database.
+            Click on a client to view all campaigns and detailed information
           </CardDescription>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pt-2">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search clients..."
+              placeholder="Search clients by name, company, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
+              className="max-w-md"
             />
           </div>
         </CardHeader>
@@ -268,108 +339,151 @@ export function ClientsManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Emails</TableHead>
-              <TableHead>YouTube Access</TableHead>
-              <TableHead>Actions</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Campaigns</TableHead>
+                <TableHead>Health</TableHead>
+                <TableHead>YouTube Access</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClients.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>
-                    {client.company ? (
-                      <Badge variant="outline">{client.company}</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">No company</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      {client.email && (
-                        <div className="text-sm">{client.email}</div>
-                      )}
-                      {client.email2 && (
-                        <div className="text-sm text-muted-foreground">{client.email2}</div>
-                      )}
-                      {client.email3 && (
-                        <div className="text-sm text-muted-foreground">{client.email3}</div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {client.youtube_access_requested ? (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                          <div>
-                            <div>Requested ✓</div>
-                            <div className="text-xs">
-                              {client.youtube_access_requested_at 
-                                ? new Date(client.youtube_access_requested_at).toLocaleDateString()
-                                : 'Date unknown'
-                              }
-                            </div>
-                          </div>
-                        </div>
+              {filteredClients.map((client) => {
+                const stats = clientStats.get(client.id) || { total: 0, active: 0, health: 0, campaigns: [] };
+                
+                return (
+                  <TableRow 
+                    key={client.id} 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleClientClick(client)}
+                  >
+                    <TableCell className="font-medium">{client.name}</TableCell>
+                    <TableCell>
+                      {client.company ? (
+                        <Badge variant="outline">{client.company}</Badge>
                       ) : (
-                        <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">{client.email}</div>
+                      {client.email2 && (
+                        <div className="text-xs text-muted-foreground">{client.email2}</div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <Activity className="h-3 w-3" />
+                          {stats.total} total
+                        </Badge>
+                        {stats.active > 0 && (
+                          <Badge variant="default" className="flex items-center gap-1">
+                            <TrendingUp className="h-3 w-3" />
+                            {stats.active} active
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {stats.total > 0 ? (
+                        <Badge 
+                          variant="outline" 
+                          className={`${getHealthColor(stats.health)} font-medium`}
+                        >
+                          {stats.health.toFixed(0)}%
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-2">
+                        {client.youtube_access_requested ? (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-xs">Requested</span>
+                          </div>
+                        ) : (
                           <Switch
                             disabled={youtubeAccessLoading === client.id || !client.email}
                             checked={false}
                             onCheckedChange={() => handleYouTubeAccessRequest(client.id, client.name)}
                           />
-                          <span className="text-sm">Request Access</span>
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(client)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Client</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{client.name}"? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(client.id, client.name)}>
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(client)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Client</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{client.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(client.id, client.name)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
           
           {filteredClients.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? 'No clients found matching your search.' : 'No clients added yet.'}
+              {searchTerm ? 'No clients found matching your search.' : 'No clients added yet. Click "Add Client" to get started.'}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Client Detail Modal */}
+      <ClientDetailModal
+        client={selectedClient}
+        campaigns={selectedClient ? (clientStats.get(selectedClient.id)?.campaigns || []) : []}
+        isOpen={clientDetailModalOpen}
+        onClose={() => {
+          setClientDetailModalOpen(false);
+          setSelectedClient(null);
+        }}
+        onCampaignClick={handleCampaignClick}
+      />
+
+      {/* Campaign Settings Modal */}
+      {selectedCampaign && (
+        <CampaignSettingsModal
+          campaign={selectedCampaign}
+          mode={campaignModalMode}
+          isOpen={campaignModalOpen}
+          onClose={() => {
+            setCampaignModalOpen(false);
+            setSelectedCampaign(null);
+          }}
+        />
+      )}
     </div>
   );
 }

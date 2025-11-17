@@ -7,6 +7,7 @@ import { adminRoutes } from './admin';
 import { insightsRoutes } from './insights';
 import aiAnalyticsRoutes from './ai-analytics-simple'; // Using simple version for now
 import { spotifyWebApiRoutes } from './spotify-web-api';
+import { s4aIngestRoutes } from './s4a-ingest';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -33,6 +34,9 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // Spotify Web API routes (metadata enrichment)
   await server.register(spotifyWebApiRoutes, { prefix: '/api' });
+
+  // S4A Ingest routes (scraper data ingestion)
+  await server.register(s4aIngestRoutes, { prefix: '/api' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {

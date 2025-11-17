@@ -1,0 +1,32 @@
+{
+  "url": "https://artists.spotify.com/c/artist/4F8JGeO6bJO7Z309mxHlP0/song/1n2dTO7KKWztAQyCDaGmAm/stats/playlists",
+  "scraped_at": "2025-11-17T15:33:29.542295",
+  "time_ranges": {
+    "7day": {
+      "stats": {
+        "title": "Welcome back",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    },
+    "24hour": {
+      "stats": {
+        "title": "Welcome back",
+        "streams": 0,
+        "listeners": 0,
+        "playlists": [],
+        "time_range": "All Time"
+      },
+      "insights": {
+        "stream_sources": [],
+        "geographical_data": []
+      }
+    }
+  }
+}

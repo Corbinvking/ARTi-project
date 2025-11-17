@@ -20,10 +20,7 @@ async def main():
         # Use the URL from the screenshot if no env var is set
         test_song_url = "https://artists.spotify.com/c/artist/0NgWGGk9p04ZLTeFbIdsVO/song/5cBGiXFf9S9RlAwQUv0g4g/playlists?time-filter=28day"
         print(f"Using default test song URL: {test_song_url}")
-    else:
-        # Ensure we're on the playlists tab
-        if "playlists" not in test_song_url:
-            test_song_url = test_song_url.rstrip('/') + "/playlists"
+    # URL conversion to /playlists is now handled automatically in spotify_artists.py
     
     print(f"Testing scraper with song URL: {test_song_url}")
     
@@ -31,20 +28,20 @@ async def main():
         async with SpotifyArtistsScraper() as scraper:
             # First verify login
             if not await scraper.verify_login():
-                print("❌ Not logged in! Please log in manually first:")
+                print("[X] Not logged in! Please log in manually first:")
                 print("1. Run this script")
                 print("2. A browser will open")
                 print("3. Navigate to artists.spotify.com and log in")
                 print("4. Keep the browser open and run the script again")
                 return
             
-            print("✅ Login verified!")
+            print("[OK] Login verified!")
             
             # Scrape song data
-            print("🎵 Scraping song data...")
+            print("[*] Scraping song data...")
             data = await scraper.scrape_song_data(test_song_url)
             
-            print("\n📊 Results:")
+            print("\n[RESULTS]")
             
             # Get the first time range for general song info
             first_time_range = list(data['time_ranges'].keys())[0]
@@ -54,7 +51,7 @@ async def main():
             
             # Show data for each time range
             for time_range, range_data in data['time_ranges'].items():
-                print(f"\n📅 {time_range.upper()} Stats:")
+                print(f"\n[{time_range.upper()}] Stats:")
                 stats = range_data['stats']
                 print(f"  Title: {stats.get('title', 'Unknown')}")
                 print(f"  Streams: {stats.get('streams', 0):,}")
@@ -84,10 +81,10 @@ async def main():
             with open(data_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             
-            print(f"\n✅ Scraping completed! Data saved to {data_file}")
+            print(f"\n[OK] Scraping completed! Data saved to {data_file}")
             
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"[ERROR] {e}")
         print("Check the artifacts folder for screenshots and debug info.")
 
 if __name__ == "__main__":

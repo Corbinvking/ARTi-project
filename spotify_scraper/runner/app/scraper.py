@@ -9,10 +9,11 @@ from pathlib import Path
 from .pages.spotify_artists import SpotifyArtistsPage
 
 class SpotifyArtistsScraper:
-    def __init__(self):
+    def __init__(self, headless: bool = False):
         self.user_data_dir = os.getenv('USER_DATA_DIR', './data/browser_data')
         self.download_dir = os.getenv('DOWNLOAD_DIR', './data/downloads')
         self.artifacts_dir = os.getenv('ARTIFACTS_DIR', './data/artifacts')
+        self.headless = headless
         self.playwright = None
         self.context = None
         self.page = None
@@ -26,14 +27,26 @@ class SpotifyArtistsScraper:
         
     async def start(self):
         """Initialize browser with persistent context"""
-        print("Starting browser with persistent context...")
+        print(f"Starting browser (headless={self.headless})...")
         self.playwright = await async_playwright().start()
+        
+        # Additional args for headless stability
+        browser_args = []
+        if self.headless:
+            browser_args = [
+                '--disable-blink-features=AutomationControlled',
+                '--disable-dev-shm-usage',
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-gpu'
+            ]
         
         # Use persistent context to maintain login state
         self.context = await self.playwright.chromium.launch_persistent_context(
             user_data_dir=self.user_data_dir,
-            headless=False,  # Run in headed mode for debugging
-            downloads_path=self.download_dir
+            headless=self.headless,
+            downloads_path=self.download_dir,
+            args=browser_args
         )
         self.page = await self.context.new_page()
         
@@ -116,7 +129,7 @@ class SpotifyArtistsScraper:
             print(f"Login verification failed: {e}")
             return False
             
-    async def scrape_song_data(self, song_url: str, time_ranges: List[str] = ['28day', '7day', '12months']) -> Dict[str, Any]:
+    async def scrape_song_data(self, song_url: str, time_ranges: List[str] = ['7day', '24hour']) -> Dict[str, Any]:
         """
         Scrape comprehensive song data for multiple time ranges
         

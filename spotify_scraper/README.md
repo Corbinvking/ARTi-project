@@ -1,123 +1,217 @@
 # Spotify for Artists Scraper
 
-An AI-powered Playwright-based scraper for Spotify for Artists that intelligently navigates the interface, analyzes performance data, and provides insights.
+**Last Updated**: 2025-11-17  
+**Status**: ✅ Production Ready
 
-## Features
+An automated Playwright-based scraper for Spotify for Artists that collects playlist performance data and syncs it to your production database.
 
-- AI-powered navigation and data analysis
-- Intelligent timeframe suggestions based on release date
-- Anomaly detection in stream and playlist performance
-- Automated playlist performance analysis
-- Smart page state analysis and action suggestions
-- Persistent browser sessions
-- CSV exports with validation
-- Comprehensive debug artifacts (screenshots, HTML, traces)
-- Advanced page object model
+## 🚀 Quick Start
 
-## Setup
+**Get running in 15 minutes** → See [`QUICK-START.md`](QUICK-START.md)
 
-1. Install dependencies:
+## 📚 Documentation
+
+| Document | Description | For |
+|----------|-------------|-----|
+| [`QUICK-START.md`](QUICK-START.md) | ⚡ 15-minute setup guide | First-time users |
+| [`SETUP-AND-TESTING.md`](SETUP-AND-TESTING.md) | 📋 Detailed testing instructions | Testing & validation |
+| [`DEPLOYMENT-OPTIONS.md`](DEPLOYMENT-OPTIONS.md) | 🔧 Full deployment guide (Option A vs B) | Production deployment |
+| [`IMPLEMENTATION-SUMMARY.md`](IMPLEMENTATION-SUMMARY.md) | 📊 Technical overview | Developers |
+
+## ✨ Features
+
+### Core Capabilities
+- ✅ Automated playlist data scraping from S4A
+- ✅ Multiple time range support (7d, 28d, 12m)
+- ✅ Persistent browser sessions (no re-login)
+- ✅ Headless and headed modes
+- ✅ Production database sync
+- ✅ Error artifact collection (screenshots, traces)
+- ✅ Human-like delays and behaviors
+
+### Two Deployment Options
+
+**Option A: Autonomous Droplet** (Fully automated, headless)
+- Runs on DigitalOcean droplet
+- Scheduled daily scrapes (cron job)
+- No manual intervention
+- Best for: Production, 24/7 operation
+
+**Option B: Local + Sync** (Semi-automated, GUI)
+- Runs on local machine
+- Human handles 2FA login
+- Auto-syncs to production
+- Best for: Testing, human oversight
+
+## 📦 Prerequisites
+
+- Python 3.9+
+- Playwright (`playwright install chromium`)
+- Node.js 18+ (for API endpoints)
+- Spotify for Artists account
+
+## ⚙️ Quick Setup
+
 ```bash
+# 1. Install dependencies
 pip install -r requirements.txt
-playwright install
-```
+playwright install chromium
 
-2. Configure environment:
-```bash
-cp .env.example .env
-# Edit .env with your credentials
-```
-
-3. Create data directories:
-```bash
+# 2. Create data directories
 mkdir -p data/{browser_data,downloads,artifacts}
+
+# 3. Test scraper
+python run_scraper.py
+# Browser opens → Log in to S4A → Data scraped
+
 ```
 
-## Usage
+## 📖 Usage Examples
 
-### One-time Login
+### Single Song Scrape
+
+```bash
+python run_scraper.py
+```
+
+### Multiple Songs (From Active Campaigns)
+
+```bash
+python run_s4a_list.py
+```
+
+### Scrape + Sync to Production
+
+```bash
+bash run_s4a_with_sync.sh
+```
+
+### Programmatic Usage
 
 ```python
 from runner.app.scraper import SpotifyArtistsScraper
 import asyncio
 
-async def login():
-    async with SpotifyArtistsScraper() as scraper:
-        await scraper.login('your_email@example.com', 'your_password')
-
-asyncio.run(login())
-```
-
-### Scrape Song Data
-
-```python
 async def scrape_song():
-    song_url = "https://artists.spotify.com/c/artist/..."
-    async with SpotifyArtistsScraper() as scraper:
+    song_url = "https://artists.spotify.com/c/artist/XXX/song/YYY/playlists"
+    
+    async with SpotifyArtistsScraper(headless=False) as scraper:
+        # Verify login
+        if not await scraper.verify_login():
+            print("Not logged in!")
+            return
+        
+        # Scrape data
         data = await scraper.scrape_song_data(song_url)
-        print(data)
+        print(f"Scraped {len(data['time_ranges'])} time ranges")
+        
+        # Access data
+        stats_28d = data['time_ranges']['28day']['stats']
+        print(f"Streams: {stats_28d['streams']}")
+        print(f"Playlists: {len(stats_28d['playlists'])}")
 
 asyncio.run(scrape_song())
 ```
 
-## Data Structure
+## 📊 Data Structure
 
-The scraper returns comprehensive song data including:
+Scraped data format:
 
 ```json
 {
-    "url": "song_url",
-    "all_time_streams": "128,372",
-    "release_date": "Aug 27, 2025",
-    "time_range": "28 days",
-    "playlists": {
-        "total_playlists": "2,505",
+  "url": "https://artists.spotify.com/c/artist/XXX/song/YYY/playlists",
+  "scraped_at": "2025-11-17T12:00:00Z",
+  "time_ranges": {
+    "28day": {
+      "stats": {
+        "title": "Song Name",
+        "streams": 10000,
+        "listeners": 5000,
         "playlists": [
-            {
-                "name": "Radio",
-                "made_by": "Spotify",
-                "streams": "25,614",
-                "date_added": "-"
-            },
-            // ... more playlists
+          {
+            "rank": "1",
+            "name": "Discover Weekly",
+            "made_by": "Spotify",
+            "streams": "5000",
+            "date_added": "Nov 1, 2025"
+          }
         ]
+      }
     },
-    "scraped_at": "2025-09-15T12:00:00Z"
+    "7day": { ... },
+    "12months": { ... }
+  }
 }
 ```
 
-## Debug Artifacts
+## 🐛 Debugging
 
-The scraper automatically saves debugging artifacts:
+Error artifacts automatically saved to `data/artifacts/`:
+- Screenshots: `error_YYYYMMDD_HHMMSS.png`
+- HTML: `error_YYYYMMDD_HHMMSS.html`
 
-- `screenshots/`: Page screenshots on error
-- `html/`: Page HTML content
-- `traces/`: Playwright traces for debugging
-- `data/`: Raw scraped data
+View latest error:
+```bash
+ls -lt data/artifacts/ | head -5
+```
 
-## Development
+## 🔧 Configuration
 
-The scraper uses a Page Object Model pattern:
+Environment variables (`.env`):
+```bash
+# Browser session storage
+USER_DATA_DIR=./data/browser_data
+DOWNLOAD_DIR=./data/downloads
+ARTIFACTS_DIR=./data/artifacts
 
-- `pages/spotify_artists.py`: Page interactions
-- `scraper.py`: Main scraper logic
-- `config.py`: Configuration handling
+# Production sync (Option B)
+PRODUCTION_API_URL=https://api.artistinfluence.com
+PRODUCTION_API_KEY=  # Optional
 
-## Error Handling
+# Direct DB (Option A)
+SUPABASE_URL=http://kong:8000
+SUPABASE_SERVICE_ROLE_KEY=...
+```
 
-The scraper includes robust error handling:
+## 🚨 Troubleshooting
 
-1. Automatic artifact collection on failure
-2. Detailed error messages
-3. Session persistence
-4. Network retry logic
+| Issue | Solution |
+|-------|----------|
+| "Not logged in" | Run scraper again, browser will open for login |
+| "Failed to find Playlists tab" | Spotify UI changed → Update selectors in `spotify_artists.py` |
+| "Campaign not found" during sync | Check campaign has `sfa` URL in database |
+| Sync fails | Test API endpoints: `curl https://api.artistinfluence.com/health` |
 
-## Contributing
+See [`SETUP-AND-TESTING.md`](SETUP-AND-TESTING.md) for detailed troubleshooting.
 
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
+## 📦 Project Structure
 
-## License
+```
+spotify_scraper/
+├── runner/
+│   └── app/
+│       ├── scraper.py              # Main scraper class
+│       └── pages/
+│           └── spotify_artists.py  # Page object model
+├── data/
+│   ├── browser_data/               # Persistent login session
+│   ├── downloads/                  # Downloaded CSVs
+│   ├── artifacts/                  # Error screenshots
+│   └── song_*.json                 # Scraped data files
+├── run_scraper.py                  # Single song test
+├── run_s4a_list.py                 # Bulk scraper
+├── sync_to_production.py           # Production sync
+└── setup_auth.py                   # One-time auth setup
+```
+
+## 🤝 Contributing
+
+This scraper is part of the ARTi Spotify Platform. See main project README for contribution guidelines.
+
+## 📄 License
 
 MIT
+
+---
+
+**Need help?** Start with [`QUICK-START.md`](QUICK-START.md) or see [`DEPLOYMENT-OPTIONS.md`](DEPLOYMENT-OPTIONS.md) for full details.

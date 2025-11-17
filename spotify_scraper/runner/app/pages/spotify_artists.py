@@ -9,6 +9,11 @@ class SpotifyArtistsPage:
     
     async def navigate_to_song(self, url: str) -> None:
         """Navigate to a song's page and wait for data to load"""
+        # Convert /stats URL to /playlists URL if needed
+        if '/stats' in url:
+            url = url.replace('/stats', '/playlists')
+            print(f"Converted to playlists URL: {url}")
+        
         print(f"Navigating to song: {url}")
         
         # Human-like navigation delay
@@ -335,7 +340,8 @@ class SpotifyArtistsPage:
             
             # Map range types to display text
             range_mapping = {
-                '7day': ['Last 7 days', '7 days', 'Latest 24 hours'],
+                '24hour': ['Latest 24 hours', '24 hours', 'Last 24 hours', 'Last day'],
+                '7day': ['Last 7 days', '7 days'],
                 '28day': ['Last 28 days', '28 days'],
                 'all': ['Last 12 months', '12 months', 'All time'],
                 '12months': ['Last 12 months', '12 months']
