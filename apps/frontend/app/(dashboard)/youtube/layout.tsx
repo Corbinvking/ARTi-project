@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, Video, FileInput, Users as UsersIcon, DollarSign, Settings, Activity, HelpCircle } from "lucide-react";
+import { Home, Video, FileInput, Users as UsersIcon, DollarSign, Settings, HelpCircle } from "lucide-react";
 
 const youtubeNavItems = [
   {
@@ -34,19 +34,9 @@ const youtubeNavItems = [
     icon: DollarSign,
   },
   {
-    title: "Users",
-    href: "/youtube/users",
-    icon: UsersIcon,
-  },
-  {
     title: "Settings",
     href: "/youtube/settings",
     icon: Settings,
-  },
-  {
-    title: "System Health",
-    href: "/youtube/system-health",
-    icon: Activity,
   },
   {
     title: "Help",
