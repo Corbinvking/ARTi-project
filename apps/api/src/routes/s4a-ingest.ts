@@ -242,7 +242,7 @@ export async function s4aIngestRoutes(server: FastifyInstance) {
    * Get all song ID to campaign ID mappings
    * Used for caching in sync script
    */
-  server.get('/campaigns/song-mapping', async (request, reply) => {
+  server.get('/campaigns/song-mapping', async (_request, reply) => {
     try {
       const supabase = createClient(
         process.env.SUPABASE_URL!,

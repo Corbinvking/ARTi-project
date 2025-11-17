@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger';
 // Initialize YouTube API
 const youtube = google.youtube({
   version: 'v3',
-  auth: process.env.YOUTUBE_API_KEY
+  auth: process.env.YOUTUBE_API_KEY || ''
 });
 
 /**
@@ -17,19 +17,19 @@ function extractVideoId(url: string): string | null {
   
   // Handle youtu.be short URLs
   const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-  if (shortMatch) return shortMatch[1];
+  if (shortMatch && shortMatch[1]) return shortMatch[1];
   
   // Handle youtube.com URLs with v= parameter
   const longMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
-  if (longMatch) return longMatch[1];
+  if (longMatch && longMatch[1]) return longMatch[1];
   
   // Handle youtube.com/embed/ URLs
   const embedMatch = url.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
-  if (embedMatch) return embedMatch[1];
+  if (embedMatch && embedMatch[1]) return embedMatch[1];
   
   // Handle youtube.com/v/ URLs
   const vMatch = url.match(/\/v\/([a-zA-Z0-9_-]{11})/);
-  if (vMatch) return vMatch[1];
+  if (vMatch && vMatch[1]) return vMatch[1];
   
   // If it's already just a video ID (11 characters)
   if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
@@ -52,6 +52,10 @@ async function fetchVideoStats(videoId: string) {
     }
 
     const video = response.data.items[0];
+    if (!video) {
+      throw new Error(`Video data not available: ${videoId}`);
+    }
+    
     const stats = video.statistics;
 
     return {
