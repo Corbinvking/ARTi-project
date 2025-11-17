@@ -57,6 +57,296 @@ class SpotifyArtistsScraper:
         if self.playwright:
             await self.playwright.stop()
             
+    async def auto_login(self, email: str, password: str) -> bool:
+        """Automatically log in to Spotify for Artists (two-step process)"""
+        try:
+            print("Starting automatic login...")
+            
+            # Navigate to login page
+            await self.page.goto('https://accounts.spotify.com/login', wait_until='networkidle', timeout=60000)
+            await asyncio.sleep(3)
+            
+            # Step 1: Enter email and click Continue
+            print("Step 1: Entering email...")
+            
+            # Debug: List all input fields on the page
+            try:
+                all_inputs = await self.page.locator('input').all()
+                print(f"  Found {len(all_inputs)} input fields on page")
+                for i, inp in enumerate(all_inputs[:5]):  # Show first 5
+                    inp_type = await inp.get_attribute('type')
+                    inp_id = await inp.get_attribute('id')
+                    inp_name = await inp.get_attribute('name')
+                    inp_placeholder = await inp.get_attribute('placeholder')
+                    print(f"    Input {i+1}: type={inp_type}, id={inp_id}, name={inp_name}, placeholder={inp_placeholder}")
+            except Exception as e:
+                print(f"  Debug info failed: {e}")
+            
+            email_selectors = [
+                'input[id="login-username"]',
+                'input[name="username"]',
+                'input[type="email"]',
+                'input[type="text"]',  # Try plain text input
+                'input[placeholder*="email" i]',
+                'input[placeholder*="username" i]',
+                'input[data-testid*="username"]',
+                'input[data-testid*="email"]',
+                '#login-username',  # ID selector
+                '[name="username"]'  # Attribute selector
+            ]
+            
+            email_filled = False
+            for selector in email_selectors:
+                try:
+                    email_input = self.page.locator(selector)
+                    if await email_input.count() > 0:
+                        await email_input.fill(email)
+                        print(f"  Email entered using selector: {selector}")
+                        email_filled = True
+                        break
+                except:
+                    continue
+            
+            if not email_filled:
+                print("  ERROR: Could not find email input field!")
+                print("  Please check the browser window to see what page loaded")
+                return False
+            
+            await asyncio.sleep(1)
+            
+            # Click Continue button
+            print("Step 2: Clicking Continue...")
+            continue_selectors = [
+                'button:has-text("Continue")',
+                'button[data-testid="login-button"]',
+                'button[id="login-button"]',
+                'button[type="submit"]'
+            ]
+            
+            continue_clicked = False
+            for selector in continue_selectors:
+                try:
+                    continue_btn = self.page.locator(selector)
+                    if await continue_btn.count() > 0:
+                        await continue_btn.click()
+                        print(f"  Continue clicked using selector: {selector}")
+                        continue_clicked = True
+                        break
+                except:
+                    continue
+            
+            if not continue_clicked:
+                print("  ERROR: Could not find Continue button!")
+                return False
+            
+            await asyncio.sleep(3)
+            
+            # Step 3: Click "Log in with password" or similar
+            print("Step 3: Looking for password login option...")
+            password_option_selectors = [
+                'button:has-text("Password")',
+                'button:has-text("password")',
+                'a:has-text("password")',
+                'div:has-text("Password") button',
+                '[data-testid="login-password-button"]'
+            ]
+            
+            password_option_clicked = False
+            for selector in password_option_selectors:
+                try:
+                    password_option = self.page.locator(selector)
+                    if await password_option.count() > 0:
+                        await password_option.click()
+                        print(f"  Password option clicked using selector: {selector}")
+                        password_option_clicked = True
+                        await asyncio.sleep(2)
+                        break
+                except:
+                    continue
+            
+            # If no password option found, maybe we're already on password page
+            if not password_option_clicked:
+                print("  No explicit password option found, proceeding...")
+            
+            # Step 4: Enter password
+            print("Step 4: Entering password...")
+            password_selectors = [
+                'input[id="login-password"]',
+                'input[name="password"]',
+                'input[type="password"]',
+                'input[placeholder*="password" i]'
+            ]
+            
+            password_filled = False
+            for selector in password_selectors:
+                try:
+                    password_input = self.page.locator(selector)
+                    if await password_input.count() > 0:
+                        await password_input.fill(password)
+                        print(f"  Password entered using selector: {selector}")
+                        password_filled = True
+                        break
+                except:
+                    continue
+            
+            if not password_filled:
+                print("  ERROR: Could not find password input field!")
+                return False
+            
+            await asyncio.sleep(1)
+            
+            # Check for any error messages before submitting
+            try:
+                error_selectors = [
+                    '[data-testid="error-message"]',
+                    '.error-message',
+                    '[role="alert"]',
+                    '.alert-error'
+                ]
+                for selector in error_selectors:
+                    error_elem = self.page.locator(selector)
+                    if await error_elem.count() > 0:
+                        error_text = await error_elem.text_content()
+                        print(f"  WARNING: Error message found: {error_text}")
+            except:
+                pass
+            
+            # Step 5: Click final login button
+            print("Step 5: Clicking login button...")
+            
+            # Take screenshot before clicking
+            try:
+                await self.page.screenshot(path='data/artifacts/before_login_click.png')
+                print("  Screenshot saved: before_login_click.png")
+            except:
+                pass
+            
+            login_selectors = [
+                'button[id="login-button"]',
+                'button[data-testid="login-button"]',
+                'button[type="submit"]',
+                'button:has-text("Log in")',
+                'button:has-text("Sign in")'
+            ]
+            
+            login_clicked = False
+            for selector in login_selectors:
+                try:
+                    login_btn = self.page.locator(selector)
+                    if await login_btn.count() > 0:
+                        # Check if button is disabled
+                        is_disabled = await login_btn.get_attribute('disabled')
+                        if is_disabled:
+                            print(f"  WARNING: Login button is disabled!")
+                        
+                        await login_btn.click()
+                        print(f"  Login button clicked using selector: {selector}")
+                        login_clicked = True
+                        break
+                except Exception as e:
+                    print(f"  Failed to click with {selector}: {e}")
+                    continue
+            
+            if not login_clicked:
+                print("  ERROR: Could not find login button!")
+                # Take screenshot
+                try:
+                    await self.page.screenshot(path='data/artifacts/login_button_not_found.png')
+                except:
+                    pass
+                return False
+            
+            # Small wait after clicking
+            await asyncio.sleep(2)
+            
+            # Check for error messages after clicking
+            try:
+                for selector in error_selectors:
+                    error_elem = self.page.locator(selector)
+                    if await error_elem.count() > 0:
+                        error_text = await error_elem.text_content()
+                        print(f"  ERROR AFTER LOGIN: {error_text}")
+                        await self.page.screenshot(path='data/artifacts/login_error.png')
+                        return False
+            except:
+                pass
+            
+            # Wait for navigation
+            print("Step 6: Waiting for login to complete...")
+            
+            # Wait for redirect to Spotify for Artists (may take a few seconds)
+            max_wait = 15  # Wait up to 15 seconds for redirect
+            for i in range(max_wait):
+                await asyncio.sleep(1)
+                current_url = self.page.url
+                
+                # Check if we've been redirected to artists.spotify.com
+                if 'artists.spotify.com' in current_url and 'login' not in current_url.lower():
+                    print(f"  Redirected successfully after {i+1} seconds")
+                    break
+                    
+                if i % 3 == 0:  # Log every 3 seconds
+                    print(f"  Waiting for redirect... ({i+1}s) Current: {current_url[:50]}...")
+            
+            # Handle "I'll explore on my own" popup if it appears
+            try:
+                explore_button = self.page.locator('text="I\'ll explore on my own"')
+                if await explore_button.count() > 0:
+                    print("Dismissing onboarding popup...")
+                    await explore_button.click()
+                    await asyncio.sleep(2)
+            except:
+                pass
+            
+            # Also try closing any welcome modals
+            try:
+                close_selectors = [
+                    'button[aria-label="Close"]',
+                    'button:has-text("Close")',
+                    'button:has-text("Got it")',
+                    'button:has-text("Dismiss")'
+                ]
+                for selector in close_selectors:
+                    close_btn = self.page.locator(selector)
+                    if await close_btn.count() > 0:
+                        await close_btn.click()
+                        print(f"Closed modal/popup")
+                        await asyncio.sleep(1)
+                        break
+            except:
+                pass
+            
+            # Check if we landed on artists.spotify.com
+            current_url = self.page.url
+            if 'artists.spotify.com' in current_url and 'login' not in current_url.lower():
+                print("[OK] Login successful!")
+                return True
+            
+            # If we're on regular Spotify, navigate to Spotify for Artists
+            if 'spotify.com' in current_url and 'artists' not in current_url:
+                print("  Logged into regular Spotify, redirecting to Spotify for Artists...")
+                await self.page.goto('https://artists.spotify.com/home', wait_until='networkidle', timeout=60000)
+                await asyncio.sleep(3)
+                
+                # Check final URL
+                final_url = self.page.url
+                if 'artists.spotify.com' in final_url and 'login' not in final_url.lower():
+                    print("[OK] Successfully redirected to Spotify for Artists!")
+                    return True
+                else:
+                    print(f"[!] Redirect failed. Current URL: {final_url}")
+                    return False
+            
+            print(f"[!] Login may have failed. Current URL: {current_url}")
+            print("    The browser window should still be open - please check what page it's on")
+            return False
+                
+        except Exception as e:
+            print(f"[ERROR] Auto-login failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
     async def verify_login(self) -> bool:
         """Verify we have an active login session"""
         try:
@@ -82,7 +372,7 @@ class SpotifyArtistsScraper:
                 pass
             
             # Check if we're redirected to login page
-            if 'login' in current_url.lower():
+            if 'login' in current_url.lower() or 'accounts.spotify.com' in current_url:
                 print("Redirected to login page - not logged in")
                 return False
             

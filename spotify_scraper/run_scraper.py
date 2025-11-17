@@ -28,12 +28,17 @@ async def main():
         async with SpotifyArtistsScraper() as scraper:
             # First verify login
             if not await scraper.verify_login():
-                print("[X] Not logged in! Please log in manually first:")
-                print("1. Run this script")
-                print("2. A browser will open")
-                print("3. Navigate to artists.spotify.com and log in")
-                print("4. Keep the browser open and run the script again")
-                return
+                print("[!] Not logged in. Attempting automatic login...")
+                
+                # Try auto-login with credentials
+                email = os.getenv('SPOTIFY_EMAIL', 'tribe@artistinfluence.com')
+                password = os.getenv('SPOTIFY_PASSWORD', 'UE_n7C*8wgxe9!P4abtK')
+                
+                if await scraper.auto_login(email, password):
+                    print("[OK] Auto-login successful!")
+                else:
+                    print("[X] Auto-login failed! Please check credentials.")
+                    return
             
             print("[OK] Login verified!")
             
@@ -68,7 +73,10 @@ async def main():
                 if playlists:
                     print(f"  Top 3 Playlists:")
                     for i, playlist in enumerate(playlists[:3], 1):
-                        print(f"    {i}. {playlist.get('name', 'Unknown')} - {playlist.get('streams', '0')} streams")
+                        # Remove emojis for Windows console
+                        name = playlist.get('name', 'Unknown')
+                        name_safe = name.encode('ascii', errors='ignore').decode('ascii') if name else 'Unknown'
+                        print(f"    {i}. {name_safe} - {playlist.get('streams', '0')} streams")
             
             # Save the data to a JSON file
             import json

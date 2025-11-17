@@ -15,33 +15,45 @@ An automated Playwright-based scraper for Spotify for Artists that collects play
 |----------|-------------|-----|
 | [`QUICK-START.md`](QUICK-START.md) | ⚡ 15-minute setup guide | First-time users |
 | [`SETUP-AND-TESTING.md`](SETUP-AND-TESTING.md) | 📋 Detailed testing instructions | Testing & validation |
-| [`DEPLOYMENT-OPTIONS.md`](DEPLOYMENT-OPTIONS.md) | 🔧 Full deployment guide (Option A vs B) | Production deployment |
+| [`PRODUCTION-DEPLOYMENT.md`](PRODUCTION-DEPLOYMENT.md) | 🚀 Production cron job setup | **Production deployment** |
+| [`DEPLOYMENT-OPTIONS.md`](DEPLOYMENT-OPTIONS.md) | 🔧 Full deployment guide (Option A vs B) | Alternative deployment |
 | [`IMPLEMENTATION-SUMMARY.md`](IMPLEMENTATION-SUMMARY.md) | 📊 Technical overview | Developers |
+| [`AUTO-LOGIN-COMPLETE.md`](AUTO-LOGIN-COMPLETE.md) | ✅ Auto-login implementation details | Developers |
 
 ## ✨ Features
 
 ### Core Capabilities
-- ✅ Automated playlist data scraping from S4A
-- ✅ Multiple time range support (7d, 28d, 12m)
-- ✅ Persistent browser sessions (no re-login)
-- ✅ Headless and headed modes
-- ✅ Production database sync
-- ✅ Error artifact collection (screenshots, traces)
-- ✅ Human-like delays and behaviors
+- ✅ **Automated login** - No manual intervention required
+- ✅ **Database integration** - Queries active campaigns, updates stream data
+- ✅ **Multiple time ranges** - 24h, 7d, 28d, 12m support
+- ✅ **Persistent sessions** - Browser state saved (no re-login)
+- ✅ **Headless mode** - Runs on servers without GUI
+- ✅ **Production ready** - Cron job support, logging, error handling
+- ✅ **Error artifacts** - Auto-saves screenshots and traces
 
-### Two Deployment Options
+### Production Deployment (Recommended)
 
-**Option A: Autonomous Droplet** (Fully automated, headless)
+**🚀 Automated Cron Job** (Fully autonomous)
+- Connects to production database
+- Finds all campaigns with SFA links
+- Scrapes 24h + 7d stream data
+- Updates database automatically
+- Runs on schedule (every 6 hours recommended)
+- **New campaigns auto-added** - Just add SFA link to database!
+
+**See [`PRODUCTION-DEPLOYMENT.md`](PRODUCTION-DEPLOYMENT.md) for setup guide**
+
+### Alternative Deployment Options
+
+**Option A: Autonomous Droplet** (Custom scheduling)
 - Runs on DigitalOcean droplet
-- Scheduled daily scrapes (cron job)
-- No manual intervention
-- Best for: Production, 24/7 operation
+- Scheduled scrapes (cron job)
+- Best for: Custom workflows
 
-**Option B: Local + Sync** (Semi-automated, GUI)
-- Runs on local machine
-- Human handles 2FA login
-- Auto-syncs to production
-- Best for: Testing, human oversight
+**Option B: Local + Sync** (Semi-automated)
+- Runs on local machine with GUI
+- Auto-syncs to production API
+- Best for: Testing, debugging
 
 ## 📦 Prerequisites
 
@@ -68,7 +80,29 @@ python run_scraper.py
 
 ## 📖 Usage Examples
 
-### Single Song Scrape
+### Production: Update All Active Campaigns
+
+```bash
+# Queries database for campaigns with SFA links, scrapes all, updates database
+python run_production_scraper.py
+```
+
+**Output:**
+```
+================================================================================
+PRODUCTION SPOTIFY FOR ARTISTS SCRAPER
+Started at: 2025-11-17 18:30:00
+================================================================================
+INFO - Found 25 active campaigns with SFA links
+INFO - ✓ Login verified!
+INFO - [1/25] Processing campaign 123: CHAIN SMOKER
+INFO -   ✓ Successfully scraped - 24hour: 4 playlists (37 streams), 7day: 11 playlists (468 streams)
+INFO -   ✓ Database updated
+...
+INFO - Results: ✓ 24 successful, ✗ 1 failed
+```
+
+### Single Song Test
 
 ```bash
 python run_scraper.py
@@ -80,7 +114,7 @@ python run_scraper.py
 python run_s4a_list.py
 ```
 
-### Scrape + Sync to Production
+### Scrape + Sync to Production API
 
 ```bash
 bash run_s4a_with_sync.sh
