@@ -49,6 +49,7 @@ const DEFAULT_PRICING_RATES: Record<string, number> = {
 
 // Cache to track if pricing_tiers table exists (avoid repeated 404s)
 let pricingTableExists: boolean | null = null;
+let pricingTableMissingLogged = false; // Track if we've already logged the missing table warning
 const pricingRateCache = new Map<string, number>();
 
 // Helper function to get pricing rate (with caching to avoid repeated 404s)
@@ -83,7 +84,11 @@ async function getPricingRate(serviceType: string, views: number): Promise<numbe
       // If 404, table doesn't exist - remember this
       if (pricingError.code === 'PGRST116' || pricingError.message?.includes('relation') || pricingError.message?.includes('does not exist')) {
         pricingTableExists = false;
-        console.log('💡 youtube_pricing_tiers table not found, using default rates');
+        // Only log once to avoid console spam
+        if (!pricingTableMissingLogged) {
+          console.log('💡 youtube_pricing_tiers table not found, using default rates for all calculations');
+          pricingTableMissingLogged = true;
+        }
       }
       const rate = DEFAULT_PRICING_RATES[serviceType] || 0;
       pricingRateCache.set(cacheKey, rate);
