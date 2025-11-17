@@ -8,6 +8,7 @@ import { insightsRoutes } from './insights';
 import aiAnalyticsRoutes from './ai-analytics-simple'; // Using simple version for now
 import { spotifyWebApiRoutes } from './spotify-web-api';
 import { s4aIngestRoutes } from './s4a-ingest';
+import { youtubeDataApiRoutes } from './youtube-data-api';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -37,6 +38,9 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // S4A Ingest routes (scraper data ingestion)
   await server.register(s4aIngestRoutes, { prefix: '/api' });
+
+  // YouTube Data API routes (video stats fetching)
+  await server.register(youtubeDataApiRoutes, { prefix: '/api' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {
