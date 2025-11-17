@@ -132,7 +132,7 @@ export async function calculateVendorPayment(
         .single();
 
       if (campaignError || !data) {
-        console.warn('Campaign not found for payment calculation:', campaignId);
+        // Silently return error - don't spam console
         return {
           total_cost: 0,
           breakdown: [],
@@ -156,9 +156,22 @@ export async function calculateVendorPayment(
     let total_cost = 0;
     const breakdown: VendorPaymentBreakdown[] = [];
 
+    // Parse service_types if it's a JSON string
+    let serviceTypes = campaign.service_types;
+    if (typeof serviceTypes === 'string') {
+      try {
+        serviceTypes = JSON.parse(serviceTypes);
+      } catch (e) {
+        console.error('Failed to parse service_types JSON:', serviceTypes, e);
+        serviceTypes = null;
+      }
+    }
+
     // Handle multi-service campaigns (service_types is JSONB array)
-    if (campaign.service_types && Array.isArray(campaign.service_types)) {
-      for (const service of campaign.service_types) {
+    if (serviceTypes && Array.isArray(serviceTypes) && serviceTypes.length > 0) {
+      for (const service of serviceTypes) {
+        if (!service || !service.service_type) continue; // Skip invalid entries
+        
         const views = service.current_views || 0;
         const serviceType = service.service_type;
         
@@ -190,6 +203,14 @@ export async function calculateVendorPayment(
           rate_per_1k: rate,
           cost
         });
+      } else {
+        // No service type at all - return error
+        return {
+          total_cost: 0,
+          breakdown: [],
+          campaign_id: campaignId,
+          error: 'Campaign has no service type defined'
+        };
       }
     }
 

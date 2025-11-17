@@ -280,12 +280,13 @@ export const VendorPaymentsTable = () => {
     });
   };
 
-  // Calculate payments automatically when campaigns load
-  useEffect(() => {
-    if (campaigns.length > 0 && vendorPayments.size === 0) {
-      calculateAllPayments();
-    }
-  }, [campaigns]);
+  // Don't auto-calculate on page load - let user trigger manually
+  // This prevents 420+ calculations from running immediately
+  // useEffect(() => {
+  //   if (campaigns.length > 0 && vendorPayments.size === 0) {
+  //     calculateAllPayments();
+  //   }
+  // }, [campaigns]);
 
   const filteredAndSortedCampaigns = useMemo(() => {
     let filtered = campaigns.filter(campaign => {
