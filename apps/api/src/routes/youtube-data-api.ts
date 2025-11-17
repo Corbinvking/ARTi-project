@@ -172,7 +172,7 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
         .from('youtube_campaigns')
         .select('id, campaign_name, youtube_url, video_id, current_views, current_likes, current_comments, status')
         .eq('org_id', orgId)
-        .in('status', ['active', 'pending'])
+        .in('status', ['active', 'pending', 'complete'])
         .order('created_at', { ascending: false });
 
       if (fetchError) {
