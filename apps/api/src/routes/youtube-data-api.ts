@@ -163,16 +163,18 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
    */
   server.post('/youtube-data-api/fetch-all-campaigns', async (request, reply) => {
     try {
-      const { orgId } = request.body as { orgId: string };
+      const { orgId, includeComplete = false } = request.body as { orgId: string; includeComplete?: boolean };
 
       logger.info('🎬 Fetching stats for all campaigns...');
 
-      // Fetch all campaigns with youtube_api_enabled = true or all active campaigns
+      // Fetch campaigns - by default only active/pending, optionally include complete
+      const statuses = includeComplete ? ['active', 'pending', 'complete'] : ['active', 'pending'];
+      
       const { data: campaigns, error: fetchError } = await supabase
         .from('youtube_campaigns')
         .select('id, campaign_name, youtube_url, video_id, current_views, current_likes, current_comments, status')
         .eq('org_id', orgId)
-        .in('status', ['active', 'pending', 'complete'])
+        .in('status', statuses)
         .order('created_at', { ascending: false });
 
       if (fetchError) {

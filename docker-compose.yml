@@ -15,6 +15,9 @@ services:
       - .env
     depends_on:
       - redis
+    networks:
+      - default
+      - supabase_network_arti-marketing-ops
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/healthz"]
       interval: 30s
@@ -81,3 +84,5 @@ volumes:
 networks:
   default:
     name: arti-network
+  supabase_network_arti-marketing-ops:
+    external: true
