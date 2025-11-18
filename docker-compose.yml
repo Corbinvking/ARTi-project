@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   api:
-    image: ghcr.io/username/arti-api:latest
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
     container_name: arti-api
     restart: unless-stopped
     ports:
@@ -12,7 +14,7 @@ services:
       - PORT=3001
       - REDIS_URL=redis://redis:6379
     env_file:
-      - .env
+      - apps/api/production.env
     depends_on:
       - redis
     networks:
