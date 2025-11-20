@@ -57,9 +57,25 @@ async function backfillTrackNames() {
   let successCount = 0;
   let skippedCount = 0;
   let errorCount = 0;
+  let notFoundCount = 0;
+
+  // First, let's check what we have in the database
+  console.log('🔍 Checking database sample...');
+  const { data: sample } = await supabase
+    .from('soundcloud_submissions')
+    .select('id, track_url, track_name, artist_name')
+    .limit(5);
+  
+  console.log('Sample records in database:');
+  sample?.forEach((s, i) => {
+    console.log(`  ${i + 1}. URL: ${s.track_url}`);
+    console.log(`     Track: ${s.track_name || 'NULL'}, Artist: ${s.artist_name || 'NULL'}\n`);
+  });
+
+  console.log('Starting backfill...\n');
 
   for (const row of records) {
-    const url = row.URL?.trim();
+    let url = row.URL?.trim();
     const trackInfo = row['Track Info']?.trim();
 
     // Skip if no URL or not a SoundCloud URL
@@ -68,20 +84,55 @@ async function backfillTrackNames() {
       continue;
     }
 
+    // Normalize URL - remove query params and trailing slashes
+    url = url.split('?')[0].replace(/\/$/, '');
+
     // Parse track info
     const { artist, track } = parseTrackInfo(trackInfo);
 
     try {
-      // Find submission by URL
+      // Find submission by URL - use ilike to be case-insensitive
       const { data: existing, error: findError } = await supabase
         .from('soundcloud_submissions')
         .select('id, track_name, artist_name, track_url')
-        .eq('track_url', url)
+        .ilike('track_url', url + '%')
+        .limit(1)
         .single();
 
       if (findError || !existing) {
-        // Submission doesn't exist (might have been skipped during import)
-        skippedCount++;
+        // Try without the protocol
+        const urlWithoutProtocol = url.replace(/^https?:\/\//, '');
+        const { data: existing2, error: findError2 } = await supabase
+          .from('soundcloud_submissions')
+          .select('id, track_name, artist_name, track_url')
+          .ilike('track_url', `%${urlWithoutProtocol}%`)
+          .limit(1)
+          .single();
+
+        if (findError2 || !existing2) {
+          console.log(`  ⚠️  Not found: ${artist} - ${track}`);
+          console.log(`     URL: ${url}\n`);
+          notFoundCount++;
+          continue;
+        }
+        
+        // Found with partial match, update this one
+        const { error: updateError } = await supabase
+          .from('soundcloud_submissions')
+          .update({
+            track_name: track,
+            artist_name: artist,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existing2.id);
+
+        if (updateError) {
+          console.error(`  ❌ Error updating ${track}:`, updateError.message);
+          errorCount++;
+        } else {
+          console.log(`  ✅ Updated (partial match): ${artist} - ${track}`);
+          successCount++;
+        }
         continue;
       }
 
@@ -121,7 +172,8 @@ async function backfillTrackNames() {
 
   console.log('\n📊 Backfill Summary:');
   console.log(`  ✅ Updated: ${successCount}`);
-  console.log(`  ⏭️  Skipped: ${skippedCount}`);
+  console.log(`  ⚠️  Not Found: ${notFoundCount}`);
+  console.log(`  ⏭️  Skipped (already good): ${skippedCount}`);
   console.log(`  ❌ Errors: ${errorCount}`);
   console.log(`  📊 Total: ${records.length}`);
   console.log('\n✨ SoundCloud track name backfill complete!');
