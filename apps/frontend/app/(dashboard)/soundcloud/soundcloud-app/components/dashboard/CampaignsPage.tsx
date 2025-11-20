@@ -94,6 +94,17 @@ export default function CampaignsPage() {
       
       if (!trackSlug) return 'Unknown Track';
       
+      // Check if it looks like a hash/ID (mostly numbers/random characters)
+      // If it has more than 50% non-alphabetic characters or is very short, it's likely a hash
+      const alphaChars = trackSlug.replace(/[^a-zA-Z]/g, '').length;
+      const totalChars = trackSlug.length;
+      const alphaRatio = alphaChars / totalChars;
+      
+      // If less than 30% alphabetic characters, it's probably a hash/ID
+      if (alphaRatio < 0.3 || trackSlug.length < 5) {
+        return 'Untitled Track';
+      }
+      
       // URL decode
       let decoded = decodeURIComponent(trackSlug);
       
@@ -107,6 +118,13 @@ export default function CampaignsPage() {
       decoded = decoded.split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
+      
+      // Final check - if result looks like a hash (too many numbers/special chars)
+      const finalAlphaChars = decoded.replace(/[^a-zA-Z\s]/g, '').length;
+      const finalTotalChars = decoded.length;
+      if (finalAlphaChars / finalTotalChars < 0.4) {
+        return 'Untitled Track';
+      }
       
       return decoded || 'Unknown Track';
     } catch (error) {
