@@ -67,11 +67,11 @@ class ProductionScraper:
             'Content-Type': 'application/json'
         }
         
-        # Query spotify_campaigns table for campaigns with sfa URLs
-        # Filter for active campaigns (you may want to add status column check)
+        # Query spotify_campaigns table for campaigns with valid sfa URLs
+        # Filter for only valid Spotify for Artists URLs
         params = {
             'select': 'id,campaign,sfa,track_name,artist_name,client_id,vendor_id',
-            'sfa': 'not.is.null',  # Only campaigns with SFA links
+            'sfa': 'like.https://artists.spotify.com%',  # Only valid SFA URLs
             'order': 'id.desc'
         }
         
@@ -94,6 +94,11 @@ class ProductionScraper:
         sfa_url = campaign['sfa']
         campaign_name = campaign.get('campaign', 'Unknown')
         track_name = campaign.get('track_name', 'Unknown')
+        
+        # Validate URL format
+        if not sfa_url or not sfa_url.startswith('https://artists.spotify.com/'):
+            logger.warning(f"  ✗ Skipping campaign {campaign_id}: Invalid SFA URL: {sfa_url}")
+            return None
         
         logger.info(f"Scraping campaign {campaign_id}: {track_name} ({campaign_name})")
         logger.info(f"  URL: {sfa_url}")
