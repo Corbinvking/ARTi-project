@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown } from "lucide-react";
+import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -376,50 +377,116 @@ export default function InstagramCampaignsPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[300px]">Campaign</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
-                  <TableHead className="text-right">Spend</TableHead>
-                  <TableHead className="text-right">Remaining</TableHead>
-                  <TableHead>Salesperson</TableHead>
-                  <TableHead>Start Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCampaigns.map((campaign: any) => (
-                  <TableRow
-                    key={campaign.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleViewDetails(campaign)}
-                  >
-                    <TableCell className="font-medium">
-                      {campaign.campaign || 'Untitled Campaign'}
-                    </TableCell>
-                    <TableCell>{campaign.clients || 'No client'}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(campaign.status || 'draft')}>
-                        {campaign.status || 'Draft'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {campaign.price || '$0'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {campaign.spend || '$0'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {campaign.remaining || '$0'}
-                    </TableCell>
-                    <TableCell>{campaign.salespeople || 'N/A'}</TableCell>
-                    <TableCell>{campaign.start_date || '-'}</TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[280px]">Campaign</TableHead>
+                    <TableHead className="w-[180px]">Client</TableHead>
+                    <TableHead className="w-[120px]">Status</TableHead>
+                    <TableHead className="w-[140px]">Budget Progress</TableHead>
+                    <TableHead className="text-right w-[100px]">Price</TableHead>
+                    <TableHead className="text-right w-[100px]">Spend</TableHead>
+                    <TableHead className="text-right w-[100px]">Remaining</TableHead>
+                    <TableHead className="w-[140px]">Salesperson</TableHead>
+                    <TableHead className="w-[110px]">Start Date</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredCampaigns.map((campaign: any) => {
+                    // Calculate budget progress
+                    const priceNum = parseFloat(campaign.price?.replace(/[^0-9.]/g, '') || '0');
+                    const spendNum = parseFloat(campaign.spend?.replace(/[^0-9.]/g, '') || '0');
+                    const remainingNum = parseFloat(campaign.remaining?.replace(/[^0-9.]/g, '') || '0');
+                    const progressPercent = priceNum > 0 ? (spendNum / priceNum) * 100 : 0;
+                    
+                    return (
+                      <TableRow
+                        key={campaign.id}
+                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleViewDetails(campaign)}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-sm">
+                              {campaign.campaign || 'Untitled Campaign'}
+                            </span>
+                            {campaign.sound_url && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                <Music className="h-3 w-3" />
+                                Has audio
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">{campaign.clients || 'No client'}</span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(campaign.status || 'draft')} variant="outline">
+                            {campaign.status || 'Draft'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <Progress value={Math.min(progressPercent, 100)} className="h-2" />
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>{progressPercent.toFixed(0)}%</span>
+                              {progressPercent >= 100 ? (
+                                <span className="text-green-600 font-medium flex items-center gap-1">
+                                  <TrendingUp className="h-3 w-3" />
+                                  Complete
+                                </span>
+                              ) : remainingNum > 0 ? (
+                                <span className="text-orange-600 font-medium">
+                                  {remainingNum > 0 ? `$${remainingNum.toLocaleString()} left` : 'Fully spent'}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="font-semibold text-sm">
+                              {campaign.price || '$0'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">Budget</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="font-semibold text-sm text-green-600">
+                              {campaign.spend || '$0'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">Spent</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="font-semibold text-sm text-orange-600">
+                              {campaign.remaining || '$0'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">Left</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <User className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-sm">{campaign.salespeople || 'N/A'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-sm">{campaign.start_date || '-'}</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
