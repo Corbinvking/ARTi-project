@@ -100,6 +100,34 @@ export default function InstagramCampaignsPage() {
     }
   };
 
+  // Calculate KPIs and status counts
+  const kpis = {
+    totalCampaigns: campaigns.length,
+    activeCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'active').length,
+    completedCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'completed').length,
+    draftCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'draft').length,
+    pausedCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'paused').length,
+    cancelledCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'cancelled').length,
+    unreleasedCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'unreleased').length,
+    totalBudget: campaigns.reduce((sum: number, c: any) => {
+      const price = parseFloat(c.price?.replace(/[^0-9.]/g, '') || '0');
+      return sum + price;
+    }, 0),
+    totalSpend: campaigns.reduce((sum: number, c: any) => {
+      const spend = parseFloat(c.spend?.replace(/[^0-9.]/g, '') || '0');
+      return sum + spend;
+    }, 0),
+    totalRemaining: campaigns.reduce((sum: number, c: any) => {
+      const remaining = parseFloat(c.remaining?.replace(/[^0-9.]/g, '') || '0');
+      return sum + remaining;
+    }, 0),
+  };
+
+  // Calculate completion rate
+  const completionRate = kpis.totalBudget > 0 
+    ? ((kpis.totalSpend / kpis.totalBudget) * 100).toFixed(1)
+    : '0';
+
   // Filter campaigns based on search and status
   const filteredCampaigns = campaigns.filter((campaign: any) => {
     const matchesSearch = 
@@ -129,34 +157,179 @@ export default function InstagramCampaignsPage() {
         </Link>
       </div>
 
-      {/* Search and Filters */}
+      {/* KPI Metrics */}
+      {!isLoading && campaigns.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${kpis.totalBudget.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Across {kpis.totalCampaigns} campaigns
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                ${kpis.totalSpend.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {completionRate}% of budget
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Remaining Budget</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">
+                ${kpis.totalRemaining.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Available to allocate
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {kpis.activeCampaigns}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Currently running
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Status Tabs */}
+      {!isLoading && campaigns.length > 0 && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant={statusFilter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("all")}
+                className="flex items-center gap-2"
+              >
+                All
+                <Badge variant="secondary" className="ml-1">
+                  {kpis.totalCampaigns}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === "active" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("active")}
+                className="flex items-center gap-2"
+              >
+                <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                Active
+                <Badge variant="secondary" className="ml-1">
+                  {kpis.activeCampaigns}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === "completed" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("completed")}
+                className="flex items-center gap-2"
+              >
+                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                Completed
+                <Badge variant="secondary" className="ml-1">
+                  {kpis.completedCampaigns}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === "draft" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("draft")}
+                className="flex items-center gap-2"
+              >
+                <span className="h-2 w-2 rounded-full bg-gray-500"></span>
+                Draft
+                <Badge variant="secondary" className="ml-1">
+                  {kpis.draftCampaigns}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === "paused" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("paused")}
+                className="flex items-center gap-2"
+              >
+                <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
+                Paused
+                <Badge variant="secondary" className="ml-1">
+                  {kpis.pausedCampaigns}
+                </Badge>
+              </Button>
+              {kpis.unreleasedCampaigns > 0 && (
+                <Button
+                  variant={statusFilter === "unreleased" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter("unreleased")}
+                  className="flex items-center gap-2"
+                >
+                  <span className="h-2 w-2 rounded-full bg-purple-500"></span>
+                  Unreleased
+                  <Badge variant="secondary" className="ml-1">
+                    {kpis.unreleasedCampaigns}
+                  </Badge>
+                </Button>
+              )}
+              {kpis.cancelledCampaigns > 0 && (
+                <Button
+                  variant={statusFilter === "cancelled" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter("cancelled")}
+                  className="flex items-center gap-2"
+                >
+                  <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                  Cancelled
+                  <Badge variant="secondary" className="ml-1">
+                    {kpis.cancelledCampaigns}
+                  </Badge>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Search Bar */}
       <Card className="mb-6">
         <CardContent className="pt-6">
-          <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search campaigns, clients, salesperson..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border rounded-md bg-background"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-              <option value="draft">Draft</option>
-              <option value="paused">Paused</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="unreleased">Unreleased</option>
-            </select>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search campaigns, clients, salesperson..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </CardContent>
       </Card>
@@ -191,6 +364,17 @@ export default function InstagramCampaignsPage() {
         </Card>
       ) : (
         <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>
+                Showing {filteredCampaigns.length} of {campaigns.length} campaigns
+              </CardTitle>
+              <CardDescription>
+                {statusFilter !== 'all' && `Filtered by: ${statusFilter}`}
+                {searchTerm && ` • Search: "${searchTerm}"`}
+              </CardDescription>
+            </div>
+          </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
