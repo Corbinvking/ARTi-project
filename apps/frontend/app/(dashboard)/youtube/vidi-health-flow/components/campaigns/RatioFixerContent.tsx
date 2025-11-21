@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, TrendingDown, AlertTriangle, Target, Clock } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TrendingUp, TrendingDown, AlertTriangle, Target, Clock, Play, Square, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { LIKE_SERVER_OPTIONS, COMMENT_SERVER_OPTIONS, SHEET_TIER_OPTIONS } from "../../lib/constants";
+import { useRatioFixer } from "../../hooks/useRatioFixer";
 import type { Database } from "../../integrations/supabase/types";
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'] & {
@@ -20,6 +23,23 @@ interface RatioFixerContentProps {
 }
 
 export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFixerContentProps) => {
+  const { 
+    healthStatus, 
+    isAvailable, 
+    startRatioFixer, 
+    isStarting, 
+    stopRatioFixer, 
+    isStopping,
+    useRatioFixerStatus 
+  } = useRatioFixer();
+
+  // Get ratio fixer status if campaign has one running
+  const ratioFixerCampaignId = (campaign as any).ratio_fixer_campaign_id;
+  const ratioFixerStatus = (campaign as any).ratio_fixer_status;
+  const { data: fixerStatus, isLoading: isLoadingStatus } = useRatioFixerStatus(
+    ratioFixerCampaignId,
+    ratioFixerStatus === 'running'
+  );
 
   if (!campaign) return null;
 
@@ -308,6 +328,192 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
         </CardContent>
       </Card>
 
+      {/* Automated Ratio Fixer */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Play className="h-5 w-5" />
+            Automated Engagement Ordering
+          </CardTitle>
+          <CardDescription>
+            Start the ratio fixer to automatically order likes and comments to maintain natural engagement ratios
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Service Health Status */}
+          {!isAvailable && (
+            <Alert variant="destructive">
+              <XCircle className="h-4 w-4" />
+              <AlertDescription>
+                Ratio Fixer service is currently unavailable. {healthStatus?.error || 'Please check the service status.'}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Current Status */}
+          {ratioFixerStatus === 'running' && fixerStatus && (
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="font-semibold">Ratio Fixer Active</span>
+                </div>
+                <Badge variant="default">Running</Badge>
+              </div>
+              
+              {/* Live Stats */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Target Likes:</span>
+                  <span className="ml-2 font-medium">{fixerStatus.desired_likes?.toLocaleString() || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Target Comments:</span>
+                  <span className="ml-2 font-medium">{fixerStatus.desired_comments?.toLocaleString() || 'N/A'}</span>
+                </div>
+                {fixerStatus.ordered_likes !== undefined && (
+                  <div>
+                    <span className="text-muted-foreground">Ordered Likes:</span>
+                    <span className="ml-2 font-medium text-primary">{fixerStatus.ordered_likes.toLocaleString()}</span>
+                  </div>
+                )}
+                {fixerStatus.ordered_comments !== undefined && (
+                  <div>
+                    <span className="text-muted-foreground">Ordered Comments:</span>
+                    <span className="ml-2 font-medium text-primary">{fixerStatus.ordered_comments.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Stop Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (ratioFixerCampaignId) {
+                    await stopRatioFixer(ratioFixerCampaignId);
+                  }
+                }}
+                disabled={isStopping}
+              >
+                {isStopping ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Stopping...
+                  </>
+                ) : (
+                  <>
+                    <Square className="h-4 w-4 mr-2" />
+                    Stop Ratio Fixer
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Start Button */}
+          {(!ratioFixerStatus || ratioFixerStatus === 'stopped' || ratioFixerStatus === 'idle') && (
+            <div className="space-y-4">
+              {/* Prerequisites Check */}
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Prerequisites:</div>
+                <div className="space-y-1 text-sm">
+                  <div className="flex items-center gap-2">
+                    {formData.comments_sheet_url ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                    <span>Comments Sheet URL configured</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {formData.like_server ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                    <span>Like Server selected</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {formData.comment_server ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                    <span>Comment Server selected</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isAvailable ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                    <span>Ratio Fixer service available</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Start Button */}
+              <Button
+                onClick={async () => {
+                  if (!formData.comments_sheet_url) {
+                    alert('Please configure Comments Sheet URL first');
+                    return;
+                  }
+                  if (!formData.like_server || !formData.comment_server) {
+                    alert('Please select Like Server and Comment Server first');
+                    return;
+                  }
+
+                  await startRatioFixer({
+                    campaignId: campaign.id,
+                    videoUrl: campaign.youtube_url,
+                    videoId: campaign.video_id || '',
+                    genre: campaign.genre || 'General',
+                    commentsSheetUrl: formData.comments_sheet_url,
+                    waitTime: formData.wait_time_seconds || 36,
+                    minimumEngagement: formData.minimum_engagement || 500,
+                    commentServerId: parseInt(formData.comment_server || '439'),
+                    likeServerId: parseInt(formData.like_server || '2324'),
+                    sheetTier: formData.sheet_tier || '1847390823'
+                  });
+                }}
+                disabled={
+                  !isAvailable || 
+                  !formData.comments_sheet_url || 
+                  !formData.like_server || 
+                  !formData.comment_server ||
+                  isStarting
+                }
+                className="w-full"
+              >
+                {isStarting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Starting Ratio Fixer...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    Start Automated Ratio Fixer
+                  </>
+                )}
+              </Button>
+
+              {/* Info */}
+              <div className="text-xs text-muted-foreground">
+                <p>The ratio fixer will:</p>
+                <ul className="list-disc list-inside mt-1 space-y-0.5">
+                  <li>Monitor your video's engagement ratio every {formData.wait_time_seconds || 36} seconds</li>
+                  <li>Automatically order likes and comments when ratios fall below target</li>
+                  <li>Use ML-based predictions to calculate optimal engagement levels</li>
+                  <li>Stop when the campaign is completed or manually stopped</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
     </div>
   );
