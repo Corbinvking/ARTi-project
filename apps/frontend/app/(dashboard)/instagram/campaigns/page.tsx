@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2 } from "lucide-react";
+import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -20,6 +21,8 @@ export default function InstagramCampaignsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { updateCampaign, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
 
@@ -86,14 +89,28 @@ export default function InstagramCampaignsPage() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'active': return 'bg-green-500';
       case 'draft': return 'bg-gray-500';
       case 'completed': return 'bg-blue-500';
       case 'paused': return 'bg-yellow-500';
+      case 'cancelled': return 'bg-red-500';
+      case 'unreleased': return 'bg-purple-500';
       default: return 'bg-gray-500';
     }
   };
+
+  // Filter campaigns based on search and status
+  const filteredCampaigns = campaigns.filter((campaign: any) => {
+    const matchesSearch = 
+      campaign.campaign?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      campaign.clients?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      campaign.salespeople?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || campaign.status?.toLowerCase() === statusFilter.toLowerCase();
+    
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="container mx-auto p-6">
@@ -112,8 +129,44 @@ export default function InstagramCampaignsPage() {
         </Link>
       </div>
 
+      {/* Search and Filters */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search campaigns, clients, salesperson..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border rounded-md bg-background"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="draft">Draft</option>
+              <option value="paused">Paused</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="unreleased">Unreleased</option>
+            </select>
+          </div>
+        </CardContent>
+      </Card>
+
       {isLoading ? (
-        <div className="text-center py-12">Loading campaigns...</div>
+        <Card>
+          <CardContent className="text-center py-12">
+            <div className="text-muted-foreground">Loading campaigns...</div>
+          </CardContent>
+        </Card>
       ) : campaigns.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
@@ -128,61 +181,63 @@ export default function InstagramCampaignsPage() {
             </Link>
           </CardContent>
         </Card>
+      ) : filteredCampaigns.length === 0 ? (
+        <Card>
+          <CardContent className="text-center py-12">
+            <p className="text-muted-foreground">
+              No campaigns match your filters. Try adjusting your search or filters.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {campaigns.map((campaign: any) => {
-            // Parse price from TEXT to number
-            const priceStr = campaign.price || '$0';
-            const priceNum = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
-            
-            return (
-              <Card key={campaign.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-xl">{campaign.campaign || 'Untitled Campaign'}</CardTitle>
-                    <Badge className={getStatusColor(campaign.status || 'draft')}>
-                      {campaign.status || 'draft'}
-                    </Badge>
-                  </div>
-                  <CardDescription>{campaign.clients || 'No client'}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Price:</span>
-                      <span className="font-medium">{campaign.price || '$0'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Spend:</span>
-                      <span className="font-medium">{campaign.spend || '$0'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Remaining:</span>
-                      <span className="font-medium">{campaign.remaining || '$0'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Salesperson:</span>
-                      <span className="font-medium">{campaign.salespeople || 'N/A'}</span>
-                    </div>
-                    {campaign.start_date && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Start Date:</span>
-                        <span className="font-medium">{campaign.start_date}</span>
-                      </div>
-                    )}
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-4"
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[300px]">Campaign</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">Spend</TableHead>
+                  <TableHead className="text-right">Remaining</TableHead>
+                  <TableHead>Salesperson</TableHead>
+                  <TableHead>Start Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCampaigns.map((campaign: any) => (
+                  <TableRow
+                    key={campaign.id}
+                    className="cursor-pointer hover:bg-muted/50"
                     onClick={() => handleViewDetails(campaign)}
                   >
-                    View Details
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <TableCell className="font-medium">
+                      {campaign.campaign || 'Untitled Campaign'}
+                    </TableCell>
+                    <TableCell>{campaign.clients || 'No client'}</TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(campaign.status || 'draft')}>
+                        {campaign.status || 'Draft'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {campaign.price || '$0'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {campaign.spend || '$0'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {campaign.remaining || '$0'}
+                    </TableCell>
+                    <TableCell>{campaign.salespeople || 'N/A'}</TableCell>
+                    <TableCell>{campaign.start_date || '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
 
       {/* Campaign Details Modal */}
