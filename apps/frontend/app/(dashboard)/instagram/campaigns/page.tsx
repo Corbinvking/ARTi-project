@@ -377,18 +377,18 @@ export default function InstagramCampaignsPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow className="text-xs">
-                  <TableHead className="w-[200px]">Campaign</TableHead>
-                  <TableHead className="w-[140px]">Client</TableHead>
-                  <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead className="w-[180px]">Progress</TableHead>
-                  <TableHead className="text-right w-[90px]">Budget</TableHead>
-                  <TableHead className="text-right w-[90px]">Spend</TableHead>
-                  <TableHead className="text-right w-[90px]">Left</TableHead>
-                  <TableHead className="w-[110px]">Sales</TableHead>
-                  <TableHead className="w-[100px]">Date</TableHead>
+                  <TableHead className="w-[16%] px-3">Campaign</TableHead>
+                  <TableHead className="w-[10%] px-2">Client</TableHead>
+                  <TableHead className="w-[9%] px-2">Status</TableHead>
+                  <TableHead className="w-[18%] px-2">Progress</TableHead>
+                  <TableHead className="text-right w-[10%] px-2">Budget</TableHead>
+                  <TableHead className="text-right w-[10%] px-2">Spend</TableHead>
+                  <TableHead className="text-right w-[10%] px-2">Left</TableHead>
+                  <TableHead className="w-[9%] px-2">Sales</TableHead>
+                  <TableHead className="w-[8%] px-2">Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -405,62 +405,61 @@ export default function InstagramCampaignsPage() {
                       className="cursor-pointer hover:bg-muted/50 transition-colors"
                       onClick={() => handleViewDetails(campaign)}
                     >
-                      <TableCell className="font-medium py-3">
-                        <div className="flex items-center gap-2">
+                      <TableCell className="font-medium py-2 px-3">
+                        <div className="flex items-center gap-1.5 overflow-hidden">
                           {campaign.sound_url && <Music className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
-                          <span className="font-semibold text-sm truncate">
+                          <span className="font-semibold text-xs truncate">
                             {campaign.campaign || 'Untitled'}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="py-3">
-                        <span className="text-sm truncate block">{campaign.clients || 'No client'}</span>
+                      <TableCell className="py-2 px-2">
+                        <span className="text-xs truncate block">{campaign.clients || 'N/A'}</span>
                       </TableCell>
-                      <TableCell className="py-3">
+                      <TableCell className="py-2 px-2">
                         <Badge className={getStatusColor(campaign.status || 'draft')} variant="outline">
-                          {campaign.status || 'Draft'}
+                          <span className="text-[10px]">{campaign.status || 'Draft'}</span>
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-3">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Progress value={Math.min(progressPercent, 100)} className="h-1.5 flex-1" />
-                            <span className="text-xs font-medium min-w-[35px] text-right">
+                      <TableCell className="py-2 px-2">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <Progress value={Math.min(progressPercent, 100)} className="h-1 flex-1" />
+                            <span className="text-[10px] font-medium min-w-[28px] text-right">
                               {progressPercent.toFixed(0)}%
                             </span>
                           </div>
                           {progressPercent >= 100 ? (
-                            <div className="text-xs text-green-600 font-medium flex items-center gap-1">
-                              <TrendingUp className="h-3 w-3" />
-                              Complete
+                            <div className="text-[10px] text-green-600 font-medium">
+                              ✓ Done
                             </div>
                           ) : remainingNum > 0 ? (
-                            <div className="text-xs text-orange-600 font-medium">
+                            <div className="text-[10px] text-orange-600 font-medium truncate">
                               ${remainingNum.toLocaleString()} left
                             </div>
                           ) : null}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right py-3">
-                        <span className="font-semibold text-sm">
+                      <TableCell className="text-right py-2 px-2">
+                        <span className="font-semibold text-xs">
                           {campaign.price || '$0'}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right py-3">
-                        <span className="font-semibold text-sm text-green-600">
+                      <TableCell className="text-right py-2 px-2">
+                        <span className="font-semibold text-xs text-green-600">
                           {campaign.spend || '$0'}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right py-3">
-                        <span className="font-semibold text-sm text-orange-600">
+                      <TableCell className="text-right py-2 px-2">
+                        <span className="font-semibold text-xs text-orange-600">
                           {campaign.remaining || '$0'}
                         </span>
                       </TableCell>
-                      <TableCell className="py-3">
-                        <span className="text-sm truncate block">{campaign.salespeople || 'N/A'}</span>
+                      <TableCell className="py-2 px-2">
+                        <span className="text-xs truncate block">{campaign.salespeople || 'N/A'}</span>
                       </TableCell>
-                      <TableCell className="py-3">
-                        <span className="text-sm">{campaign.start_date || '-'}</span>
+                      <TableCell className="py-2 px-2">
+                        <span className="text-[10px]">{campaign.start_date || '-'}</span>
                       </TableCell>
                     </TableRow>
                   );
