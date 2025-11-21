@@ -144,10 +144,11 @@ export default function CampaignsPage() {
   const fetchCampaigns = async () => {
     try {
       // Query soundcloud_submissions since that's where the imported campaigns are
+      // Add cache-busting timestamp to force fresh data
       const { data, error } = await supabase
         .from('soundcloud_submissions' as any)
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
       
@@ -159,28 +160,40 @@ export default function CampaignsPage() {
         'rejected': 'Cancelled',
       };
       
-      const transformedData = ((data || []) as any[]).map((submission: any) => ({
-        id: submission.id,
-        // Use stored track_name if available, otherwise extract from URL
-        track_name: submission.track_name || extractTrackName(submission.track_url),
-        track_url: submission.track_url,
-        artist_name: submission.artist_name || 'Unknown Artist',
-        campaign_type: 'Repost Network', // Default for SoundCloud submissions
-        status: displayStatusMap[submission.status] || 'Pending',
-        goals: submission.expected_reach_planned || 0, // Map to expected field name
-        remaining_metrics: 0,
-        sales_price: 0,
-        invoice_status: 'pending',
-        start_date: submission.support_date,
-        submission_date: submission.submitted_at,
-        notes: submission.notes || '',
-        created_at: submission.created_at,
-        client_id: submission.client_id || submission.member_id || '',
-        client: {
-          name: submission.artist_name || 'Unknown',
-          email: ''
+      const transformedData = ((data || []) as any[]).map((submission: any, idx: number) => {
+        // Debug: Log first few records to see what we're getting from DB
+        if (idx < 3) {
+          console.log('📊 Submission from DB:', {
+            id: submission.id,
+            track_name_from_db: submission.track_name,
+            track_url: submission.track_url?.substring(0, 60),
+            artist_name: submission.artist_name
+          });
         }
-      }));
+        
+        return {
+          id: submission.id,
+          // Use stored track_name if available, otherwise extract from URL
+          track_name: submission.track_name || extractTrackName(submission.track_url),
+          track_url: submission.track_url,
+          artist_name: submission.artist_name || 'Unknown Artist',
+          campaign_type: 'Repost Network', // Default for SoundCloud submissions
+          status: displayStatusMap[submission.status] || 'Pending',
+          goals: submission.expected_reach_planned || 0, // Map to expected field name
+          remaining_metrics: 0,
+          sales_price: 0,
+          invoice_status: 'pending',
+          start_date: submission.support_date,
+          submission_date: submission.submitted_at,
+          notes: submission.notes || '',
+          created_at: submission.created_at,
+          client_id: submission.client_id || submission.member_id || '',
+          client: {
+            name: submission.artist_name || 'Unknown',
+            email: ''
+          }
+        };
+      });
       
       setCampaigns(transformedData);
     } catch (error) {
