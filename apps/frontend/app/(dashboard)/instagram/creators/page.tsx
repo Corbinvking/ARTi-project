@@ -44,29 +44,48 @@ export default function InstagramCreatorsPage() {
     }
   });
 
-  // Fetch campaigns for the selected creator
-  const { data: creatorCampaigns = [], isLoading: isLoadingCampaigns } = useQuery({
-    queryKey: ['creator-campaigns', selectedCreator?.instagram_handle],
+  // Fetch all campaigns to enable client-side matching
+  const { data: allCampaigns = [] } = useQuery({
+    queryKey: ['instagram-campaigns-all'],
     queryFn: async () => {
-      if (!selectedCreator?.instagram_handle) return [];
-      
-      console.log('🔄 Fetching campaigns for creator:', selectedCreator.instagram_handle);
       const { data, error } = await supabase
         .from('instagram_campaigns')
         .select('*')
-        .eq('clients', selectedCreator.instagram_handle)
         .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error('❌ Error fetching creator campaigns:', error);
-        throw error;
-      }
-      
-      console.log(`✅ Loaded ${data?.length || 0} campaigns for ${selectedCreator.instagram_handle}`);
+      if (error) throw error;
+      console.log(`📊 Loaded ${data?.length || 0} total campaigns for matching`);
       return data || [];
-    },
-    enabled: !!selectedCreator?.instagram_handle
+    }
   });
+
+  // Filter campaigns for the selected creator using handle matching logic
+  const creatorCampaigns = selectedCreator
+    ? (() => {
+        const creatorHandle = selectedCreator.instagram_handle.toLowerCase();
+        const matches = allCampaigns.filter((campaign: any) => {
+          if (!campaign.clients || !selectedCreator.instagram_handle) return false;
+          
+          // Generate handle from campaign clients name using same logic as import script
+          const campaignHandle = campaign.clients
+            .toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[^a-z0-9_]/g, '')
+            .substring(0, 30);
+          
+          return campaignHandle === creatorHandle;
+        });
+        
+        console.log(`🔗 Found ${matches.length} campaigns for @${selectedCreator.instagram_handle}`);
+        if (matches.length > 0) {
+          console.log('Sample matches:', matches.slice(0, 3).map(c => c.campaign));
+        }
+        
+        return matches;
+      })()
+    : [];
+
+  const isLoadingCampaigns = false;
   
   console.log('🎨 Instagram Creators Page: Rendering with', creators.length, 'creators');
 
