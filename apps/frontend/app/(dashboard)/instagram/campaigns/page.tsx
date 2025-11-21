@@ -377,116 +377,96 @@ export default function InstagramCampaignsPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[280px]">Campaign</TableHead>
-                    <TableHead className="w-[180px]">Client</TableHead>
-                    <TableHead className="w-[120px]">Status</TableHead>
-                    <TableHead className="w-[140px]">Budget Progress</TableHead>
-                    <TableHead className="text-right w-[100px]">Price</TableHead>
-                    <TableHead className="text-right w-[100px]">Spend</TableHead>
-                    <TableHead className="text-right w-[100px]">Remaining</TableHead>
-                    <TableHead className="w-[140px]">Salesperson</TableHead>
-                    <TableHead className="w-[110px]">Start Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCampaigns.map((campaign: any) => {
-                    // Calculate budget progress
-                    const priceNum = parseFloat(campaign.price?.replace(/[^0-9.]/g, '') || '0');
-                    const spendNum = parseFloat(campaign.spend?.replace(/[^0-9.]/g, '') || '0');
-                    const remainingNum = parseFloat(campaign.remaining?.replace(/[^0-9.]/g, '') || '0');
-                    const progressPercent = priceNum > 0 ? (spendNum / priceNum) * 100 : 0;
-                    
-                    return (
-                      <TableRow
-                        key={campaign.id}
-                        className="cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => handleViewDetails(campaign)}
-                      >
-                        <TableCell className="font-medium">
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-sm">
-                              {campaign.campaign || 'Untitled Campaign'}
+            <Table>
+              <TableHeader>
+                <TableRow className="text-xs">
+                  <TableHead className="w-[200px]">Campaign</TableHead>
+                  <TableHead className="w-[140px]">Client</TableHead>
+                  <TableHead className="w-[100px]">Status</TableHead>
+                  <TableHead className="w-[180px]">Progress</TableHead>
+                  <TableHead className="text-right w-[90px]">Budget</TableHead>
+                  <TableHead className="text-right w-[90px]">Spend</TableHead>
+                  <TableHead className="text-right w-[90px]">Left</TableHead>
+                  <TableHead className="w-[110px]">Sales</TableHead>
+                  <TableHead className="w-[100px]">Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCampaigns.map((campaign: any) => {
+                  // Calculate budget progress
+                  const priceNum = parseFloat(campaign.price?.replace(/[^0-9.]/g, '') || '0');
+                  const spendNum = parseFloat(campaign.spend?.replace(/[^0-9.]/g, '') || '0');
+                  const remainingNum = parseFloat(campaign.remaining?.replace(/[^0-9.]/g, '') || '0');
+                  const progressPercent = priceNum > 0 ? (spendNum / priceNum) * 100 : 0;
+                  
+                  return (
+                    <TableRow
+                      key={campaign.id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => handleViewDetails(campaign)}
+                    >
+                      <TableCell className="font-medium py-3">
+                        <div className="flex items-center gap-2">
+                          {campaign.sound_url && <Music className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
+                          <span className="font-semibold text-sm truncate">
+                            {campaign.campaign || 'Untitled'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <span className="text-sm truncate block">{campaign.clients || 'No client'}</span>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <Badge className={getStatusColor(campaign.status || 'draft')} variant="outline">
+                          {campaign.status || 'Draft'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Progress value={Math.min(progressPercent, 100)} className="h-1.5 flex-1" />
+                            <span className="text-xs font-medium min-w-[35px] text-right">
+                              {progressPercent.toFixed(0)}%
                             </span>
-                            {campaign.sound_url && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                                <Music className="h-3 w-3" />
-                                Has audio
-                              </span>
-                            )}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">{campaign.clients || 'No client'}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(campaign.status || 'draft')} variant="outline">
-                            {campaign.status || 'Draft'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <Progress value={Math.min(progressPercent, 100)} className="h-2" />
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                              <span>{progressPercent.toFixed(0)}%</span>
-                              {progressPercent >= 100 ? (
-                                <span className="text-green-600 font-medium flex items-center gap-1">
-                                  <TrendingUp className="h-3 w-3" />
-                                  Complete
-                                </span>
-                              ) : remainingNum > 0 ? (
-                                <span className="text-orange-600 font-medium">
-                                  {remainingNum > 0 ? `$${remainingNum.toLocaleString()} left` : 'Fully spent'}
-                                </span>
-                              ) : null}
+                          {progressPercent >= 100 ? (
+                            <div className="text-xs text-green-600 font-medium flex items-center gap-1">
+                              <TrendingUp className="h-3 w-3" />
+                              Complete
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex flex-col items-end">
-                            <span className="font-semibold text-sm">
-                              {campaign.price || '$0'}
-                            </span>
-                            <span className="text-xs text-muted-foreground">Budget</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex flex-col items-end">
-                            <span className="font-semibold text-sm text-green-600">
-                              {campaign.spend || '$0'}
-                            </span>
-                            <span className="text-xs text-muted-foreground">Spent</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex flex-col items-end">
-                            <span className="font-semibold text-sm text-orange-600">
-                              {campaign.remaining || '$0'}
-                            </span>
-                            <span className="text-xs text-muted-foreground">Left</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <User className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-sm">{campaign.salespeople || 'N/A'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-sm">{campaign.start_date || '-'}</span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+                          ) : remainingNum > 0 ? (
+                            <div className="text-xs text-orange-600 font-medium">
+                              ${remainingNum.toLocaleString()} left
+                            </div>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <span className="font-semibold text-sm">
+                          {campaign.price || '$0'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <span className="font-semibold text-sm text-green-600">
+                          {campaign.spend || '$0'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <span className="font-semibold text-sm text-orange-600">
+                          {campaign.remaining || '$0'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <span className="text-sm truncate block">{campaign.salespeople || 'N/A'}</span>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <span className="text-sm">{campaign.start_date || '-'}</span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
