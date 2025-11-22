@@ -34,7 +34,7 @@ echo ""
 cd spotify_scraper
 
 echo "[2/6] Updating Python dependencies..."
-pip3 install -r requirements-scraper-only.txt --upgrade
+pip3 install -r requirements-scraper-only.txt --upgrade --break-system-packages
 echo "✓ Dependencies updated"
 echo ""
 
