@@ -1,0 +1,24 @@
+# ==================================================
+# CLEAN .env FILE FOR PRODUCTION SERVER
+# ==================================================
+# Copy this entire content to: /root/arti-marketing-ops/spotify_scraper/.env
+# Command: nano /root/arti-marketing-ops/spotify_scraper/.env
+# (Delete everything, paste this, save with Ctrl+O, exit with Ctrl+X)
+
+# Spotify Credentials
+SPOTIFY_EMAIL=tribe@artistinfluence.com
+SPOTIFY_PASSWORD=UE_n7C*8wgxe9!P4abtK
+
+# Supabase Configuration (Production)
+SUPABASE_URL=https://api.artistinfluence.com
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDuYL0wO1Q8
+
+# Scraper Settings
+HEADLESS=false
+LOG_LEVEL=INFO
+
+# Browser Directories
+USER_DATA_DIR=/root/arti-marketing-ops/spotify_scraper/browser_data
+DOWNLOAD_DIR=/root/arti-marketing-ops/spotify_scraper/downloads
+ARTIFACTS_DIR=/root/arti-marketing-ops/spotify_scraper/artifacts
+

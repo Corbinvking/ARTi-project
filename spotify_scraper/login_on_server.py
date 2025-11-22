@@ -8,6 +8,11 @@ import asyncio
 import os
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env file
+env_path = Path(__file__).parent / '.env'
+load_dotenv(env_path)
 
 # Add runner to path
 sys.path.insert(0, str(Path(__file__).parent))
