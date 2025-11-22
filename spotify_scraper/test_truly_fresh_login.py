@@ -10,6 +10,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
 
+# Fix Windows console encoding
+if sys.platform == 'win32':
+    sys.stdout.reconfigure(encoding='utf-8')
+
 # Load .env
 env_path = Path(__file__).parent / '.env'
 load_dotenv(env_path)
