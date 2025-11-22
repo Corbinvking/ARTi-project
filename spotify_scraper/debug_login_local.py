@@ -44,24 +44,43 @@ async def debug_login():
     await scraper.start()
     
     try:
-        # Navigate to login
-        print("[1/4] Navigating to login page...")
-        await scraper.page.goto('https://accounts.spotify.com/login', wait_until='domcontentloaded')
-        await asyncio.sleep(2)
+        # Navigate DIRECTLY to Spotify for Artists (not regular login)
+        print("[1/4] Navigating to Spotify for Artists...")
+        await scraper.page.goto('https://artists.spotify.com', wait_until='domcontentloaded')
+        await asyncio.sleep(5)  # Wait for redirect/login
         
-        # Fill email
-        print("[2/4] Entering email...")
-        await scraper.page.fill('input#username', email)
-        
-        # Click Continue
-        print("[3/4] Clicking Continue...")
-        await scraper.page.click('button:has-text("Continue")')
-        print("  Waiting 5 seconds for page to load...")
-        await asyncio.sleep(5)
-        
-        # Show current state
+        # Check where we ended up
         current_url = scraper.page.url
-        print(f"\n[4/4] Current URL: {current_url}")
+        print(f"       Current URL: {current_url}")
+        
+        # If we're on a login page, enter credentials
+        if 'login' in current_url.lower() or 'accounts.spotify.com' in current_url:
+            print("[2/4] On login page - entering email...")
+            
+            # Try to fill email
+            email_selector = 'input#login-username, input[name="username"], input[type="email"], input[type="text"]'
+            try:
+                await scraper.page.fill(email_selector, email, timeout=5000)
+                print("       Email entered")
+            except:
+                print("       ⚠️  Could not find email field")
+            
+            # Click Continue
+            print("[3/4] Clicking Continue/Log in...")
+            try:
+                await scraper.page.click('button:has-text("Continue"), button:has-text("Log in"), button[type="submit"]', timeout=5000)
+                print("       Button clicked")
+            except:
+                print("       ⚠️  Could not find Continue button")
+            
+            print("       Waiting for page to load...")
+            await asyncio.sleep(5)
+        else:
+            print("[2/4] Already on Spotify for Artists page!")
+        
+        # Update current URL
+        current_url = scraper.page.url
+        print(f"\n[4/4] Final URL: {current_url}")
         
         # List all buttons
         print("\n" + "=" * 60)
