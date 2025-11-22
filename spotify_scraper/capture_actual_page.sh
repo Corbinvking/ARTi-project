@@ -3,6 +3,14 @@
 
 cd /root/arti-marketing-ops/spotify_scraper
 
+# Start Xvfb if not running
+if ! pgrep -x "Xvfb" > /dev/null; then
+    echo "Starting Xvfb on display :99..."
+    Xvfb :99 -screen 0 1920x1080x24 &
+    sleep 2
+fi
+export DISPLAY=:99
+
 cat > capture_page.py << 'EOF'
 import asyncio
 import os
