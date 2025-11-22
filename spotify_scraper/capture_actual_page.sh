@@ -24,12 +24,13 @@ load_dotenv(env_path)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'runner'))
 from app.scraper import SpotifyArtistsScraper
+from app.pages.spotify_artists import SpotifyArtistsPage
 
 async def capture_page():
     """Capture actual page state for debugging"""
     
     # Known good URL
-    url = "https://artists.spotify.com/c/artist/36Bfcbr8mLMRPteWtBIm6Y/song/2IwIvnhAM0zqBAKR7vnteg/playlists"
+    url = "https://artists.spotify.com/c/artist/36Bfcbr8mLMRPteWtBIm6Y/song/2IwIvnhAM0zqBAKR7vnteg/stats"
     
     print("Starting browser...")
     scraper = SpotifyArtistsScraper(headless=False)
@@ -49,9 +50,20 @@ async def capture_page():
         else:
             print("✅ Already logged in!")
         
+        # Use the proper SpotifyArtistsPage class to navigate
         print(f"Navigating to: {url}")
-        await scraper.page.goto(url, wait_until='domcontentloaded', timeout=60000)
-        await asyncio.sleep(5)  # Let page fully load
+        artists_page = SpotifyArtistsPage(scraper.page)
+        await artists_page.navigate_to_song(url)
+        
+        # Check final URL
+        final_url = scraper.page.url
+        print(f"Final URL: {final_url}")
+        if 'login' in final_url.lower() or 'accounts.spotify.com' in final_url:
+            print("⚠️  WARNING: Redirected to login page!")
+            print("   The session may have expired or Spotify detected automation.")
+        
+        # Wait a bit more to ensure everything loaded
+        await asyncio.sleep(3)
         
         # Take screenshot
         screenshot_path = '/var/log/spotify-scraper/actual_page.png'
