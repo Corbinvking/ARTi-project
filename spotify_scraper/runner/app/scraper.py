@@ -164,12 +164,29 @@ class SpotifyArtistsScraper:
             
             # Step 3: Click "Log in with password" or similar
             print("Step 3: Looking for password login option...")
+            
+            # Debug: List all buttons on the page
+            try:
+                all_buttons = await self.page.locator('button, a[role="button"]').all()
+                print(f"  Found {len(all_buttons)} buttons/links on page:")
+                for i, btn in enumerate(all_buttons[:10]):  # Show first 10
+                    text = await btn.text_content()
+                    data_testid = await btn.get_attribute('data-testid')
+                    print(f"    Button {i+1}: text='{text.strip() if text else ''}' data-testid='{data_testid}'")
+            except Exception as e:
+                print(f"  Debug info failed: {e}")
+            
             password_option_selectors = [
+                'button:has-text("Log in with password")',
+                'button:has-text("Use password")',
                 'button:has-text("Password")',
                 'button:has-text("password")',
                 'a:has-text("password")',
+                'a:has-text("Log in with password")',
                 'div:has-text("Password") button',
-                '[data-testid="login-password-button"]'
+                '[data-testid="login-password-button"]',
+                '[data-testid="login-password"]',
+                'button[data-testid*="password"]'
             ]
             
             password_option_clicked = False
