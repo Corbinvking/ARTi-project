@@ -17,13 +17,16 @@ import asyncio
 import os
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from dotenv import load_dotenv
 import aiohttp
 
+# Load .env from the spotify_scraper directory
+env_path = Path('/root/arti-marketing-ops/spotify_scraper/.env')
+load_dotenv(env_path)
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'runner'))
 from app.scraper import SpotifyArtistsScraper
-
-load_dotenv()
 
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'http://localhost:54321')
 SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
