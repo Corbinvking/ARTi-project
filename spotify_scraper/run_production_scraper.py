@@ -201,8 +201,11 @@ class ProductionScraper:
         
         logger.info(f"Processing {len(campaigns)} campaigns...")
         
-        # Initialize scraper (headless for production)
-        async with SpotifyArtistsScraper(headless=True) as scraper:
+        # Initialize scraper (headless mode controlled by env var)
+        headless_mode = os.getenv('HEADLESS', 'false').lower() == 'true'
+        logger.info(f"Running in {'HEADLESS' if headless_mode else 'GUI'} mode")
+        
+        async with SpotifyArtistsScraper(headless=headless_mode) as scraper:
             # Verify login first
             logger.info("Verifying Spotify for Artists login...")
             
