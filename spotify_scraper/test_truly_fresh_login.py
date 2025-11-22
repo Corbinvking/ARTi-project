@@ -139,6 +139,29 @@ async def test_truly_fresh_login():
         await page.screenshot(path='./step5_after_continue.png')
         print("       📸 Screenshot: step5_after_continue.png")
         
+        # Check if we need to click "Log in with a password"
+        print("\nLooking for 'Log in with a password' button...")
+        login_with_password_selectors = [
+            'button:has-text("Log in with a password")',
+            'a:has-text("Log in with a password")',
+            'button:has-text("Log in with password")'
+        ]
+        
+        password_button_clicked = False
+        for selector in login_with_password_selectors:
+            if await page.locator(selector).count() > 0:
+                print(f"       ✅ Found: {selector}")
+                print("       Clicking 'Log in with a password'...")
+                await page.click(selector)
+                await asyncio.sleep(3)
+                password_button_clicked = True
+                await page.screenshot(path='./step6_after_password_button.png')
+                print("       📸 Screenshot: step6_after_password_button.png")
+                break
+        
+        if not password_button_clicked:
+            print("       ⚠️  'Log in with a password' button not found, checking for password field directly...")
+        
         # Look for password field
         print("\nLooking for password field...")
         password_field = await page.locator('input[type="password"]').count()
@@ -150,7 +173,7 @@ async def test_truly_fresh_login():
             
             # Look for login button
             await asyncio.sleep(1)
-            await page.screenshot(path='./step6_password_entered.png')
+            await page.screenshot(path='./step7_password_entered.png')
             
             login_button_selectors = [
                 'button:has-text("Log in")',
@@ -179,10 +202,10 @@ async def test_truly_fresh_login():
                 has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
                 print(f"       sp_dc cookie: {'✅ Found' if has_sp_dc else '❌ Missing'}")
                 
-                await page.screenshot(path='./step7_logged_in.png')
+                await page.screenshot(path='./step8_logged_in.png')
             else:
                 print("       ❌ Login may have failed")
-                await page.screenshot(path='./step7_login_failed.png')
+                await page.screenshot(path='./step8_login_failed.png')
         else:
             print("       ❌ No password field found!")
             print("       What buttons are available?")
@@ -212,8 +235,9 @@ async def test_truly_fresh_login():
         print("  - step3_login_form.png (login form)")
         print("  - step4_after_email.png (after entering email)")
         print("  - step5_after_continue.png (after clicking continue)")
-        print("  - step6_password_entered.png (if password field found)")
-        print("  - step7_logged_in.png or step7_login_failed.png (final state)")
+        print("  - step6_after_password_button.png (after clicking 'Log in with a password')")
+        print("  - step7_password_entered.png (password entered)")
+        print("  - step8_logged_in.png or step8_login_failed.png (final state)")
 
 if __name__ == '__main__':
     asyncio.run(test_truly_fresh_login())
