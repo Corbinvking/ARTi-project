@@ -36,6 +36,19 @@ async def capture_page():
     await scraper.start()
     
     try:
+        # Verify login first
+        print("Verifying login...")
+        if not await scraper.verify_login():
+            print("❌ Not logged in! Attempting auto-login...")
+            email = os.getenv('SPOTIFY_EMAIL')
+            password = os.getenv('SPOTIFY_PASSWORD')
+            if not await scraper.auto_login(email, password):
+                print("❌ Auto-login failed!")
+                return
+            print("✅ Login successful!")
+        else:
+            print("✅ Already logged in!")
+        
         print(f"Navigating to: {url}")
         await scraper.page.goto(url, wait_until='domcontentloaded', timeout=60000)
         await asyncio.sleep(5)  # Let page fully load
