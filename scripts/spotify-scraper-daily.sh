@@ -6,11 +6,16 @@
 # Set working directory
 cd /root/arti-marketing-ops/spotify_scraper
 
+# Load environment variables
+if [ -f .env ]; then
+    export $(cat .env | grep -v '^#' | xargs)
+fi
+
 # Generate log filename
-LOG_FILE="/root/arti-marketing-ops/logs/spotify-scraper/run-$(date +%Y%m%d-%H%M%S).log"
+LOG_FILE="/var/log/spotify-scraper/run-$(date +%Y%m%d-%H%M%S).log"
 
 # Create log directory if needed
-mkdir -p /root/arti-marketing-ops/logs/spotify-scraper
+mkdir -p /var/log/spotify-scraper
 
 # Start logging
 echo "========================================" >> "$LOG_FILE"
@@ -33,7 +38,7 @@ echo "========================================" >> "$LOG_FILE"
 echo "" >> "$LOG_FILE"
 
 # Keep only last 30 days of logs
-find /root/arti-marketing-ops/logs/spotify-scraper -name "run-*.log" -mtime +30 -delete
+find /var/log/spotify-scraper -name "run-*.log" -mtime +30 -delete
 
 # Log to syslog for centralized monitoring
 logger -t spotify-scraper "Spotify scraper completed with exit code $EXIT_CODE"

@@ -127,24 +127,11 @@ class SpotifyArtistsPage:
         except:
             stats['title'] = 'Unknown'
         
-        # Get stream count
+        # Get stream count from playlist table (sum of all playlist streams)
+        # The Playlists tab doesn't show time-filtered total streams at the top,
+        # but we can calculate it by summing the streams from each playlist
         try:
-            stream_selectors = [
-                '[data-testid="streams-count"]',
-                '.streams-count',
-                'text=streams'
-            ]
-            for selector in stream_selectors:
-                streams_element = await self.page.query_selector(selector)
-                if streams_element:
-                    streams_text = await streams_element.text_content()
-                    # Extract numbers from text
-                    numbers = re.findall(r'[\d,]+', streams_text)
-                    if numbers:
-                        stats['streams'] = int(numbers[0].replace(',', ''))
-                        break
-            if 'streams' not in stats:
-                stats['streams'] = 0
+            stats['streams'] = 0  # Will be calculated from playlist table below
         except:
             stats['streams'] = 0
             
@@ -247,6 +234,19 @@ class SpotifyArtistsPage:
                     continue
             
             stats['playlists'] = playlists
+            
+            # Calculate total streams from playlists (sum of all playlist streams)
+            total_playlist_streams = 0
+            for playlist in playlists:
+                try:
+                    # Remove commas and convert to int
+                    stream_count = int(playlist['streams'].replace(',', ''))
+                    total_playlist_streams += stream_count
+                except:
+                    pass
+            
+            stats['streams'] = total_playlist_streams
+            print(f"  Total streams from {len(playlists)} playlists: {total_playlist_streams:,}")
             
             # Also get the total playlist count from the heading
             try:

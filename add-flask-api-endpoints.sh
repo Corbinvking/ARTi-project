@@ -1,37 +1,7 @@
 #!/bin/bash
-# Complete script to add API endpoints and CORS to Flask main.py
-# Run this on the droplet: bash add-flask-api-endpoints-complete.sh
+# Add API endpoints to Flask main.py for Ratio Fixer bridge integration
 
-cd /opt/ratio-fixer
-
-echo "Adding CORS and API endpoints to main.py..."
-
-# Backup original
-cp main.py main.py.backup
-
-# Check if flask_cors is already imported
-if ! grep -q "from flask_cors import CORS" main.py; then
-    # Add CORS import after other flask imports
-    sed -i '/^from flask import/a from flask_cors import CORS' main.py
-    echo "✅ Added CORS import"
-else
-    echo "✅ CORS import already exists"
-fi
-
-# Check if CORS is initialized
-if ! grep -q "CORS(app" main.py; then
-    # Add CORS initialization after app = Flask line
-    sed -i '/^app = Flask/a CORS(app, resources={r"/api/*": {"origins": "*"}})' main.py
-    echo "✅ Added CORS initialization"
-else
-    echo "✅ CORS already initialized"
-fi
-
-# Add API endpoints before "if __name__ == '__main__':"
-if ! grep -q "@app.route(\"/api/create_campaign\"" main.py; then
-    # Find the line with "if __name__ == '__main__':"
-    # Insert API endpoints before it
-    cat >> /tmp/api_endpoints.txt << 'ENDOFFILE'
+cat >> /opt/ratio-fixer/main.py << 'ENDOFFILE'
 
 # ============================================================================
 # API Endpoints for Ratio Fixer Bridge Integration
@@ -39,7 +9,10 @@ if ! grep -q "@app.route(\"/api/create_campaign\"" main.py; then
 
 @app.route("/api/create_campaign", methods=["POST"])
 def api_create_campaign():
-    """API endpoint for creating campaigns via bridge"""
+    """
+    API endpoint for creating campaigns via bridge
+    Expects JSON body with campaign data
+    """
     try:
         # Validate API key if configured
         api_key = request.headers.get('X-API-Key')
@@ -47,6 +20,7 @@ def api_create_campaign():
             return jsonify({"error": "Unauthorized"}), 401
         
         data = request.json
+        
         if not data:
             return jsonify({"error": "No JSON data provided"}), 400
         
@@ -118,8 +92,11 @@ def api_create_campaign():
 
 @app.route("/api/campaign_status/<campaign_id>", methods=["GET"])
 def api_campaign_status(campaign_id):
-    """API endpoint for getting campaign status"""
+    """
+    API endpoint for getting campaign status
+    """
     try:
+        # Validate API key if configured
         api_key = request.headers.get('X-API-Key')
         if os.getenv('RATIO_FIXER_API_KEY') and api_key != os.getenv('RATIO_FIXER_API_KEY'):
             return jsonify({"error": "Unauthorized"}), 401
@@ -132,8 +109,14 @@ def api_campaign_status(campaign_id):
                 "likes": campaign.ratio_calculator.likes or 0,
                 "comments": campaign.ratio_calculator.comments or 0,
                 "status": campaign.data.get("Status", "Unknown"),
-                "desired_comments": math.floor(campaign.desired_comments) if campaign.desired_comments else 0,
-                "desired_likes": math.floor(campaign.desired_likes) if campaign.desired_likes else 0,
+                "desired_comments": (
+                    math.floor(campaign.desired_comments)
+                    if campaign.desired_comments
+                    else 0
+                ),
+                "desired_likes": (
+                    math.floor(campaign.desired_likes) if campaign.desired_likes else 0
+                ),
                 "ordered_likes": campaign.ordered_likes or 0,
                 "ordered_comments": campaign.ordered_comments or 0,
             }
@@ -148,8 +131,11 @@ def api_campaign_status(campaign_id):
 
 @app.route("/api/stop_campaign/<campaign_id>", methods=["POST"])
 def api_stop_campaign(campaign_id):
-    """API endpoint for stopping a campaign"""
+    """
+    API endpoint for stopping a campaign
+    """
     try:
+        # Validate API key if configured
         api_key = request.headers.get('X-API-Key')
         if os.getenv('RATIO_FIXER_API_KEY') and api_key != os.getenv('RATIO_FIXER_API_KEY'):
             return jsonify({"error": "Unauthorized"}), 401
@@ -158,7 +144,10 @@ def api_stop_campaign(campaign_id):
         
         if success:
             logger.info(f"API: Stopped campaign {campaign_id}")
-            return jsonify({"success": True, "message": "Campaign stopped successfully"}), 200
+            return jsonify({
+                "success": True,
+                "message": "Campaign stopped successfully"
+            }), 200
         else:
             return jsonify({"error": "Failed to stop campaign"}), 500
             
@@ -174,53 +163,7 @@ def health_check():
 
 ENDOFFILE
 
-    # Insert before "if __name__ == '__main__':"
-    python3 << 'PYTHON_SCRIPT'
-import sys
-
-with open('main.py', 'r') as f:
-    lines = f.readlines()
-
-# Find the line with "if __name__ == '__main__':"
-insert_index = None
-for i, line in enumerate(lines):
-    if 'if __name__' in line and '__main__' in line:
-        insert_index = i
-        break
-
-if insert_index is None:
-    print("ERROR: Could not find 'if __name__ == __main__' line")
-    sys.exit(1)
-
-# Read API endpoints
-with open('/tmp/api_endpoints.txt', 'r') as f:
-    api_code = f.read()
-
-# Insert API endpoints
-lines.insert(insert_index, api_code)
-
-# Write back
-with open('main.py', 'w') as f:
-    f.writelines(lines)
-
-print("✅ API endpoints added successfully")
-PYTHON_SCRIPT
-
-    rm /tmp/api_endpoints.txt
-    echo "✅ Added API endpoints"
-else
-    echo "✅ API endpoints already exist"
-fi
-
-echo ""
-echo "✅ Setup complete! Testing syntax..."
-python3 -m py_compile main.py && echo "✅ Syntax check passed" || echo "❌ Syntax error - check main.py"
-
-echo ""
-echo "Next steps:"
-echo "1. Install flask-cors: pip install flask-cors"
-echo "2. Test: python main.py"
-echo "3. Test endpoint: curl http://localhost:5000/healthz"
+echo "API endpoints added to main.py"
 
 
 

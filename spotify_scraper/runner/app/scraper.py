@@ -62,8 +62,21 @@ class SpotifyArtistsScraper:
         try:
             print("Starting automatic login...")
             
+            # First check if already logged in by navigating to the home page
+            print("Checking if already logged in...")
+            await self.page.goto('https://artists.spotify.com/home', wait_until='domcontentloaded', timeout=30000)
+            await asyncio.sleep(3)
+            
+            # If we're on the home page and not redirected to login, we're already logged in
+            current_url = self.page.url
+            if 'artists.spotify.com' in current_url and 'login' not in current_url:
+                print("[OK] Already logged in! Session is valid.")
+                return True
+            
+            print("Not logged in, proceeding with login flow...")
+            
             # Navigate to login page
-            await self.page.goto('https://accounts.spotify.com/login', wait_until='networkidle', timeout=60000)
+            await self.page.goto('https://accounts.spotify.com/login', wait_until='domcontentloaded', timeout=30000)
             await asyncio.sleep(3)
             
             # Step 1: Enter email and click Continue

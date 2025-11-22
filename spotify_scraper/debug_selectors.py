@@ -1,211 +1,106 @@
-#!/usr/bin/env python3
 """
-Debug script to identify current Spotify for Artists selectors
-Run this to see what elements are actually on the page
+Debug script to inspect the current Spotify for Artists page and help identify selectors
 """
+
 import asyncio
 import os
+import sys
 from dotenv import load_dotenv
-from runner.app.scraper import SpotifyArtistsScraper
+
+# Add parent directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'runner'))
+
+from app.scraper import SpotifyArtistsScraper
 
 load_dotenv()
 
+SPOTIFY_EMAIL = os.getenv('SPOTIFY_EMAIL')
+SPOTIFY_PASSWORD = os.getenv('SPOTIFY_PASSWORD')
+
 async def debug_page():
-    """Debug page structure and find selectors"""
-    # Use the real URL provided by user
-    test_url = os.getenv('TEST_SONG_URL', 'https://artists.spotify.com/c/artist/4F8JGeO6bJO7Z309mxHlP0/song/1n2dTO7KKWztAQyCDaGmAm/stats')
+    """Open a song page and dump HTML for selector analysis"""
     
-    print("=" * 70)
-    print("SPOTIFY FOR ARTISTS SELECTOR DEBUGGER")
-    print("=" * 70)
-    print(f"\nTest URL: {test_url}\n")
+    # Test with a known working URL
+    test_url = "https://artists.spotify.com/c/artist/36Bfcbr8mLMRPteWtBIm6Y/song/2IwIvnhAM0zqBAKR7vnteg/playlists"
     
-    async with SpotifyArtistsScraper(headless=False) as scraper:
-        # Navigate to song
-        if '/stats' in test_url:
-            test_url = test_url.replace('/stats', '/playlists')
+    scraper = SpotifyArtistsScraper(headless=False)
+    await scraper.start()
+    
+    # Login or check session
+    await scraper.auto_login(SPOTIFY_EMAIL, SPOTIFY_PASSWORD)
+    
+    # Navigate to the song page
+    print(f"Navigating to: {test_url}")
+    await scraper.page.goto(test_url, wait_until='domcontentloaded', timeout=30000)
+    await asyncio.sleep(5)
+    
+    print("\n=== PAGE ANALYSIS ===\n")
+    
+    # Get page title
+    title = await scraper.page.title()
+    print(f"Page Title: {title}")
+    print(f"Current URL: {scraper.page.url}\n")
+    
+    # Look for text containing "streams"
+    print("Looking for elements containing 'stream'...")
+    try:
+        stream_elements = await scraper.page.locator('text=/stream/i').all()
+        print(f"Found {len(stream_elements)} elements")
+        for i, elem in enumerate(stream_elements[:10]):
+            text = await elem.text_content()
+            html = await elem.inner_html()
+            print(f"  {i+1}. Text: {text[:100]}")
+            print(f"     HTML: {html[:200]}\n")
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    # Look for numbers (potential stream counts)
+    print("\n Looking for large numbers (potential streams)...")
+    try:
+        # Look for elements with data-testid
+        testid_elements = await scraper.page.locator('[data-testid]').all()
+        print(f"Found {len(testid_elements)} elements with data-testid")
+        for elem in testid_elements[:20]:
+            testid = await elem.get_attribute('data-testid')
+            text = await elem.text_content()
+            if text:
+                text = text.strip()
+                if text and len(text) < 100:  # Reasonable length
+                    print(f"  {testid}: {text}")
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    # Look for table rows (playlists)
+    print("\nLooking for playlist table...")
+    try:
+        tables = await scraper.page.locator('table').all()
+        print(f"Found {len(tables)} tables")
         
-        print("[*] Navigating to song...")
-        await scraper.page.goto(test_url, wait_until='networkidle')
-        await asyncio.sleep(5)  # Give page time to load
-        
-        print("\n[OK] Page loaded! Browser is open for inspection.")
-        print("[*] Analyzing page structure...\n")
-        
-        # 1. Check for tabs
-        print("="  * 70)
-        print("1. CHECKING FOR TABS")
-        print("=" * 70)
-        
-        tab_selectors = [
-            'text="Playlists"',
-            'text="Playlist"',
-            '[role="tab"]',
-            'button:has-text("Playlist")',
-            'a:has-text("Playlist")'
-        ]
-        
-        for selector in tab_selectors:
-            try:
-                count = await scraper.page.locator(selector).count()
-                if count > 0:
-                    print(f"[OK] Found {count} element(s) with: {selector}")
-                    element = scraper.page.locator(selector).first
-                    text = await element.text_content()
-                    print(f"     Text: '{text}'")
-            except Exception as e:
-                print(f"[X] Selector failed: {selector} - {e}")
-        
-        # 2. Check for dropdown/time range selector
-        print("\n" + "=" * 70)
-        print("2. CHECKING FOR TIME RANGE DROPDOWN")
-        print("=" * 70)
-        
-        dropdown_selectors = [
-            'button:has-text("days")',
-            'button:has-text("Last")',
-            'button:has-text("hours")',
-            '[role="button"]:has-text("days")',
-            '[aria-haspopup="listbox"]',
-            'select',
-            '.dropdown',
-            'button[aria-expanded]'
-        ]
-        
-        for selector in dropdown_selectors:
-            try:
-                count = await scraper.page.locator(selector).count()
-                if count > 0:
-                    print(f"[OK] Found {count} element(s) with: {selector}")
-                    element = scraper.page.locator(selector).first
-                    text = await element.text_content()
-                    print(f"     Text: '{text[:50]}'")
-            except Exception as e:
-                print(f"[X] Selector failed: {selector}")
-        
-        # 3. Check for table/list structure
-        print("\n" + "=" * 70)
-        print("3. CHECKING FOR TABLE/LIST STRUCTURE")
-        print("=" * 70)
-        
-        table_selectors = [
-            'table',
-            'tbody tr',
-            '[role="table"]',
-            '[role="row"]',
-            '.playlist-row',
-            'ul li',
-            '[data-testid*="playlist"]',
-            '[data-testid*="table"]'
-        ]
-        
-        for selector in table_selectors:
-            try:
-                count = await scraper.page.locator(selector).count()
-                if count > 0:
-                    print(f"[OK] Found {count} element(s) with: {selector}")
-                    if count <= 5:
-                        # Show content of first few elements
-                        for i in range(min(count, 3)):
-                            element = scraper.page.locator(selector).nth(i)
-                            text = await element.text_content()
-                            print(f"     [{i+1}] {text[:80] if text else 'N/A'}...")
-            except Exception as e:
-                print(f"[X] Selector failed: {selector}")
-        
-        # 4. Check for stream/listener counts
-        print("\n" + "=" * 70)
-        print("4. CHECKING FOR STREAM/LISTENER COUNTS")
-        print("=" * 70)
-        
-        count_selectors = [
-            '[data-testid*="streams"]',
-            '[data-testid*="listeners"]',
-            'text=/\\d+,\\d+/',  # Pattern for comma-separated numbers
-            '.stat',
-            '.metric',
-            'h2:has-text(/\\d+/)',
-            'span:has-text(/\\d+,\\d+/)'
-        ]
-        
-        for selector in count_selectors:
-            try:
-                count = await scraper.page.locator(selector).count()
-                if count > 0:
-                    print(f"[OK] Found {count} element(s) with: {selector}")
-                    for i in range(min(count, 3)):
-                        element = scraper.page.locator(selector).nth(i)
-                        text = await element.text_content()
-                        print(f"     [{i+1}] {text}")
-            except Exception as e:
-                print(f"[X] Selector failed: {selector}")
-        
-        # 5. Get page structure
-        print("\n" + "=" * 70)
-        print("5. PAGE STRUCTURE (data-testid attributes)")
-        print("=" * 70)
-        
-        try:
-            # Get all elements with data-testid
-            elements = await scraper.page.locator('[data-testid]').all()
-            testids = []
-            for elem in elements[:20]:  # First 20
-                testid = await elem.get_attribute('data-testid')
-                if testid:
-                    testids.append(testid)
-            
-            if testids:
-                print("\nFound data-testid attributes:")
-                for testid in set(testids):
-                    print(f"  - {testid}")
-            else:
-                print("[!] No data-testid attributes found")
-        except Exception as e:
-            print(f"[X] Error getting test IDs: {e}")
-        
-        # 6. Take a screenshot
-        print("\n" + "=" * 70)
-        print("6. SAVING DEBUG SCREENSHOT")
-        print("=" * 70)
-        
-        try:
-            screenshot_path = "data/artifacts/debug_page.png"
-            os.makedirs("data/artifacts", exist_ok=True)
-            await scraper.page.screenshot(path=screenshot_path)
-            print(f"[OK] Screenshot saved to: {screenshot_path}")
-        except Exception as e:
-            print(f"[X] Screenshot failed: {e}")
-        
-        # 7. Save page HTML
-        print("\n" + "=" * 70)
-        print("7. SAVING PAGE HTML")
-        print("=" * 70)
-        
-        try:
-            html_path = "data/artifacts/debug_page.html"
-            html = await scraper.page.content()
-            with open(html_path, 'w', encoding='utf-8') as f:
-                f.write(html)
-            print(f"[OK] HTML saved to: {html_path}")
-        except Exception as e:
-            print(f"[X] HTML save failed: {e}")
-        
-        print("\n" + "=" * 70)
-        print("DEBUG COMPLETE")
-        print("=" * 70)
-        print("\nNext steps:")
-        print("1. Check the screenshot: data/artifacts/debug_page.png")
-        print("2. Review the HTML: data/artifacts/debug_page.html")
-        print("3. Use Chrome DevTools (F12) on the open browser to inspect elements")
-        print("4. Update selectors in spotify_artists.py based on findings")
-        print("\n[*] Browser will stay open for 60 seconds for manual inspection...")
-        print("    (Press Ctrl+C to close immediately)")
-        
-        try:
-            await asyncio.sleep(60)
-        except KeyboardInterrupt:
-            print("\n[OK] Closing browser...")
+        for i, table in enumerate(tables):
+            rows = await table.locator('tr').all()
+            print(f"\n  Table {i+1}: {len(rows)} rows")
+            if rows:
+                # Show first few rows
+                for j, row in enumerate(rows[:3]):
+                    cells = await row.locator('td, th').all()
+                    cell_texts = []
+                    for cell in cells:
+                        text = await cell.text_content()
+                        cell_texts.append(text.strip()[:50] if text else "")
+                    print(f"    Row {j+1}: {cell_texts}")
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    print("\n\n=== Keeping browser open for manual inspection ===")
+    print("Press Ctrl+C when done inspecting...")
+    
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except KeyboardInterrupt:
+        print("\nClosing...")
+    
+    await scraper.stop()
 
 if __name__ == "__main__":
     asyncio.run(debug_page())
-
