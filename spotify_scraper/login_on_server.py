@@ -7,8 +7,26 @@ This creates a fresh browser session for the scraper to use
 import asyncio
 import os
 import sys
+import subprocess
 from pathlib import Path
 from dotenv import load_dotenv
+
+# Ensure DISPLAY is set for Xvfb
+if 'DISPLAY' not in os.environ:
+    os.environ['DISPLAY'] = ':99'
+    print(f"Set DISPLAY={os.environ['DISPLAY']}")
+
+# Check if Xvfb is running, start if needed
+try:
+    result = subprocess.run(['pgrep', '-x', 'Xvfb'], capture_output=True)
+    if result.returncode != 0:
+        print("Starting Xvfb on display :99...")
+        subprocess.Popen(['Xvfb', ':99', '-screen', '0', '1920x1080x24'])
+        import time
+        time.sleep(2)
+        print("Xvfb started")
+except Exception as e:
+    print(f"Warning: Could not start Xvfb: {e}")
 
 # Load .env file
 env_path = Path(__file__).parent / '.env'
