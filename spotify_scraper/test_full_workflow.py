@@ -77,27 +77,90 @@ async def test_workflow():
         print(f"[X] Database connection failed: {e}")
         return False
     
-    # Step 2: Initialize scraper and login
-    print("[2/5] Initializing scraper and logging in...")
-    scraper = SpotifyArtistsScraper(headless=False)  # Use GUI mode for debugging
+    # Step 2: Initialize scraper with FRESH browser (incognito mode)
+    print("[2/5] Initializing FRESH browser and logging in...")
+    print("     (Using incognito mode - no cached session)")
+    
+    from playwright.async_api import async_playwright
+    
+    playwright = await async_playwright().start()
+    browser = await playwright.chromium.launch(headless=False)
+    context = await browser.new_context()  # Fresh context = incognito
+    page = await context.new_page()
     
     try:
-        await scraper.start()
-        print("[*] Browser started, attempting login...")
+        print("[*] Starting fresh login flow...")
         
-        login_success = await scraper.auto_login(SPOTIFY_EMAIL, SPOTIFY_PASSWORD)
+        # Navigate to Spotify for Artists
+        await page.goto('https://artists.spotify.com', wait_until='domcontentloaded')
+        await asyncio.sleep(3)
         
-        if not login_success:
-            print("[X] Login failed")
-            await scraper.stop()
+        # Click Login button on landing page
+        print("     Clicking Login button...")
+        login_btn = page.locator('button:has-text("Log in")')
+        if await login_btn.count() > 0:
+            await login_btn.click()
+            await asyncio.sleep(3)
+        
+        # Enter email
+        print("     Entering email...")
+        email_input = page.locator('input[type="text"]')
+        await email_input.fill(SPOTIFY_EMAIL)
+        await asyncio.sleep(1)
+        
+        # Click Continue
+        print("     Clicking Continue...")
+        continue_btn = page.locator('button:has-text("Continue")')
+        await continue_btn.click()
+        await asyncio.sleep(5)
+        
+        # Click "Log in with a password"
+        print("     Clicking 'Log in with a password'...")
+        password_option = page.locator('button:has-text("Log in with a password")')
+        if await password_option.count() > 0:
+            await password_option.click()
+            await asyncio.sleep(3)
+        
+        # Enter password
+        print("     Entering password...")
+        password_input = page.locator('input[type="password"]')
+        await password_input.fill(SPOTIFY_PASSWORD)
+        await asyncio.sleep(1)
+        
+        # Click Log in
+        print("     Clicking final Log in button...")
+        login_submit = page.locator('button:has-text("Log in")')
+        await login_submit.click()
+        await asyncio.sleep(10)
+        
+        # Dismiss welcome modal
+        print("     Dismissing welcome modal...")
+        explore_btn = page.locator('button:has-text("I\'ll explore on my own")')
+        if await explore_btn.count() > 0:
+            await explore_btn.click()
+            await asyncio.sleep(2)
+        
+        # Verify login
+        current_url = page.url
+        cookies = await context.cookies()
+        has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+        
+        if 'artists.spotify.com' not in current_url or not has_sp_dc:
+            print("[X] Login failed - not on dashboard or missing sp_dc cookie")
+            await browser.close()
+            await playwright.stop()
             return False
         
-        print("[OK] Login successful")
+        print("[OK] Login successful - sp_dc cookie verified")
+        print(f"     Current URL: {current_url}")
         print()
         
     except Exception as e:
-        print(f"[X] Scraper initialization failed: {e}")
-        await scraper.stop()
+        print(f"[X] Login failed: {e}")
+        import traceback
+        traceback.print_exc()
+        await browser.close()
+        await playwright.stop()
         return False
     
     # Step 3: Scrape the song data
@@ -105,14 +168,36 @@ async def test_workflow():
     
     try:
         sfa_url = test_campaign['sfa']
-        song_data = await scraper.scrape_song_data(sfa_url, time_ranges=['7day', '24hour'])
+        print(f"     Navigating to: {sfa_url}")
         
-        if not song_data:
-            print("[X] No data scraped")
-            await scraper.stop()
-            return False
+        # Import the page helper
+        from app.pages.spotify_artists import SpotifyArtistsPage
         
-        print("[OK] Data scraped successfully:")
+        # Create page helper
+        spotify_page = SpotifyArtistsPage(page)
+        
+        # Navigate to song URL
+        await page.goto(sfa_url, wait_until='networkidle')
+        await asyncio.sleep(5)  # Human-like delay
+        
+        # Extract data for multiple time ranges
+        song_data = {'time_ranges': {}}
+        
+        for time_range in ['7day', '24hour']:
+            print(f"     Extracting {time_range} data...")
+            
+            # Switch to time range
+            await spotify_page.switch_time_range(time_range)
+            await asyncio.sleep(3)
+            
+            # Get stats
+            stats = await spotify_page.get_song_stats(time_range)
+            song_data['time_ranges'][time_range] = {'stats': stats}
+            
+            print(f"       {time_range}: {stats.get('streams', 0)} streams, {len(stats.get('playlists', []))} playlists")
+        
+        print("[OK] Data scraped successfully")
+        print()
         
         # Extract data from the nested structure
         streams_24h = 0
@@ -134,10 +219,11 @@ async def test_workflow():
             playlists_7d = stats_7d.get('playlists', [])
             playlists_7d_count = len(playlists_7d)
         
-        print(f"     24h streams: {streams_24h}")
-        print(f"     7d streams: {streams_7d}")
-        print(f"     24h playlists: {playlists_24h_count}")
-        print(f"     7d playlists: {playlists_7d_count}")
+        print(f"     Summary:")
+        print(f"       24h streams: {streams_24h}")
+        print(f"       7d streams: {streams_7d}")
+        print(f"       24h playlists: {playlists_24h_count}")
+        print(f"       7d playlists: {playlists_7d_count}")
         print()
         
         # Show some playlist examples
@@ -151,10 +237,13 @@ async def test_workflow():
         print(f"[X] Scraping failed: {e}")
         import traceback
         traceback.print_exc()
-        await scraper.stop()
+        await browser.close()
+        await playwright.stop()
         return False
     
-    await scraper.stop()
+    # Close browser
+    await browser.close()
+    await playwright.stop()
     
     # Step 4: Update the database
     print("[4/5] Updating PRODUCTION database...")
