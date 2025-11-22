@@ -51,14 +51,43 @@ async def test_truly_fresh_login():
         current_url = page.url
         print(f"       Landed on: {current_url}")
         
-        if 'login' not in current_url.lower() and 'artists.spotify.com' in current_url and 'home' not in current_url:
-            print("       ⚠️  Already logged in somehow!")
+        # Take screenshot of landing page
+        await page.screenshot(path='./step1_landing_page.png')
+        print("       📸 Screenshot: step1_landing_page.png")
         
-        print("\n[3/6] Looking for login form...")
+        # Look for Login button (if we're on landing page)
+        print("\n[3/6] Looking for Login button...")
+        login_link_selectors = [
+            'a:has-text("Log in")',
+            'a:has-text("Login")',
+            'button:has-text("Log in")',
+            'button:has-text("Login")',
+            '[href*="login"]'
+        ]
+        
+        login_button_found = False
+        for selector in login_link_selectors:
+            if await page.locator(selector).count() > 0:
+                print(f"       ✅ Found login button: {selector}")
+                await page.click(selector)
+                print("       Clicking login button...")
+                await asyncio.sleep(3)
+                login_button_found = True
+                break
+        
+        if not login_button_found:
+            print("       ⚠️  No login button found, might already be on login page")
+        
+        current_url = page.url
+        print(f"       Current URL: {current_url}")
+        await page.screenshot(path='./step2_after_login_click.png')
+        print("       📸 Screenshot: step2_after_login_click.png")
+        
+        print("\n[4/6] Looking for login form...")
         
         # Take screenshot of what we see
-        await page.screenshot(path='./step1_initial_page.png')
-        print("       📸 Screenshot: step1_initial_page.png")
+        await page.screenshot(path='./step3_login_form.png')
+        print("       📸 Screenshot: step3_login_form.png")
         
         # Try to find email input
         email_selectors = [
@@ -71,7 +100,7 @@ async def test_truly_fresh_login():
         email_found = False
         for selector in email_selectors:
             if await page.locator(selector).count() > 0:
-                print(f"\n[4/6] Found email field: {selector}")
+                print(f"\n[5/6] Found email field: {selector}")
                 await page.fill(selector, email)
                 print("       ✅ Email entered")
                 email_found = True
@@ -79,7 +108,7 @@ async def test_truly_fresh_login():
         
         if not email_found:
             print("\n       ❌ No email field found!")
-            print("       Check step1_initial_page.png to see what's on the page")
+            print("       Check step3_login_form.png to see what's on the page")
             print("\n🔍 BROWSER PAUSED - Inspect the page!")
             print("   Press Ctrl+C when done\n")
             try:
@@ -91,8 +120,8 @@ async def test_truly_fresh_login():
             return
         
         # Click Continue
-        print("\n[5/6] Clicking Continue...")
-        await page.screenshot(path='./step2_after_email.png')
+        print("\n[6/6] Clicking Continue...")
+        await page.screenshot(path='./step4_after_email.png')
         
         continue_selectors = [
             'button:has-text("Continue")',
@@ -107,11 +136,11 @@ async def test_truly_fresh_login():
                 break
         
         await asyncio.sleep(5)
-        await page.screenshot(path='./step3_after_continue.png')
-        print("       📸 Screenshot: step3_after_continue.png")
+        await page.screenshot(path='./step5_after_continue.png')
+        print("       📸 Screenshot: step5_after_continue.png")
         
         # Look for password field
-        print("\n[6/6] Looking for password field...")
+        print("\nLooking for password field...")
         password_field = await page.locator('input[type="password"]').count()
         
         if password_field > 0:
@@ -121,7 +150,7 @@ async def test_truly_fresh_login():
             
             # Look for login button
             await asyncio.sleep(1)
-            await page.screenshot(path='./step4_password_entered.png')
+            await page.screenshot(path='./step6_password_entered.png')
             
             login_button_selectors = [
                 'button:has-text("Log in")',
@@ -150,10 +179,10 @@ async def test_truly_fresh_login():
                 has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
                 print(f"       sp_dc cookie: {'✅ Found' if has_sp_dc else '❌ Missing'}")
                 
-                await page.screenshot(path='./step5_logged_in.png')
+                await page.screenshot(path='./step7_logged_in.png')
             else:
                 print("       ❌ Login may have failed")
-                await page.screenshot(path='./step5_login_failed.png')
+                await page.screenshot(path='./step7_login_failed.png')
         else:
             print("       ❌ No password field found!")
             print("       What buttons are available?")
@@ -178,11 +207,13 @@ async def test_truly_fresh_login():
         await playwright.stop()
         print("\n✅ Test complete!")
         print("\nCheck these screenshots:")
-        print("  - step1_initial_page.png (what page loaded)")
-        print("  - step2_after_email.png (after entering email)")
-        print("  - step3_after_continue.png (after clicking continue)")
-        print("  - step4_password_entered.png (if password field found)")
-        print("  - step5_logged_in.png or step5_login_failed.png")
+        print("  - step1_landing_page.png (initial page)")
+        print("  - step2_after_login_click.png (after clicking Login button)")
+        print("  - step3_login_form.png (login form)")
+        print("  - step4_after_email.png (after entering email)")
+        print("  - step5_after_continue.png (after clicking continue)")
+        print("  - step6_password_entered.png (if password field found)")
+        print("  - step7_logged_in.png or step7_login_failed.png (final state)")
 
 if __name__ == '__main__':
     asyncio.run(test_truly_fresh_login())
