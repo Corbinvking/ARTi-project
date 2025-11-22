@@ -12,15 +12,17 @@ import json
 import logging
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Load environment variables from explicit path
+env_path = Path(__file__).parent / '.env'
+load_dotenv(env_path)
 
 # Add the runner module to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'runner'))
 
 from app.scraper import SpotifyArtistsScraper
-
-# Load environment variables
-load_dotenv()
 
 # Setup logging
 log_dir = os.path.join(os.path.dirname(__file__), 'logs')
