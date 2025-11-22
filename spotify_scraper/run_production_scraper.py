@@ -10,7 +10,7 @@ import os
 import sys
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -145,7 +145,7 @@ class ProductionScraper:
             
             # Calculate totals for each time range
             updates = {
-                'last_scraped_at': datetime.utcnow().isoformat(),
+                'last_scraped_at': datetime.now(timezone.utc).isoformat(),
                 'scrape_data': json.dumps(scraped_data)  # Store full JSON for reference
             }
             
