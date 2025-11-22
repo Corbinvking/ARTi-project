@@ -1,6 +1,6 @@
 # Minimal requirements for Spotify scraper LOCAL DEBUGGING
-# (no compilation needed, works on Windows with Python 3.14)
-playwright==1.39.0
+# (no compilation needed, compatible with Python 3.11-3.14)
+playwright>=1.48.0
 python-dotenv==1.0.0
 requests>=2.31.0
 beautifulsoup4==4.12.2
