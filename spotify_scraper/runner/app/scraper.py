@@ -83,9 +83,38 @@ class SpotifyArtistsScraper:
             
             print("Not logged in, proceeding with login flow...")
             
-            # Navigate to login page
-            await self.page.goto('https://accounts.spotify.com/login', wait_until='domcontentloaded', timeout=30000)
+            # Navigate to Spotify for Artists (not generic login page)
+            await self.page.goto('https://artists.spotify.com', wait_until='domcontentloaded', timeout=30000)
             await asyncio.sleep(3)
+            
+            # Check if we landed on the home page (need to click Login button)
+            current_url = self.page.url
+            print(f"Landed on: {current_url}")
+            
+            if 'artists.spotify.com/home' in current_url or ('artists.spotify.com' in current_url and 'login' not in current_url):
+                print("On landing page, looking for Login button...")
+                login_button_selectors = [
+                    'button:has-text("Log in")',
+                    'a:has-text("Log in")',
+                    'button:has-text("Login")',
+                    'a:has-text("Login")'
+                ]
+                
+                login_clicked = False
+                for selector in login_button_selectors:
+                    try:
+                        login_btn = self.page.locator(selector)
+                        if await login_btn.count() > 0:
+                            await login_btn.click()
+                            print(f"  Login button clicked using selector: {selector}")
+                            login_clicked = True
+                            await asyncio.sleep(3)
+                            break
+                    except:
+                        continue
+                
+                if not login_clicked:
+                    print("  WARNING: Could not find Login button on landing page")
             
             # Step 1: Enter email and click Continue
             print("Step 1: Entering email...")

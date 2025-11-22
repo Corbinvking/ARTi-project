@@ -203,6 +203,35 @@ async def test_truly_fresh_login():
                 print(f"       sp_dc cookie: {'✅ Found' if has_sp_dc else '❌ Missing'}")
                 
                 await page.screenshot(path='./step8_logged_in.png')
+                
+                # Look for "I'll explore on my own" button (welcome modal)
+                print("\nLooking for welcome modal...")
+                await asyncio.sleep(2)
+                
+                explore_button_selectors = [
+                    'button:has-text("I\'ll explore on my own")',
+                    'button:has-text("explore on my own")',
+                    '[aria-label*="explore"]'
+                ]
+                
+                modal_dismissed = False
+                for selector in explore_button_selectors:
+                    if await page.locator(selector).count() > 0:
+                        print(f"       ✅ Found welcome modal: {selector}")
+                        print("       Clicking 'I'll explore on my own'...")
+                        await page.click(selector)
+                        await asyncio.sleep(3)
+                        modal_dismissed = True
+                        await page.screenshot(path='./step9_after_modal.png')
+                        print("       📸 Screenshot: step9_after_modal.png")
+                        break
+                
+                if not modal_dismissed:
+                    print("       ⚠️  No welcome modal found (might not appear)")
+                
+                print(f"\n       ✅ At dashboard: {page.url}")
+                await page.screenshot(path='./step10_dashboard.png')
+                print("       📸 Screenshot: step10_dashboard.png")
             else:
                 print("       ❌ Login may have failed")
                 await page.screenshot(path='./step8_login_failed.png')
@@ -237,7 +266,9 @@ async def test_truly_fresh_login():
         print("  - step5_after_continue.png (after clicking continue)")
         print("  - step6_after_password_button.png (after clicking 'Log in with a password')")
         print("  - step7_password_entered.png (password entered)")
-        print("  - step8_logged_in.png or step8_login_failed.png (final state)")
+        print("  - step8_logged_in.png or step8_login_failed.png (after login)")
+        print("  - step9_after_modal.png (after dismissing welcome modal)")
+        print("  - step10_dashboard.png (final dashboard view)")
 
 if __name__ == '__main__':
     asyncio.run(test_truly_fresh_login())
