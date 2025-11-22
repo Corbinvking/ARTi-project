@@ -33,6 +33,13 @@ SERVICE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
 SPOTIFY_EMAIL = os.getenv('SPOTIFY_EMAIL')
 SPOTIFY_PASSWORD = os.getenv('SPOTIFY_PASSWORD')
 
+# Debug: Print loaded values
+print(f"DEBUG - Loaded env vars:")
+print(f"  SUPABASE_URL: {SUPABASE_URL}")
+print(f"  SERVICE_KEY: {'SET' if SERVICE_KEY else 'NOT SET'} ({len(SERVICE_KEY) if SERVICE_KEY else 0} chars)")
+print(f"  SPOTIFY_EMAIL: {SPOTIFY_EMAIL}")
+print()
+
 async def test_real_campaign():
     """Test with Campaign 7343 - has real data"""
     
@@ -44,6 +51,8 @@ async def test_real_campaign():
     }
     
     print("[1/5] Fetching Campaign 7343 from database...")
+    print(f"     URL: {SUPABASE_URL}/rest/v1/spotify_campaigns")
+    print(f"     Auth: {'Bearer ' + SERVICE_KEY[:20] + '...' if SERVICE_KEY else 'NOT SET'}")
     async with aiohttp.ClientSession() as session:
         url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
         params = {
