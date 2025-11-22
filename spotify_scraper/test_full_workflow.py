@@ -14,7 +14,7 @@ import os
 import sys
 from datetime import datetime, timezone
 from dotenv import load_dotenv
-import aiohttp
+import requests
 
 # Add parent directory to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'runner'))
@@ -47,37 +47,35 @@ async def test_workflow():
         'Content-Type': 'application/json'
     }
     
-    async with aiohttp.ClientSession() as session:
-        url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
-        params = {
-            'select': 'id,campaign,sfa,track_name,artist_name',
-            'sfa': 'like.https://artists.spotify.com%',
-            'limit': '1',
-            'order': 'id.asc'
-        }
-        
-        try:
-            async with session.get(url, headers=headers, params=params) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    print(f"[X] Database error: {response.status} - {error_text}")
-                    return False
-                
-                campaigns = await response.json()
-                
-                if not campaigns:
-                    print("[X] No campaigns found with valid SFA URLs")
-                    return False
-                
-                test_campaign = campaigns[0]
-                print(f"[OK] Found campaign: {test_campaign['campaign']}")
-                print(f"     Track: {test_campaign.get('track_name', 'N/A')} by {test_campaign.get('artist_name', 'N/A')}")
-                print(f"     SFA URL: {test_campaign['sfa']}")
-                print()
-                
-        except Exception as e:
-            print(f"[X] Database connection failed: {e}")
+    url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
+    params = {
+        'select': 'id,campaign,sfa,track_name,artist_name',
+        'sfa': 'like.https://artists.spotify.com%',
+        'limit': '1',
+        'order': 'id.asc'
+    }
+    
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code != 200:
+            print(f"[X] Database error: {response.status_code} - {response.text}")
             return False
+        
+        campaigns = response.json()
+        
+        if not campaigns:
+            print("[X] No campaigns found with valid SFA URLs")
+            return False
+        
+        test_campaign = campaigns[0]
+        print(f"[OK] Found campaign: {test_campaign['campaign']}")
+        print(f"     Track: {test_campaign.get('track_name', 'N/A')} by {test_campaign.get('artist_name', 'N/A')}")
+        print(f"     SFA URL: {test_campaign['sfa']}")
+        print()
+        
+    except Exception as e:
+        print(f"[X] Database connection failed: {e}")
+        return False
     
     # Step 2: Initialize scraper and login
     print("[2/5] Initializing scraper and logging in...")
@@ -170,58 +168,55 @@ async def test_workflow():
         'scrape_data': song_data
     }
     
-    async with aiohttp.ClientSession() as session:
-        url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
-        params = {'id': f'eq.{test_campaign["id"]}'}
-        
-        try:
-            async with session.patch(url, headers=headers, params=params, json=update_data) as response:
-                if response.status not in [200, 204]:
-                    error_text = await response.text()
-                    print(f"[X] Update failed: {response.status} - {error_text}")
-                    return False
-                
-                print(f"[OK] Database updated for campaign ID {test_campaign['id']}")
-                print()
-                
-        except Exception as e:
-            print(f"[X] Database update failed: {e}")
+    url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
+    params = {'id': f'eq.{test_campaign["id"]}'}
+    
+    try:
+        response = requests.patch(url, headers=headers, params=params, json=update_data)
+        if response.status_code not in [200, 204]:
+            print(f"[X] Update failed: {response.status_code} - {response.text}")
             return False
+        
+        print(f"[OK] Database updated for campaign ID {test_campaign['id']}")
+        print()
+        
+    except Exception as e:
+        print(f"[X] Database update failed: {e}")
+        return False
     
     # Step 5: Verify the update
     print("[5/5] Verifying database update...")
     
-    async with aiohttp.ClientSession() as session:
-        url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
-        params = {
-            'select': 'id,campaign,streams_24h,streams_7d,playlists_24h_count,playlists_7d_count,last_scraped_at',
-            'id': f'eq.{test_campaign["id"]}'
-        }
-        
-        try:
-            async with session.get(url, headers=headers, params=params) as response:
-                if response.status != 200:
-                    print(f"[X] Verification failed: {response.status}")
-                    return False
-                
-                result = await response.json()
-                if not result:
-                    print("[X] Campaign not found after update")
-                    return False
-                
-                updated_campaign = result[0]
-                print("[OK] Verification successful:")
-                print(f"     Campaign: {updated_campaign['campaign']}")
-                print(f"     24h streams: {updated_campaign['streams_24h']}")
-                print(f"     7d streams: {updated_campaign['streams_7d']}")
-                print(f"     24h playlists: {updated_campaign['playlists_24h_count']}")
-                print(f"     7d playlists: {updated_campaign['playlists_7d_count']}")
-                print(f"     Last scraped: {updated_campaign['last_scraped_at']}")
-                print()
-                
-        except Exception as e:
-            print(f"[X] Verification failed: {e}")
+    url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
+    params = {
+        'select': 'id,campaign,streams_24h,streams_7d,playlists_24h_count,playlists_7d_count,last_scraped_at',
+        'id': f'eq.{test_campaign["id"]}'
+    }
+    
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code != 200:
+            print(f"[X] Verification failed: {response.status_code}")
             return False
+        
+        result = response.json()
+        if not result:
+            print("[X] Campaign not found after update")
+            return False
+        
+        updated_campaign = result[0]
+        print("[OK] Verification successful:")
+        print(f"     Campaign: {updated_campaign['campaign']}")
+        print(f"     24h streams: {updated_campaign['streams_24h']}")
+        print(f"     7d streams: {updated_campaign['streams_7d']}")
+        print(f"     24h playlists: {updated_campaign['playlists_24h_count']}")
+        print(f"     7d playlists: {updated_campaign['playlists_7d_count']}")
+        print(f"     Last scraped: {updated_campaign['last_scraped_at']}")
+        print()
+        
+    except Exception as e:
+        print(f"[X] Verification failed: {e}")
+        return False
     
     print("[OK] ==== FULL WORKFLOW TEST PASSED ====")
     print()
