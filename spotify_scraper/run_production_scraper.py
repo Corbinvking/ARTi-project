@@ -1,279 +1,315 @@
 #!/usr/bin/env python3
 """
-Production Spotify for Artists Scraper
-Connects to production database, scrapes all active campaigns with SFA links,
-and updates stream data. Designed to run headless on a cron job.
+Production Spotify for Artists Scraper - Fresh Login Version
+Scrapes ALL campaigns with SFA links using fresh incognito login every time.
+Designed to run daily via cron job.
+
+Usage:
+  python3 run_production_scraper.py              # Scrape all campaigns
+  python3 run_production_scraper.py --limit 10   # Test with 10 campaigns
 """
 
 import asyncio
 import os
 import sys
-import json
 import logging
 from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from pathlib import Path
 from dotenv import load_dotenv
+import requests
+from playwright.async_api import async_playwright
 
-# Load environment variables from explicit path
+# Load environment variables
 env_path = Path(__file__).parent / '.env'
 load_dotenv(env_path)
 
-# Add the runner module to path
+# Add runner to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'runner'))
+from app.pages.spotify_artists import SpotifyArtistsPage
 
-from app.scraper import SpotifyArtistsScraper
+# Configuration
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://api.artistinfluence.com')
+SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+SPOTIFY_EMAIL = os.getenv('SPOTIFY_EMAIL')
+SPOTIFY_PASSWORD = os.getenv('SPOTIFY_PASSWORD')
 
 # Setup logging
-log_dir = os.path.join(os.path.dirname(__file__), 'logs')
-os.makedirs(log_dir, exist_ok=True)
-
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(os.path.join(log_dir, f'production_scraper_{datetime.now().strftime("%Y%m%d")}.log')),
-        logging.StreamHandler()
-    ]
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Supabase configuration
-SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://api.artistinfluence.com')
-SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
 
-# Spotify credentials
-SPOTIFY_EMAIL = os.getenv('SPOTIFY_EMAIL', 'tribe@artistinfluence.com')
-SPOTIFY_PASSWORD = os.getenv('SPOTIFY_PASSWORD', 'UE_n7C*8wgxe9!P4abtK')
-
-
-class ProductionScraper:
-    """Manages production scraping workflow"""
+async def login_to_spotify(page):
+    """Perform fresh login to Spotify for Artists"""
+    logger.info("Starting fresh login to Spotify for Artists...")
     
-    def __init__(self):
-        self.supabase_url = SUPABASE_URL
-        self.supabase_key = SUPABASE_SERVICE_ROLE_KEY
-        
-        if not self.supabase_key:
-            raise ValueError("SUPABASE_SERVICE_ROLE_KEY environment variable is required")
+    # Navigate to landing page
+    await page.goto('https://artists.spotify.com', wait_until='domcontentloaded')
+    await asyncio.sleep(3)
     
-    async def get_active_campaigns_with_sfa(self) -> List[Dict[str, Any]]:
-        """Query database for active campaigns with SFA links"""
-        import aiohttp
+    # Click Login button
+    logger.info("  Clicking Login button...")
+    login_btn = page.locator('button:has-text("Log in")')
+    if await login_btn.count() > 0:
+        await login_btn.click()
+        await asyncio.sleep(3)
+    
+    # Enter email
+    logger.info("  Entering email...")
+    email_input = page.locator('input[type="text"]')
+    await email_input.fill(SPOTIFY_EMAIL)
+    await asyncio.sleep(1)
+    
+    # Click Continue
+    logger.info("  Clicking Continue...")
+    continue_btn = page.locator('button:has-text("Continue")')
+    await continue_btn.click()
+    await asyncio.sleep(5)
+    
+    # Click "Log in with a password"
+    logger.info("  Clicking 'Log in with a password'...")
+    password_option = page.locator('button:has-text("Log in with a password")')
+    if await password_option.count() > 0:
+        await password_option.click()
+        await asyncio.sleep(3)
+    
+    # Enter password
+    logger.info("  Entering password...")
+    password_input = page.locator('input[type="password"]')
+    await password_input.fill(SPOTIFY_PASSWORD)
+    await asyncio.sleep(1)
+    
+    # Click final Log in button
+    logger.info("  Clicking Log in button...")
+    login_submit = page.locator('button[data-testid="login-button"]')
+    await login_submit.click()
+    await asyncio.sleep(10)
+    
+    # Dismiss welcome modal if present
+    explore_btn = page.locator('button:has-text("I\'ll explore on my own")')
+    if await explore_btn.count() > 0:
+        logger.info("  Dismissing welcome modal...")
+        await explore_btn.click()
+        await asyncio.sleep(2)
+    
+    logger.info("✓ Login successful!")
+    return True
+
+
+async def fetch_campaigns_from_database(limit=None):
+    """Fetch all campaigns with valid SFA URLs from database"""
+    logger.info("Fetching campaigns from database...")
+    
+    headers = {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
+        'Content-Type': 'application/json'
+    }
+    
+    url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
+    params = {
+        'select': 'id,campaign,sfa,track_name,artist_name',
+        'sfa': 'like.https://artists.spotify.com%',
+        'order': 'id.asc'
+    }
+    
+    if limit:
+        params['limit'] = str(limit)
+    
+    response = requests.get(url, headers=headers, params=params)
+    
+    if response.status_code != 200:
+        logger.error(f"Database error: {response.status_code} - {response.text}")
+        return []
+    
+    campaigns = response.json()
+    logger.info(f"Found {len(campaigns)} campaigns with SFA URLs")
+    return campaigns
+
+
+async def scrape_campaign(page, spotify_page, campaign):
+    """Scrape data for a single campaign"""
+    campaign_id = campaign['id']
+    campaign_name = campaign['campaign']
+    sfa_url = campaign['sfa']
+    
+    logger.info(f"[{campaign_id}] Scraping: {campaign_name}")
+    
+    try:
+        # Navigate to song
+        await spotify_page.navigate_to_song(sfa_url)
+        await asyncio.sleep(2)
         
-        logger.info("Fetching active campaigns with SFA links from database...")
+        # Scrape all three time ranges
+        song_data = {'time_ranges': {}}
         
-        headers = {
-            'apikey': self.supabase_key,
-            'Authorization': f'Bearer {self.supabase_key}',
-            'Content-Type': 'application/json'
+        for time_range in ['24hour', '7day', '28day']:
+            logger.info(f"  Extracting {time_range} data...")
+            
+            # Switch time range
+            await spotify_page.switch_time_range(time_range)
+            await asyncio.sleep(2)
+            
+            # Get stats
+            stats = await spotify_page.get_song_stats()
+            song_data['time_ranges'][time_range] = {'stats': stats}
+            
+            streams = stats.get('streams', 0)
+            playlists_count = len(stats.get('playlists', []))
+            logger.info(f"    {time_range}: {streams} streams, {playlists_count} playlists")
+        
+        # Extract data for database update
+        stats_24h = song_data['time_ranges']['24hour']['stats']
+        stats_7d = song_data['time_ranges']['7day']['stats']
+        stats_28d = song_data['time_ranges']['28day']['stats']
+        
+        return {
+            'streams_24h': stats_24h.get('streams', 0),
+            'streams_7d': stats_7d.get('streams', 0),
+            'streams_28d': stats_28d.get('streams', 0),
+            'playlists_24h_count': len(stats_24h.get('playlists', [])),
+            'playlists_7d_count': len(stats_7d.get('playlists', [])),
+            'playlists_28d_count': len(stats_28d.get('playlists', [])),
+            'last_scraped_at': datetime.now(timezone.utc).isoformat(),
+            'scrape_data': song_data
         }
         
-        # Query spotify_campaigns table for campaigns with valid sfa URLs
-        # Filter for only valid Spotify for Artists URLs
-        params = {
-            'select': 'id,campaign,sfa,track_name,artist_name,client_id,vendor_id',
-            'sfa': 'like.https://artists.spotify.com%',  # Only valid SFA URLs
-            'order': 'id.desc'
-        }
-        
-        async with aiohttp.ClientSession() as session:
-            url = f"{self.supabase_url}/rest/v1/spotify_campaigns"
-            
-            async with session.get(url, headers=headers, params=params) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    logger.error(f"Failed to fetch campaigns: {response.status} - {error_text}")
-                    return []
-                
-                campaigns = await response.json()
-                logger.info(f"Found {len(campaigns)} active campaigns with SFA links")
-                return campaigns
+    except Exception as e:
+        logger.error(f"[{campaign_id}] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+async def update_campaign_in_database(campaign_id, data):
+    """Update campaign data in database"""
+    headers = {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
+        'Content-Type': 'application/json'
+    }
     
-    async def scrape_campaign(self, scraper: SpotifyArtistsScraper, campaign: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Scrape a single campaign's data"""
-        campaign_id = campaign['id']
-        sfa_url = campaign['sfa']
-        campaign_name = campaign.get('campaign', 'Unknown')
-        track_name = campaign.get('track_name', 'Unknown')
-        
-        # Validate URL format
-        if not sfa_url or not sfa_url.startswith('https://artists.spotify.com/'):
-            logger.warning(f"  ✗ Skipping campaign {campaign_id}: Invalid SFA URL: {sfa_url}")
-            return None
-        
-        logger.info(f"Scraping campaign {campaign_id}: {track_name} ({campaign_name})")
-        logger.info(f"  URL: {sfa_url}")
-        
-        try:
-            # Scrape the data (24hour + 7day by default)
-            data = await scraper.scrape_song_data(sfa_url, time_ranges=['24hour', '7day'])
-            
-            if not data:
-                logger.warning(f"  No data returned for campaign {campaign_id}")
-                return None
-            
-            logger.info(f"  ✓ Successfully scraped campaign {campaign_id}")
-            
-            # Log summary
-            for time_range in ['24hour', '7day']:
-                if time_range in data.get('time_ranges', {}):
-                    stats = data['time_ranges'][time_range].get('stats', {})
-                    playlists = stats.get('playlists', [])
-                    total_streams = sum(int(p.get('streams', 0)) for p in playlists)
-                    logger.info(f"    {time_range}: {len(playlists)} playlists, {total_streams} total streams")
-            
-            return data
-            
-        except Exception as e:
-            logger.error(f"  ✗ Failed to scrape campaign {campaign_id}: {e}", exc_info=True)
-            return None
+    url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
+    params = {'id': f'eq.{campaign_id}'}
     
-    async def update_campaign_data(self, campaign_id: int, scraped_data: Dict[str, Any]) -> bool:
-        """Update database with scraped data"""
-        import aiohttp
-        
-        logger.info(f"Updating database for campaign {campaign_id}...")
-        
-        try:
-            headers = {
-                'apikey': self.supabase_key,
-                'Authorization': f'Bearer {self.supabase_key}',
-                'Content-Type': 'application/json'
-            }
-            
-            # Extract 24h and 7d playlist data
-            time_ranges_data = scraped_data.get('time_ranges', {})
-            
-            # Calculate totals for each time range
-            updates = {
-                'last_scraped_at': datetime.now(timezone.utc).isoformat(),
-                'scrape_data': json.dumps(scraped_data)  # Store full JSON for reference
-            }
-            
-            # Add 24h stats if available
-            if '24hour' in time_ranges_data:
-                stats_24h = time_ranges_data['24hour'].get('stats', {})
-                playlists_24h = stats_24h.get('playlists', [])
-                total_streams_24h = sum(int(p.get('streams', 0)) for p in playlists_24h)
-                
-                updates['streams_24h'] = total_streams_24h
-                updates['playlists_24h_count'] = len(playlists_24h)
-            
-            # Add 7d stats if available
-            if '7day' in time_ranges_data:
-                stats_7d = time_ranges_data['7day'].get('stats', {})
-                playlists_7d = stats_7d.get('playlists', [])
-                total_streams_7d = sum(int(p.get('streams', 0)) for p in playlists_7d)
-                
-                updates['streams_7d'] = total_streams_7d
-                updates['playlists_7d_count'] = len(playlists_7d)
-            
-            # Update spotify_campaigns table
-            async with aiohttp.ClientSession() as session:
-                url = f"{self.supabase_url}/rest/v1/spotify_campaigns"
-                params = {'id': f'eq.{campaign_id}'}
-                
-                async with session.patch(url, headers=headers, params=params, json=updates) as response:
-                    if response.status not in [200, 204]:
-                        error_text = await response.text()
-                        logger.error(f"  Failed to update campaign {campaign_id}: {response.status} - {error_text}")
-                        return False
-            
-            logger.info(f"  ✓ Database updated for campaign {campaign_id}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"  ✗ Failed to update database for campaign {campaign_id}: {e}", exc_info=True)
+    response = requests.patch(url, headers=headers, params=params, json=data)
+    
+    if response.status_code not in [200, 204]:
+        logger.error(f"[{campaign_id}] Database update failed: {response.status_code} - {response.text}")
+        return False
+    
+    logger.info(f"[{campaign_id}] ✓ Database updated")
+    return True
+
+
+async def main(limit=None):
+    """Main scraper execution"""
+    logger.info("="*60)
+    logger.info("SPOTIFY FOR ARTISTS PRODUCTION SCRAPER")
+    logger.info("="*60)
+    logger.info(f"Supabase URL: {SUPABASE_URL}")
+    logger.info(f"Spotify Email: {SPOTIFY_EMAIL}")
+    logger.info(f"Limit: {limit if limit else 'No limit (all campaigns)'}")
+    logger.info("")
+    
+    # Validate credentials
+    if not SPOTIFY_EMAIL or not SPOTIFY_PASSWORD:
+        logger.error("SPOTIFY_EMAIL and SPOTIFY_PASSWORD must be set in .env")
+        return False
+    
+    if not SUPABASE_SERVICE_ROLE_KEY:
+        logger.error("SUPABASE_SERVICE_ROLE_KEY must be set in .env")
+        return False
+    
+    # Fetch campaigns from database
+    campaigns = await fetch_campaigns_from_database(limit=limit)
+    
+    if not campaigns:
+        logger.warning("No campaigns to scrape")
+        return False
+    
+    # Initialize browser (fresh incognito context)
+    logger.info("Initializing browser...")
+    playwright = await async_playwright().start()
+    
+    # Use headless mode based on environment
+    headless = os.getenv('HEADLESS', 'false').lower() == 'true'
+    browser = await playwright.chromium.launch(headless=headless)
+    context = await browser.new_context()  # Fresh context = incognito
+    page = await context.new_page()
+    
+    success_count = 0
+    failure_count = 0
+    
+    try:
+        # Login once at the beginning
+        if not await login_to_spotify(page):
+            logger.error("Login failed, aborting")
             return False
-    
-    async def run(self):
-        """Main production scraper workflow"""
-        logger.info("=" * 80)
-        logger.info("PRODUCTION SPOTIFY FOR ARTISTS SCRAPER")
-        logger.info(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info("=" * 80)
         
-        # Get campaigns to scrape
-        campaigns = await self.get_active_campaigns_with_sfa()
+        # Verify we have the sp_dc cookie
+        cookies = await context.cookies()
+        has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+        if not has_sp_dc:
+            logger.error("sp_dc cookie not found, aborting")
+            return False
         
-        if not campaigns:
-            logger.warning("No campaigns found to scrape. Exiting.")
-            return
+        logger.info("")
+        logger.info(f"Starting to scrape {len(campaigns)} campaigns...")
+        logger.info("")
         
-        logger.info(f"Processing {len(campaigns)} campaigns...")
+        # Create Spotify page helper
+        spotify_page = SpotifyArtistsPage(page)
         
-        # Initialize scraper (headless mode controlled by env var)
-        headless_mode = os.getenv('HEADLESS', 'false').lower() == 'true'
-        logger.info(f"Running in {'HEADLESS' if headless_mode else 'GUI'} mode")
-        
-        async with SpotifyArtistsScraper(headless=headless_mode) as scraper:
-            # Verify login first
-            logger.info("Verifying Spotify for Artists login...")
+        # Scrape each campaign
+        for i, campaign in enumerate(campaigns, 1):
+            logger.info(f"[{i}/{len(campaigns)}] Processing campaign {campaign['id']}")
             
-            if not await scraper.verify_login():
-                logger.warning("Not logged in. Attempting automatic login...")
-                
-                if await scraper.auto_login(SPOTIFY_EMAIL, SPOTIFY_PASSWORD):
-                    logger.info("✓ Auto-login successful!")
+            # Scrape data
+            data = await scrape_campaign(page, spotify_page, campaign)
+            
+            if data:
+                # Update database
+                if await update_campaign_in_database(campaign['id'], data):
+                    success_count += 1
                 else:
-                    logger.error("✗ Auto-login failed! Cannot proceed.")
-                    logger.error("Please run manual login setup: python setup_manual_login.py")
-                    return
+                    failure_count += 1
+            else:
+                failure_count += 1
             
-            logger.info("✓ Login verified!")
+            logger.info("")
             
-            # Track results
-            successful = 0
-            failed = 0
-            skipped = 0
-            
-            # Process each campaign
-            for i, campaign in enumerate(campaigns, 1):
-                campaign_id = campaign['id']
-                
-                logger.info(f"\n[{i}/{len(campaigns)}] Processing campaign {campaign_id}...")
-                
-                # Scrape the campaign
-                scraped_data = await self.scrape_campaign(scraper, campaign)
-                
-                if not scraped_data:
-                    failed += 1
-                    continue
-                
-                # Update the database
-                if await self.update_campaign_data(campaign_id, scraped_data):
-                    successful += 1
-                else:
-                    failed += 1
-                
-                # Small delay between campaigns to avoid rate limiting
+            # Small delay between campaigns to avoid rate limiting
+            if i < len(campaigns):
                 await asyncio.sleep(2)
         
-        # Summary
-        logger.info("=" * 80)
-        logger.info("SCRAPING COMPLETE")
-        logger.info(f"Finished at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info(f"Results:")
-        logger.info(f"  ✓ Successful: {successful}")
-        logger.info(f"  ✗ Failed: {failed}")
-        logger.info(f"  - Skipped: {skipped}")
-        logger.info(f"  Total: {len(campaigns)}")
-        logger.info("=" * 80)
+    finally:
+        # Cleanup
+        await browser.close()
+        await playwright.stop()
+    
+    # Summary
+    logger.info("="*60)
+    logger.info("SCRAPING COMPLETE")
+    logger.info("="*60)
+    logger.info(f"Total campaigns: {len(campaigns)}")
+    logger.info(f"Successful: {success_count}")
+    logger.info(f"Failed: {failure_count}")
+    logger.info(f"Success rate: {(success_count/len(campaigns)*100):.1f}%")
+    logger.info("")
+    
+    return success_count > 0
 
 
-async def main():
-    """Entry point"""
-    try:
-        scraper = ProductionScraper()
-        await scraper.run()
-    except KeyboardInterrupt:
-        logger.info("\nScraper interrupted by user")
-    except Exception as e:
-        logger.error(f"Fatal error: {e}", exc_info=True)
-        sys.exit(1)
-
-
-if __name__ == '__main__':
-    asyncio.run(main())
-
+if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Spotify for Artists Production Scraper')
+    parser.add_argument('--limit', type=int, help='Limit number of campaigns to scrape (for testing)')
+    args = parser.parse_args()
+    
+    success = asyncio.run(main(limit=args.limit))
+    sys.exit(0 if success else 1)
