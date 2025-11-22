@@ -67,11 +67,19 @@ class SpotifyArtistsScraper:
             await self.page.goto('https://artists.spotify.com/home', wait_until='domcontentloaded', timeout=30000)
             await asyncio.sleep(3)
             
-            # If we're on the home page and not redirected to login, we're already logged in
+            # If we're on the home page and not redirected to login, check cookies
             current_url = self.page.url
             if 'artists.spotify.com' in current_url and 'login' not in current_url:
-                print("[OK] Already logged in! Session is valid.")
-                return True
+                # Verify we have the critical sp_dc cookie
+                cookies = await self.context.cookies()
+                has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+                
+                if has_sp_dc:
+                    print("[OK] Already logged in! Session is valid (sp_dc cookie found).")
+                    return True
+                else:
+                    print("[WARNING] On home page but missing sp_dc cookie - login incomplete!")
+                    print("          Will attempt full login...")
             
             print("Not logged in, proceeding with login flow...")
             
@@ -332,8 +340,17 @@ class SpotifyArtistsScraper:
             # Check if we landed on artists.spotify.com
             current_url = self.page.url
             if 'artists.spotify.com' in current_url and 'login' not in current_url.lower():
-                print("[OK] Login successful!")
-                return True
+                # Verify we got the sp_dc cookie
+                cookies = await self.context.cookies()
+                has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+                
+                if has_sp_dc:
+                    print("[OK] Login successful! (sp_dc cookie verified)")
+                    return True
+                else:
+                    print("[WARNING] Reached artists.spotify.com but sp_dc cookie missing!")
+                    print("          Login may be incomplete. Trying again...")
+                    # Fall through to retry logic
             
             # If we're on regular Spotify, navigate to Spotify for Artists
             if 'spotify.com' in current_url and 'artists' not in current_url:
