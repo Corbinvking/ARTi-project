@@ -160,7 +160,18 @@ class SpotifyArtistsScraper:
                 print("  ERROR: Could not find Continue button!")
                 return False
             
-            await asyncio.sleep(3)
+            # Wait longer for page to navigate/load
+            print("  Waiting for page to load...")
+            await asyncio.sleep(5)  # Increased from 3 to 5 seconds
+            
+            # Check current URL
+            current_url = self.page.url
+            print(f"  Current URL: {current_url}")
+            
+            # Check if password field is already visible (single-page login)
+            password_input_exists = await self.page.locator('input[type="password"]').count() > 0
+            if password_input_exists:
+                print("  Password field found on same page - single-page login flow")
             
             # Step 3: Click "Log in with password" or similar
             print("Step 3: Looking for password login option...")
