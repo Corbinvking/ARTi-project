@@ -177,8 +177,8 @@ async def test_workflow():
         spotify_page = SpotifyArtistsPage(page)
         
         # Navigate to song URL
-        await page.goto(sfa_url, wait_until='networkidle')
-        await asyncio.sleep(5)  # Human-like delay
+        await spotify_page.navigate_to_song(sfa_url)
+        await asyncio.sleep(2)  # Human-like delay
         
         # Extract data for multiple time ranges
         song_data = {'time_ranges': {}}
@@ -186,12 +186,12 @@ async def test_workflow():
         for time_range in ['7day', '24hour']:
             print(f"     Extracting {time_range} data...")
             
-            # Switch to time range
+            # Switch to time range FIRST
             await spotify_page.switch_time_range(time_range)
-            await asyncio.sleep(3)
+            await asyncio.sleep(2)
             
-            # Get stats
-            stats = await spotify_page.get_song_stats(time_range)
+            # Then get stats (no parameter needed)
+            stats = await spotify_page.get_song_stats()
             song_data['time_ranges'][time_range] = {'stats': stats}
             
             print(f"       {time_range}: {stats.get('streams', 0)} streams, {len(stats.get('playlists', []))} playlists")
