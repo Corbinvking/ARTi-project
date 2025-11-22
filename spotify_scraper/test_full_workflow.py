@@ -129,7 +129,7 @@ async def test_workflow():
         
         # Click Log in
         print("     Clicking final Log in button...")
-        login_submit = page.locator('button:has-text("Log in")')
+        login_submit = page.locator('button[data-testid="login-button"]')
         await login_submit.click()
         await asyncio.sleep(10)
         
