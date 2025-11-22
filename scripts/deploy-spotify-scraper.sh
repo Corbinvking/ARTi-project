@@ -9,8 +9,21 @@ echo " SPOTIFY SCRAPER PRODUCTION DEPLOYMENT"
 echo "=========================================="
 echo ""
 
+# Detect project directory
+if [ -d "/root/arti-marketing-ops" ]; then
+    PROJECT_DIR="/root/arti-marketing-ops"
+elif [ -d "/root/ARTi-project" ]; then
+    PROJECT_DIR="/root/ARTi-project"
+else
+    echo "ERROR: Could not find project directory"
+    exit 1
+fi
+
+echo "Using project directory: $PROJECT_DIR"
+echo ""
+
 # Navigate to project directory
-cd /root/ARTi-project
+cd $PROJECT_DIR
 
 echo "[1/6] Pulling latest code from GitHub..."
 git pull origin main
@@ -48,7 +61,7 @@ echo "✓ Test successful"
 echo ""
 
 echo "[6/6] Applying database migration..."
-cd /root/ARTi-project
+cd $PROJECT_DIR
 docker exec -i supabase_db_arti-marketing-ops psql -U postgres -d postgres < supabase/migrations/042_add_timerange_columns.sql
 echo "✓ Migration applied"
 echo ""
@@ -60,7 +73,7 @@ echo ""
 echo "Next steps:"
 echo "  1. Verify test results above"
 echo "  2. Check frontend UI for updated data"
-echo "  3. Run full scraper: python3 run_production_scraper.py"
+echo "  3. Run full scraper: cd $PROJECT_DIR/spotify_scraper && python3 run_production_scraper.py"
 echo "  4. Cron job will run automatically at 2 AM daily"
 echo ""
 echo "Monitor logs:"
