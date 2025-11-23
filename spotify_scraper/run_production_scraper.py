@@ -185,7 +185,7 @@ async def scrape_campaign(page, spotify_page, campaign):
 
 
 async def update_campaign_in_database(campaign_id, data):
-    """Update campaign data in database"""
+    """Update campaign data in spotify_campaigns table (raw data storage)"""
     headers = {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
@@ -201,8 +201,89 @@ async def update_campaign_in_database(campaign_id, data):
         logger.error(f"[{campaign_id}] Database update failed: {response.status_code} - {response.text}")
         return False
     
-    logger.info(f"[{campaign_id}] ✓ Database updated")
+    logger.info(f"[{campaign_id}] ✓ Raw data updated in spotify_campaigns")
     return True
+
+
+async def sync_to_campaign_playlists(campaign_id, scrape_data):
+    """
+    Bridge function: Sync scraped playlist data to campaign_playlists table
+    This keeps the UI working with existing queries while storing raw data in spotify_campaigns
+    """
+    headers = {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
+        'Content-Type': 'application/json'
+    }
+    
+    try:
+        # Extract unique playlists across all time ranges
+        playlists_by_id = {}
+        
+        for time_range, time_data in scrape_data.get('time_ranges', {}).items():
+            stats = time_data.get('stats', {})
+            playlists = stats.get('playlists', [])
+            
+            for playlist in playlists:
+                playlist_name = playlist.get('name', 'Unknown')
+                # Use name as key for now (could use Spotify ID if available)
+                if playlist_name not in playlists_by_id:
+                    playlists_by_id[playlist_name] = {
+                        'playlist_name': playlist_name,
+                        'streams_24h': 0,
+                        'streams_7d': 0,
+                        'streams_28d': 0,
+                    }
+                
+                # Map time range to field name
+                if time_range == '24hour':
+                    playlists_by_id[playlist_name]['streams_24h'] = int(playlist.get('streams', 0))
+                elif time_range == '7day':
+                    playlists_by_id[playlist_name]['streams_7d'] = int(playlist.get('streams', 0))
+                elif time_range == '28day':
+                    playlists_by_id[playlist_name]['streams_28d'] = int(playlist.get('streams', 0))
+        
+        if not playlists_by_id:
+            logger.info(f"[{campaign_id}] No playlists to sync")
+            return True
+        
+        # First, delete existing campaign_playlists entries for this campaign
+        # This ensures we only show current data
+        delete_url = f"{SUPABASE_URL}/rest/v1/campaign_playlists"
+        delete_params = {'campaign_id': f'eq.{campaign_id}'}
+        
+        delete_response = requests.delete(delete_url, headers=headers, params=delete_params)
+        if delete_response.status_code not in [200, 204]:
+            logger.warning(f"[{campaign_id}] Could not delete old playlists: {delete_response.status_code}")
+        
+        # Insert new playlist data
+        playlist_records = []
+        for playlist_data in playlists_by_id.values():
+            record = {
+                'campaign_id': campaign_id,
+                'playlist_name': playlist_data['playlist_name'],
+                'streams_24h': playlist_data['streams_24h'],
+                'streams_7d': playlist_data['streams_7d'],
+                'streams_28d': playlist_data['streams_28d'],
+            }
+            playlist_records.append(record)
+        
+        # Batch insert
+        insert_url = f"{SUPABASE_URL}/rest/v1/campaign_playlists"
+        insert_response = requests.post(insert_url, headers=headers, json=playlist_records)
+        
+        if insert_response.status_code not in [200, 201]:
+            logger.error(f"[{campaign_id}] Failed to sync playlists: {insert_response.status_code} - {insert_response.text}")
+            return False
+        
+        logger.info(f"[{campaign_id}] ✓ Synced {len(playlist_records)} playlists to campaign_playlists")
+        return True
+        
+    except Exception as e:
+        logger.error(f"[{campaign_id}] Error syncing playlists: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 
 async def main(limit=None):
@@ -272,9 +353,16 @@ async def main(limit=None):
             data = await scrape_campaign(page, spotify_page, campaign)
             
             if data:
-                # Update database
+                # Update raw data in spotify_campaigns table
                 if await update_campaign_in_database(campaign['id'], data):
-                    success_count += 1
+                    # Bridge: Sync playlist data to campaign_playlists for UI
+                    scrape_data = data.get('scrape_data', {})
+                    if await sync_to_campaign_playlists(campaign['id'], scrape_data):
+                        success_count += 1
+                    else:
+                        # Raw data saved but sync failed - partial success
+                        logger.warning(f"[{campaign['id']}] Raw data saved but playlist sync failed")
+                        success_count += 1  # Still count as success
                 else:
                     failure_count += 1
             else:
