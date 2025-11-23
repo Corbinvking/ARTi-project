@@ -985,44 +985,58 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-3 bg-muted/50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                      {(campaignData?.radio_streams || 0).toLocaleString()}
+                      {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0).toLocaleString()}
                     </div>
-                    <div className="text-sm text-muted-foreground">Radio & Mixes</div>
+                    <div className="text-sm text-muted-foreground">Last 24 Hours</div>
                   </div>
                   <div className="text-center p-3 bg-muted/50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                      {(campaignData?.discover_weekly_streams || 0).toLocaleString()}
+                      {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0).toLocaleString()}
                     </div>
-                    <div className="text-sm text-muted-foreground">Discover Weekly</div>
+                    <div className="text-sm text-muted-foreground">Last 7 Days</div>
                   </div>
                   <div className="text-center p-3 bg-muted/50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                      {(campaignData?.total_algorithmic_streams || 0).toLocaleString()}
+                      {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()}
                     </div>
-                    <div className="text-sm text-muted-foreground">Total Algorithmic</div>
+                    <div className="text-sm text-muted-foreground">Last 28 Days</div>
                   </div>
                 </div>
 
                 {/* All Algorithmic Playlists */}
                 <div>
                   <h4 className="text-sm font-semibold mb-3 text-muted-foreground">All Spotify Algorithmic Playlists:</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {algorithmicPlaylists.map((playlist: any) => (
-                      <Card key={playlist.id} className="p-3 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                        <div className="flex items-start gap-2">
-                          <Radio className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <Card key={playlist.id} className="p-4 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                        <div className="flex items-start gap-2 mb-3">
+                          <Radio className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate" title={playlist.playlist_name}>
+                            <div className="font-semibold text-base truncate" title={playlist.playlist_name}>
                               {playlist.playlist_name}
                             </div>
-                            <div className="text-xs text-muted-foreground mt-0.5">
+                            <Badge variant="secondary" className="mt-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-xs">
                               Spotify Official
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div>
+                            <div className="text-xs text-muted-foreground">24h</div>
+                            <div className="font-bold text-green-600">
+                              {(playlist.streams_24h || 0).toLocaleString()}
                             </div>
-                            <div className="mt-2 text-lg font-bold text-green-600">
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground">7d</div>
+                            <div className="font-bold text-green-600">
+                              {(playlist.streams_7d || 0).toLocaleString()}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground">28d</div>
+                            <div className="font-bold text-green-600">
                               {(playlist.streams_28d || 0).toLocaleString()}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              streams (28d)
                             </div>
                           </div>
                         </div>
@@ -1194,21 +1208,21 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     <div className="text-2xl font-bold">{campaignPlaylists.length}</div>
                   </Card>
                   <Card className="p-4">
-                    <div className="text-sm text-muted-foreground mb-1">Total Streams (28d)</div>
+                    <div className="text-sm text-muted-foreground mb-1">Streams (24h)</div>
+                    <div className="text-2xl font-bold">
+                      {campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0).toLocaleString()}
+                    </div>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="text-sm text-muted-foreground mb-1">Streams (28d)</div>
                     <div className="text-2xl font-bold">
                       {campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()}
                     </div>
                   </Card>
                   <Card className="p-4">
-                    <div className="text-sm text-muted-foreground mb-1">Avg Daily Streams</div>
-                    <div className="text-2xl font-bold">
-                      {Math.round(campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0) / 28).toLocaleString()}
-                    </div>
-                  </Card>
-                  <Card className="p-4">
                     <div className="text-sm text-muted-foreground mb-1">Unique Vendors</div>
                     <div className="text-2xl font-bold">
-                      {new Set(campaignPlaylists.map((p: any) => p.vendor_id)).size}
+                      {new Set(campaignPlaylists.filter((p: any) => !p.is_algorithmic).map((p: any) => p.vendor_id)).size}
                     </div>
                   </Card>
                 </div>
@@ -1222,9 +1236,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           <TableHead className="py-2">Playlist Name</TableHead>
                           <TableHead className="py-2">Vendor</TableHead>
                           <TableHead className="py-2">Curator</TableHead>
+                          <TableHead className="text-right py-2">24h</TableHead>
                           <TableHead className="text-right py-2">7d</TableHead>
                           <TableHead className="text-right py-2">28d</TableHead>
-                          <TableHead className="text-right py-2">12m</TableHead>
                           <TableHead className="w-16 py-2">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -1234,24 +1248,30 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                             <TableCell className="font-medium py-2 max-w-[200px]">
                               <div className="truncate text-sm" title={playlist.playlist_name}>
                                 {playlist.playlist_name}
+                                {playlist.is_algorithmic && (
+                                  <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400">
+                                    <Radio className="h-3 w-3 mr-1" />
+                                    Algorithmic
+                                  </Badge>
+                                )}
                               </div>
                             </TableCell>
                             <TableCell className="py-2">
                               <Badge variant="outline" className="text-xs">
-                                {playlist.vendors?.name || 'Unknown'}
+                                {playlist.vendors?.name || (playlist.is_algorithmic ? 'Spotify' : 'Unknown')}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-muted-foreground text-xs py-2">
                               {playlist.playlist_curator || '—'}
                             </TableCell>
                             <TableCell className="text-right font-mono text-xs py-2">
+                              {(playlist.streams_24h || 0).toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-xs py-2">
                               {(playlist.streams_7d || 0).toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right font-mono font-medium text-xs py-2">
                               {(playlist.streams_28d || 0).toLocaleString()}
-                            </TableCell>
-                            <TableCell className="text-right font-mono text-xs py-2">
-                              {(playlist.streams_12m || 0).toLocaleString()}
                             </TableCell>
                             <TableCell className="py-2">
                               <Button
@@ -1278,20 +1298,21 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                   </h3>
                   {Object.entries(
                     campaignPlaylists.reduce((acc: any, playlist: any) => {
-                      const vendorName = playlist.vendors?.name || 'Unknown';
+                      const vendorName = playlist.vendors?.name || (playlist.is_algorithmic ? 'Spotify (Algorithmic)' : 'Unknown');
                       if (!acc[vendorName]) {
                         acc[vendorName] = {
                           playlists: [],
+                          totalStreams24h: 0,
                           totalStreams7d: 0,
                           totalStreams28d: 0,
-                          totalStreams12m: 0,
-                          costPer1k: playlist.vendors?.cost_per_1k_streams || 0
+                          costPer1k: playlist.vendors?.cost_per_1k_streams || 0,
+                          isAlgorithmic: playlist.is_algorithmic || false
                         };
                       }
                       acc[vendorName].playlists.push(playlist);
+                      acc[vendorName].totalStreams24h += playlist.streams_24h || 0;
                       acc[vendorName].totalStreams7d += playlist.streams_7d || 0;
                       acc[vendorName].totalStreams28d += playlist.streams_28d || 0;
-                      acc[vendorName].totalStreams12m += playlist.streams_12m || 0;
                       return acc;
                     }, {})
                   ).map(([vendorName, data]: [string, any]) => (
@@ -1309,6 +1330,13 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                       </div>
                       <div className="grid grid-cols-3 gap-4">
                         <div>
+                          <div className="text-sm text-muted-foreground">Last 24 Hours</div>
+                          <div className="text-xl font-bold">{data.totalStreams24h.toLocaleString()}</div>
+                          <div className="text-xs text-muted-foreground">
+                            24h period
+                          </div>
+                        </div>
+                        <div>
                           <div className="text-sm text-muted-foreground">Last 7 Days</div>
                           <div className="text-xl font-bold">{data.totalStreams7d.toLocaleString()}</div>
                           <div className="text-xs text-muted-foreground">
@@ -1320,13 +1348,6 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           <div className="text-xl font-bold">{data.totalStreams28d.toLocaleString()}</div>
                           <div className="text-xs text-muted-foreground">
                             {Math.round(data.totalStreams28d / 28).toLocaleString()}/day
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-muted-foreground">Last 12 Months</div>
-                          <div className="text-xl font-bold">{data.totalStreams12m.toLocaleString()}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {Math.round(data.totalStreams12m / 365).toLocaleString()}/day
                           </div>
                         </div>
                       </div>
