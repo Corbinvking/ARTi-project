@@ -236,12 +236,16 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
                     }
                 
                 # Map time range to field name
+                # Remove commas from stream counts before converting to int
+                streams_str = str(playlist.get('streams', 0)).replace(',', '')
+                streams = int(streams_str) if streams_str.isdigit() else 0
+                
                 if time_range == '24hour':
-                    playlists_by_id[playlist_name]['streams_24h'] = int(playlist.get('streams', 0))
+                    playlists_by_id[playlist_name]['streams_24h'] = streams
                 elif time_range == '7day':
-                    playlists_by_id[playlist_name]['streams_7d'] = int(playlist.get('streams', 0))
+                    playlists_by_id[playlist_name]['streams_7d'] = streams
                 elif time_range == '28day':
-                    playlists_by_id[playlist_name]['streams_28d'] = int(playlist.get('streams', 0))
+                    playlists_by_id[playlist_name]['streams_28d'] = streams
         
         if not playlists_by_id:
             logger.info(f"[{campaign_id}] No playlists to sync")
