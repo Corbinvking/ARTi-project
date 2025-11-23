@@ -93,7 +93,10 @@ async def login_to_spotify(page):
     if await explore_btn.count() > 0:
         logger.info("  Dismissing welcome modal...")
         await explore_btn.click()
-        await asyncio.sleep(2)
+        await asyncio.sleep(3)
+    
+    # Wait a bit longer to ensure cookies are fully set
+    await asyncio.sleep(2)
     
     logger.info("✓ Login successful!")
     return True
