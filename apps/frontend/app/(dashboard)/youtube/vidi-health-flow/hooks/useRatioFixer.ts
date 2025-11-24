@@ -4,11 +4,20 @@ import { useToast } from '@/hooks/use-toast';
 // API base URL - will be set via environment variable
 const getApiUrl = () => {
   if (typeof window !== 'undefined') {
-    // Client-side
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    // Client-side - check environment variable first, then detect production
+    const envUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (envUrl) {
+      return envUrl;
+    }
+    // Auto-detect production
+    if (window.location.hostname === 'app.artistinfluence.com') {
+      return 'https://api.artistinfluence.com';
+    }
+    // Development fallback
+    return 'http://localhost:3001';
   }
   // Server-side
-  return process.env.API_URL || 'http://localhost:3001';
+  return process.env.API_URL || process.env.API_BASE_URL || 'http://localhost:3001';
 };
 
 interface StartRatioFixerParams {
