@@ -117,9 +117,20 @@ interface Campaign {
   invoice_status?: string;
   performance_status?: string;
   progress_percentage?: number;
-  sfa_status?: 'connected' | 'no_access' | 'pending';
+  sfa_status?: 'connected' | 'no_access' | 'pending' | 'active' | 'stale' | 'no_url';
   playlist_status?: 'has_playlists' | 'no_playlists' | 'pending';
-  // Scraped real data fields
+  // Scraped real data fields (NEW from Spotify for Artists scraper)
+  streams_24h?: number;
+  streams_7d?: number;
+  streams_28d?: number;
+  playlists_24h_count?: number;
+  playlists_7d_count?: number;
+  streams_24h_trend?: number;
+  streams_7d_trend?: number;
+  has_sfa_url?: boolean;
+  last_scraped_at?: string | null;
+  hours_since_scrape?: number;
+  // Legacy scraped fields
   plays_last_7d?: number;
   plays_last_3m?: number;
   plays_last_12m?: number;
@@ -196,73 +207,114 @@ export default function CampaignHistory() {
         throw error;
       }
       
-      // For each campaign group, fetch songs and calculate metrics
-      const enhancedCampaigns = await Promise.all(
-        (campaignGroups || []).map(async (group: any) => {
-          const { data: songs, error: songsError } = await supabase
-            .from('spotify_campaigns')
-            .select('*')
-            .eq('campaign_group_id', group.id);
+          // For each campaign group, fetch songs and calculate metrics
+          const enhancedCampaigns = await Promise.all(
+            (campaignGroups || []).map(async (group: any) => {
+              const { data: songs, error: songsError } = await supabase
+                .from('spotify_campaigns')
+                .select('*')
+                .eq('campaign_group_id', group.id)
+                .order('last_scraped_at', { ascending: false, nullsFirst: false });
 
-          if (songsError) {
-            console.error(`Error fetching songs for campaign ${group.id}:`, songsError);
-          }
+              if (songsError) {
+                console.error(`Error fetching songs for campaign ${group.id}:`, songsError);
+              }
 
-          // Calculate totals from songs (promised metrics)
-          const total_remaining = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.remaining) || 0), 0);
-          const total_daily = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.daily) || 0), 0);
-          const total_weekly = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.weekly) || 0), 0);
-          
-          // Calculate REAL metrics from scraped data
-          const real_plays_7d = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.plays_last_7d) || 0), 0);
-          const real_plays_3m = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.plays_last_3m) || 0), 0);
-          const real_plays_12m = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.plays_last_12m) || 0), 0);
-          const total_playlists = (songs || []).reduce((sum: number, song: any) => Math.max(sum, parseInt(song.playlist_adds) || 0), 0);
+              // Calculate totals from songs (promised metrics)
+              const total_remaining = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.remaining) || 0), 0);
+              const total_daily = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.daily) || 0), 0);
+              const total_weekly = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.weekly) || 0), 0);
+              
+              // Calculate REAL metrics from scraped data (NEW: from our scraper)
+              const real_streams_24h = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.streams_24h) || 0), 0);
+              const real_streams_7d = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.streams_7d) || 0), 0);
+              const real_streams_28d = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.streams_28d) || 0), 0);
+              const total_playlists_24h = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.playlists_24h_count) || 0), 0);
+              const total_playlists_7d = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.playlists_7d_count) || 0), 0);
+              
+              // Legacy metrics (for backward compatibility)
+              const real_plays_7d = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.plays_last_7d) || 0), 0);
+              const real_plays_3m = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.plays_last_3m) || 0), 0);
+              const real_plays_12m = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.plays_last_12m) || 0), 0);
+              const total_playlists = (songs || []).reduce((sum: number, song: any) => Math.max(sum, parseInt(song.playlist_adds) || 0), 0);
+              
+              // SFA URL Status: Check if any song has valid SFA URL and recent scrape
+              const hasSfaUrl = (songs || []).some((song: any) => song.sfa && song.sfa.trim() !== '');
+              const lastScrapedDate = (songs || [])
+                .map((song: any) => song.last_scraped_at ? new Date(song.last_scraped_at).getTime() : 0)
+                .reduce((max: number, date: number) => Math.max(max, date), 0);
+              const hoursSinceLastScrape = lastScrapedDate ? (Date.now() - lastScrapedDate) / (1000 * 60 * 60) : Infinity;
+              
+              // Calculate trend: compare current vs previous streams (stored in scrape_data history)
+              let streams_24h_trend = 0;
+              let streams_7d_trend = 0;
+              const mostRecentSong = songs && songs[0]; // Already sorted by last_scraped_at desc
+              if (mostRecentSong && mostRecentSong.scrape_data && mostRecentSong.scrape_data.previous) {
+                const prev_24h = parseInt(mostRecentSong.scrape_data.previous.streams_24h) || 0;
+                const prev_7d = parseInt(mostRecentSong.scrape_data.previous.streams_7d) || 0;
+                const curr_24h = parseInt(mostRecentSong.streams_24h) || 0;
+                const curr_7d = parseInt(mostRecentSong.streams_7d) || 0;
+                streams_24h_trend = curr_24h - prev_24h;
+                streams_7d_trend = curr_7d - prev_7d;
+              }
           
           const progress_percentage = group.total_goal > 0 
             ? Math.round(((group.total_goal - total_remaining) / group.total_goal) * 100)
             : 0;
 
-          // Map to Campaign interface expected by the UI
-          return {
-            id: group.id,
-            name: group.name,
-            artist_name: group.artist_name,
-            client: group.clients?.name || group.client_id,
-            client_name: group.clients?.name || group.client_id,
-            client_id: group.client_id,
-            track_url: (songs && songs[0]?.url) || '',
-            track_name: group.name,
-            stream_goal: group.total_goal,
-            remaining_streams: total_remaining,
-            budget: group.total_budget,
-            sub_genre: '',
-            start_date: group.start_date,
-            duration_days: 90,
-            status: group.status,
-            created_at: group.created_at,
-            updated_at: group.updated_at,
-            // Promised metrics (from vendor promises)
-            daily_streams: total_daily,
-            weekly_streams: total_weekly,
-            // REAL metrics (from scraped data) - prioritize these for display
-            plays_last_7d: real_plays_7d,
-            plays_last_3m: real_plays_3m,
-            plays_last_12m: real_plays_12m,
-            playlist_adds: total_playlists,
-            progress_percentage,
-            invoice_status: group.invoice_status || 'not_invoiced',
-            performance_status: 'pending',
-            salesperson: group.salesperson || '',
-            music_genres: [],
-            territory_preferences: [],
-            content_types: [],
-            selected_playlists: null,
-            vendor_allocations: null,
-            totals: null,
-            algorithm_recommendations: null,
-            songs: songs || []
-          };
+              // Map to Campaign interface expected by the UI
+              return {
+                id: group.id,
+                name: group.name,
+                artist_name: group.artist_name,
+                client: group.clients?.name || group.client_id,
+                client_name: group.clients?.name || group.client_id,
+                client_id: group.client_id,
+                track_url: (songs && songs[0]?.url) || '',
+                track_name: group.name,
+                stream_goal: group.total_goal,
+                remaining_streams: total_remaining,
+                budget: group.total_budget,
+                sub_genre: '',
+                start_date: group.start_date,
+                duration_days: 90,
+                status: group.status,
+                created_at: group.created_at,
+                updated_at: group.updated_at,
+                // Promised metrics (from vendor promises) - DEPRECATED, use scraped data
+                daily_streams: total_daily,
+                weekly_streams: total_weekly,
+                // REAL metrics from our Spotify for Artists scraper (PRIORITY for display)
+                streams_24h: real_streams_24h,
+                streams_7d: real_streams_7d,
+                streams_28d: real_streams_28d,
+                playlists_24h_count: total_playlists_24h,
+                playlists_7d_count: total_playlists_7d,
+                streams_24h_trend,
+                streams_7d_trend,
+                // Legacy metrics (backward compatibility)
+                plays_last_7d: real_plays_7d,
+                plays_last_3m: real_plays_3m,
+                plays_last_12m: real_plays_12m,
+                playlist_adds: total_playlists,
+                // SFA Status
+                has_sfa_url: hasSfaUrl,
+                last_scraped_at: lastScrapedDate ? new Date(lastScrapedDate).toISOString() : null,
+                sfa_status: !hasSfaUrl ? 'no_url' : (hoursSinceLastScrape < 48 ? 'active' : 'stale'),
+                hours_since_scrape: hoursSinceLastScrape,
+                progress_percentage,
+                invoice_status: group.invoice_status || 'not_invoiced',
+                performance_status: 'pending',
+                salesperson: group.salesperson || '',
+                music_genres: [],
+                territory_preferences: [],
+                content_types: [],
+                selected_playlists: null,
+                vendor_allocations: null,
+                totals: null,
+                algorithm_recommendations: null,
+                songs: songs || []
+              };
         })
       );
       
@@ -403,14 +455,18 @@ export default function CampaignHistory() {
   })();
 
   // Helper functions for status determination
-  const getSFAStatus = (campaign: Campaign): 'connected' | 'no_access' | 'pending' => {
-    // Check if campaign has valid playlists with Spotify URLs that can be monitored
+  const getSFAStatus = (campaign: Campaign): 'active' | 'stale' | 'no_url' | 'connected' | 'no_access' | 'pending' => {
+    // NEW: Use actual scraper status if available
+    if (campaign.sfa_status) {
+      return campaign.sfa_status;
+    }
+    
+    // LEGACY: Check if campaign has valid playlists with Spotify URLs that can be monitored
     if (!campaign.selected_playlists || Array.isArray(campaign.selected_playlists) && campaign.selected_playlists.length === 0) {
       return 'no_access';
     }
     
     // For now, assume campaigns with playlists have SFA access
-    // This will be enhanced when Spotify for Artists integration is added
     const hasSpotifyUrls = Array.isArray(campaign.selected_playlists) && campaign.selected_playlists.length > 0;
     return hasSpotifyUrls ? 'connected' : 'pending';
   };
@@ -547,17 +603,26 @@ export default function CampaignHistory() {
       
       const csvData = campaigns.map(campaign => ({
         'Campaign Name': campaign.name,
+        'Artist': campaign.artist_name || '',
         'Client': campaign.client_name || '',
         'Status': campaign.status,
         'Budget': campaign.budget,
         'Stream Goal': campaign.stream_goal,
-        'Daily Streams': campaign.daily_streams || 0,
-        'Weekly Streams': campaign.weekly_streams || 0,
+        'Streams (24h)': campaign.streams_24h !== undefined ? campaign.streams_24h : campaign.daily_streams || 0,
+        '24h Trend': campaign.streams_24h_trend || 0,
+        'Streams (7d)': campaign.streams_7d !== undefined ? campaign.streams_7d : campaign.weekly_streams || 0,
+        '7d Trend': campaign.streams_7d_trend || 0,
+        'Streams (28d)': campaign.streams_28d || 0,
+        'Playlists (24h)': campaign.playlists_24h_count || 0,
+        'Playlists (7d)': campaign.playlists_7d_count || 0,
         'Remaining Streams': campaign.remaining_streams || campaign.stream_goal,
         'Progress': `${campaign.progress_percentage || 0}%`,
+        'SFA Status': campaign.sfa_status || 'unknown',
+        'Last Scraped': campaign.last_scraped_at ? new Date(campaign.last_scraped_at).toLocaleString() : 'Never',
         'Invoice Status': campaign.invoice_status || 'not_invoiced',
         'Performance': campaign.performance_status || 'pending',
         'Start Date': campaign.start_date,
+        'Salesperson': campaign.salesperson || '',
         'Playlists': campaign.playlists?.map(p => 
           typeof p === 'string' ? p : p.name
         ).join(', ') || ''
@@ -791,9 +856,11 @@ export default function CampaignHistory() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All SFA ({getSFACount('all')})</SelectItem>
+                      <SelectItem value="active">✓ Active ({getSFACount('active')})</SelectItem>
+                      <SelectItem value="stale">⚠ Stale ({getSFACount('stale')})</SelectItem>
+                      <SelectItem value="no_url">✗ No URL ({getSFACount('no_url')})</SelectItem>
                       <SelectItem value="connected">Connected ({getSFACount('connected')})</SelectItem>
                       <SelectItem value="no_access">No Access ({getSFACount('no_access')})</SelectItem>
-                      <SelectItem value="pending">Pending ({getSFACount('pending')})</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -936,7 +1003,7 @@ export default function CampaignHistory() {
                         onClick={() => handleSort('daily_streams')}
                       >
                         <div className="flex items-center">
-                          Daily Streams
+                          24h Streams
                           {getSortIcon('daily_streams')}
                         </div>
                       </TableHead>
@@ -945,7 +1012,7 @@ export default function CampaignHistory() {
                         onClick={() => handleSort('weekly_streams')}
                       >
                         <div className="flex items-center">
-                          Weekly Streams
+                          7d Streams
                           {getSortIcon('weekly_streams')}
                         </div>
                       </TableHead>
@@ -1004,7 +1071,58 @@ export default function CampaignHistory() {
                           </TableCell>
                           <TableCell className="font-medium">
                             <div>
-                              <div className="font-medium">{campaign.artist_name || campaign.name}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{campaign.artist_name || campaign.name}</span>
+                                {/* SFA Status Badge with Tooltip */}
+                                <TooltipProvider>
+                                  {campaign.sfa_status === 'active' && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Badge className="bg-green-500/10 text-green-400 border-green-500/30 border text-xs px-1.5 py-0 cursor-help">
+                                          <CheckCircle className="w-3 h-3 mr-0.5" />
+                                          SFA
+                                        </Badge>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>✓ Active: Scraper updated within 48 hours</p>
+                                        {campaign.last_scraped_at && (
+                                          <p className="text-xs">Last scraped: {new Date(campaign.last_scraped_at).toLocaleString()}</p>
+                                        )}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {campaign.sfa_status === 'stale' && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30 border text-xs px-1.5 py-0 cursor-help">
+                                          <Clock className="w-3 h-3 mr-0.5" />
+                                          SFA
+                                        </Badge>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>⚠ Stale: Not scraped in over 48 hours</p>
+                                        {campaign.last_scraped_at && (
+                                          <p className="text-xs">Last scraped: {new Date(campaign.last_scraped_at).toLocaleString()}</p>
+                                        )}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {campaign.sfa_status === 'no_url' && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Badge className="bg-gray-500/10 text-gray-400 border-gray-500/30 border text-xs px-1.5 py-0 cursor-help">
+                                          <AlertTriangle className="w-3 h-3 mr-0.5" />
+                                          No SFA
+                                        </Badge>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>✗ No SFA URL configured</p>
+                                        <p className="text-xs">Add SFA URL to enable scraping</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                </TooltipProvider>
+                              </div>
                               <div className="text-sm text-muted-foreground">
                                 {campaign.name}
                               </div>
@@ -1015,6 +1133,16 @@ export default function CampaignHistory() {
                               )}
                               <div className="text-xs text-muted-foreground mt-1">
                                 Budget: ${campaign.budget?.toLocaleString()} | Goal: {campaign.stream_goal?.toLocaleString()}
+                                {campaign.last_scraped_at && campaign.sfa_status === 'active' && (
+                                  <span className="ml-2 text-green-400">
+                                    • Updated {Math.floor(campaign.hours_since_scrape || 0)}h ago
+                                  </span>
+                                )}
+                                {campaign.sfa_status === 'stale' && campaign.hours_since_scrape && (
+                                  <span className="ml-2 text-yellow-400">
+                                    • Last scraped {Math.floor(campaign.hours_since_scrape)}h ago
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </TableCell>
@@ -1034,18 +1162,40 @@ export default function CampaignHistory() {
                           </TableCell>
                           <TableCell>
                             <div className="text-center">
-                              <div className="font-semibold text-sm">
-                                {campaign.daily_streams?.toLocaleString() || '0'}
+                              <div className="flex items-center justify-center gap-1">
+                                <span className="font-semibold text-sm">
+                                  {campaign.streams_24h !== undefined && campaign.streams_24h !== null 
+                                    ? campaign.streams_24h.toLocaleString() 
+                                    : campaign.daily_streams?.toLocaleString() || '0'}
+                                </span>
+                                {campaign.streams_24h_trend !== undefined && campaign.streams_24h_trend !== 0 && (
+                                  <span className={`text-xs ${campaign.streams_24h_trend > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                    {campaign.streams_24h_trend > 0 ? '↑' : '↓'}{Math.abs(campaign.streams_24h_trend).toLocaleString()}
+                                  </span>
+                                )}
                               </div>
-                              <div className="text-xs text-muted-foreground">per day</div>
+                              <div className="text-xs text-muted-foreground">
+                                {campaign.streams_24h !== undefined && campaign.streams_24h !== null ? 'scraped' : 'estimated'}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="text-center">
-                              <div className="font-semibold text-sm">
-                                {campaign.weekly_streams?.toLocaleString() || '0'}
+                              <div className="flex items-center justify-center gap-1">
+                                <span className="font-semibold text-sm">
+                                  {campaign.streams_7d !== undefined && campaign.streams_7d !== null 
+                                    ? campaign.streams_7d.toLocaleString() 
+                                    : campaign.weekly_streams?.toLocaleString() || '0'}
+                                </span>
+                                {campaign.streams_7d_trend !== undefined && campaign.streams_7d_trend !== 0 && (
+                                  <span className={`text-xs ${campaign.streams_7d_trend > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                    {campaign.streams_7d_trend > 0 ? '↑' : '↓'}{Math.abs(campaign.streams_7d_trend).toLocaleString()}
+                                  </span>
+                                )}
                               </div>
-                              <div className="text-xs text-muted-foreground">per week</div>
+                              <div className="text-xs text-muted-foreground">
+                                {campaign.streams_7d !== undefined && campaign.streams_7d !== null ? 'scraped' : 'estimated'}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>

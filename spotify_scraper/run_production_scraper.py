@@ -195,6 +195,25 @@ async def update_campaign_in_database(campaign_id, data):
         'Content-Type': 'application/json'
     }
     
+    # First, fetch the previous values for trend calculation
+    get_url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
+    get_params = {'id': f'eq.{campaign_id}', 'select': 'streams_24h,streams_7d,streams_28d'}
+    try:
+        previous_response = requests.get(get_url, headers=headers, params=get_params)
+        if previous_response.status_code == 200 and previous_response.json():
+            prev_data = previous_response.json()[0]
+            previous_values = {
+                'streams_24h': prev_data.get('streams_24h', 0),
+                'streams_7d': prev_data.get('streams_7d', 0),
+                'streams_28d': prev_data.get('streams_28d', 0)
+            }
+            # Add previous values to scrape_data for trend calculation
+            if 'scrape_data' in data and isinstance(data['scrape_data'], dict):
+                data['scrape_data']['previous'] = previous_values
+                logger.info(f"[{campaign_id}] Stored previous values: 24h={previous_values['streams_24h']}, 7d={previous_values['streams_7d']}")
+    except Exception as e:
+        logger.warning(f"[{campaign_id}] Could not fetch previous values: {e}")
+    
     url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
     params = {'id': f'eq.{campaign_id}'}
     
@@ -204,7 +223,7 @@ async def update_campaign_in_database(campaign_id, data):
         logger.error(f"[{campaign_id}] Database update failed: {response.status_code} - {response.text}")
         return False
     
-    logger.info(f"[{campaign_id}] ✓ Raw data updated in spotify_campaigns")
+    logger.info(f"[{campaign_id}] ✓ Raw data updated in spotify_campaigns (with trend history)")
     return True
 
 
