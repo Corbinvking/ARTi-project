@@ -18,11 +18,10 @@ interface StartRatioFixerRequest {
   sheetTier?: string;
 }
 
-interface RatioFixerResponse {
+interface FlaskCreateCampaignResponse {
   success: boolean;
-  ratioFixerCampaignId?: string;
+  campaign_id: string;
   message?: string;
-  error?: string;
 }
 
 interface RatioFixerStatus {
@@ -94,7 +93,7 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
         });
       }
       
-      const flaskData = await flaskResponse.json();
+      const flaskData = await flaskResponse.json() as FlaskCreateCampaignResponse;
       
       logger.info('Ratio fixer started successfully:', flaskData);
       
@@ -150,7 +149,7 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
         });
       }
       
-      const statusData: RatioFixerStatus = await flaskResponse.json();
+      const statusData = await flaskResponse.json() as RatioFixerStatus;
       
       return reply.send(statusData);
       
@@ -221,7 +220,7 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
    * 
    * Check if the Flask Ratio Fixer service is available
    */
-  server.get('/ratio-fixer/health', async (request, reply) => {
+  server.get('/ratio-fixer/health', async (_request, reply) => {
     try {
       const flaskResponse = await fetch(`${RATIO_FIXER_URL}/healthz`, {
         headers: {
