@@ -99,23 +99,45 @@ async def login_to_spotify(page):
     logger.info("  Waiting for authentication cookies...")
     await asyncio.sleep(5)
     
+    # Debug: Check current URL and cookies
+    current_url = page.url
+    logger.info(f"  Current URL: {current_url}")
+    
     # Verify sp_dc cookie was set
     cookies = await page.context.cookies()
+    cookie_names = [c['name'] for c in cookies]
+    logger.info(f"  Found {len(cookies)} cookies: {', '.join(cookie_names[:10])}")
+    
     has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
     
     if has_sp_dc:
         logger.info("✓ Login successful! Authentication cookie found.")
-    else:
-        logger.warning("⚠ Login completed but sp_dc cookie not immediately found. Waiting longer...")
-        await asyncio.sleep(10)
+        return True
+    
+    # Not found immediately - try waiting for dashboard elements
+    logger.warning("⚠ sp_dc cookie not immediately found. Checking if we're on dashboard...")
+    
+    # Wait for dashboard to load (better indicator than cookie)
+    try:
+        await page.wait_for_url("**/artists.spotify.com/**", timeout=10000)
+        logger.info("✓ Dashboard URL detected")
+        
+        # Now check cookies again
+        await asyncio.sleep(3)
         cookies = await page.context.cookies()
         has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+        
         if has_sp_dc:
-            logger.info("✓ Authentication cookie found after extended wait.")
+            logger.info("✓ Authentication cookie found after dashboard load.")
+            return True
         else:
-            logger.error("✗ sp_dc cookie still not found after 15 seconds. Login may have failed.")
-    
-    return True
+            # Try to find sp_dc in all cookies
+            logger.warning(f"⚠ All cookies: {[f'{c['name']}={c['value'][:20]}...' for c in cookies]}")
+            logger.error("✗ sp_dc cookie still not found. Login may have failed.")
+            return False
+    except Exception as e:
+        logger.error(f"✗ Failed to reach dashboard: {e}")
+        return False
 
 
 async def fetch_campaigns_from_database(limit=None):
@@ -369,23 +391,12 @@ async def main(limit=None):
     
     try:
         # Login once at the beginning
-        if not await login_to_spotify(page):
-            logger.error("Login failed, aborting")
+        login_success = await login_to_spotify(page)
+        if not login_success:
+            logger.error("✗ Login failed, aborting scraper")
             return False
         
-        # Verify we have the sp_dc cookie (double-check after login)
-        cookies = await context.cookies()
-        has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
-        if not has_sp_dc:
-            logger.warning("⚠ sp_dc cookie still not found. Attempting one final wait...")
-            await asyncio.sleep(10)
-            cookies = await context.cookies()
-            has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
-            if not has_sp_dc:
-                logger.error("✗ sp_dc cookie not found after multiple attempts. Aborting.")
-                return False
-            else:
-                logger.info("✓ Authentication cookie found after final wait.")
+        logger.info("✓ Login verified, ready to scrape")
         
         logger.info("")
         logger.info(f"Starting to scrape {len(campaigns)} campaigns...")
