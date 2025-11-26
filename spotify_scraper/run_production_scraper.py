@@ -42,9 +42,46 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def login_to_spotify(page):
+async def check_if_logged_in(page):
+    """Check if already logged in from previous session"""
+    try:
+        logger.info("Checking for existing session...")
+        await page.goto('https://artists.spotify.com', timeout=30000, wait_until='networkidle')
+        await asyncio.sleep(3)
+        
+        # Check if we're already on the dashboard
+        current_url = page.url
+        
+        if 'artists.spotify.com/c/' in current_url or 'artists.spotify.com/home' in current_url:
+            logger.info("✓ Existing session found! Already logged in.")
+            
+            # Verify we have sp_dc cookie
+            cookies = await page.context.cookies()
+            has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+            
+            if has_sp_dc:
+                logger.info("✓ Authentication cookie verified")
+                return True
+            else:
+                logger.warning("⚠ On dashboard but no sp_dc cookie - session may be expired")
+                return False
+        else:
+            logger.info("No existing session - need to login")
+            return False
+            
+    except Exception as e:
+        logger.warning(f"Could not verify existing session: {e}")
+        return False
+
+
+async def login_to_spotify(page, force_fresh=False):
     """Perform fresh login to Spotify for Artists"""
-    logger.info("Starting fresh login to Spotify for Artists...")
+    if force_fresh:
+        logger.info("Performing forced fresh login (clearing session)...")
+        # Clear existing session if forcing fresh login
+        await page.context.clear_cookies()
+    else:
+        logger.info("Starting login to Spotify for Artists...")
     
     # Navigate to landing page
     await page.goto('https://artists.spotify.com', wait_until='domcontentloaded')
@@ -376,27 +413,50 @@ async def main(limit=None):
         logger.warning("No campaigns to scrape")
         return False
     
-    # Initialize browser (fresh incognito context)
-    logger.info("Initializing browser...")
+    # Initialize browser with persistent context (saves cookies/session)
+    logger.info("Initializing browser with persistent context...")
     playwright = await async_playwright().start()
     
     # Use headless mode based on environment
     headless = os.getenv('HEADLESS', 'false').lower() == 'true'
-    browser = await playwright.chromium.launch(headless=headless)
-    context = await browser.new_context()  # Fresh context = incognito
-    page = await context.new_page()
+    
+    # Use persistent context to save login session
+    user_data_dir = os.getenv('USER_DATA_DIR', '/root/arti-marketing-ops/spotify_scraper/data/browser_data')
+    os.makedirs(user_data_dir, exist_ok=True)
+    
+    logger.info(f"Browser data directory: {user_data_dir}")
+    
+    # Launch with persistent context (maintains session across runs)
+    context = await playwright.chromium.launch_persistent_context(
+        user_data_dir=user_data_dir,
+        headless=headless,
+        args=[
+            '--disable-blink-features=AutomationControlled',
+            '--disable-dev-shm-usage',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-gpu'
+        ]
+    )
+    page = await context.pages[0] if context.pages else await context.new_page()
     
     success_count = 0
     failure_count = 0
     
     try:
-        # Login once at the beginning
-        login_success = await login_to_spotify(page)
-        if not login_success:
-            logger.error("✗ Login failed, aborting scraper")
-            return False
+        # Check if we already have a valid session
+        already_logged_in = await check_if_logged_in(page)
         
-        logger.info("✓ Login verified, ready to scrape")
+        if not already_logged_in:
+            # Need to perform fresh login
+            logger.info("Performing fresh login...")
+            login_success = await login_to_spotify(page, force_fresh=True)
+            
+            if not login_success:
+                logger.error("✗ Login failed, aborting scraper")
+                return False
+        
+        logger.info("✓ Authentication verified, ready to scrape")
         
         logger.info("")
         logger.info(f"Starting to scrape {len(campaigns)} campaigns...")
@@ -409,8 +469,42 @@ async def main(limit=None):
         for i, campaign in enumerate(campaigns, 1):
             logger.info(f"[{i}/{len(campaigns)}] Processing campaign {campaign['id']}")
             
-            # Scrape data
-            data = await scrape_campaign(page, spotify_page, campaign)
+            # Scrape data with automatic re-login on session expiry
+            data = None
+            retry_count = 0
+            max_retries = 2
+            
+            while retry_count < max_retries and not data:
+                try:
+                    data = await scrape_campaign(page, spotify_page, campaign)
+                    
+                    # Check if we got logged out during scraping
+                    if not data:
+                        current_url = page.url
+                        if 'login' in current_url.lower() or 'challenge' in current_url.lower():
+                            logger.warning(f"[{campaign['id']}] Session expired during scraping, attempting re-login...")
+                            retry_count += 1
+                            
+                            # Attempt re-login
+                            if await login_to_spotify(page, force_fresh=True):
+                                logger.info(f"[{campaign['id']}] Re-login successful, retrying campaign...")
+                                continue
+                            else:
+                                logger.error(f"[{campaign['id']}] Re-login failed, skipping campaign")
+                                break
+                        else:
+                            # Data is None but not due to logout - skip campaign
+                            break
+                            
+                except Exception as e:
+                    logger.error(f"[{campaign['id']}] Error during scrape: {e}")
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        logger.info(f"[{campaign['id']}] Retrying... ({retry_count}/{max_retries})")
+                        await asyncio.sleep(5)
+                    else:
+                        logger.error(f"[{campaign['id']}] Max retries reached, skipping")
+                        break
             
             if data:
                 # Update raw data in spotify_campaigns table
