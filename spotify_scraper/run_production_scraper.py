@@ -95,10 +95,26 @@ async def login_to_spotify(page):
         await explore_btn.click()
         await asyncio.sleep(3)
     
-    # Wait a bit longer to ensure cookies are fully set
-    await asyncio.sleep(2)
+    # Wait longer for sp_dc cookie to be set by Spotify
+    logger.info("  Waiting for authentication cookies...")
+    await asyncio.sleep(5)
     
-    logger.info("✓ Login successful!")
+    # Verify sp_dc cookie was set
+    cookies = await page.context.cookies()
+    has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+    
+    if has_sp_dc:
+        logger.info("✓ Login successful! Authentication cookie found.")
+    else:
+        logger.warning("⚠ Login completed but sp_dc cookie not immediately found. Waiting longer...")
+        await asyncio.sleep(10)
+        cookies = await page.context.cookies()
+        has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+        if has_sp_dc:
+            logger.info("✓ Authentication cookie found after extended wait.")
+        else:
+            logger.error("✗ sp_dc cookie still not found after 15 seconds. Login may have failed.")
+    
     return True
 
 
@@ -357,12 +373,19 @@ async def main(limit=None):
             logger.error("Login failed, aborting")
             return False
         
-        # Verify we have the sp_dc cookie
+        # Verify we have the sp_dc cookie (double-check after login)
         cookies = await context.cookies()
         has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
         if not has_sp_dc:
-            logger.error("sp_dc cookie not found, aborting")
-            return False
+            logger.warning("⚠ sp_dc cookie still not found. Attempting one final wait...")
+            await asyncio.sleep(10)
+            cookies = await context.cookies()
+            has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+            if not has_sp_dc:
+                logger.error("✗ sp_dc cookie not found after multiple attempts. Aborting.")
+                return False
+            else:
+                logger.info("✓ Authentication cookie found after final wait.")
         
         logger.info("")
         logger.info(f"Starting to scrape {len(campaigns)} campaigns...")
