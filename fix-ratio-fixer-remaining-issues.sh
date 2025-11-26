@@ -42,25 +42,17 @@ echo ""
 echo "Step 2: Adding JingleSMM API key to .env..."
 echo ""
 
+JINGLE_KEY="aeb45ce3fc5aa241dcfc20e1167dff9f"
+
 if grep -q "JINGLE_API_KEY" "${FLASK_APP_DIR}/.env" 2>/dev/null; then
-    echo "✅ JINGLE_API_KEY already exists in .env"
+    echo "⚠️  JINGLE_API_KEY already exists, updating it..."
+    # Remove old key and add new one
+    sed -i '/JINGLE_API_KEY/d' "${FLASK_APP_DIR}/.env"
+    echo "JINGLE_API_KEY=${JINGLE_KEY}" >> "${FLASK_APP_DIR}/.env"
+    echo "✅ Updated JINGLE_API_KEY in Flask .env"
 else
-    # Add the key from the original .env or from production.env
-    # First check if we can find it in the API production.env
-    if [ -f ~/arti-marketing-ops/apps/api/production.env ]; then
-        JINGLE_KEY=$(grep "JINGLE_SMM_API_KEY" ~/arti-marketing-ops/apps/api/production.env | cut -d'=' -f2 | tr -d ' "')
-        if [ -n "$JINGLE_KEY" ]; then
-            echo "JINGLE_API_KEY=${JINGLE_KEY}" >> "${FLASK_APP_DIR}/.env"
-            echo "✅ Added JINGLE_API_KEY to Flask .env"
-        else
-            echo "⚠️  Could not find JINGLE_SMM_API_KEY in API production.env"
-            echo "   Please add manually: JINGLE_API_KEY=your-key-here"
-        fi
-    else
-        echo "⚠️  API production.env not found"
-        echo "   Please add manually to ${FLASK_APP_DIR}/.env:"
-        echo "   JINGLE_API_KEY=your-jingle-api-key"
-    fi
+    echo "JINGLE_API_KEY=${JINGLE_KEY}" >> "${FLASK_APP_DIR}/.env"
+    echo "✅ Added JINGLE_API_KEY to Flask .env"
 fi
 
 echo ""
