@@ -166,7 +166,7 @@ CREATE_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
     -H "Content-Type: application/json" \
     -H "X-API-Key: ${API_KEY}" \
     -d '{
-        "video_url": "'"${TEST_VIDEO_URL}"'",
+        "video_id": "'"${TEST_VIDEO_ID}"'",
         "genre": "Test",
         "comments_sheet_url": "https://docs.google.com/spreadsheets/d/1rQVZYIpoYondBniF6oDnTE7eWJ4SslJ_YbTn0RsfXXk",
         "wait_time": 0,
