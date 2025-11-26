@@ -438,7 +438,7 @@ async def main(limit=None):
             '--disable-gpu'
         ]
     )
-    page = await context.pages[0] if context.pages else await context.new_page()
+    page = context.pages[0] if context.pages else await context.new_page()
     
     success_count = 0
     failure_count = 0
