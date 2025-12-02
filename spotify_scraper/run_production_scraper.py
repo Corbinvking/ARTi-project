@@ -605,7 +605,7 @@ async def main(limit=None):
         
     finally:
         # Cleanup
-        await browser.close()
+        await context.close()
         await playwright.stop()
     
     # Summary
