@@ -115,3 +115,5 @@ echo -e "${YELLOW}Note: Trend indicators will appear after scraper runs at least
 echo -e "${YELLOW}      (current scrape vs previous scrape comparison)${NC}"
 echo ""
 
+
+

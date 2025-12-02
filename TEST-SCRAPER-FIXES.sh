@@ -32,6 +32,23 @@ echo "============================================================"
 echo "STEP 2: Run Scraper with Single Campaign"
 echo "============================================================"
 cd spotify_scraper
+
+# Load environment variables
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+    echo "✓ Loaded environment from .env"
+fi
+
+# Ensure Xvfb is running (required for browser)
+export DISPLAY=:99
+if ! pgrep -x "Xvfb" > /dev/null; then
+    echo "Starting Xvfb..."
+    Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
+    sleep 2
+    echo "✓ Xvfb started on DISPLAY=:99"
+fi
+
+# Run scraper with limit 1
 python3 run_production_scraper.py --limit 1
 
 echo ""

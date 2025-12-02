@@ -50,3 +50,5 @@ echo ""
 echo "Verify the route exists:"
 echo "   curl http://localhost:3001/api/ratio-fixer/health"
 
+
+
