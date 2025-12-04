@@ -457,11 +457,12 @@ export default function CampaignAnalyticsDashboard({
           .single();
         
         if (error) {
-          console.error('❌ Error fetching campaign:', error);
+          console.error('❌ Error fetching campaign:', error.message || error);
+          console.error('Error details:', JSON.stringify(error, null, 2));
           return;
         }
         
-        console.log('✅ Loaded campaign:', campaign?.campaign);
+        console.log('✅ Loaded campaign:', campaign?.campaign, campaign?.clients);
         setCampaignData(campaign);
       } catch (err) {
         console.error('❌ Error:', err);
