@@ -11,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check, Instagram, Loader2, RefreshCw } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
@@ -777,13 +776,39 @@ export default function InstagramCampaignsPage() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Instagram className="h-5 w-5 text-pink-500" />
-                    Instagram Scraper Settings
+                    Instagram Analytics Tracking
                   </CardTitle>
                   <CardDescription>
-                    Configure automatic data scraping for this campaign
+                    {(() => {
+                      const status = (selectedCampaign.status || '').toLowerCase();
+                      const isInactive = status.includes('inactive') || status.includes('cancelled') || status.includes('canceled');
+                      if (isInactive) {
+                        return "This campaign is inactive - not being tracked";
+                      } else if (selectedCampaign.instagram_url) {
+                        return "✓ Automatically tracked daily at 6 AM UTC";
+                      } else {
+                        return "Add an Instagram URL to enable automatic tracking";
+                      }
+                    })()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Tracking Status */}
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <span className="text-sm font-medium">Tracking Status:</span>
+                    {(() => {
+                      const status = (selectedCampaign.status || '').toLowerCase();
+                      const isInactive = status.includes('inactive') || status.includes('cancelled') || status.includes('canceled');
+                      if (isInactive) {
+                        return <Badge variant="secondary">Inactive - Not Tracked</Badge>;
+                      } else if (selectedCampaign.instagram_url) {
+                        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Active - Tracking</Badge>;
+                      } else {
+                        return <Badge variant="outline" className="border-yellow-500/50 text-yellow-600">Needs URL</Badge>;
+                      }
+                    })()}
+                  </div>
+
                   {/* Instagram URL Input */}
                   <div>
                     <Label htmlFor="instagram_url" className="text-sm font-medium mb-2 block">
@@ -819,31 +844,8 @@ export default function InstagramCampaignsPage() {
                       </div>
                     )}
                     <p className="text-xs text-muted-foreground mt-1">
-                      Enter the Instagram profile URL or specific post URL to scrape analytics from
+                      All active campaigns with a valid Instagram URL are automatically tracked daily
                     </p>
-                  </div>
-
-                  {/* Scraper Enabled Toggle */}
-                  <div className="flex items-center justify-between py-2 border-t pt-4">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="scraper_enabled" className="text-sm font-medium">
-                        Enable Daily Scraping
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        Automatically scrape this URL daily at 6 AM UTC
-                      </p>
-                    </div>
-                    {isEditMode ? (
-                      <Switch
-                        id="scraper_enabled"
-                        checked={editForm.scraper_enabled || false}
-                        onCheckedChange={(checked) => updateField('scraper_enabled', checked)}
-                      />
-                    ) : (
-                      <Badge variant={selectedCampaign.scraper_enabled ? "default" : "secondary"}>
-                        {selectedCampaign.scraper_enabled ? "Enabled" : "Disabled"}
-                      </Badge>
-                    )}
                   </div>
 
                   {/* Last Scraped Info */}

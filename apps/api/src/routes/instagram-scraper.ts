@@ -25,7 +25,8 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
   
   /**
    * POST /api/instagram-scraper/batch
-   * Run batch scraping for all campaigns with scraper_enabled = true
+   * Run batch scraping for ALL active campaigns with valid instagram_url
+   * Skips only campaigns with status = 'inactive'
    * This is the endpoint called by the cron job
    */
   fastify.post('/batch', async (
@@ -37,11 +38,11 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
       
       logger.info({ resultsLimit, dryRun }, '🚀 Starting batch Instagram scraper');
       
-      // Fetch all campaigns with scraper_enabled = true and instagram_url set
-      const { data: campaigns, error: fetchError } = await supabase
+      // Fetch ALL campaigns with instagram_url set (except inactive ones)
+      // We track all active campaigns automatically - no opt-in required
+      const { data: allCampaigns, error: fetchError } = await supabase
         .from('instagram_campaigns')
-        .select('id, campaign, clients, instagram_url, last_scraped_at')
-        .eq('scraper_enabled', true)
+        .select('id, campaign, clients, instagram_url, status, last_scraped_at')
         .not('instagram_url', 'is', null);
       
       if (fetchError) {
@@ -52,8 +53,19 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
         });
       }
       
+      // Filter out inactive campaigns - only skip if status explicitly contains 'inactive'
+      const campaigns = allCampaigns?.filter(c => {
+        const status = (c.status || '').toLowerCase();
+        return !status.includes('inactive') && !status.includes('cancelled') && !status.includes('canceled');
+      }) || [];
+      
+      const skippedCount = (allCampaigns?.length || 0) - campaigns.length;
+      if (skippedCount > 0) {
+        logger.info({ skippedCount }, `⏭️ Skipped ${skippedCount} inactive/cancelled campaigns`);
+      }
+      
       if (!campaigns || campaigns.length === 0) {
-        logger.info('📭 No campaigns with scraper enabled found');
+        logger.info('📭 No active campaigns with Instagram URLs found');
         return reply.send({
           success: true,
           message: 'No campaigns to scrape',
@@ -61,6 +73,7 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
             processed: 0,
             succeeded: 0,
             failed: 0,
+            skipped: skippedCount,
             campaigns: [],
           },
         });
@@ -155,16 +168,18 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
         processed: campaigns.length, 
         succeeded, 
         failed, 
-        totalPosts 
+        totalPosts,
+        skipped: skippedCount
       }, '✅ Batch scraping complete');
       
       return reply.send({
         success: true,
-        message: `Batch scraping complete: ${succeeded} succeeded, ${failed} failed`,
+        message: `Batch scraping complete: ${succeeded} succeeded, ${failed} failed, ${skippedCount} skipped (inactive)`,
         data: {
           processed: campaigns.length,
           succeeded,
           failed,
+          skipped: skippedCount,
           totalPosts,
           results,
         },
@@ -181,6 +196,7 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
   /**
    * GET /api/instagram-scraper/campaigns
    * List all campaigns with their scraper status
+   * Shows which campaigns will be automatically scraped (active + has instagram_url)
    */
   fastify.get('/campaigns', async (
     _request: FastifyRequest,
@@ -189,24 +205,44 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
     try {
       const { data: campaigns, error } = await supabase
         .from('instagram_campaigns')
-        .select('id, campaign, clients, instagram_url, scraper_enabled, last_scraped_at, created_at')
+        .select('id, campaign, clients, instagram_url, status, last_scraped_at, created_at')
         .order('id', { ascending: false });
       
       if (error) {
         throw error;
       }
       
-      const enabledCount = campaigns?.filter(c => c.scraper_enabled).length || 0;
+      // Calculate stats based on new logic
       const withUrlCount = campaigns?.filter(c => c.instagram_url).length || 0;
+      const activeWithUrl = campaigns?.filter(c => {
+        const status = (c.status || '').toLowerCase();
+        const isInactive = status.includes('inactive') || status.includes('cancelled') || status.includes('canceled');
+        return c.instagram_url && !isInactive;
+      }).length || 0;
+      const inactiveCount = campaigns?.filter(c => {
+        const status = (c.status || '').toLowerCase();
+        return status.includes('inactive') || status.includes('cancelled') || status.includes('canceled');
+      }).length || 0;
+      
+      // Add a computed field showing if campaign will be scraped
+      const enrichedCampaigns = campaigns?.map(c => {
+        const status = (c.status || '').toLowerCase();
+        const isInactive = status.includes('inactive') || status.includes('cancelled') || status.includes('canceled');
+        return {
+          ...c,
+          will_be_scraped: c.instagram_url && !isInactive,
+        };
+      }) || [];
       
       return reply.send({
         success: true,
         data: {
-          campaigns: campaigns || [],
+          campaigns: enrichedCampaigns,
           stats: {
             total: campaigns?.length || 0,
-            scraperEnabled: enabledCount,
             withInstagramUrl: withUrlCount,
+            activeWithUrl: activeWithUrl, // Will be scraped
+            inactive: inactiveCount,      // Skipped
           },
         },
       });
