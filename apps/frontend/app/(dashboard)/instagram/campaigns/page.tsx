@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -24,6 +24,7 @@ export default function InstagramCampaignsPage() {
   const [editForm, setEditForm] = useState<any>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const { updateCampaign, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
 
@@ -485,6 +486,39 @@ export default function InstagramCampaignsPage() {
               </div>
               {!isEditMode && (
                 <div className="flex gap-2">
+                  <Link href={`/instagram/campaigns/${selectedCampaign?.id}/analytics`}>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      View Analytics
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const shareUrl = `${window.location.origin}/share/campaign/${selectedCampaign?.id}`;
+                      navigator.clipboard.writeText(shareUrl);
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2000);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    {copiedLink ? (
+                      <>
+                        <Check className="h-4 w-4 text-green-500" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Share className="h-4 w-4" />
+                        Share Link
+                      </>
+                    )}
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
