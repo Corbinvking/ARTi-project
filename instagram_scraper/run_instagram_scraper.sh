@@ -4,7 +4,7 @@
 #
 # Setup:
 # 1. chmod +x /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh
-# 2. Add to crontab: 0 3 * * * /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh >> /var/log/instagram_scraper.log 2>&1
+# 2. Add to crontab: 0 6 * * * /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh >> /var/log/instagram_scraper.log 2>&1
 
 set -e
 

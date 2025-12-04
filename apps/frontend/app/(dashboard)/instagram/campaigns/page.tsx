@@ -830,7 +830,7 @@ export default function InstagramCampaignsPage() {
                         Enable Daily Scraping
                       </Label>
                       <p className="text-xs text-muted-foreground">
-                        Automatically scrape this URL daily at 3 AM UTC
+                        Automatically scrape this URL daily at 6 AM UTC
                       </p>
                     </div>
                     {isEditMode ? (
