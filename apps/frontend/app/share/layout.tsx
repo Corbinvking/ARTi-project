@@ -1,15 +1,27 @@
-import type { Metadata } from "next"
+"use client";
 
-export const metadata: Metadata = {
-  title: "Campaign Analytics - Artist Influence",
-  description: "View campaign analytics and performance metrics",
-}
+import { useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export default function ShareLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  // Create QueryClient for public share pages
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        retry: 1,
+      },
+    },
+  }));
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
 }
 
