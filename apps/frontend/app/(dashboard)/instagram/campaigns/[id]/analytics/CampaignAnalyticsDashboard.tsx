@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Input } from '@/components/ui/input';
 import {
   LineChart,
   Line,
@@ -37,9 +38,16 @@ import {
   CheckCircle2,
   ArrowLeft,
   Loader2,
+  RefreshCw,
+  Download,
 } from 'lucide-react';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
 import { supabase } from '@/lib/auth';
+import { 
+  useInstagramCampaignAnalytics, 
+  useInstagramScraper,
+  formatMetricsForDashboard 
+} from '@/hooks/useInstagramAnalytics';
 
 // Types for the dashboard
 interface CampaignAnalyticsData {
@@ -440,6 +448,44 @@ export default function CampaignAnalyticsDashboard({
   const [activeTab, setActiveTab] = useState('live-post');
   const [campaignData, setCampaignData] = useState<any>(null);
   const [loading, setLoading] = useState(!!campaignId);
+  const [instagramUrls, setInstagramUrls] = useState('');
+  const [showRefreshForm, setShowRefreshForm] = useState(false);
+
+  // Use real Instagram analytics from API
+  const { 
+    analytics: realAnalytics, 
+    isLoading: isLoadingAnalytics,
+    hasData: hasRealData,
+    refetch: refetchAnalytics
+  } = useInstagramCampaignAnalytics(campaignId ? parseInt(campaignId as string) : null);
+
+  // Instagram scraper for refreshing data
+  const { 
+    refreshCampaignAnalytics, 
+    isRefreshing 
+  } = useInstagramScraper();
+
+  // Handle refresh
+  const handleRefresh = async () => {
+    if (!campaignId) return;
+    
+    const urls = instagramUrls
+      .split(/[,\n]/)
+      .map(u => u.trim())
+      .filter(u => u.length > 0);
+    
+    try {
+      await refreshCampaignAnalytics(
+        parseInt(campaignId as string),
+        urls.length > 0 ? urls : undefined,
+        30
+      );
+      setShowRefreshForm(false);
+      setInstagramUrls('');
+    } catch (error) {
+      console.error('Error refreshing analytics:', error);
+    }
+  };
 
   // Fetch campaign data when campaignId is provided
   useEffect(() => {
@@ -486,11 +532,44 @@ export default function CampaignAnalyticsDashboard({
     if (propData) return propData;
     
     const mockTimeSeries = generateMockData().timeSeriesData;
+    const budget = campaignData ? parseCurrency(campaignData.price) : 350;
+    const spent = campaignData ? parseCurrency(campaignData.spend) : 350;
     
+    // Use REAL Instagram analytics data if available
+    if (hasRealData && realAnalytics) {
+      console.log('📊 Using REAL Instagram analytics data');
+      return {
+        campaignName: campaignData?.campaign || 'Campaign Analytics',
+        campaignCount: 1,
+        createdDate: campaignData?.start_date || campaignData?.created_at?.split('T')[0] || 'Unknown',
+        totalBudget: budget,
+        spentBudget: spent,
+        currency: 'USD',
+        
+        // REAL metrics from Instagram API
+        totalViews: realAnalytics.metrics.totalViews,
+        totalLikes: realAnalytics.metrics.totalLikes,
+        totalComments: realAnalytics.metrics.totalComments,
+        totalShares: realAnalytics.metrics.totalShares,
+        engagementRate: realAnalytics.metrics.engagementRate,
+        
+        livePosts: realAnalytics.metrics.livePosts,
+        avgCostPerView: budget > 0 && realAnalytics.metrics.totalViews > 0 
+          ? budget / realAnalytics.metrics.totalViews 
+          : 0.001,
+        sentimentScore: 53, // Placeholder - would need NLP
+        relevanceScore: 45, // Placeholder - would need content analysis
+        
+        // REAL time series data
+        timeSeriesData: realAnalytics.timeSeries.length > 0 
+          ? realAnalytics.timeSeries 
+          : mockTimeSeries,
+      };
+    }
+    
+    // Fallback to campaign data with mock metrics
     if (campaignData) {
-      const budget = parseCurrency(campaignData.price);
-      const spent = parseCurrency(campaignData.spend);
-      
+      console.log('📊 Using mock analytics (no real Instagram data yet)');
       return {
         campaignName: campaignData.campaign || 'Untitled Campaign',
         campaignCount: 1,
@@ -499,7 +578,7 @@ export default function CampaignAnalyticsDashboard({
         spentBudget: spent,
         currency: 'USD',
         
-        // Mock analytics metrics (will be replaced with real API data later)
+        // Mock analytics metrics (click "Refresh Data" to fetch real data)
         totalViews: Math.round(spent * 2000 + Math.random() * 50000),
         totalLikes: Math.round(spent * 15 + Math.random() * 1000),
         totalComments: Math.round(spent * 2 + Math.random() * 200),
@@ -566,12 +645,63 @@ export default function CampaignAnalyticsDashboard({
       <main className="container mx-auto px-6 py-8">
         {/* Campaign Title & Meta */}
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-3">
-            <h1 className="text-3xl font-bold">{data.campaignName}</h1>
-            {campaignData?.clients && (
-              <Badge variant="outline" className="text-sm">
-                {campaignData.clients}
-              </Badge>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-4">
+              <h1 className="text-3xl font-bold">{data.campaignName}</h1>
+              {campaignData?.clients && (
+                <Badge variant="outline" className="text-sm">
+                  {campaignData.clients}
+                </Badge>
+              )}
+              {hasRealData ? (
+                <Badge className="bg-green-500 text-white">Live Data</Badge>
+              ) : (
+                <Badge variant="secondary">Demo Data</Badge>
+              )}
+            </div>
+            
+            {/* Refresh Data Button */}
+            {!isPublic && campaignId && (
+              <div className="flex items-center gap-2">
+                {showRefreshForm ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={instagramUrls}
+                      onChange={(e) => setInstagramUrls(e.target.value)}
+                      placeholder="Instagram URLs (comma separated)"
+                      className="w-64"
+                    />
+                    <Button 
+                      size="sm" 
+                      onClick={handleRefresh}
+                      disabled={isRefreshing}
+                    >
+                      {isRefreshing ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Fetch'
+                      )}
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => setShowRefreshForm(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowRefreshForm(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Refresh Data
+                  </Button>
+                )}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -586,6 +716,11 @@ export default function CampaignAnalyticsDashboard({
                 />
               </div>
             </div>
+            {hasRealData && realAnalytics && (
+              <span className="text-green-600">
+                • {realAnalytics.count} posts tracked
+              </span>
+            )}
           </div>
         </div>
 

@@ -10,6 +10,7 @@ import { spotifyWebApiRoutes } from './spotify-web-api';
 import { s4aIngestRoutes } from './s4a-ingest';
 import { youtubeDataApiRoutes } from './youtube-data-api';
 import { ratioFixerBridgeRoutes } from './ratio-fixer-bridge';
+import instagramScraperRoutes from './instagram-scraper';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -45,6 +46,9 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // Ratio Fixer Bridge routes (Flask app integration)
   await server.register(ratioFixerBridgeRoutes, { prefix: '/api' });
+
+  // Instagram Scraper routes (Apify integration)
+  await server.register(instagramScraperRoutes, { prefix: '/api/instagram-scraper' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {

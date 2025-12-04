@@ -56,6 +56,9 @@ RATIO_FIXER_API_KEY=your-ratio-fixer-api-key
 # JingleSMM API (SMM panel for likes/comments ordering)
 JINGLE_SMM_API_KEY=your-jingle-smm-api-key
 
+# Apify API (for Instagram post scraping)
+APIFY_API_TOKEN=your-apify-api-token
+
 # OpenAI API (optional)
 OPENAI_API_KEY=your-openai-api-key
 
