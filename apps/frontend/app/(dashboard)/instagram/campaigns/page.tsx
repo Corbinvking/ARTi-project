@@ -10,7 +10,10 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check } from "lucide-react";
+import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check, Instagram, Loader2, RefreshCw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { supabase } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -25,7 +28,9 @@ export default function InstagramCampaignsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isScrapingCampaign, setIsScrapingCampaign] = useState(false);
 
+  const { toast } = useToast();
   const { updateCampaign, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
 
   // Fetch campaigns from Supabase
@@ -83,11 +88,55 @@ export default function InstagramCampaignsPage() {
     setIsDetailsOpen(false);
   };
 
-  const updateField = (field: string, value: string) => {
+  const updateField = (field: string, value: string | boolean) => {
     setEditForm((prev: any) => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  // Trigger scraping for the current campaign
+  const handleScrapeCampaign = async () => {
+    if (!selectedCampaign?.instagram_url) {
+      toast({
+        title: "No Instagram URL",
+        description: "Please add an Instagram URL first and save changes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsScrapingCampaign(true);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/instagram-scraper/campaign/${selectedCampaign.id}/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          usernames: [selectedCampaign.instagram_url],
+          resultsLimit: 30,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Scraping Complete!",
+          description: `Successfully scraped ${data.data?.count || 0} posts for this campaign.`,
+        });
+      } else {
+        throw new Error(data.error || 'Scraping failed');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Scraping Failed",
+        description: error.message || "Failed to scrape Instagram posts. Try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsScrapingCampaign(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -722,6 +771,120 @@ export default function InstagramCampaignsPage() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Instagram Scraper Settings */}
+              <Card className="border-pink-500/20 bg-gradient-to-br from-pink-500/5 to-purple-500/5">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Instagram className="h-5 w-5 text-pink-500" />
+                    Instagram Scraper Settings
+                  </CardTitle>
+                  <CardDescription>
+                    Configure automatic data scraping for this campaign
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Instagram URL Input */}
+                  <div>
+                    <Label htmlFor="instagram_url" className="text-sm font-medium mb-2 block">
+                      Instagram Profile or Post URL
+                    </Label>
+                    {isEditMode ? (
+                      <Input
+                        id="instagram_url"
+                        value={editForm.instagram_url || ''}
+                        onChange={(e) => updateField('instagram_url', e.target.value)}
+                        placeholder="https://www.instagram.com/username or https://www.instagram.com/p/..."
+                        className="font-mono text-sm"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {selectedCampaign.instagram_url ? (
+                          <>
+                            <a 
+                              href={selectedCampaign.instagram_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline font-mono truncate flex-1"
+                            >
+                              {selectedCampaign.instagram_url}
+                            </a>
+                            <ExternalLink className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                          </>
+                        ) : (
+                          <span className="text-sm text-muted-foreground italic">
+                            No Instagram URL set - Click Edit to add one
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Enter the Instagram profile URL or specific post URL to scrape analytics from
+                    </p>
+                  </div>
+
+                  {/* Scraper Enabled Toggle */}
+                  <div className="flex items-center justify-between py-2 border-t pt-4">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="scraper_enabled" className="text-sm font-medium">
+                        Enable Daily Scraping
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Automatically scrape this URL daily at 3 AM UTC
+                      </p>
+                    </div>
+                    {isEditMode ? (
+                      <Switch
+                        id="scraper_enabled"
+                        checked={editForm.scraper_enabled || false}
+                        onCheckedChange={(checked) => updateField('scraper_enabled', checked)}
+                      />
+                    ) : (
+                      <Badge variant={selectedCampaign.scraper_enabled ? "default" : "secondary"}>
+                        {selectedCampaign.scraper_enabled ? "Enabled" : "Disabled"}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Last Scraped Info */}
+                  {selectedCampaign.last_scraped_at && (
+                    <div className="flex items-center justify-between py-2 border-t">
+                      <span className="text-sm text-muted-foreground">Last Scraped:</span>
+                      <span className="text-sm font-medium">
+                        {new Date(selectedCampaign.last_scraped_at).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Manual Scrape Button */}
+                  {!isEditMode && selectedCampaign.instagram_url && (
+                    <div className="pt-2 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleScrapeCampaign}
+                        disabled={isScrapingCampaign}
+                        className="w-full flex items-center gap-2"
+                      >
+                        {isScrapingCampaign ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Scraping...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="h-4 w-4" />
+                            Scrape Now
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-center text-muted-foreground mt-2">
+                        Manually trigger a scrape to fetch latest Instagram data
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Notes */}
               {(selectedCampaign.report_notes || selectedCampaign.client_notes || isEditMode) && (
