@@ -203,8 +203,10 @@ export function calculateEngagementMetrics(posts: InstagramPost[]) {
   // Peak Engagement Day: Find the day with highest engagement
   const engagementByDay: Record<string, number> = {};
   posts.forEach(post => {
-    const day = post.timestamp.split('T')[0];
-    engagementByDay[day] = (engagementByDay[day] || 0) + post.likesCount + post.commentsCount;
+    const day = post.timestamp?.split('T')[0] || new Date().toISOString().split('T')[0];
+    if (day) {
+      engagementByDay[day] = (engagementByDay[day] || 0) + post.likesCount + post.commentsCount;
+    }
   });
   
   const peakDay = Object.entries(engagementByDay).reduce((max, [day, eng]) => 
