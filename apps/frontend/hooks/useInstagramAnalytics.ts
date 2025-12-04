@@ -4,7 +4,12 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // API base URL - uses the backend API server
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// In production (artistinfluence.com), use the production API
+// Otherwise use local development server
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname.includes('artistinfluence') 
+    ? 'https://api.artistinfluence.com' 
+    : 'http://localhost:3001');
 
 // Types
 export interface InstagramPost {
