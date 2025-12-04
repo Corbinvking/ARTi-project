@@ -71,6 +71,13 @@ interface CampaignAnalyticsData {
   sentimentScore: number;
   relevanceScore: number;
   
+  // NEW: Computed metrics from historical data
+  viralityScore: number;
+  growthRate: number;
+  peakEngagementDay: string | null;
+  topHashtags: string[];
+  avgPostsPerDay: number;
+  
   // Time series data
   timeSeriesData: TimeSeriesPoint[];
 }
@@ -129,6 +136,13 @@ function generateMockData(): CampaignAnalyticsData {
     avgCostPerView: 0.0013,
     sentimentScore: 53,
     relevanceScore: 45,
+    
+    // NEW: Computed metrics
+    viralityScore: 67,
+    growthRate: 12.5,
+    peakEngagementDay: format(subDays(new Date(), 2), 'yyyy-MM-dd'),
+    topHashtags: ['#music', '#newrelease', '#edm', '#dubstep', '#bass'],
+    avgPostsPerDay: 0.9,
     
     timeSeriesData,
   };
@@ -538,6 +552,8 @@ export default function CampaignAnalyticsDashboard({
     // Use REAL Instagram analytics data if available
     if (hasRealData && realAnalytics) {
       console.log('📊 Using REAL Instagram analytics data');
+      const metrics = realAnalytics.metrics as any; // Type assertion for new fields
+      
       return {
         campaignName: campaignData?.campaign || 'Campaign Analytics',
         campaignCount: 1,
@@ -547,18 +563,25 @@ export default function CampaignAnalyticsDashboard({
         currency: 'USD',
         
         // REAL metrics from Instagram API
-        totalViews: realAnalytics.metrics.totalViews,
-        totalLikes: realAnalytics.metrics.totalLikes,
-        totalComments: realAnalytics.metrics.totalComments,
-        totalShares: realAnalytics.metrics.totalShares,
-        engagementRate: realAnalytics.metrics.engagementRate,
+        totalViews: metrics.totalViews,
+        totalLikes: metrics.totalLikes,
+        totalComments: metrics.totalComments,
+        totalShares: metrics.totalShares,
+        engagementRate: metrics.engagementRate,
         
-        livePosts: realAnalytics.metrics.livePosts,
-        avgCostPerView: budget > 0 && realAnalytics.metrics.totalViews > 0 
-          ? budget / realAnalytics.metrics.totalViews 
+        livePosts: metrics.livePosts,
+        avgCostPerView: budget > 0 && metrics.totalViews > 0 
+          ? budget / metrics.totalViews 
           : 0.001,
-        sentimentScore: 53, // Placeholder - would need NLP
-        relevanceScore: 45, // Placeholder - would need content analysis
+        
+        // REAL computed metrics from API
+        sentimentScore: metrics.sentimentScore || 50,
+        relevanceScore: metrics.relevanceScore || 50,
+        viralityScore: metrics.viralityScore || 0,
+        growthRate: metrics.growthRate || 0,
+        peakEngagementDay: metrics.peakEngagementDay || null,
+        topHashtags: metrics.topHashtags || [],
+        avgPostsPerDay: metrics.avgPostsPerDay || 0,
         
         // REAL time series data
         timeSeriesData: realAnalytics.timeSeries.length > 0 
@@ -570,6 +593,7 @@ export default function CampaignAnalyticsDashboard({
     // Fallback to campaign data with mock metrics
     if (campaignData) {
       console.log('📊 Using mock analytics (no real Instagram data yet)');
+      const mockViews = Math.round(spent * 2000 + Math.random() * 50000);
       return {
         campaignName: campaignData.campaign || 'Untitled Campaign',
         campaignCount: 1,
@@ -579,16 +603,23 @@ export default function CampaignAnalyticsDashboard({
         currency: 'USD',
         
         // Mock analytics metrics (click "Refresh Data" to fetch real data)
-        totalViews: Math.round(spent * 2000 + Math.random() * 50000),
+        totalViews: mockViews,
         totalLikes: Math.round(spent * 15 + Math.random() * 1000),
         totalComments: Math.round(spent * 2 + Math.random() * 200),
         totalShares: Math.round(spent * 0.2 + Math.random() * 50),
         engagementRate: 2 + Math.random() * 1.5,
         
         livePosts: Math.floor(Math.random() * 10) + 1,
-        avgCostPerView: budget > 0 ? budget / (spent * 2000 + 50000) : 0.001,
+        avgCostPerView: budget > 0 ? budget / mockViews : 0.001,
         sentimentScore: Math.round(40 + Math.random() * 30),
         relevanceScore: Math.round(35 + Math.random() * 35),
+        
+        // Mock computed metrics
+        viralityScore: Math.round(30 + Math.random() * 40),
+        growthRate: Math.round((Math.random() - 0.3) * 30 * 10) / 10,
+        peakEngagementDay: format(subDays(new Date(), Math.floor(Math.random() * 7)), 'yyyy-MM-dd'),
+        topHashtags: ['#music', '#newmusic', '#artist'],
+        avgPostsPerDay: Math.round(Math.random() * 20) / 10,
         
         timeSeriesData: mockTimeSeries,
       };
@@ -825,6 +856,95 @@ export default function CampaignAnalyticsDashboard({
                 suffix="%"
               />
             </div>
+
+            {/* Computed Insights - Row 3 */}
+            <div className="grid grid-cols-4 gap-4 mt-4">
+              <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-purple-400 text-sm mb-2">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    <span>Virality Score</span>
+                  </div>
+                  <div className="text-2xl font-bold text-purple-400">
+                    {data.viralityScore}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Content shareability potential
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className={`border-${data.growthRate >= 0 ? 'green' : 'red'}-500/20`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    <span>Growth Rate</span>
+                  </div>
+                  <div className={`text-2xl font-bold ${data.growthRate >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {data.growthRate >= 0 ? '+' : ''}{data.growthRate}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Week-over-week engagement
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span>Peak Day</span>
+                  </div>
+                  <div className="text-lg font-bold">
+                    {data.peakEngagementDay 
+                      ? format(new Date(data.peakEngagementDay), 'MMM d')
+                      : 'N/A'
+                    }
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Best performing day
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+                    <Play className="h-3.5 w-3.5" />
+                    <span>Post Frequency</span>
+                  </div>
+                  <div className="text-xl font-bold">
+                    {data.avgPostsPerDay} <span className="text-sm font-normal text-muted-foreground">/day</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Average posting rate
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Top Hashtags - if available */}
+            {data.topHashtags && data.topHashtags.length > 0 && (
+              <Card className="mt-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
+                    <Target className="h-3.5 w-3.5" />
+                    <span>Top Performing Hashtags</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {data.topHashtags.map((tag, i) => (
+                      <Badge 
+                        key={tag} 
+                        variant="secondary" 
+                        className={i === 0 ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' : ''}
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Analytics Chart */}
             <AnalyticsChart data={data.timeSeriesData} />

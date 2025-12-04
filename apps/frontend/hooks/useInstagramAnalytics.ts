@@ -36,6 +36,14 @@ export interface InstagramMetrics {
   avgLikesPerPost: number;
   avgCommentsPerPost: number;
   livePosts: number;
+  // Computed metrics
+  sentimentScore: number;
+  relevanceScore: number;
+  viralityScore: number;
+  growthRate: number;
+  peakEngagementDay: string | null;
+  topHashtags: string[];
+  avgPostsPerDay: number;
 }
 
 export interface InstagramTimeSeries {
@@ -216,7 +224,7 @@ export function useScrapeInstagramPost() {
 /**
  * Convert raw metrics to display format for dashboard
  */
-export function formatMetricsForDashboard(metrics: InstagramMetrics | null) {
+export function formatMetricsForDashboard(metrics: InstagramMetrics | null, budget?: number) {
   if (!metrics) {
     return {
       totalViews: 0,
@@ -228,6 +236,11 @@ export function formatMetricsForDashboard(metrics: InstagramMetrics | null) {
       avgCostPerView: 0,
       sentimentScore: 0,
       relevanceScore: 0,
+      viralityScore: 0,
+      growthRate: 0,
+      peakEngagementDay: null,
+      topHashtags: [],
+      avgPostsPerDay: 0,
     };
   }
 
@@ -238,9 +251,15 @@ export function formatMetricsForDashboard(metrics: InstagramMetrics | null) {
     totalShares: metrics.totalShares,
     engagementRate: metrics.engagementRate,
     livePosts: metrics.livePosts,
-    avgCostPerView: 0, // Calculated separately based on budget
-    sentimentScore: 50, // Placeholder - would need NLP analysis
-    relevanceScore: 50, // Placeholder - would need content analysis
+    avgCostPerView: budget && metrics.totalViews > 0 ? budget / metrics.totalViews : 0,
+    // REAL computed metrics from API
+    sentimentScore: metrics.sentimentScore || 50,
+    relevanceScore: metrics.relevanceScore || 50,
+    viralityScore: metrics.viralityScore || 0,
+    growthRate: metrics.growthRate || 0,
+    peakEngagementDay: metrics.peakEngagementDay || null,
+    topHashtags: metrics.topHashtags || [],
+    avgPostsPerDay: metrics.avgPostsPerDay || 0,
   };
 }
 

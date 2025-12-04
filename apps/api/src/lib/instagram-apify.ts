@@ -141,6 +141,14 @@ export function calculateEngagementMetrics(posts: InstagramPost[]) {
       avgLikesPerPost: 0,
       avgCommentsPerPost: 0,
       livePosts: 0,
+      // Computed metrics
+      sentimentScore: 0,
+      relevanceScore: 0,
+      viralityScore: 0,
+      growthRate: 0,
+      peakEngagementDay: null,
+      topHashtags: [],
+      avgPostsPerDay: 0,
     };
   }
 
@@ -156,6 +164,71 @@ export function calculateEngagementMetrics(posts: InstagramPost[]) {
   const estimatedReach = totalViews;
   const engagementRate = estimatedReach > 0 ? (totalEngagements / estimatedReach) * 100 : 0;
 
+  // === COMPUTED METRICS ===
+  
+  // Sentiment Score: Based on comments-to-likes ratio (higher ratio = more engagement/discussion)
+  // Scale: 0-100 where 50 is average
+  const commentsToLikesRatio = totalLikes > 0 ? (totalComments / totalLikes) : 0;
+  // Typical ratio is 1-5%, so 3% = 50 score
+  const sentimentScore = Math.min(100, Math.max(0, Math.round((commentsToLikesRatio / 0.03) * 50)));
+  
+  // Relevance Score: Based on hashtag coverage and content consistency
+  const allHashtags = posts.flatMap(p => p.hashtags || []);
+  const uniqueHashtags = new Set(allHashtags);
+  const hashtagDiversity = uniqueHashtags.size / Math.max(1, allHashtags.length);
+  // Higher diversity with good engagement = higher relevance
+  const relevanceScore = Math.min(100, Math.max(0, Math.round(
+    (engagementRate * 10) + (hashtagDiversity * 30) + (posts.length * 2)
+  )));
+  
+  // Virality Score: Based on views-to-engagement conversion
+  const viralityConversion = totalViews > 0 ? (totalEngagements / totalViews) * 100 : 0;
+  const viralityScore = Math.min(100, Math.max(0, Math.round(viralityConversion * 20)));
+  
+  // Growth Rate: Compare first half vs second half of posts (by timestamp)
+  const sortedPosts = [...posts].sort((a, b) => 
+    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+  const midpoint = Math.floor(sortedPosts.length / 2);
+  const firstHalf = sortedPosts.slice(0, midpoint);
+  const secondHalf = sortedPosts.slice(midpoint);
+  
+  const firstHalfEngagement = firstHalf.reduce((sum, p) => sum + p.likesCount + p.commentsCount, 0);
+  const secondHalfEngagement = secondHalf.reduce((sum, p) => sum + p.likesCount + p.commentsCount, 0);
+  
+  const growthRate = firstHalfEngagement > 0 
+    ? ((secondHalfEngagement - firstHalfEngagement) / firstHalfEngagement) * 100 
+    : 0;
+  
+  // Peak Engagement Day: Find the day with highest engagement
+  const engagementByDay: Record<string, number> = {};
+  posts.forEach(post => {
+    const day = post.timestamp.split('T')[0];
+    engagementByDay[day] = (engagementByDay[day] || 0) + post.likesCount + post.commentsCount;
+  });
+  
+  const peakDay = Object.entries(engagementByDay).reduce((max, [day, eng]) => 
+    eng > (max.engagement || 0) ? { day, engagement: eng } : max, 
+    { day: '', engagement: 0 }
+  );
+  
+  // Top Hashtags: Most used across all posts
+  const hashtagCounts: Record<string, number> = {};
+  allHashtags.forEach(tag => {
+    hashtagCounts[tag] = (hashtagCounts[tag] || 0) + 1;
+  });
+  const topHashtags = Object.entries(hashtagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([tag]) => tag);
+  
+  // Average posts per day
+  const timestamps = posts.map(p => new Date(p.timestamp).getTime());
+  const dateRange = timestamps.length > 1 
+    ? (Math.max(...timestamps) - Math.min(...timestamps)) / (1000 * 60 * 60 * 24)
+    : 1;
+  const avgPostsPerDay = posts.length / Math.max(1, dateRange);
+
   return {
     totalViews,
     totalLikes,
@@ -165,6 +238,14 @@ export function calculateEngagementMetrics(posts: InstagramPost[]) {
     avgLikesPerPost: Math.round(totalLikes / posts.length),
     avgCommentsPerPost: Math.round(totalComments / posts.length),
     livePosts: posts.length,
+    // Computed metrics
+    sentimentScore,
+    relevanceScore,
+    viralityScore,
+    growthRate: Math.round(growthRate * 10) / 10,
+    peakEngagementDay: peakDay.day || null,
+    topHashtags,
+    avgPostsPerDay: Math.round(avgPostsPerDay * 10) / 10,
   };
 }
 
