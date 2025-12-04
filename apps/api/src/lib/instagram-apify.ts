@@ -2,7 +2,7 @@ import { ApifyClient } from 'apify-client';
 import { logger } from './logger';
 
 // Apify configuration - API token must be set in environment
-const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
+const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN || '';
 const INSTAGRAM_SCRAPER_ACTOR_ID = 'nH2AHrwxeTRJoN5hX';
 
 if (!APIFY_API_TOKEN) {
@@ -176,9 +176,9 @@ export function generateTimeSeriesData(posts: InstagramPost[]) {
   const postsByDate = new Map<string, InstagramPost[]>();
   
   posts.forEach((post) => {
-    const date = new Date(post.timestamp).toISOString().split('T')[0];
-    const existing = postsByDate.get(date) || [];
-    postsByDate.set(date, [...existing, post]);
+    const dateStr = new Date(post.timestamp).toISOString().split('T')[0] as string;
+    const existing = postsByDate.get(dateStr) || [];
+    postsByDate.set(dateStr, [...existing, post]);
   });
 
   // Convert to time series format

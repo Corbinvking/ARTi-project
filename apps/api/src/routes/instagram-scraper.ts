@@ -21,10 +21,6 @@ interface ScrapePostRequest {
   campaignId?: number;
 }
 
-interface GetCampaignAnalyticsRequest {
-  campaignId: number;
-}
-
 export default async function instagramScraperRoutes(fastify: FastifyInstance) {
   
   /**
@@ -187,7 +183,7 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
    * List all campaigns with their scraper status
    */
   fastify.get('/campaigns', async (
-    request: FastifyRequest,
+    _request: FastifyRequest,
     reply: FastifyReply
   ) => {
     try {

@@ -7,6 +7,7 @@ echo ""
 
 API_URL="${API_URL:-http://localhost:3001}"
 DB_CONTAINER="${DB_CONTAINER:-supabase_db_arti-marketing-ops}"
+# Note: Verify container name with: docker ps | grep supabase
 
 # 1. API Health Check
 echo "📡 API Health Check:"
