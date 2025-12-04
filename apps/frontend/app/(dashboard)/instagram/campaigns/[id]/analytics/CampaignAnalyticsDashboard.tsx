@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,8 +35,11 @@ import {
   Settings,
   ChevronDown,
   CheckCircle2,
+  ArrowLeft,
+  Loader2,
 } from 'lucide-react';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
+import { supabase } from '@/lib/auth';
 
 // Types for the dashboard
 interface CampaignAnalyticsData {
@@ -432,20 +436,121 @@ export default function CampaignAnalyticsDashboard({
   isPublic = false,
   campaignId,
 }: CampaignAnalyticsDashboardProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('live-post');
-  
-  // Use provided data or generate mock data
-  const data = propData || generateMockData();
+  const [campaignData, setCampaignData] = useState<any>(null);
+  const [loading, setLoading] = useState(!!campaignId);
+
+  // Fetch campaign data when campaignId is provided
+  useEffect(() => {
+    async function fetchCampaign() {
+      if (!campaignId) return;
+      
+      try {
+        setLoading(true);
+        console.log('📊 Fetching campaign data for ID:', campaignId);
+        
+        const { data: campaign, error } = await supabase
+          .from('instagram_campaigns')
+          .select('*')
+          .eq('id', campaignId)
+          .single();
+        
+        if (error) {
+          console.error('❌ Error fetching campaign:', error);
+          return;
+        }
+        
+        console.log('✅ Loaded campaign:', campaign?.campaign);
+        setCampaignData(campaign);
+      } catch (err) {
+        console.error('❌ Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchCampaign();
+  }, [campaignId]);
+
+  // Parse currency value from string like "$350.00" to number
+  const parseCurrency = (value: string | number | null | undefined): number => {
+    if (!value) return 0;
+    if (typeof value === 'number') return value;
+    return parseFloat(value.replace(/[^0-9.]/g, '')) || 0;
+  };
+
+  // Build analytics data from campaign or use mock data
+  const buildAnalyticsData = (): CampaignAnalyticsData => {
+    if (propData) return propData;
+    
+    const mockTimeSeries = generateMockData().timeSeriesData;
+    
+    if (campaignData) {
+      const budget = parseCurrency(campaignData.price);
+      const spent = parseCurrency(campaignData.spend);
+      
+      return {
+        campaignName: campaignData.campaign || 'Untitled Campaign',
+        campaignCount: 1,
+        createdDate: campaignData.start_date || campaignData.created_at?.split('T')[0] || 'Unknown',
+        totalBudget: budget,
+        spentBudget: spent,
+        currency: 'USD',
+        
+        // Mock analytics metrics (will be replaced with real API data later)
+        totalViews: Math.round(spent * 2000 + Math.random() * 50000),
+        totalLikes: Math.round(spent * 15 + Math.random() * 1000),
+        totalComments: Math.round(spent * 2 + Math.random() * 200),
+        totalShares: Math.round(spent * 0.2 + Math.random() * 50),
+        engagementRate: 2 + Math.random() * 1.5,
+        
+        livePosts: Math.floor(Math.random() * 10) + 1,
+        avgCostPerView: budget > 0 ? budget / (spent * 2000 + 50000) : 0.001,
+        sentimentScore: Math.round(40 + Math.random() * 30),
+        relevanceScore: Math.round(35 + Math.random() * 35),
+        
+        timeSeriesData: mockTimeSeries,
+      };
+    }
+    
+    return generateMockData();
+  };
+
+  const data = buildAnalyticsData();
   
   // Calculate budget progress
-  const budgetProgress = (data.spentBudget / data.totalBudget) * 100;
+  const budgetProgress = data.totalBudget > 0 ? (data.spentBudget / data.totalBudget) * 100 : 0;
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading campaign analytics...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with branding */}
+      {/* Header with branding and back button */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            {!isPublic && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => router.push('/instagram/campaigns')}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Campaigns
+              </Button>
+            )}
             <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold px-3 py-1.5 rounded text-sm tracking-tight">
               ARTIST<br />INFLUENCE
             </div>
@@ -460,7 +565,14 @@ export default function CampaignAnalyticsDashboard({
       <main className="container mx-auto px-6 py-8">
         {/* Campaign Title & Meta */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-3">{data.campaignName}</h1>
+          <div className="flex items-center gap-4 mb-3">
+            <h1 className="text-3xl font-bold">{data.campaignName}</h1>
+            {campaignData?.clients && (
+              <Badge variant="outline" className="text-sm">
+                {campaignData.clients}
+              </Badge>
+            )}
+          </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <span>{data.campaignCount} Campaign</span>
             <span>Created {data.createdDate}</span>
