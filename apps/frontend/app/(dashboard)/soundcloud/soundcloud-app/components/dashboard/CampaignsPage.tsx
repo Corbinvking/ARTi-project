@@ -308,19 +308,33 @@ export default function CampaignsPage() {
     }
   };
 
+  // Map database status to UI display status
+  const getDisplayStatus = (dbStatus: string): string => {
+    const displayMap: Record<string, string> = {
+      'new': 'Pending',
+      'approved': 'Active',
+      'rejected': 'Cancelled',
+      'complete': 'Complete',
+    };
+    return displayMap[dbStatus] || dbStatus;
+  };
+
+  // Map UI status to database status
+  const getDbStatus = (uiStatus: string): string => {
+    const dbMap: Record<string, string> = {
+      'Pending': 'new',
+      'Active': 'approved',
+      'Complete': 'complete',
+      'Cancelled': 'rejected',
+    };
+    return dbMap[uiStatus] || uiStatus;
+  };
+
   const updateCampaignStatus = async (campaignId: string, newStatus: string) => {
     console.log('🔄 updateCampaignStatus called:', { campaignId, newStatus });
     
     try {
-      // Map UI status values to database enum values
-      const statusMap: Record<string, string> = {
-        'Pending': 'new',
-        'Active': 'approved',
-        'Complete': 'approved',
-        'Cancelled': 'rejected',
-      };
-      
-      const dbStatus = statusMap[newStatus] || 'new';
+      const dbStatus = getDbStatus(newStatus);
       console.log('📝 Updating to DB status:', dbStatus);
       
       const { data, error } = await supabase
@@ -542,14 +556,13 @@ export default function CampaignsPage() {
                           <p className="text-sm text-muted-foreground">{campaign.client.email}</p>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Select
-                          value={campaign.status}
+                          value={getDisplayStatus(campaign.status)}
                           onValueChange={(value) => updateCampaignStatus(campaign.id, value)}
                         >
                           <SelectTrigger 
                             className="w-28 h-6 text-xs"
-                            onClick={(e) => e.stopPropagation()}
                           >
                             <SelectValue />
                           </SelectTrigger>
