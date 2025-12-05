@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useAuth } from "@/hooks/use-auth"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
 import { PlatformNavigation } from "@/components/navigation/platform-navigation"
 import { UserMenu } from "@/components/navigation/user-menu"
@@ -23,6 +23,7 @@ export function ProtectedLayout({
 }: ProtectedLayoutProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (!loading && !user) {
@@ -30,9 +31,25 @@ export function ProtectedLayout({
     }
   }, [user, loading, router])
 
+  // Redirect members to their portal - they can ONLY access /soundcloud/portal/*
+  useEffect(() => {
+    if (!loading && user && user.role === 'member') {
+      const isAllowedPath = pathname?.startsWith('/soundcloud/portal')
+      if (!isAllowedPath) {
+        console.log('🚫 Member access blocked, redirecting to portal')
+        router.push("/soundcloud/portal")
+      }
+    }
+  }, [user, loading, pathname, router])
+
   useEffect(() => {
     if (user && requiredRoles && !requiredRoles.includes(user.role)) {
-      router.push("/dashboard")
+      // Members get redirected to portal, others to dashboard
+      if (user.role === 'member') {
+        router.push("/soundcloud/portal")
+      } else {
+        router.push("/dashboard")
+      }
     }
   }, [user, requiredRoles, router])
 

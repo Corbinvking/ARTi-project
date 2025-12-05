@@ -8,7 +8,7 @@ import { type User, authService, onAuthStateChange } from "@/lib/auth"
 interface AuthContextType {
   user: User | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<User>
   signOut: () => Promise<void>
 }
 
@@ -45,11 +45,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<User> => {
     setLoading(true)
     try {
       const user = await authService.signIn(email, password)
       setUser(user)
+      return user
     } finally {
       setLoading(false)
     }

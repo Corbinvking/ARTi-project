@@ -22,8 +22,16 @@ export function LoginForm() {
     setError("")
 
     try {
-      await signIn(email, password)
-      router.push("/dashboard")
+      const user = await signIn(email, password)
+      
+      // Redirect based on user role
+      if (user?.role === 'member') {
+        // Members go to SoundCloud portal
+        router.push("/soundcloud/portal")
+      } else {
+        // Admin, manager, vendor go to main dashboard
+        router.push("/dashboard")
+      }
     } catch (err) {
       setError("Invalid credentials")
     }
