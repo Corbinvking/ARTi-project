@@ -98,18 +98,26 @@ async function getMembersNeedingAccounts(): Promise<SoundCloudMember[]> {
 
 async function checkExistingUser(email: string): Promise<string | null> {
   // Check if user already exists in auth.users
-  const { data, error } = await supabase.auth.admin.listUsers();
-  
-  if (error) {
-    console.warn('⚠️  Could not check existing users:', error.message);
+  try {
+    const { data, error } = await supabase.auth.admin.listUsers();
+    
+    if (error) {
+      console.warn('⚠️  Could not check existing users:', error.message);
+      return null;
+    }
+    
+    // Type assertion for Supabase admin API response
+    const users = (data?.users || []) as Array<{ id: string; email?: string }>;
+    
+    const existingUser = users.find(u => 
+      u.email?.toLowerCase() === email.toLowerCase()
+    );
+    
+    return existingUser?.id || null;
+  } catch (e: any) {
+    console.warn('⚠️  Error checking existing users:', e.message);
     return null;
   }
-  
-  const existingUser = data.users.find(u => 
-    u.email?.toLowerCase() === email.toLowerCase()
-  );
-  
-  return existingUser?.id || null;
 }
 
 async function createMemberAccount(member: SoundCloudMember): Promise<CreateResult> {
