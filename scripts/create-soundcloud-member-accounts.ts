@@ -21,13 +21,26 @@ import * as path from 'path';
 dotenv.config({ path: path.join(__dirname, '../apps/api/production.env') });
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+// For scripts running on host (not in Docker), use external URL
+// The production.env has internal docker URL (http://kong:8000), so we need to override
+let supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+// If the URL is the internal Docker URL, replace with external
+if (supabaseUrl?.includes('kong:8000') || supabaseUrl?.includes('localhost:54321')) {
+  // Use the external API URL for production
+  supabaseUrl = 'https://api.artistinfluence.com';
+  console.log('ℹ️  Using external Supabase URL:', supabaseUrl);
+}
+
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error('❌ Missing environment variables:');
   console.error('   SUPABASE_URL:', supabaseUrl ? '✓' : '✗');
   console.error('   SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? '✓' : '✗');
+  console.error('\n💡 Tip: You can set these manually:');
+  console.error('   export SUPABASE_URL="https://api.artistinfluence.com"');
+  console.error('   export SUPABASE_SERVICE_ROLE_KEY="your-key"');
   process.exit(1);
 }
 
