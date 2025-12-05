@@ -28,42 +28,48 @@ export default function SoundCloudLayout({ children }: { children: ReactNode }) 
     },
   }));
 
+  // Hide admin navigation for member portal - they have their own nav
+  const isPortalRoute = pathname?.startsWith('/soundcloud/portal');
+
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen flex-col">
-        <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container flex h-14 items-center">
-            <div className="mr-4 flex">
-              <Link href="/soundcloud" className="mr-6 flex items-center space-x-2">
-                <Music className="h-6 w-6" />
-                <span className="font-bold">SoundCloud Manager</span>
-              </Link>
-            </div>
-            <div className="flex flex-1 items-center space-x-2 justify-end md:justify-between">
-              <nav className="flex items-center space-x-6 text-sm font-medium">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href ||
-                    (item.href !== "/soundcloud" && pathname.startsWith(item.href));
+        {/* Only show admin nav for non-portal routes */}
+        {!isPortalRoute && (
+          <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-14 items-center">
+              <div className="mr-4 flex">
+                <Link href="/soundcloud" className="mr-6 flex items-center space-x-2">
+                  <Music className="h-6 w-6" />
+                  <span className="font-bold">SoundCloud Manager</span>
+                </Link>
+              </div>
+              <div className="flex flex-1 items-center space-x-2 justify-end md:justify-between">
+                <nav className="flex items-center space-x-6 text-sm font-medium">
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href ||
+                      (item.href !== "/soundcloud" && pathname.startsWith(item.href));
 
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-2 transition-colors hover:text-foreground/80",
-                        isActive ? "text-foreground" : "text-foreground/60"
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="hidden sm:inline-block">{item.title}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-2 transition-colors hover:text-foreground/80",
+                          isActive ? "text-foreground" : "text-foreground/60"
+                        )}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="hidden sm:inline-block">{item.title}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
             </div>
-          </div>
-        </nav>
+          </nav>
+        )}
         <div className="flex-1">
           {children}
         </div>
