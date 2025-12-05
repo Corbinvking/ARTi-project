@@ -58,11 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isModerator = userRoles.includes('moderator');
   const isMember = member !== null;
 
-  // ✅ USE AUTH METADATA ONLY - No database queries!
-  // This approach prevents RLS issues and schema mismatches
+  // Fetch user data - tries database first, falls back to metadata
   const fetchUserData = async (userId: string, userEmail: string) => {
     try {
-      // Get user from auth (no DB query needed)
+      // Get user from auth
       const { data: userData } = await supabase.auth.getUser();
       const authUser = userData.user;
 
@@ -72,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // ✅ Get roles from user metadata (no DB query)
+      // Get roles from user metadata
       const metadataRoles = authUser.user_metadata?.roles || authUser.app_metadata?.roles || [];
       const role = authUser.user_metadata?.role || authUser.app_metadata?.role;
       
@@ -85,32 +84,152 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const finalRoles = allRoles.length > 0 ? allRoles : ['admin'];
       setUserRoles(finalRoles);
 
-      // ✅ Get member status from metadata (no DB query)
-      const isMemberFlag = authUser.user_metadata?.is_member || false;
-      const memberData = authUser.user_metadata?.member_data;
-
-      if (isMemberFlag || memberData) {
-        // Build member object from metadata
-        setMember({
-          id: userId,
-          name: memberData?.name || authUser.user_metadata?.name || authUser.user_metadata?.full_name || 'Member',
-          primary_email: userEmail,
-          emails: memberData?.emails || [userEmail],
-          status: memberData?.status || 'active',
-          size_tier: memberData?.size_tier || 'standard',
-          monthly_repost_limit: memberData?.monthly_repost_limit || 10,
-          submissions_this_month: memberData?.submissions_this_month || 0,
-          net_credits: memberData?.net_credits || 0,
-          soundcloud_url: memberData?.soundcloud_url,
-          spotify_url: memberData?.spotify_url,
-          families: memberData?.families || [],
-          soundcloud_followers: memberData?.soundcloud_followers,
-        });
-      } else {
-        setMember(null);
+      // Try to fetch member from database
+      let memberData: Member | null = null;
+      
+      // Method 1: Check soundcloud_member_users linking table
+      try {
+        const { data: linkData } = await supabase
+          .from('soundcloud_member_users')
+          .select('member_id')
+          .eq('user_id', userId)
+          .single();
+        
+        if (linkData?.member_id) {
+          const { data: memberRecord } = await supabase
+            .from('soundcloud_members')
+            .select('*')
+            .eq('id', linkData.member_id)
+            .single();
+          
+          if (memberRecord) {
+            memberData = {
+              id: memberRecord.id,
+              name: memberRecord.name,
+              primary_email: memberRecord.primary_email || userEmail,
+              emails: memberRecord.emails || [userEmail],
+              status: memberRecord.status || 'active',
+              size_tier: memberRecord.size_tier || 'T1',
+              monthly_repost_limit: memberRecord.monthly_submission_limit || memberRecord.monthly_repost_limit || 10,
+              submissions_this_month: memberRecord.submissions_this_month || 0,
+              net_credits: memberRecord.net_credits || 0,
+              soundcloud_url: memberRecord.soundcloud_url,
+              spotify_url: memberRecord.spotify_url,
+              families: memberRecord.families || [],
+              soundcloud_followers: memberRecord.soundcloud_followers || memberRecord.followers,
+            };
+          }
+        }
+      } catch (e) {
+        // Table might not exist, continue to next method
       }
 
-      console.log('✅ SoundCloud auth loaded:', userEmail, 'roles:', finalRoles, 'isMember:', isMemberFlag);
+      // Method 2: Direct user_id lookup on soundcloud_members
+      if (!memberData) {
+        try {
+          const { data: memberRecord } = await supabase
+            .from('soundcloud_members')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+          
+          if (memberRecord) {
+            memberData = {
+              id: memberRecord.id,
+              name: memberRecord.name,
+              primary_email: memberRecord.primary_email || userEmail,
+              emails: memberRecord.emails || [userEmail],
+              status: memberRecord.status || 'active',
+              size_tier: memberRecord.size_tier || 'T1',
+              monthly_repost_limit: memberRecord.monthly_submission_limit || memberRecord.monthly_repost_limit || 10,
+              submissions_this_month: memberRecord.submissions_this_month || 0,
+              net_credits: memberRecord.net_credits || 0,
+              soundcloud_url: memberRecord.soundcloud_url,
+              spotify_url: memberRecord.spotify_url,
+              families: memberRecord.families || [],
+              soundcloud_followers: memberRecord.soundcloud_followers || memberRecord.followers,
+            };
+          }
+        } catch (e) {
+          // Column might not exist, continue to next method
+        }
+      }
+
+      // Method 3: Email-based lookup
+      if (!memberData && userEmail) {
+        try {
+          const { data: memberRecord } = await supabase
+            .from('soundcloud_members')
+            .select('*')
+            .eq('primary_email', userEmail)
+            .single();
+          
+          if (memberRecord) {
+            memberData = {
+              id: memberRecord.id,
+              name: memberRecord.name,
+              primary_email: memberRecord.primary_email || userEmail,
+              emails: memberRecord.emails || [userEmail],
+              status: memberRecord.status || 'active',
+              size_tier: memberRecord.size_tier || 'T1',
+              monthly_repost_limit: memberRecord.monthly_submission_limit || memberRecord.monthly_repost_limit || 10,
+              submissions_this_month: memberRecord.submissions_this_month || 0,
+              net_credits: memberRecord.net_credits || 0,
+              soundcloud_url: memberRecord.soundcloud_url,
+              spotify_url: memberRecord.spotify_url,
+              families: memberRecord.families || [],
+              soundcloud_followers: memberRecord.soundcloud_followers || memberRecord.followers,
+            };
+          }
+        } catch (e) {
+          // Continue to metadata fallback
+        }
+      }
+
+      // Method 4: Fall back to metadata (legacy support)
+      if (!memberData) {
+        const isMemberFlag = authUser.user_metadata?.is_member || false;
+        const metaMemberData = authUser.user_metadata?.member_data;
+
+        if (isMemberFlag || metaMemberData) {
+          memberData = {
+            id: metaMemberData?.member_id || userId,
+            name: metaMemberData?.name || authUser.user_metadata?.name || authUser.user_metadata?.full_name || 'Member',
+            primary_email: userEmail,
+            emails: metaMemberData?.emails || [userEmail],
+            status: metaMemberData?.status || 'active',
+            size_tier: metaMemberData?.size_tier || 'T1',
+            monthly_repost_limit: metaMemberData?.monthly_repost_limit || 10,
+            submissions_this_month: metaMemberData?.submissions_this_month || 0,
+            net_credits: metaMemberData?.net_credits || 0,
+            soundcloud_url: metaMemberData?.soundcloud_url,
+            spotify_url: metaMemberData?.spotify_url,
+            families: metaMemberData?.families || [],
+            soundcloud_followers: metaMemberData?.soundcloud_followers,
+          };
+        }
+      }
+
+      setMember(memberData);
+      
+      // Add 'member' role if we found member data
+      if (memberData && !finalRoles.includes('member')) {
+        finalRoles.push('member');
+        setUserRoles(finalRoles);
+      }
+
+      // Record login and update IP status if member found
+      if (memberData) {
+        try {
+          await supabase.rpc('record_soundcloud_member_login', { p_user_id: userId });
+          console.log('📊 IP status updated for member:', memberData.name);
+        } catch (e) {
+          // Function might not exist yet, that's okay
+          console.log('Note: IP status tracking not available yet');
+        }
+      }
+      
+      console.log('✅ SoundCloud auth loaded:', userEmail, 'roles:', finalRoles, 'isMember:', !!memberData);
     } catch (error) {
       console.error('❌ Error fetching user data:', error);
       // Fallback: set as admin for development
