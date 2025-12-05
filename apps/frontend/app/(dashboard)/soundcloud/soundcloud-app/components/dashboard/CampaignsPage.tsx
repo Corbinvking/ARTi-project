@@ -158,6 +158,7 @@ export default function CampaignsPage() {
         'new': 'Pending',
         'approved': 'Active',
         'rejected': 'Cancelled',
+        'complete': 'Complete',
       };
       
       const transformedData = ((data || []) as any[]).map((submission: any, idx: number) => {
