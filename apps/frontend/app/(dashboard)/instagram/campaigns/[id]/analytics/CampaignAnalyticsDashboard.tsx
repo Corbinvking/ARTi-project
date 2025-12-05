@@ -666,9 +666,6 @@ export default function CampaignAnalyticsDashboard({
               ARTIST<br />INFLUENCE
             </div>
           </div>
-          <div className="text-xl font-light tracking-wide text-muted-foreground">
-            co:brand
-          </div>
         </div>
       </header>
 
