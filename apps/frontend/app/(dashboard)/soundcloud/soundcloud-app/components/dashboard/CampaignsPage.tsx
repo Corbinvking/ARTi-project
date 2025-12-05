@@ -309,6 +309,8 @@ export default function CampaignsPage() {
   };
 
   const updateCampaignStatus = async (campaignId: string, newStatus: string) => {
+    console.log('🔄 updateCampaignStatus called:', { campaignId, newStatus });
+    
     try {
       // Map UI status values to database enum values
       const statusMap: Record<string, string> = {
@@ -319,24 +321,31 @@ export default function CampaignsPage() {
       };
       
       const dbStatus = statusMap[newStatus] || 'new';
+      console.log('📝 Updating to DB status:', dbStatus);
       
-      const { error } = await supabase
-        .from('soundcloud_submissions' as any)
-        .update({ status: dbStatus })
-        .eq('id', campaignId);
+      const { data, error } = await supabase
+        .from('soundcloud_submissions')
+        .update({ status: dbStatus, updated_at: new Date().toISOString() })
+        .eq('id', campaignId)
+        .select();
 
-      if (error) throw error;
+      console.log('📊 Update result:', { data, error });
+
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
-        description: "Campaign status updated successfully",
+        description: `Campaign status updated to ${newStatus}`,
       });
       fetchCampaigns();
-    } catch (error) {
-      console.error('Error updating campaign status:', error);
+    } catch (error: any) {
+      console.error('❌ Error updating campaign status:', error);
       toast({
         title: "Error",
-        description: "Failed to update campaign status",
+        description: error.message || "Failed to update campaign status",
         variant: "destructive",
       });
     }
