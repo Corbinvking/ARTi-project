@@ -41,6 +41,164 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Error log setup
+error_handler = logging.FileHandler(Path(__file__).parent / 'logs' / 'errors.log')
+error_handler.setLevel(logging.ERROR)
+error_logger = logging.getLogger('errors')
+error_logger.addHandler(error_handler)
+
+
+def check_api_health():
+    """Check if Supabase API is reachable before starting scrape"""
+    try:
+        logger.info("Running API health check...")
+        headers = {
+            'apikey': SUPABASE_SERVICE_ROLE_KEY,
+            'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}'
+        }
+        
+        # Simple health check endpoint
+        url = f"{SUPABASE_URL}/rest/v1/"
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        # Check if we got HTML instead of JSON (Cloudflare error)
+        content_type = response.headers.get('Content-Type', '')
+        if 'text/html' in content_type:
+            logger.error(f"❌ API health check failed: Received HTML instead of JSON (likely Cloudflare error)")
+            logger.error(f"Response preview: {response.text[:200]}")
+            return False
+        
+        if response.status_code == 200:
+            logger.info("✅ API health check passed")
+            return True
+        else:
+            logger.error(f"❌ API health check failed: Status {response.status_code}")
+            return False
+            
+    except requests.exceptions.Timeout:
+        logger.error("❌ API health check failed: Connection timeout")
+        return False
+    except requests.exceptions.ConnectionError:
+        logger.error("❌ API health check failed: Cannot connect to API")
+        return False
+    except Exception as e:
+        logger.error(f"❌ API health check failed: {e}")
+        return False
+
+
+def fetch_campaigns_with_retry(url, headers, params, max_retries=3):
+    """Fetch campaigns with retry logic and exponential backoff"""
+    import time
+    
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"Fetching campaigns (attempt {attempt + 1}/{max_retries})...")
+            response = requests.get(url, headers=headers, params=params, timeout=30)
+            
+            # Check if we got HTML instead of JSON (Cloudflare error)
+            content_type = response.headers.get('Content-Type', '')
+            if 'text/html' in content_type:
+                logger.error(f"Received HTML instead of JSON (likely Cloudflare error)")
+                logger.error(f"Response preview: {response.text[:300]}")
+                
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt * 60  # 1min, 2min, 4min
+                    logger.warning(f"⏳ Retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    logger.error("❌ Max retries exceeded. API is not responding with valid JSON.")
+                    return None
+            
+            # Check status code
+            if response.status_code != 200:
+                logger.error(f"API returned status {response.status_code}")
+                logger.error(f"Response: {response.text[:300]}")
+                
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt * 60
+                    logger.warning(f"⏳ Retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    logger.error("❌ Max retries exceeded")
+                    return None
+            
+            # Success!
+            data = response.json()
+            logger.info(f"✅ Successfully fetched {len(data)} campaigns")
+            return data
+            
+        except requests.exceptions.Timeout:
+            logger.error(f"Request timeout (attempt {attempt + 1}/{max_retries})")
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt * 60
+                logger.warning(f"⏳ Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                logger.error("❌ Max retries exceeded")
+                return None
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request failed (attempt {attempt + 1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt * 60
+                logger.warning(f"⏳ Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                logger.error("❌ Max retries exceeded")
+                return None
+    
+    return None
+
+
+def send_alert_email(subject, body):
+    """Send email alert on critical failure"""
+    try:
+        import smtplib
+        from email.message import EmailMessage
+        
+        # Get email config from environment
+        alert_email = os.getenv('ALERT_EMAIL', 'admin@artistinfluence.com')
+        
+        msg = EmailMessage()
+        msg['Subject'] = f"[Spotify Scraper Alert] {subject}"
+        msg['From'] = 'scraper@artistinfluence.com'
+        msg['To'] = alert_email
+        msg.set_content(body)
+        
+        # Use server's sendmail
+        with smtplib.SMTP('localhost') as smtp:
+            smtp.send_message(msg)
+            
+        logger.info(f"✅ Alert email sent to {alert_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send alert email: {e}")
+        return False
+
+
+def log_scraper_run(status, campaigns_total=0, campaigns_success=0, campaigns_failed=0, error_message=None):
+    """Log scraper run status to a dedicated status file"""
+    import json
+    
+    log_entry = {
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'status': status,  # 'success', 'partial', 'failed', 'no_api'
+        'campaigns_total': campaigns_total,
+        'campaigns_success': campaigns_success,
+        'campaigns_failed': campaigns_failed,
+        'error_message': error_message
+    }
+    
+    status_file = Path(__file__).parent / 'logs' / 'status.jsonl'
+    status_file.parent.mkdir(exist_ok=True)
+    
+    with open(status_file, 'a') as f:
+        f.write(json.dumps(log_entry) + '\n')
+    
+    logger.info(f"📊 Run status logged: {status}")
+
 
 async def check_if_logged_in(page):
     """Check if already logged in from previous session"""
@@ -197,14 +355,19 @@ async def fetch_campaigns_from_database(limit=None):
     if limit:
         params['limit'] = str(limit)
     
-    response = requests.get(url, headers=headers, params=params)
+    # Use retry logic with exponential backoff
+    campaigns = fetch_campaigns_with_retry(url, headers, params, max_retries=3)
     
-    if response.status_code != 200:
-        logger.error(f"Database error: {response.status_code} - {response.text}")
-        return []
+    if campaigns is None:
+        logger.error("❌ FATAL: Could not fetch campaigns from database after retries")
+        error_logger.error("Failed to fetch campaigns - API unreachable")
+        return None
     
-    campaigns = response.json()
-    logger.info(f"Found {len(campaigns)} campaigns with SFA URLs")
+    if len(campaigns) == 0:
+        logger.warning("⚠️  No campaigns found with valid SFA URLs")
+    else:
+        logger.info(f"✅ Found {len(campaigns)} campaigns with SFA URLs")
+    
     return campaigns
 
 
@@ -471,18 +634,60 @@ async def main(limit=None):
     # Validate credentials
     if not SPOTIFY_EMAIL or not SPOTIFY_PASSWORD:
         logger.error("SPOTIFY_EMAIL and SPOTIFY_PASSWORD must be set in .env")
+        log_scraper_run('failed', error_message='Missing Spotify credentials')
         return False
     
     if not SUPABASE_SERVICE_ROLE_KEY:
         logger.error("SUPABASE_SERVICE_ROLE_KEY must be set in .env")
+        log_scraper_run('failed', error_message='Missing Supabase key')
         return False
     
-    # Fetch campaigns from database
+    # FAILSAFE: Pre-flight API health check
+    logger.info("")
+    if not check_api_health():
+        logger.error("🚨 CRITICAL: API is not reachable. Aborting scraper run.")
+        error_message = "API health check failed - cannot reach Supabase"
+        log_scraper_run('no_api', error_message=error_message)
+        
+        # Send alert email
+        send_alert_email(
+            "Scraper Failed - API Unreachable",
+            f"Timestamp: {datetime.now(timezone.utc).isoformat()}\n"
+            f"Error: {error_message}\n"
+            f"The scraper could not reach the Supabase API.\n"
+            f"Please check if the API is down or if there are network issues."
+        )
+        return False
+    
+    logger.info("")
+    
+    # Fetch campaigns from database (with retry logic)
     campaigns = await fetch_campaigns_from_database(limit=limit)
     
-    if not campaigns:
-        logger.warning("No campaigns to scrape")
+    # Distinguish between "no campaigns" and "API error"
+    if campaigns is None:
+        # API error occurred (already logged and retried in fetch function)
+        logger.error("🚨 FATAL: Could not connect to API after multiple retries")
+        error_message = "Failed to fetch campaigns - API connection failed"
+        log_scraper_run('no_api', error_message=error_message)
+        
+        # Send alert email
+        send_alert_email(
+            "Scraper Failed - API Connection Error",
+            f"Timestamp: {datetime.now(timezone.utc).isoformat()}\n"
+            f"Error: {error_message}\n"
+            f"The scraper could not fetch campaigns after 3 retry attempts.\n"
+            f"Check API logs and server status."
+        )
         return False
+    elif len(campaigns) == 0:
+        # No campaigns found (this is okay, not an error)
+        logger.warning("⚠️  No campaigns to scrape (no valid SFA URLs found)")
+        log_scraper_run('success', campaigns_total=0, campaigns_success=0)
+        return True  # Exit cleanly, not an error
+    
+    logger.info(f"✅ Found {len(campaigns)} campaigns to scrape")
+    logger.info("")
     
     # Initialize browser with persistent context (saves cookies/session)
     logger.info("Initializing browser with persistent context...")
@@ -617,6 +822,33 @@ async def main(limit=None):
     logger.info(f"Failed: {failure_count}")
     logger.info(f"Success rate: {(success_count/len(campaigns)*100):.1f}%")
     logger.info("")
+    
+    # FAILSAFE: Log run status
+    if success_count == len(campaigns):
+        status = 'success'
+        logger.info("✅ All campaigns scraped successfully")
+    elif success_count > 0:
+        status = 'partial'
+        logger.warning(f"⚠️  Partial success: {failure_count} campaigns failed")
+    else:
+        status = 'failed'
+        logger.error("❌ All campaigns failed")
+        
+        # Send alert for complete failure
+        send_alert_email(
+            "Scraper Failed - All Campaigns Failed",
+            f"Timestamp: {datetime.now(timezone.utc).isoformat()}\n"
+            f"Total campaigns: {len(campaigns)}\n"
+            f"All {len(campaigns)} campaigns failed to scrape.\n"
+            f"Check logs for details: /root/arti-marketing-ops/spotify_scraper/logs/production.log"
+        )
+    
+    log_scraper_run(
+        status=status,
+        campaigns_total=len(campaigns),
+        campaigns_success=success_count,
+        campaigns_failed=failure_count
+    )
     
     return success_count > 0
 

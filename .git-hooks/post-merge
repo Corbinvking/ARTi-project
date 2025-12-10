@@ -1,0 +1,30 @@
+#!/bin/bash
+# Git post-merge hook
+# Restores executable permissions after git pull
+# Place this file in .git/hooks/post-merge and make it executable
+
+echo "🔧 Running post-merge hook..."
+
+# Restore executable permissions for scraper scripts
+if [ -f "spotify_scraper/run_production_scraper.sh" ]; then
+    chmod +x spotify_scraper/run_production_scraper.sh
+    echo "✅ Restored permissions: spotify_scraper/run_production_scraper.sh"
+fi
+
+if [ -f "spotify_scraper/run_production_scraper.py" ]; then
+    chmod +x spotify_scraper/run_production_scraper.py
+    echo "✅ Restored permissions: spotify_scraper/run_production_scraper.py"
+fi
+
+if [ -f "spotify_scraper/manual_browser_login.py" ]; then
+    chmod +x spotify_scraper/manual_browser_login.py
+    echo "✅ Restored permissions: spotify_scraper/manual_browser_login.py"
+fi
+
+if [ -f "spotify_scraper/check_scraper_health.sh" ]; then
+    chmod +x spotify_scraper/check_scraper_health.sh
+    echo "✅ Restored permissions: spotify_scraper/check_scraper_health.sh"
+fi
+
+echo "✅ Post-merge hook complete"
+
