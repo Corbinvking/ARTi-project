@@ -229,7 +229,7 @@ export function useCampaignBuilder() {
         
         const { data: playlistDetails, error: playlistFetchError } = await supabase
           .from('playlists')
-          .select('id, name, vendor_id, vendor:vendors(id, name)')
+          .select('id, name, vendor_id, vendor:vendors(id, name, cost_per_1k_streams)')
           .in('id', playlistIds);
         
         if (playlistFetchError) {
@@ -257,6 +257,34 @@ export function useCampaignBuilder() {
             console.error('❌ Error creating campaign_playlists entries:', insertError);
           } else {
             console.log(`✅ Created ${campaignPlaylistsEntries.length} campaign_playlists entries`);
+          }
+          
+          // ALSO create campaign_allocations_performance entries for vendor payments
+          const performanceEntries = playlistDetails
+            .filter(p => p.vendor_id) // Only for vendor playlists (not algorithmic)
+            .map(playlist => ({
+              campaign_id: createdCampaignGroup.id, // UUID from campaign_groups
+              vendor_id: playlist.vendor_id,
+              playlist_id: playlist.id,
+              allocated_streams: Math.round((data.stream_goal || 0) / playlistDetails.length), // Distribute goal evenly
+              predicted_streams: 0,
+              actual_streams: 0,
+              cost_per_stream: (playlist as any).vendor?.cost_per_1k_streams ? ((playlist as any).vendor.cost_per_1k_streams / 1000) : 0.01,
+              payment_status: 'unpaid',
+              org_id: '00000000-0000-0000-0000-000000000001'
+            }));
+          
+          if (performanceEntries.length > 0) {
+            console.log('Creating campaign_allocations_performance entries:', performanceEntries);
+            const { error: perfError } = await supabase
+              .from('campaign_allocations_performance')
+              .insert(performanceEntries);
+            
+            if (perfError) {
+              console.error('❌ Error creating campaign_allocations_performance entries:', perfError);
+            } else {
+              console.log(`✅ Created ${performanceEntries.length} campaign_allocations_performance entries for vendor payments`);
+            }
           }
         } else {
           console.log('⚠️ No playlist details found');
