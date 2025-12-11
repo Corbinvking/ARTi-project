@@ -1,7 +1,7 @@
--- Backfill campaign_allocations_performance from existing campaign_playlists
+-- Backfill campaign_allocations_performance from existing stream_strategist_campaigns
 -- This populates vendor payout data for campaigns created before this feature
 
--- Insert performance records for all campaign-playlist combinations
+-- Parse selected_playlists JSONB and create performance entries
 INSERT INTO campaign_allocations_performance (
     campaign_id,
     vendor_id,
@@ -16,36 +16,34 @@ INSERT INTO campaign_allocations_performance (
     updated_at
 )
 SELECT 
-    sc.campaign_group_id as campaign_id,  -- Link to campaign_groups
-    cp.vendor_id,
-    cp.id as playlist_id,  -- campaign_playlists.id serves as playlist_id
-    -- Calculate allocated streams (distribute campaign goal evenly across playlists)
-    COALESCE(
-        (cg.total_goal / NULLIF(
-            (SELECT COUNT(*) 
-             FROM campaign_playlists cp2 
-             JOIN spotify_campaigns sc2 ON cp2.campaign_id = sc2.id
-             WHERE sc2.campaign_group_id = cg.id 
-             AND cp2.vendor_id IS NOT NULL), 
-            0)
-        ),
-        0
-    )::integer as allocated_streams,
+    c.id as campaign_id,
+    p.vendor_id,
+    p.id as playlist_id,
+    -- Distribute stream goal evenly across selected playlists
+    CASE 
+        WHEN jsonb_array_length(c.selected_playlists) > 0 
+        THEN (c.stream_goal / jsonb_array_length(c.selected_playlists))::integer
+        ELSE 0
+    END as allocated_streams,
     0 as predicted_streams,
-    -- Use scraped stream data if available
-    COALESCE(cp.streams_28d, 0) as actual_streams,
-    -- Get cost per stream from vendor (convert from per-1k to per-stream)
+    0 as actual_streams,  -- Will be updated by scraper
+    -- Get cost per stream from vendor
     COALESCE(v.cost_per_1k_streams / 1000.0, 0.01) as cost_per_stream,
     'unpaid' as payment_status,
-    '00000000-0000-0000-0000-000000000001'::uuid as org_id,
+    c.org_id,
     NOW() as created_at,
     NOW() as updated_at
-FROM campaign_playlists cp
-JOIN spotify_campaigns sc ON cp.campaign_id = sc.id
-JOIN campaign_groups cg ON sc.campaign_group_id = cg.id
-LEFT JOIN vendors v ON cp.vendor_id = v.id
-WHERE cp.vendor_id IS NOT NULL  -- Only vendor playlists (not algorithmic)
-    AND NOT cp.is_algorithmic  -- Exclude Spotify algorithmic playlists
+FROM stream_strategist_campaigns c
+-- Parse selected_playlists JSONB array (contains playlist IDs as strings)
+CROSS JOIN LATERAL jsonb_array_elements_text(c.selected_playlists) AS playlist_id_text
+-- Join to playlists table to get vendor_id
+JOIN playlists p ON p.id::text = playlist_id_text
+-- Join to vendors to get payment rates
+LEFT JOIN vendors v ON p.vendor_id = v.id
+WHERE 
+    c.selected_playlists IS NOT NULL 
+    AND jsonb_array_length(c.selected_playlists) > 0
+    AND p.vendor_id IS NOT NULL  -- Only vendor playlists
 ON CONFLICT DO NOTHING;  -- Skip if already exists
 
 -- Show summary

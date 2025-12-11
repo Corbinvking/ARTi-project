@@ -188,7 +188,46 @@ export function useCampaignBuilder() {
       
       console.log('✅ Campaign group created:', createdCampaignGroup.id);
       
-      // 2. Create spotify_campaigns entry
+      // 2. Create stream_strategist_campaigns entry (for vendor payments & main UI)
+      const streamStrategistPayload = {
+        org_id: '00000000-0000-0000-0000-000000000001',
+        name: data.name,
+        client: data.client_name || null,
+        client_id: data.client_id || null,
+        client_name: data.client_name || null,
+        track_name: data.track_name || data.name,
+        track_url: data.track_url || '',
+        stream_goal: data.stream_goal || 0,
+        remaining_streams: data.stream_goal || 0,
+        budget: data.budget || 0,
+        sub_genre: data.sub_genre || null,
+        music_genres: data.music_genres || [],
+        duration_days: data.duration_days || 90,
+        start_date: data.start_date,
+        status: status === 'active' ? 'active' : status === 'unreleased' ? 'unreleased' : 'draft',
+        salesperson: (data as any).salesperson || null,
+        selected_playlists: allocationsData?.selectedPlaylists || [],
+        vendor_allocations: allocationsData?.vendorAllocations || {},
+        source: 'campaign_builder',
+        campaign_type: 'spotify_promotion'
+      };
+      
+      console.log('Creating stream_strategist_campaigns:', streamStrategistPayload);
+      
+      const { data: createdStreamStrategistCampaign, error: streamStrategistError } = await supabase
+        .from('stream_strategist_campaigns')
+        .insert(streamStrategistPayload)
+        .select()
+        .single();
+      
+      if (streamStrategistError) {
+        console.error('❌ Stream strategist campaign error:', streamStrategistError);
+        throw streamStrategistError;
+      }
+      
+      console.log('✅ Stream strategist campaign created:', createdStreamStrategistCampaign.id);
+      
+      // 3. Create spotify_campaigns entry (for scraper compatibility)
       const spotifyCampaignPayload = {
         campaign_group_id: createdCampaignGroup.id,
         campaign: data.track_name || data.name,
@@ -220,7 +259,7 @@ export function useCampaignBuilder() {
       
       console.log('✅ Spotify campaign created:', createdSpotifyCampaign.id);
       
-      // 3. Create playlist associations
+      // 4. Create playlist associations
       const playlistIds = allocationsData?.playlistIds || [];
       
       if (playlistIds.length > 0) {
@@ -263,7 +302,7 @@ export function useCampaignBuilder() {
           const performanceEntries = playlistDetails
             .filter(p => p.vendor_id) // Only for vendor playlists (not algorithmic)
             .map(playlist => ({
-              campaign_id: createdCampaignGroup.id, // UUID from campaign_groups
+              campaign_id: createdStreamStrategistCampaign.id, // UUID from stream_strategist_campaigns (required by FK constraint)
               vendor_id: playlist.vendor_id,
               playlist_id: playlist.id,
               allocated_streams: Math.round((data.stream_goal || 0) / playlistDetails.length), // Distribute goal evenly
