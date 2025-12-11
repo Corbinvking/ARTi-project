@@ -1368,13 +1368,10 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            ) : !performanceData || performanceData.length === 0 ? (
-              <div className="text-center p-8 text-muted-foreground">
-                No performance data available yet
-              </div>
             ) : (
               <div className="space-y-6">
-                {/* Campaign Overview */}
+                {/* Campaign Overview - Only show when performance data exists */}
+                {performanceData && performanceData.length > 0 && (
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Campaign Performance Overview</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1404,8 +1401,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     />
                   </div>
                 </Card>
+                )}
 
-                {/* Engagement Metrics Card */}
+                {/* Engagement Metrics Card - Always show */}
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                     <Music className="h-5 w-5" />
@@ -1528,7 +1526,8 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                   </div>
                 </Card>
 
-                {/* Vendor Performance Comparison */}
+                {/* Vendor Performance Comparison - Only show when performance data exists */}
+                {performanceData && performanceData.length > 0 && (
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Vendor Performance Comparison</h3>
                   <div className="space-y-4">
@@ -1556,8 +1555,10 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     })}
                   </div>
                 </Card>
+                )}
 
-                {/* Performance Chart */}
+                {/* Performance Chart - Only show when performance data exists */}
+                {performanceData && performanceData.length > 0 && (
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                     <BarChart3 className="h-5 w-5" />
@@ -1568,6 +1569,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     campaignGoal={campaignData?.stream_goal || 0} 
                   />
                 </Card>
+                )}
               </div>
             )}
           </TabsContent>
