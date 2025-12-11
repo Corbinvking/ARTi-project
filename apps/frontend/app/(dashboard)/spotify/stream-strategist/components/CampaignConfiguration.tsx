@@ -322,19 +322,36 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
       try {
         const trackId = url.split('/track/')[1]?.split('?')[0];
         if (trackId) {
-          const { data } = await supabase.functions.invoke('spotify-fetch', {
-            body: { trackId, type: 'track' }
-          });
+          // Use the existing Spotify Web API route
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3002';
+          const response = await fetch(`${apiBaseUrl}/api/spotify-web-api/track/${trackId}`);
           
-          if (data?.name && data?.artists?.[0]?.name) {
-            const campaignName = `${data.artists[0].name} - ${data.name}`;
-            setTrackName(data.name);
-            setValue("track_name", data.name);
+          if (!response.ok) {
+            console.error('Failed to fetch track data:', response.statusText);
+            toast({
+              title: "Could not fetch track data",
+              description: "Please enter the campaign name manually",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          const result = await response.json();
+          
+          if (result.success && result.data?.name && result.data?.artists?.[0]?.name) {
+            const campaignName = `${result.data.artists[0].name} - ${result.data.name}`;
+            setTrackName(result.data.name);
+            setValue("track_name", result.data.name);
             setValue("name", campaignName); // Auto-populate campaign name
             
+            toast({
+              title: "Track loaded!",
+              description: `${campaignName}`,
+            });
+            
             // Auto-select genres from Spotify data if available
-            if (data.genres && data.genres.length > 0) {
-              const spotifyGenres = data.genres.filter((genre: string) => 
+            if (result.data.genres && result.data.genres.length > 0) {
+              const spotifyGenres = result.data.genres.filter((genre: string) => 
                 popularGenres.includes(genre)
               ).slice(0, 3);
               
