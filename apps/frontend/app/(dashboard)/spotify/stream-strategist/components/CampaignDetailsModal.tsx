@@ -620,9 +620,12 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   };
 
   // Group playlists by vendor ID with performance data
-  const groupedPlaylists = playlists.reduce((acc, playlist, idx) => {
+  // Use campaignPlaylistsData.vendor which has proper vendor relationships from DB
+  const playlistsForPayments = campaignPlaylistsData?.vendor || [];
+  const groupedPlaylists = playlistsForPayments.reduce((acc, playlist, idx) => {
     const vendorId = playlist.vendor_id || 'unknown';
-    const vendorName = playlist.vendor_name || 'Unknown Vendor';
+    // Access vendor name from the vendors join (not vendor_name)
+    const vendorName = playlist.vendors?.name || playlist.vendor_name || 'Unknown Vendor';
     
     if (!acc[vendorId]) {
       // Get vendor notes from vendorResponses
@@ -1399,6 +1402,129 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                       value={overallPerformance?.progress_percentage || 0} 
                       className="h-3"
                     />
+                  </div>
+                </Card>
+
+                {/* Engagement Metrics Card */}
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Music className="h-5 w-5" />
+                    Engagement Metrics
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Save Rate */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-muted-foreground">Save Rate</span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs">Percentage of listeners who saved the track to their library</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-primary">
+                          {overallPerformance?.save_rate?.toFixed(1) || '0.0'}%
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {overallPerformance?.total_saves?.toLocaleString() || '0'} saves
+                        </Badge>
+                      </div>
+                      <Progress 
+                        value={Math.min(overallPerformance?.save_rate || 0, 100)} 
+                        className="h-2"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Industry avg: 2-4%
+                      </p>
+                    </div>
+
+                    {/* Listener Rate */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-muted-foreground">Listener Rate</span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs">Unique listeners vs total streams ratio</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-primary">
+                          {overallPerformance?.listener_rate?.toFixed(1) || '0.0'}%
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {overallPerformance?.total_listeners?.toLocaleString() || '0'} listeners
+                        </Badge>
+                      </div>
+                      <Progress 
+                        value={Math.min(overallPerformance?.listener_rate || 0, 100)} 
+                        className="h-2"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Industry avg: 60-80%
+                      </p>
+                    </div>
+
+                    {/* Playlist Add Rate */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-muted-foreground">Playlist Add Rate</span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-xs">Listeners who added track to their personal playlists</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-primary">
+                          {overallPerformance?.playlist_add_rate?.toFixed(1) || '0.0'}%
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {overallPerformance?.total_playlist_adds?.toLocaleString() || '0'} adds
+                        </Badge>
+                      </div>
+                      <Progress 
+                        value={Math.min(overallPerformance?.playlist_add_rate || 0, 100)} 
+                        className="h-2"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Industry avg: 1-3%
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Additional Context */}
+                  <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <BarChart3 className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm font-medium">Engagement Analysis</p>
+                        <p className="text-xs text-muted-foreground">
+                          {overallPerformance?.save_rate > 4 
+                            ? "🎉 Above average save rate indicates strong listener engagement!" 
+                            : overallPerformance?.save_rate > 2
+                            ? "✓ Save rate is within industry standards"
+                            : "💡 Consider targeting more engaged audiences to improve save rate"
+                          }
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </Card>
 

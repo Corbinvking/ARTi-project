@@ -267,6 +267,7 @@ export function useCampaignBuilder() {
 
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] }); // FIX: Campaign History uses this key
       queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
 
       const action = isEditing ? 'updated' : 'created';
@@ -394,6 +395,7 @@ export function useCampaignBuilder() {
 
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] }); // FIX: Campaign History uses this key
       queryClient.invalidateQueries({ queryKey: ['campaign-submissions'] });
 
       toast({
