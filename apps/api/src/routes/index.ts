@@ -11,6 +11,7 @@ import { s4aIngestRoutes } from './s4a-ingest';
 import { youtubeDataApiRoutes } from './youtube-data-api';
 import { ratioFixerBridgeRoutes } from './ratio-fixer-bridge';
 import instagramScraperRoutes from './instagram-scraper';
+import { scraperControlRoutes } from './scraper-control';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -49,6 +50,9 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // Instagram Scraper routes (Apify integration)
   await server.register(instagramScraperRoutes, { prefix: '/api/instagram-scraper' });
+
+  // Scraper Control routes (health check, manual trigger)
+  await server.register(scraperControlRoutes, { prefix: '/api' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {
