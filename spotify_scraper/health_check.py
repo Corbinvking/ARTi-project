@@ -6,7 +6,7 @@ Tests all dependencies without actually scraping
 import os
 import sys
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 def health_check():
@@ -104,7 +104,6 @@ def health_check():
                     results["checks"]["last_run"] = f"✓ {last_time} ({last_status})"
                     
                     # Check if stale (>36 hours)
-                    from datetime import datetime, timedelta, timezone
                     last_dt = datetime.fromisoformat(last_time.replace('Z', '+00:00'))
                     if datetime.now(timezone.utc) - last_dt > timedelta(hours=36):
                         results["errors"].append(f"Scraper hasn't run successfully in >36 hours")
