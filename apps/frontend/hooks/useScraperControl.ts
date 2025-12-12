@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tantml:parameter>query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
 
