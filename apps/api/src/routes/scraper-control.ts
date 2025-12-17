@@ -50,6 +50,8 @@ export async function scraperControlRoutes(server: FastifyInstance) {
   // Get scraper status (quick check without running health)
   server.get('/scraper/status', async (_request, reply) => {
     try {
+      console.log('📊 Status check - SCRAPER_PATH:', SCRAPER_PATH);
+      
       // Check if scraper is running (check for both script name and lock file)
       let isRunning = false;
       try {
@@ -74,23 +76,31 @@ export async function scraperControlRoutes(server: FastifyInstance) {
           'utf-8'
         );
         healthData = JSON.parse(data);
-      } catch {}
+        console.log('✅ Health data loaded');
+      } catch (err) {
+        console.log('⚠️ Could not load health data:', (err as Error).message);
+      }
 
       // Read last run from status.jsonl
       let lastRun = null;
       try {
-        const statusFile = await fs.readFile(
-          path.join(SCRAPER_PATH, 'status.jsonl'),
-          'utf-8'
-        );
+        const statusPath = path.join(SCRAPER_PATH, 'status.jsonl');
+        console.log('📁 Reading status from:', statusPath);
+        const statusFile = await fs.readFile(statusPath, 'utf-8');
+        console.log('📄 Status file length:', statusFile.length);
         const lines = statusFile.trim().split('\n').filter(Boolean);
+        console.log('📊 Status lines count:', lines.length);
         if (lines.length > 0) {
           const lastLine = lines[lines.length - 1];
+          console.log('📝 Last line:', lastLine);
           if (lastLine) {
             lastRun = JSON.parse(lastLine);
+            console.log('✅ Last run parsed:', lastRun);
           }
         }
-      } catch {}
+      } catch (err) {
+        console.log('⚠️ Could not load status:', (err as Error).message);
+      }
 
       // Check cron schedule
       let cronScheduled = false;
@@ -103,9 +113,11 @@ export async function scraperControlRoutes(server: FastifyInstance) {
           cronScheduled = true;
           cronSchedule = scraperLine.trim();
         }
-      } catch {}
+      } catch (err) {
+        console.log('⚠️ Could not check cron:', (err as Error).message);
+      }
 
-      return {
+      const result = {
         isRunning,
         lastRun,
         cronScheduled,
@@ -113,7 +125,11 @@ export async function scraperControlRoutes(server: FastifyInstance) {
         lastHealthCheck: healthData,
         timestamp: new Date().toISOString()
       };
+      
+      console.log('📤 Returning status:', JSON.stringify(result, null, 2));
+      return result;
     } catch (error) {
+      console.error('❌ Status check error:', error);
       reply.code(500);
       return { error: 'Failed to get status' };
     }
@@ -185,4 +201,5 @@ export async function scraperControlRoutes(server: FastifyInstance) {
     }
   });
 }
+
 
