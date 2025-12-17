@@ -34,6 +34,11 @@ export interface InteractiveAnalyticsData {
     value: string;
     trend: 'positive' | 'negative' | 'neutral';
   }>;
+  algoMetrics: {
+    songs1k: Array<{ id: string; name: string; streams: number }>;
+    songs5k: Array<{ id: string; name: string; streams: number }>;
+    songs20k: Array<{ id: string; name: string; streams: number }>;
+  };
 }
 
 export const useInteractiveAnalytics = () => {
@@ -188,7 +193,7 @@ export const useInteractiveAnalytics = () => {
         };
       });
 
-      // Calculate algorithmic playlist metrics
+      // Calculate algorithmic playlist metrics with campaign details
       const algoPlaylists = campaignPlaylists?.filter(p => p.is_algorithmic === true) || [];
       
       // Group by spotify_campaign (INTEGER id) then roll up to campaign_group
@@ -198,19 +203,36 @@ export const useInteractiveAnalytics = () => {
         spotifyCampaignAlgoStreams.set(playlist.campaign_id, existing + (playlist.streams_28d || 0));
       });
       
-      // Map to campaign_groups (count unique campaign_groups)
-      const campaignGroupAlgoStreams = new Map<string, number>();
+      // Map to campaign_groups with details (count unique campaign_groups)
+      const campaignGroupAlgoData = new Map<string, { name: string; streams: number }>();
       spotifyCampaignAlgoStreams.forEach((streams, spotifyCampaignId) => {
         const spotifyCampaign = spotifyCampaigns?.find(sc => sc.id === spotifyCampaignId);
         if (spotifyCampaign?.campaign_group_id) {
-          const existing = campaignGroupAlgoStreams.get(spotifyCampaign.campaign_group_id) || 0;
-          campaignGroupAlgoStreams.set(spotifyCampaign.campaign_group_id, existing + streams);
+          const campaignGroup = campaigns?.find(cg => cg.id === spotifyCampaign.campaign_group_id);
+          if (campaignGroup) {
+            const existing = campaignGroupAlgoData.get(spotifyCampaign.campaign_group_id);
+            campaignGroupAlgoData.set(spotifyCampaign.campaign_group_id, {
+              name: campaignGroup.name,
+              streams: (existing?.streams || 0) + streams
+            });
+          }
         }
       });
 
-      const songsWithAlgo1k = Array.from(campaignGroupAlgoStreams.values()).filter(streams => streams >= 1000).length;
-      const songsWithAlgo5k = Array.from(campaignGroupAlgoStreams.values()).filter(streams => streams >= 5000).length;
-      const songsWithAlgo20k = Array.from(campaignGroupAlgoStreams.values()).filter(streams => streams >= 20000).length;
+      // Convert to arrays and filter by thresholds
+      const algoSongsArray = Array.from(campaignGroupAlgoData.entries()).map(([id, data]) => ({
+        id,
+        name: data.name,
+        streams: data.streams
+      }));
+
+      const songs1k = algoSongsArray.filter(s => s.streams >= 1000).sort((a, b) => b.streams - a.streams);
+      const songs5k = algoSongsArray.filter(s => s.streams >= 5000).sort((a, b) => b.streams - a.streams);
+      const songs20k = algoSongsArray.filter(s => s.streams >= 20000).sort((a, b) => b.streams - a.streams);
+
+      const songsWithAlgo1k = songs1k.length;
+      const songsWithAlgo5k = songs5k.length;
+      const songsWithAlgo20k = songs20k.length;
 
       // Calculate total streams and costs
       const totalStreams = campaignPlaylists?.reduce((sum, p) => sum + (p.streams_28d || 0), 0) || 0;
@@ -275,7 +297,14 @@ export const useInteractiveAnalytics = () => {
         vendors: vendorData.length,
         timeline: finalTimelineData.length,
         insights: insights.length,
-        algoMetrics: { songsWithAlgo1k, songsWithAlgo5k, songsWithAlgo20k }
+        algoMetrics: { 
+          songsWithAlgo1k, 
+          songsWithAlgo5k, 
+          songsWithAlgo20k,
+          songs1kDetails: songs1k.length,
+          songs5kDetails: songs5k.length,
+          songs20kDetails: songs20k.length
+        }
       });
 
       return {
@@ -285,7 +314,12 @@ export const useInteractiveAnalytics = () => {
           vendors: vendorData,
           timeline: finalTimelineData
         },
-        insights
+        insights,
+        algoMetrics: {
+          songs1k,
+          songs5k,
+          songs20k
+        }
       };
     },
     staleTime: 5 * 60 * 1000,

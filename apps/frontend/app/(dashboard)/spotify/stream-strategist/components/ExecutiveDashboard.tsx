@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -8,11 +9,30 @@ import { ROIAnalyticsDashboard } from "./ROIAnalyticsDashboard";
 import { PredictiveAnalyticsPanel } from "./PredictiveAnalyticsPanel";
 import { AlertsCenter } from "./AlertsCenter";
 import { InteractiveDashboard } from "./InteractiveDashboard";
+import { CampaignDetailsModal } from "./CampaignDetailsModal";
 import { TrendingUp, TrendingDown, Users, Target, DollarSign, Zap, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { supabase } from "../integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export const ExecutiveDashboard = () => {
   const { data, isLoading, error } = useExecutiveDashboardData();
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  
+  // Fetch campaign details when selected
+  const { data: selectedCampaign } = useQuery({
+    queryKey: ['campaign-details', selectedCampaignId],
+    queryFn: async () => {
+      if (!selectedCampaignId) return null;
+      const { data } = await supabase
+        .from('campaign_groups')
+        .select('*')
+        .eq('id', selectedCampaignId)
+        .single();
+      return data;
+    },
+    enabled: !!selectedCampaignId,
+  });
 
   if (isLoading) {
     return (
@@ -149,9 +169,18 @@ export const ExecutiveDashboard = () => {
         </TabsContent>
 
         <TabsContent value="interactive">
-          <InteractiveDashboard />
+          <InteractiveDashboard onCampaignClick={(campaignId) => setSelectedCampaignId(campaignId)} />
         </TabsContent>
       </Tabs>
+
+      {/* Campaign Details Modal */}
+      {selectedCampaign && (
+        <CampaignDetailsModal
+          campaign={selectedCampaign}
+          open={!!selectedCampaignId}
+          onClose={() => setSelectedCampaignId(null)}
+        />
+      )}
     </div>
   );
 };

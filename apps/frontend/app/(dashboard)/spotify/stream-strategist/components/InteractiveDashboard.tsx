@@ -9,17 +9,25 @@ import { useInteractiveAnalytics } from "../hooks/useInteractiveAnalytics";
 import { FilterPanel } from "./FilterPanel";
 import { DrillDownChart } from "./DrillDownChart";
 import { useState } from "react";
-import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Filter, Download, Share, RefreshCw } from "lucide-react";
+import { BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, Filter, Download, Share, RefreshCw, ChevronDown, ChevronRight, Music } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
 type ChartType = 'bar' | 'line' | 'pie' | 'composed';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
-export const InteractiveDashboard = () => {
+interface InteractiveDashboardProps {
+  onCampaignClick?: (campaignId: string) => void;
+}
+
+export const InteractiveDashboard = ({ onCampaignClick }: InteractiveDashboardProps = {}) => {
   const [selectedChart, setSelectedChart] = useState<ChartType>('bar');
   const [selectedMetric, setSelectedMetric] = useState('streams');
   const [showFilters, setShowFilters] = useState(false);
+  const [expanded1k, setExpanded1k] = useState(false);
+  const [expanded5k, setExpanded5k] = useState(false);
+  const [expanded20k, setExpanded20k] = useState(false);
   
   const { data, isLoading, error, refetch } = useInteractiveAnalytics();
 
@@ -260,6 +268,128 @@ export const InteractiveDashboard = () => {
           }))}
         />
       </div>
+
+      {/* Algorithmic Performance Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Algorithmic Playlist Performance</CardTitle>
+          <p className="text-sm text-muted-foreground">Songs getting streams from Spotify's algorithmic playlists (Discover Weekly, Release Radar, etc.)</p>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* 1K+ Streams */}
+            <Collapsible open={expanded1k} onOpenChange={setExpanded1k}>
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <Music className="h-5 w-5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold">Songs with 1K+ Algo Streams</h4>
+                    <p className="text-sm text-muted-foreground">Tracks getting at least 1,000 algorithmic streams</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant="default" className="text-lg px-3 py-1">
+                    {data.algoMetrics.songs1k.length} songs
+                  </Badge>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      {expanded1k ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+              </div>
+              <CollapsibleContent className="mt-2">
+                <div className="border rounded-lg divide-y">
+                  {data.algoMetrics.songs1k.map((song) => (
+                    <button
+                      key={song.id}
+                      onClick={() => onCampaignClick?.(song.id)}
+                      className="w-full p-3 hover:bg-muted/50 transition-colors text-left flex items-center justify-between group"
+                    >
+                      <span className="font-medium group-hover:text-primary">{song.name}</span>
+                      <Badge variant="outline">{song.streams.toLocaleString()} streams</Badge>
+                    </button>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* 5K+ Streams */}
+            <Collapsible open={expanded5k} onOpenChange={setExpanded5k}>
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <Music className="h-5 w-5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold">Songs with 5K+ Algo Streams</h4>
+                    <p className="text-sm text-muted-foreground">Tracks getting 5,000+ algorithmic streams</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant="default" className="text-lg px-3 py-1">
+                    {data.algoMetrics.songs5k.length} songs
+                  </Badge>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      {expanded5k ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+              </div>
+              <CollapsibleContent className="mt-2">
+                <div className="border rounded-lg divide-y">
+                  {data.algoMetrics.songs5k.map((song) => (
+                    <button
+                      key={song.id}
+                      onClick={() => onCampaignClick?.(song.id)}
+                      className="w-full p-3 hover:bg-muted/50 transition-colors text-left flex items-center justify-between group"
+                    >
+                      <span className="font-medium group-hover:text-primary">{song.name}</span>
+                      <Badge variant="outline">{song.streams.toLocaleString()} streams</Badge>
+                    </button>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* 20K+ Streams */}
+            <Collapsible open={expanded20k} onOpenChange={setExpanded20k}>
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <Music className="h-5 w-5 text-primary" />
+                  <div>
+                    <h4 className="font-semibold">Songs with 20K+ Algo Streams</h4>
+                    <p className="text-sm text-muted-foreground">Tracks getting 20,000+ algorithmic streams</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant="default" className="text-lg px-3 py-1">
+                    {data.algoMetrics.songs20k.length} songs
+                  </Badge>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      {expanded20k ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+              </div>
+              <CollapsibleContent className="mt-2">
+                <div className="border rounded-lg divide-y">
+                  {data.algoMetrics.songs20k.map((song) => (
+                    <button
+                      key={song.id}
+                      onClick={() => onCampaignClick?.(song.id)}
+                      className="w-full p-3 hover:bg-muted/50 transition-colors text-left flex items-center justify-between group"
+                    >
+                      <span className="font-medium group-hover:text-primary">{song.name}</span>
+                      <Badge variant="outline">{song.streams.toLocaleString()} streams</Badge>
+                    </button>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Key Insights */}
       <Card>
