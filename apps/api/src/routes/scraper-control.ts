@@ -124,7 +124,13 @@ export async function scraperControlRoutes(server: FastifyInstance) {
         cronScheduled,
         cronSchedule,
         lastHealthCheck: healthData,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        // Debug info
+        _debug: {
+          scraperPath: SCRAPER_PATH,
+          nodeEnv: process.env.NODE_ENV,
+          dockerEnv: process.env.DOCKER_ENV
+        }
       };
       
       logger.info({ result }, '📤 Returning scraper status');
