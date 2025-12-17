@@ -77,12 +77,16 @@ export const useInteractiveAnalytics = () => {
 
       // Process chart data - campaign performance breakdown using real scraped data
       const chartData = (campaigns || []).slice(0, 10).map(campaign => {
-        // Get real scraped streams for this campaign (use streams_28d as current)
-        const campaignPlaylistData = campaignPlaylists?.filter(p => p.campaign_id === campaign.id) || [];
+        // Get spotify_campaign (which has the INTEGER id that links to playlists)
+        const spotifyCampaign = spotifyCampaigns?.find(sc => sc.campaign_group_id === campaign.id);
+        
+        // Get real scraped streams using spotify_campaign.id (INTEGER)
+        const campaignPlaylistData = spotifyCampaign 
+          ? campaignPlaylists?.filter(p => p.campaign_id === spotifyCampaign.id) || []
+          : [];
         const totalStreams = campaignPlaylistData.reduce((sum, p) => sum + (p.streams_28d || 0), 0);
         
         // Get cost from spotify_campaigns
-        const spotifyCampaign = spotifyCampaigns?.find(sc => sc.campaign_group_id === campaign.id);
         const costStr = spotifyCampaign?.sale_price || '$0';
         const totalCost = parseFloat(costStr.replace(/[$,]/g, '')) || 0;
         
@@ -120,8 +124,14 @@ export const useInteractiveAnalytics = () => {
       // Process vendor drill-down data with real scraped streams
       const vendorData = (vendors || []).map(vendor => {
         const vendorPlaylists = campaignPlaylists?.filter(p => p.vendor_id === vendor.id) || [];
-        const vendorCampaignIds = [...new Set(vendorPlaylists.map(p => p.campaign_id))];
-        const vendorCampaigns = campaigns?.filter(c => vendorCampaignIds.includes(c.id)) || [];
+        
+        // Get spotify campaign ids (integers) from playlists
+        const spotifyCampaignIds = [...new Set(vendorPlaylists.map(p => p.campaign_id))];
+        
+        // Find campaign_groups through spotify_campaigns
+        const vendorSpotifyCampaigns = spotifyCampaigns?.filter(sc => spotifyCampaignIds.includes(sc.id)) || [];
+        const vendorCampaignGroupIds = [...new Set(vendorSpotifyCampaigns.map(sc => sc.campaign_group_id))];
+        const vendorCampaigns = campaigns?.filter(c => vendorCampaignGroupIds.includes(c.id)) || [];
 
         const totalStreams = vendorPlaylists.reduce((sum, p) => sum + (p.streams_28d || 0), 0);
         
@@ -181,16 +191,26 @@ export const useInteractiveAnalytics = () => {
       // Calculate algorithmic playlist metrics
       const algoPlaylists = campaignPlaylists?.filter(p => p.is_algorithmic === true) || [];
       
-      // Group by campaign to count unique songs (use streams_28d)
-      const campaignAlgoStreams = new Map<string, number>();
+      // Group by spotify_campaign (INTEGER id) then roll up to campaign_group
+      const spotifyCampaignAlgoStreams = new Map<number, number>();
       algoPlaylists.forEach(playlist => {
-        const existing = campaignAlgoStreams.get(playlist.campaign_id.toString()) || 0;
-        campaignAlgoStreams.set(playlist.campaign_id.toString(), existing + (playlist.streams_28d || 0));
+        const existing = spotifyCampaignAlgoStreams.get(playlist.campaign_id) || 0;
+        spotifyCampaignAlgoStreams.set(playlist.campaign_id, existing + (playlist.streams_28d || 0));
+      });
+      
+      // Map to campaign_groups (count unique campaign_groups)
+      const campaignGroupAlgoStreams = new Map<string, number>();
+      spotifyCampaignAlgoStreams.forEach((streams, spotifyCampaignId) => {
+        const spotifyCampaign = spotifyCampaigns?.find(sc => sc.id === spotifyCampaignId);
+        if (spotifyCampaign?.campaign_group_id) {
+          const existing = campaignGroupAlgoStreams.get(spotifyCampaign.campaign_group_id) || 0;
+          campaignGroupAlgoStreams.set(spotifyCampaign.campaign_group_id, existing + streams);
+        }
       });
 
-      const songsWithAlgo1k = Array.from(campaignAlgoStreams.values()).filter(streams => streams >= 1000).length;
-      const songsWithAlgo5k = Array.from(campaignAlgoStreams.values()).filter(streams => streams >= 5000).length;
-      const songsWithAlgo20k = Array.from(campaignAlgoStreams.values()).filter(streams => streams >= 20000).length;
+      const songsWithAlgo1k = Array.from(campaignGroupAlgoStreams.values()).filter(streams => streams >= 1000).length;
+      const songsWithAlgo5k = Array.from(campaignGroupAlgoStreams.values()).filter(streams => streams >= 5000).length;
+      const songsWithAlgo20k = Array.from(campaignGroupAlgoStreams.values()).filter(streams => streams >= 20000).length;
 
       // Calculate total streams and costs
       const totalStreams = campaignPlaylists?.reduce((sum, p) => sum + (p.streams_28d || 0), 0) || 0;
