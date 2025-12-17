@@ -53,7 +53,7 @@ export const useVendorPayouts = () => {
           status,
           start_date
         `)
-        .in('status', ['Active', 'Completed']);
+        .in('status', ['Active', 'Complete', 'Completed']);
 
       // Fetch all vendors to get cost_per_1k_streams rates
       const { data: vendors, error: vendorsError } = await supabase
