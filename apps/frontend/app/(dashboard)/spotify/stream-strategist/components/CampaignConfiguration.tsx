@@ -63,6 +63,8 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
   const [trackName, setTrackName] = useState(initialData?.track_name || "");
   const [selectedClientId, setSelectedClientId] = useState(initialData?.client_id || "");
   const [clientName, setClientName] = useState("");
+  const [clientCreditBalance, setClientCreditBalance] = useState<number>(0);
+  const [creditsToAllocate, setCreditsToAllocate] = useState<number>(0);
   const [startDate, setStartDate] = useState<Date | undefined>(
     initialData?.start_date ? new Date(`${initialData.start_date}T12:00:00`) : undefined
   );
@@ -89,6 +91,36 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
     }
   });
   
+  // Fetch client credit balance when client is selected
+  useEffect(() => {
+    if (!selectedClientId) {
+      setClientCreditBalance(0);
+      setCreditsToAllocate(0);
+      return;
+    }
+
+    const fetchClientData = async () => {
+      try {
+        const { data: client, error } = await supabase
+          .from('clients')
+          .select('name, credit_balance')
+          .eq('id', selectedClientId)
+          .single();
+
+        if (error) throw error;
+
+        if (client) {
+          setClientName(client.name);
+          setClientCreditBalance(client.credit_balance || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching client data:', error);
+      }
+    };
+
+    fetchClientData();
+  }, [selectedClientId]);
+
   // Auto-populate client from submission or existing campaign data
   useEffect(() => {
     if (!initialData) return;
@@ -424,6 +456,11 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                       {clientName ? (
                         <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
                           <span className="font-medium">{clientName}</span>
+                          {clientCreditBalance > 0 && (
+                            <Badge variant="secondary" className="bg-green-50 text-green-700">
+                              ${clientCreditBalance} credits
+                            </Badge>
+                          )}
                           <Button
                             type="button"
                             variant="ghost"
@@ -432,6 +469,8 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                                 setClientName("");
                                 setSelectedClientId("");
                                 setValue('client_id', '');
+                                setClientCreditBalance(0);
+                                setCreditsToAllocate(0);
                               }}
                           >
                             Change
@@ -450,6 +489,34 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                       )}
                        {!selectedClientId && (
                          <p className="text-sm text-destructive">Please select a client</p>
+                       )}
+                       
+                       {/* Credit Allocation */}
+                       {clientName && clientCreditBalance > 0 && (
+                         <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md space-y-2">
+                           <div className="flex items-center justify-between">
+                             <Label className="text-sm font-medium text-green-900">
+                               Allocate Credits (Available: ${clientCreditBalance})
+                             </Label>
+                           </div>
+                           <Input
+                             type="number"
+                             min={0}
+                             max={clientCreditBalance}
+                             value={creditsToAllocate}
+                             onChange={(e) => {
+                               const value = parseFloat(e.target.value) || 0;
+                               setCreditsToAllocate(Math.min(value, clientCreditBalance));
+                             }}
+                             placeholder="Enter amount to use from credits"
+                             className="bg-white"
+                           />
+                           {creditsToAllocate > 0 && (
+                             <p className="text-xs text-green-700">
+                               Campaign cost will be reduced by ${creditsToAllocate}
+                             </p>
+                           )}
+                         </div>
                        )}
                     </div>
                 </div>
@@ -671,10 +738,27 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                     </span>
                   </div>
                   
+                  {creditsToAllocate > 0 && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Credits Applied</span>
+                        <span className="font-mono text-sm text-green-600">
+                          -${creditsToAllocate.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center border-y border-border/30 py-2">
+                        <span className="text-sm font-semibold">Net Cost</span>
+                        <span className="font-mono text-sm font-semibold text-primary">
+                          ${((watchedValues.budget || 0) - creditsToAllocate).toLocaleString()}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Target Margin</span>
                     <span className="font-mono text-sm text-green-600">
-                      ${((watchedValues.budget || 0) * 0.4).toLocaleString()}
+                      ${(((watchedValues.budget || 0) - creditsToAllocate) * 0.4).toLocaleString()}
                     </span>
                   </div>
                   

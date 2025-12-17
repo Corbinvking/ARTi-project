@@ -173,7 +173,14 @@ export function ClientSelector({ value, onChange, placeholder = "Search clients 
                         value === client.id && "bg-accent"
                       )}
                     >
-                      <span className="font-medium">{client.name}</span>
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-medium">{client.name}</span>
+                        {client.credit_balance !== undefined && client.credit_balance > 0 && (
+                          <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                            ${client.credit_balance} credits
+                          </span>
+                        )}
+                      </div>
                       {client.emails && client.emails.length > 0 && (
                         <span className="text-xs text-muted-foreground">
                           {client.emails[0]}
