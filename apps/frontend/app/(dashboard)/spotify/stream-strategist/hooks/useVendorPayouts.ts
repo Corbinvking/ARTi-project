@@ -307,43 +307,51 @@ export const useMarkPayoutPaid = () => {
       vendorId: string; 
       amount: number; 
     }) => {
-      // First check if invoice exists
-      const { data: existingInvoice } = await supabase
-        .from('campaign_invoices')
-        .select('id')
-        .eq('campaign_id', campaignId)
-        .maybeSingle();
+      // Update spotify_campaigns.paid_vendor directly
+      const { error: spotifyError } = await supabase
+        .from('spotify_campaigns')
+        .update({ paid_vendor: 'true' })
+        .eq('campaign_group_id', campaignId);
 
-      if (existingInvoice) {
-        // Update existing invoice
-        const { error } = await supabase
-          .from('campaign_invoices')
-          .update({
-            status: 'paid',
-            paid_date: new Date().toISOString().split('T')[0],
-            amount: amount
-          })
-          .eq('id', existingInvoice.id);
-
-        if (error) throw error;
-        return existingInvoice.id;
-      } else {
-        // Create new invoice
-        const { data, error } = await supabase
-          .from('campaign_invoices')
-          .insert({
-            campaign_id: campaignId,
-            amount: amount,
-            status: 'paid',
-            paid_date: new Date().toISOString().split('T')[0],
-            invoice_number: `INV-${campaignId.substring(0, 8)}-${Date.now()}`
-          })
-          .select('id')
-          .single();
-
-        if (error) throw error;
-        return data.id;
+      if (spotifyError) {
+        console.error('Failed to update spotify_campaigns:', spotifyError);
+        throw spotifyError;
       }
+
+      // Also try to update/create invoice (but don't fail if RLS blocks it)
+      try {
+        const { data: existingInvoice } = await supabase
+          .from('campaign_invoices')
+          .select('id')
+          .eq('campaign_id', campaignId)
+          .maybeSingle();
+
+        if (existingInvoice) {
+          await supabase
+            .from('campaign_invoices')
+            .update({
+              status: 'paid',
+              paid_date: new Date().toISOString().split('T')[0],
+              amount: amount
+            })
+            .eq('id', existingInvoice.id);
+        } else {
+          await supabase
+            .from('campaign_invoices')
+            .insert({
+              campaign_id: campaignId,
+              amount: amount,
+              status: 'paid',
+              paid_date: new Date().toISOString().split('T')[0],
+              invoice_number: `INV-${campaignId.substring(0, 8)}-${Date.now()}`
+            });
+        }
+      } catch (invoiceError) {
+        // Log but don't fail - invoice is optional, paid_vendor is the source of truth
+        console.warn('Invoice update failed (this is okay):', invoiceError);
+      }
+
+      return campaignId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-payouts'] });
@@ -372,43 +380,50 @@ export const useBulkMarkPayoutsPaid = () => {
       const results = [];
       
       for (const payout of payouts) {
-        // Check if invoice exists
-        const { data: existingInvoice } = await supabase
-          .from('campaign_invoices')
-          .select('id')
-          .eq('campaign_id', payout.campaignId)
-          .maybeSingle();
+        // Update spotify_campaigns.paid_vendor directly
+        const { error: spotifyError } = await supabase
+          .from('spotify_campaigns')
+          .update({ paid_vendor: 'true' })
+          .eq('campaign_group_id', payout.campaignId);
 
-        if (existingInvoice) {
-          // Update existing invoice
-          const { error } = await supabase
-            .from('campaign_invoices')
-            .update({
-              status: 'paid',
-              paid_date: new Date().toISOString().split('T')[0],
-              amount: payout.amount
-            })
-            .eq('id', existingInvoice.id);
-
-          if (error) throw error;
-          results.push(existingInvoice.id);
-        } else {
-          // Create new invoice
-          const { data, error } = await supabase
-            .from('campaign_invoices')
-            .insert({
-              campaign_id: payout.campaignId,
-              amount: payout.amount,
-              status: 'paid',
-              paid_date: new Date().toISOString().split('T')[0],
-              invoice_number: `INV-${payout.campaignId.substring(0, 8)}-${Date.now()}`
-            })
-            .select('id')
-            .single();
-
-          if (error) throw error;
-          results.push(data.id);
+        if (spotifyError) {
+          console.error(`Failed to update spotify_campaigns for ${payout.campaignId}:`, spotifyError);
+          throw spotifyError;
         }
+
+        // Also try to update/create invoice (but don't fail if RLS blocks it)
+        try {
+          const { data: existingInvoice } = await supabase
+            .from('campaign_invoices')
+            .select('id')
+            .eq('campaign_id', payout.campaignId)
+            .maybeSingle();
+
+          if (existingInvoice) {
+            await supabase
+              .from('campaign_invoices')
+              .update({
+                status: 'paid',
+                paid_date: new Date().toISOString().split('T')[0],
+                amount: payout.amount
+              })
+              .eq('id', existingInvoice.id);
+          } else {
+            await supabase
+              .from('campaign_invoices')
+              .insert({
+                campaign_id: payout.campaignId,
+                amount: payout.amount,
+                status: 'paid',
+                paid_date: new Date().toISOString().split('T')[0],
+                invoice_number: `INV-${payout.campaignId.substring(0, 8)}-${Date.now()}`
+              });
+          }
+        } catch (invoiceError) {
+          console.warn(`Invoice update failed for ${payout.campaignId} (this is okay):`, invoiceError);
+        }
+
+        results.push(payout.campaignId);
       }
       
       return results;
