@@ -78,6 +78,9 @@ services:
     depends_on:
       - api
       - n8n
+    networks:
+      - default
+      - supabase_network_arti-marketing-ops
 
 volumes:
   redis_data:
