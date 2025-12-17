@@ -301,16 +301,18 @@ export const useMarkPayoutPaid = () => {
     mutationFn: async ({ 
       campaignId, 
       vendorId, 
-      amount 
+      amount,
+      markAsPaid = true
     }: { 
       campaignId: string; 
       vendorId: string; 
-      amount: number; 
+      amount: number;
+      markAsPaid?: boolean;
     }) => {
       // Update spotify_campaigns.paid_vendor directly
       const { error: spotifyError } = await supabase
         .from('spotify_campaigns')
-        .update({ paid_vendor: 'true' })
+        .update({ paid_vendor: markAsPaid ? 'true' : 'false' })
         .eq('campaign_group_id', campaignId);
 
       if (spotifyError) {
@@ -330,12 +332,12 @@ export const useMarkPayoutPaid = () => {
           await supabase
             .from('campaign_invoices')
             .update({
-              status: 'paid',
-              paid_date: new Date().toISOString().split('T')[0],
+              status: markAsPaid ? 'paid' : 'pending',
+              paid_date: markAsPaid ? new Date().toISOString().split('T')[0] : null,
               amount: amount
             })
             .eq('id', existingInvoice.id);
-        } else {
+        } else if (markAsPaid) {
           await supabase
             .from('campaign_invoices')
             .insert({
@@ -351,20 +353,22 @@ export const useMarkPayoutPaid = () => {
         console.warn('Invoice update failed (this is okay):', invoiceError);
       }
 
-      return campaignId;
+      return { campaignId, markAsPaid };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['vendor-payouts'] });
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] });
       toast({
-        title: "Payment Marked as Paid",
-        description: "Vendor payout has been successfully processed.",
+        title: data.markAsPaid ? "Marked as Paid" : "Marked as Unpaid",
+        description: data.markAsPaid 
+          ? "Vendor payout has been successfully processed."
+          : "Payment status has been reset to unpaid.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Payment Failed",
-        description: "Failed to mark payment as paid. Please try again.",
+        title: "Update Failed",
+        description: "Failed to update payment status. Please try again.",
         variant: "destructive",
       });
     }

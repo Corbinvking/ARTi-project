@@ -532,7 +532,7 @@ export function VendorPayoutManager() {
                               {campaign.campaign_completion_date}
                             </TableCell>
                             <TableCell>
-                              {campaign.payment_status === 'unpaid' && (
+                              {campaign.payment_status === 'unpaid' ? (
                                 <Button
                                   size="sm"
                                   onClick={() => {
@@ -541,7 +541,8 @@ export function VendorPayoutManager() {
                                     markPayoutPaid.mutate({
                                       campaignId: campaign.campaign_id,
                                       vendorId: campaign.vendor_id,
-                                      amount: finalAmount
+                                      amount: finalAmount,
+                                      markAsPaid: true
                                     });
                                     setPendingEdits(prev => {
                                       const newMap = new Map(prev);
@@ -553,10 +554,28 @@ export function VendorPayoutManager() {
                                 >
                                   Mark Paid
                                 </Button>
-                              )}
-                              {campaign.payment_status === 'paid' && campaign.payment_date && (
-                                <div className="text-xs text-muted-foreground">
-                                  Paid on {campaign.payment_date}
+                              ) : (
+                                <div className="flex flex-col gap-1">
+                                  {campaign.payment_date && (
+                                    <div className="text-xs text-muted-foreground">
+                                      Paid on {campaign.payment_date}
+                                    </div>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      markPayoutPaid.mutate({
+                                        campaignId: campaign.campaign_id,
+                                        vendorId: campaign.vendor_id,
+                                        amount: campaign.amount_owed,
+                                        markAsPaid: false
+                                      });
+                                    }}
+                                    disabled={markPayoutPaid.isPending}
+                                  >
+                                    Mark Unpaid
+                                  </Button>
                                 </div>
                               )}
                             </TableCell>
