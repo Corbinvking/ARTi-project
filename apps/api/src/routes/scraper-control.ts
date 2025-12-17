@@ -15,36 +15,90 @@ const SCRAPER_PATH = process.env.NODE_ENV === 'production' && process.env.DOCKER
   : '/root/arti-marketing-ops/spotify_scraper';
 
 export async function scraperControlRoutes(server: FastifyInstance) {
-  // Get health status (runs health check)
+  // Get health status (lightweight check from Docker)
   server.get('/scraper/health', async (_request, reply) => {
     try {
-      // Run health check script
-      await execAsync(`cd ${SCRAPER_PATH} && bash run_health_check.sh`);
+      logger.info('Running lightweight health check from API');
       
-      // Read results
-      const healthData = await fs.readFile(
-        path.join(SCRAPER_PATH, 'health_status.json'),
-        'utf-8'
-      );
+      const checks: Record<string, string> = {};
+      const errors: string[] = [];
       
-      return JSON.parse(healthData);
-    } catch (error: any) {
-      // Health check failed
+      // Check if status.jsonl exists and is readable
       try {
-        const healthData = await fs.readFile(
+        await fs.access(path.join(SCRAPER_PATH, 'status.jsonl'));
+        checks.status_file = '✓ OK';
+      } catch {
+        checks.status_file = '✗ FAIL: status.jsonl not found';
+        errors.push('Status file not accessible');
+      }
+      
+      // Check if logs directory exists
+      try {
+        await fs.access(path.join(SCRAPER_PATH, 'logs'));
+        checks.logs_directory = '✓ OK';
+      } catch {
+        checks.logs_directory = '✗ FAIL: logs directory not found';
+        errors.push('Logs directory not accessible');
+      }
+      
+      // Check if lock file exists (scraper running)
+      try {
+        await fs.access(path.join(SCRAPER_PATH, 'scraper.lock'));
+        checks.lock_file = '⚠ WARNING: Lock file exists (scraper may be running)';
+      } catch {
+        checks.lock_file = '✓ OK: No lock file (scraper not running)';
+      }
+      
+      // Check if we can read recent logs
+      try {
+        const prodLog = await fs.readFile(path.join(SCRAPER_PATH, 'logs/production.log'), 'utf-8');
+        const lines = prodLog.trim().split('\n');
+        checks.production_log = `✓ OK: ${lines.length} log lines`;
+      } catch {
+        checks.production_log = '⚠ WARNING: Cannot read production log';
+      }
+      
+      // Read last health check if available
+      let savedHealthData = null;
+      try {
+        const data = await fs.readFile(
           path.join(SCRAPER_PATH, 'health_status.json'),
           'utf-8'
         );
-        reply.code(503);
-        return JSON.parse(healthData);
+        savedHealthData = JSON.parse(data);
+        checks.saved_health_check = `✓ OK: Last check ${savedHealthData.timestamp}`;
       } catch {
-        reply.code(500);
-        return { 
-          error: 'Health check failed',
-          overall_status: 'unhealthy',
-          message: error.message 
-        };
+        checks.saved_health_check = '⚠ INFO: No saved health check found';
       }
+      
+      // Determine overall status
+      const hasErrors = errors.length > 0;
+      const hasWarnings = Object.values(checks).some(v => v.includes('WARNING'));
+      const overall_status = hasErrors ? 'unhealthy' : hasWarnings ? 'degraded' : 'healthy';
+      
+      const result = {
+        timestamp: new Date().toISOString(),
+        checks,
+        overall_status,
+        errors,
+        saved_health_check: savedHealthData
+      };
+      
+      logger.info({ result }, 'Health check completed');
+      
+      if (overall_status === 'unhealthy') {
+        reply.code(503);
+      }
+      
+      return result;
+    } catch (error: any) {
+      logger.error({ error: error.message }, 'Health check failed');
+      reply.code(500);
+      return { 
+        error: 'Health check failed',
+        overall_status: 'unhealthy',
+        message: error.message 
+      };
     }
   });
 
