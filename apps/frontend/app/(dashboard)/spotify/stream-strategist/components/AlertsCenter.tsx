@@ -2,10 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { usePerformanceAlerts } from "../hooks/usePerformanceAlerts";
-import { AlertTriangle, CheckCircle, Clock, Bell, Settings } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Bell, Settings, ExternalLink } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 
-export const AlertsCenter = () => {
+interface AlertsCenterProps {
+  onCampaignClick?: (campaignId: string) => void;
+}
+
+export const AlertsCenter = ({ onCampaignClick }: AlertsCenterProps) => {
   const { data, isLoading, error } = usePerformanceAlerts();
 
   if (isLoading) {
@@ -147,12 +151,16 @@ export const AlertsCenter = () => {
                   )}
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    View
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    Resolve
-                  </Button>
+                  {onCampaignClick && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => onCampaignClick(alert.campaignId)}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      View
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

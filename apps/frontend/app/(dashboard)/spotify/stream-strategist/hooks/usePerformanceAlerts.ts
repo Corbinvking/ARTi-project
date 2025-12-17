@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../integrations/supabase/client";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, differenceInDays, differenceInHours } from "date-fns";
 
 export interface PerformanceAlertsData {
   alerts: Array<{
@@ -38,152 +38,244 @@ export const usePerformanceAlerts = () => {
   return useQuery({
     queryKey: ["performance-alerts"],
     queryFn: async (): Promise<PerformanceAlertsData> => {
-      // Get performance alerts
-      const { data: alertsData, error: alertsError } = await supabase
-        .from("performance_alerts")
+      console.log('🚨 [Alerts] Fetching real campaign alerts...');
+
+      // Get active campaign groups
+      const { data: campaignGroups, error: campaignsError } = await supabase
+        .from("campaign_groups")
         .select("*")
-        .eq('is_resolved', false)
-        .order('created_at', { ascending: false });
+        .in('status', ['Active', 'active', 'Running', 'running']);
 
-      if (alertsError) throw alertsError;
+      if (campaignsError) {
+        console.error('❌ [Alerts] Error fetching campaigns:', campaignsError);
+        throw campaignsError;
+      }
 
-      // Get campaigns for analysis
-      const { data: campaigns, error: campaignsError } = await supabase
-        .from("campaigns")
-        .select("*")
-        .eq('status', 'active');
+      console.log(`📊 [Alerts] Found ${campaignGroups?.length || 0} active campaigns`);
 
-      if (campaignsError) throw campaignsError;
-
-      // Get campaign performance data
-      const { data: performance, error: performanceError } = await supabase
-        .from("campaign_allocations_performance")
+      // Get individual campaign data (for stream goals)
+      const { data: spotifyCampaigns, error: spotifyError } = await supabase
+        .from("spotify_campaigns")
         .select("*");
 
-      if (performanceError) throw performanceError;
+      if (spotifyError) {
+        console.error('❌ [Alerts] Error fetching spotify campaigns:', spotifyError);
+      }
 
-      // Process alerts
-      const alerts = (alertsData || []).map(alert => {
-        const campaign = campaigns?.find(c => c.id === alert.campaign_id);
-        return {
-          id: alert.id,
-          campaignId: alert.campaign_id,
-          campaignName: campaign?.name || 'Unknown Campaign',
-          alertType: alert.alert_type,
-          severity: alert.severity as 'low' | 'medium' | 'high' | 'critical',
-          message: alert.message,
-          threshold: alert.threshold_value ? alert.threshold_value.toString() : undefined,
-          currentValue: alert.current_value ? alert.current_value.toString() : undefined,
-          timeAgo: formatDistanceToNow(new Date(alert.created_at), { addSuffix: true }),
-          isResolved: alert.is_resolved
-        };
-      });
+      // Get campaign playlist performance data
+      const { data: campaignPlaylists, error: playlistsError } = await supabase
+        .from("campaign_playlists")
+        .select("*");
 
-      // Generate additional alerts based on campaign performance
-      const performanceAlerts = (campaigns || []).reduce((acc, campaign) => {
-        const campaignPerformance = performance?.filter(p => p.campaign_id === campaign.id) || [];
+      if (playlistsError) {
+        console.error('❌ [Alerts] Error fetching campaign playlists:', playlistsError);
+      }
 
-        // Check for underperformance
-        const avgPerformance = campaignPerformance.length > 0
-          ? campaignPerformance.reduce((sum, p) => sum + (p.performance_score || 0), 0) / campaignPerformance.length
-          : 1;
+      const alerts: PerformanceAlertsData['alerts'] = [];
+      let resolvedCount = 0;
 
-        if (avgPerformance < 0.3) {
-          acc.push({
-            id: `perf-${campaign.id}`,
-            campaignId: campaign.id,
-            campaignName: campaign.name,
-            alertType: 'performance',
-            severity: 'critical' as const,
-            message: 'Campaign severely underperforming',
-            threshold: '30%',
-            currentValue: `${(avgPerformance * 100).toFixed(1)}%`,
-            timeAgo: 'Just now',
-            isResolved: false
-          });
-        } else if (avgPerformance < 0.6) {
-          acc.push({
-            id: `perf-${campaign.id}`,
-            campaignId: campaign.id,
-            campaignName: campaign.name,
-            alertType: 'performance',
-            severity: 'high' as const,
-            message: 'Campaign performance below expectations',
-            threshold: '60%',
-            currentValue: `${(avgPerformance * 100).toFixed(1)}%`,
-            timeAgo: 'Just now',
-            isResolved: false
-          });
-        }
-
-        // Check budget pace
-        const totalActualStreams = campaignPerformance.reduce((sum, p) => sum + (p.actual_streams || 0), 0);
-        const completion = campaign.stream_goal > 0 ? totalActualStreams / campaign.stream_goal : 0;
+      // Analyze each campaign for issues
+      for (const campaign of campaignGroups || []) {
+        // Get campaign songs
+        const songs = spotifyCampaigns?.filter(sc => sc.campaign_group_id === campaign.id) || [];
         
-        if (completion < 0.2 && new Date(campaign.start_date) < new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)) {
-          acc.push({
-            id: `pace-${campaign.id}`,
+        if (songs.length === 0) continue;
+
+        // Calculate total goal and current streams
+        const totalGoal = songs.reduce((sum, song) => sum + (parseInt(song.stream_goal) || 0), 0);
+        
+        // Get performance data for this campaign's songs
+        const songIds = songs.map(s => s.id);
+        const performanceData = campaignPlaylists?.filter(cp => songIds.includes(cp.campaign_id)) || [];
+        
+        const totalCurrentStreams = performanceData.reduce((sum, cp) => sum + (cp.streams_28d || 0), 0);
+        const algoStreams = performanceData
+          .filter(cp => cp.is_algorithmic)
+          .reduce((sum, cp) => sum + (cp.streams_28d || 0), 0);
+
+        const progress = totalGoal > 0 ? (totalCurrentStreams / totalGoal) : 0;
+        const lastScraped = performanceData.length > 0 
+          ? new Date(Math.max(...performanceData.map(p => new Date(p.last_scraped || p.created_at).getTime())))
+          : null;
+
+        // Calculate days since campaign start
+        const startDate = campaign.start_date ? new Date(campaign.start_date) : new Date(campaign.created_at);
+        const daysSinceStart = differenceInDays(new Date(), startDate);
+        const expectedProgress = daysSinceStart > 0 ? Math.min(daysSinceStart / 60, 1) : 0; // Assuming 60-day campaigns
+
+        // ALERT 1: Campaign behind schedule (CRITICAL)
+        if (daysSinceStart >= 14 && progress < 0.15) {
+          alerts.push({
+            id: `pace-critical-${campaign.id}`,
             campaignId: campaign.id,
             campaignName: campaign.name,
             alertType: 'pacing',
-            severity: 'medium' as const,
-            message: 'Campaign pacing behind schedule',
-            threshold: '20% after 2 weeks',
-            currentValue: `${(completion * 100).toFixed(1)}%`,
-            timeAgo: 'Just now',
+            severity: 'critical',
+            message: `Campaign severely behind schedule - only ${(progress * 100).toFixed(1)}% complete after ${daysSinceStart} days`,
+            threshold: '15% after 2 weeks',
+            currentValue: `${(progress * 100).toFixed(1)}%`,
+            timeAgo: 'Active',
+            isResolved: false
+          });
+        }
+        // ALERT 2: Campaign not on pace to meet goal (HIGH)
+        else if (daysSinceStart >= 7 && progress < expectedProgress * 0.5) {
+          alerts.push({
+            id: `pace-high-${campaign.id}`,
+            campaignId: campaign.id,
+            campaignName: campaign.name,
+            alertType: 'pacing',
+            severity: 'high',
+            message: `Campaign not on pace to meet goal - ${(progress * 100).toFixed(1)}% vs expected ${(expectedProgress * 100).toFixed(1)}%`,
+            threshold: `${(expectedProgress * 100).toFixed(1)}%`,
+            currentValue: `${(progress * 100).toFixed(1)}%`,
+            timeAgo: 'Active',
+            isResolved: false
+          });
+        }
+        // ALERT 3: Campaign slightly behind (MEDIUM)
+        else if (daysSinceStart >= 7 && progress < expectedProgress * 0.75) {
+          alerts.push({
+            id: `pace-medium-${campaign.id}`,
+            campaignId: campaign.id,
+            campaignName: campaign.name,
+            alertType: 'pacing',
+            severity: 'medium',
+            message: `Campaign pacing slightly behind expected progress`,
+            threshold: `${(expectedProgress * 100).toFixed(1)}%`,
+            currentValue: `${(progress * 100).toFixed(1)}%`,
+            timeAgo: 'Active',
             isResolved: false
           });
         }
 
-        return acc;
-      }, [] as typeof alerts);
+        // ALERT 4: No recent scraper data (HIGH)
+        if (lastScraped) {
+          const hoursSinceScraped = differenceInHours(new Date(), lastScraped);
+          if (hoursSinceScraped > 48) {
+            alerts.push({
+              id: `stale-data-${campaign.id}`,
+              campaignId: campaign.id,
+              campaignName: campaign.name,
+              alertType: 'data',
+              severity: 'high',
+              message: `No scraper data for ${Math.floor(hoursSinceScraped / 24)} days - metrics may be outdated`,
+              threshold: '48 hours',
+              currentValue: `${Math.floor(hoursSinceScraped / 24)} days ago`,
+              timeAgo: formatDistanceToNow(lastScraped, { addSuffix: true }),
+              isResolved: false
+            });
+          }
+        } else if (daysSinceStart > 1) {
+          alerts.push({
+            id: `no-data-${campaign.id}`,
+            campaignId: campaign.id,
+            campaignName: campaign.name,
+            alertType: 'data',
+            severity: 'critical',
+            message: 'No scraper data available for this campaign',
+            timeAgo: 'Active',
+            isResolved: false
+          });
+        }
 
-      const allAlerts = [...alerts, ...performanceAlerts];
+        // ALERT 5: Low algorithmic performance (MEDIUM)
+        const algoPercentage = totalCurrentStreams > 0 ? (algoStreams / totalCurrentStreams) : 0;
+        if (totalCurrentStreams > 1000 && algoPercentage < 0.1) {
+          alerts.push({
+            id: `algo-low-${campaign.id}`,
+            campaignId: campaign.id,
+            campaignName: campaign.name,
+            alertType: 'algorithmic',
+            severity: 'medium',
+            message: 'Low algorithmic playlist engagement - potential to improve reach',
+            threshold: '10%',
+            currentValue: `${(algoPercentage * 100).toFixed(1)}%`,
+            timeAgo: 'Active',
+            isResolved: false
+          });
+        }
+
+        // ALERT 6: High cost per stream warning (MEDIUM)
+        const totalCost = songs.reduce((sum, song) => sum + (parseFloat(song.sale_price) || 0), 0);
+        const costPerStream = totalCurrentStreams > 0 ? totalCost / totalCurrentStreams : 0;
+        if (totalCurrentStreams > 100 && costPerStream > 0.10) {
+          alerts.push({
+            id: `cost-high-${campaign.id}`,
+            campaignId: campaign.id,
+            campaignName: campaign.name,
+            alertType: 'cost',
+            severity: 'medium',
+            message: 'Cost per stream higher than recommended threshold',
+            threshold: '$0.10',
+            currentValue: `$${costPerStream.toFixed(3)}`,
+            timeAgo: 'Active',
+            isResolved: false
+          });
+        }
+
+        // Count campaigns that are performing well (for resolved count)
+        if (progress >= expectedProgress * 0.9 && progress > 0) {
+          resolvedCount++;
+        }
+      }
+
+      console.log(`🚨 [Alerts] Generated ${alerts.length} alerts from ${campaignGroups?.length || 0} campaigns`);
 
       // Calculate summary
       const summary = {
-        total: allAlerts.length,
-        critical: allAlerts.filter(a => a.severity === 'critical').length,
-        high: allAlerts.filter(a => a.severity === 'high').length,
-        medium: allAlerts.filter(a => a.severity === 'medium').length,
-        low: allAlerts.filter(a => a.severity === 'low').length,
-        resolved: Math.floor(Math.random() * 10) + 5 // Mock resolved count
+        total: alerts.length,
+        critical: alerts.filter(a => a.severity === 'critical').length,
+        high: alerts.filter(a => a.severity === 'high').length,
+        medium: alerts.filter(a => a.severity === 'medium').length,
+        low: alerts.filter(a => a.severity === 'low').length,
+        resolved: resolvedCount
       };
 
-      // Mock alert rules
+      // Calculate alert rule trigger counts from actual alerts
+      const pacingAlerts = alerts.filter(a => a.alertType === 'pacing').length;
+      const dataAlerts = alerts.filter(a => a.alertType === 'data').length;
+      const algoAlerts = alerts.filter(a => a.alertType === 'algorithmic').length;
+      const costAlerts = alerts.filter(a => a.alertType === 'cost').length;
+
+      // Alert rules configuration
       const alertRules = [
         {
           id: '1',
-          name: 'Campaign Performance Below 60%',
-          condition: 'When performance score < 0.6 for 24 hours',
+          name: 'Campaign Behind Schedule',
+          condition: 'When campaign progress < expected progress based on days active',
           isActive: true,
-          triggeredCount: 8
+          triggeredCount: pacingAlerts
         },
         {
           id: '2',
-          name: 'Budget Overspend Warning',
-          condition: 'When cost per stream > $0.08',
+          name: 'Stale Scraper Data',
+          condition: 'When campaign data not updated in 48+ hours',
           isActive: true,
-          triggeredCount: 3
+          triggeredCount: dataAlerts
         },
         {
           id: '3',
-          name: 'Vendor Response Delay',
-          condition: 'When vendor doesn\'t respond within 48 hours',
-          isActive: false,
-          triggeredCount: 12
+          name: 'Low Algorithmic Performance',
+          condition: 'When algorithmic streams < 10% of total streams',
+          isActive: true,
+          triggeredCount: algoAlerts
         },
         {
           id: '4',
-          name: 'Goal Completion Risk',
-          condition: 'When projected completion < 80% of goal',
+          name: 'High Cost Per Stream',
+          condition: 'When cost per stream > $0.10',
           isActive: true,
-          triggeredCount: 5
+          triggeredCount: costAlerts
         }
       ];
 
       return {
-        alerts: allAlerts,
+        alerts: alerts.sort((a, b) => {
+          // Sort by severity: critical > high > medium > low
+          const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+          return severityOrder[a.severity] - severityOrder[b.severity];
+        }),
         summary,
         alertRules
       };

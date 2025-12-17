@@ -165,7 +165,7 @@ export const ExecutiveDashboard = () => {
         </TabsContent>
 
         <TabsContent value="alerts">
-          <AlertsCenter />
+          <AlertsCenter onCampaignClick={(campaignId) => setSelectedCampaignId(campaignId)} />
         </TabsContent>
 
         <TabsContent value="interactive">
