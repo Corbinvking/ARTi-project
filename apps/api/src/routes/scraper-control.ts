@@ -10,7 +10,7 @@ const SCRAPER_PATH = '/root/arti-marketing-ops/spotify_scraper';
 
 export async function scraperControlRoutes(server: FastifyInstance) {
   // Get health status (runs health check)
-  server.get('/scraper/health', async (request, reply) => {
+  server.get('/scraper/health', async (_request, reply) => {
     try {
       // Run health check script
       await execAsync(`cd ${SCRAPER_PATH} && bash run_health_check.sh`);
@@ -43,7 +43,7 @@ export async function scraperControlRoutes(server: FastifyInstance) {
   });
 
   // Get scraper status (quick check without running health)
-  server.get('/scraper/status', async (request, reply) => {
+  server.get('/scraper/status', async (_request, reply) => {
     try {
       // Check if scraper is running
       let isRunning = false;
@@ -71,7 +71,10 @@ export async function scraperControlRoutes(server: FastifyInstance) {
         );
         const lines = statusFile.trim().split('\n').filter(Boolean);
         if (lines.length > 0) {
-          lastRun = JSON.parse(lines[lines.length - 1]);
+          const lastLine = lines[lines.length - 1];
+          if (lastLine) {
+            lastRun = JSON.parse(lastLine);
+          }
         }
       } catch {}
 
@@ -103,7 +106,7 @@ export async function scraperControlRoutes(server: FastifyInstance) {
   });
 
   // Trigger manual scraper run
-  server.post('/scraper/trigger', async (request, reply) => {
+  server.post('/scraper/trigger', async (_request, reply) => {
     try {
       // Check if already running
       try {
@@ -139,8 +142,8 @@ export async function scraperControlRoutes(server: FastifyInstance) {
     }
   }>('/scraper/logs', async (request, reply) => {
     try {
-      const logType = request.query.type || 'production';
-      const lines = parseInt(request.query.lines || '100');
+      const logType = (request.query as any).type || 'production';
+      const lines = parseInt((request.query as any).lines || '100');
 
       const logFiles: Record<string, string> = {
         production: 'logs/production.log',
@@ -148,8 +151,8 @@ export async function scraperControlRoutes(server: FastifyInstance) {
         cron: 'logs/cron.log',
       };
 
-      const logFile = logFiles[logType] || logFiles.production;
-      const logPath = path.join(SCRAPER_PATH, logFile);
+      const logFile = logFiles[logType as string] || logFiles.production;
+      const logPath = path.join(SCRAPER_PATH, logFile!);
       
       const logContent = await fs.readFile(logPath, 'utf-8');
       const recentLines = logContent.trim().split('\n').slice(-lines);
