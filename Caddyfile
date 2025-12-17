@@ -1,29 +1,33 @@
-# Main API - Route to Supabase Kong (handles auth, database, storage, etc.)
 api.artistinfluence.com {
-    reverse_proxy supabase_kong_arti-marketing-ops:8000
+    @custom_api path /api/spotify-web-api/* /api/scraper/*
+    handle @custom_api {
+        reverse_proxy arti-api:3001
+    }
+    
+    handle {
+        reverse_proxy supabase_kong_arti-marketing-ops:8000
+    }
 }
 
-# Custom API - For custom endpoints (Spotify Web API, scraper control, etc.)
 custom-api.artistinfluence.com {
     reverse_proxy arti-api:3001
     
     header {
-        Access-Control-Allow-Origin "*"
-        Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        Access-Control-Allow-Headers "*"
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Methods GET, POST, PUT, DELETE, OPTIONS
+        Access-Control-Allow-Headers *
     }
     
     @options method OPTIONS
     respond @options 204
 }
 
-# n8n Automation Platform  
 n8n.artistinfluence.com {
     reverse_proxy arti-n8n:5678
     
     header {
-        Strict-Transport-Security "max-age=31536000"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
+        Strict-Transport-Security max-age=31536000
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
     }
 }
