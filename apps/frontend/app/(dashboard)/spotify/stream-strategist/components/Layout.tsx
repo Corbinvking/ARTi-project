@@ -22,7 +22,6 @@ import {
   User,
   UserPlus,
   Brain,
-  FileText,
   DollarSign,
   Target,
   Receipt
@@ -84,12 +83,6 @@ const getNavItemsForRole = (currentRole: string | null) => {
         href: "/spotify/ml-dashboard",
         icon: Brain,
         hotkey: "Ctrl+7"
-      },
-      {
-        title: "Submissions",
-        href: "/spotify/submissions",
-        icon: FileText,
-        hotkey: "Ctrl+8"
       },
       ...(currentRole === 'admin' ? [{
         title: "Users", 
