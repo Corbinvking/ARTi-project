@@ -47,6 +47,14 @@ trap cleanup EXIT
 log "🧪 Testing scraper with 3 campaigns..."
 send_status "running" "Test: Scraping 3 campaigns"
 
+# Set up Xvfb (required for browser)
+export DISPLAY=:99
+if ! pgrep -x "Xvfb" > /dev/null; then
+    log "Starting Xvfb..."
+    Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
+    sleep 2
+fi
+
 # Run the scraper with limit and timeout (5 minutes should be enough for 3 campaigns)
 cd "$SCRAPER_DIR"
 if timeout 300 python3 run_production_scraper.py --limit 3 >> "$LOG_DIR/test.log" 2>> "$LOG_DIR/test_errors.log"; then
