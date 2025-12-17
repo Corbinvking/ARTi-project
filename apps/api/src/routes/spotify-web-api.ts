@@ -158,6 +158,75 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
   });
 
   /**
+   * POST /spotify-web-api/enrich-playlist-genres
+   * Bulk enrich playlists with genre tags from their artists
+   */
+  server.post('/spotify-web-api/enrich-playlist-genres', async (request, reply) => {
+    const { playlist_ids } = request.body as { playlist_ids: string[] };
+    
+    if (!playlist_ids || !Array.isArray(playlist_ids)) {
+      return reply.status(400).send({
+        success: false,
+        error: 'playlist_ids must be an array of playlist IDs',
+      });
+    }
+
+    logger.info({ count: playlist_ids.length }, 'Starting playlist genre enrichment');
+    
+    const results = {
+      success: 0,
+      failed: 0,
+      details: [] as any[],
+    };
+
+    for (const playlistId of playlist_ids) {
+      try {
+        // Fetch genres for this playlist
+        const genres = await spotifyWebApi.getPlaylistGenres(playlistId);
+        
+        // Update database - find playlist by spotify_id
+        const { error: updateError } = await supabase
+          .from('playlists')
+          .update({
+            genres: genres, // PostgreSQL text[] array
+            updated_at: new Date().toISOString(),
+          })
+          .eq('spotify_id', playlistId);
+
+        if (updateError) {
+          logger.error({ playlistId, error: updateError }, 'Failed to update playlist genres in database');
+          results.failed++;
+          results.details.push({ playlistId, error: updateError.message });
+        } else {
+          results.success++;
+          results.details.push({ 
+            playlistId, 
+            genres,
+            genreCount: genres.length
+          });
+        }
+
+        // Rate limiting: 200ms between requests (safe for Spotify's limits)
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+      } catch (error: any) {
+        logger.error({ playlistId, error: error.message }, 'Failed to process playlist genres');
+        results.failed++;
+        results.details.push({ playlistId, error: error.message });
+      }
+    }
+
+    logger.info(results, 'Playlist genre enrichment completed');
+    
+    return {
+      status: 'completed',
+      success_count: results.success,
+      failed_count: results.failed,
+      details: results.details,
+    };
+  });
+
+  /**
    * POST /spotify-web-api/enrich-tracks
    * Bulk enrich tracks with metadata (name, artist, genres)
    */

@@ -206,6 +206,55 @@ class SpotifyWebAPIClient {
   }
 
   /**
+   * Get playlist genres by analyzing tracks and their artists
+   * Returns top 5 most common genres from the playlist's artists
+   */
+  async getPlaylistGenres(playlistId: string): Promise<string[]> {
+    logger.info({ playlistId }, 'Fetching playlist genres from artists');
+    
+    // Fetch playlist tracks (limit to first 50 for performance)
+    const tracksResponse = await this.makeRequest<{
+      items: Array<{ track: SpotifyTrackResponse }>;
+    }>(`/playlists/${playlistId}/tracks?limit=50`);
+    
+    // Extract unique artist IDs
+    const artistIds = [
+      ...new Set(
+        tracksResponse.items
+          .flatMap(item => item.track?.artists?.map(artist => artist.id) || [])
+          .filter(Boolean)
+      )
+    ];
+    
+    if (artistIds.length === 0) {
+      logger.warn({ playlistId }, 'No artists found in playlist');
+      return [];
+    }
+    
+    // Fetch artist details to get genres
+    const { artists } = await this.getArtists(artistIds);
+    
+    // Aggregate genres and count occurrences
+    const genreCounts = new Map<string, number>();
+    artists.forEach(artist => {
+      if (artist?.genres) {
+        artist.genres.forEach(genre => {
+          genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1);
+        });
+      }
+    });
+    
+    // Sort by frequency and return top 5
+    const topGenres = Array.from(genreCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([genre]) => genre);
+    
+    logger.info({ playlistId, genreCount: topGenres.length }, 'Extracted playlist genres');
+    return topGenres;
+  }
+
+  /**
    * Extract Spotify ID from URL
    */
   static extractSpotifyId(url: string, type: 'track' | 'playlist' | 'artist'): string | null {

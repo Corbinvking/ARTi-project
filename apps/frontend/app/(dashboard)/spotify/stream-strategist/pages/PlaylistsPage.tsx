@@ -132,6 +132,42 @@ export default function PlaylistsPage() {
     }
   });
 
+  // Enrich playlist genres mutation
+  const enrichPlaylistGenresMutation = useMutation({
+    mutationFn: async (playlistIds: string[]) => {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
+      const response = await fetch(`${API_BASE_URL}/api/spotify-web-api/enrich-playlist-genres`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ playlist_ids: playlistIds }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to enrich playlist genres');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['all-playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-playlists'] });
+      toast({
+        title: "Genre Enrichment Complete",
+        description: `Successfully enriched ${data.success_count} playlists. Failed: ${data.failed_count}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Enrichment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Delete vendor mutation
   const deleteVendorMutation = useMutation({
     mutationFn: async (vendorId: string) => {
@@ -744,6 +780,48 @@ export default function PlaylistsPage() {
                 onChange={handleVendorPlaylistImport}
                 className="hidden"
               />
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="default"
+                      onClick={() => {
+                        if (playlists && playlists.length > 0) {
+                          const spotifyIds = playlists
+                            .map(p => p.spotify_id)
+                            .filter(Boolean);
+                          
+                          if (spotifyIds.length === 0) {
+                            toast({
+                              title: "No Valid Playlists",
+                              description: "No playlists found with Spotify IDs to enrich.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          enrichPlaylistGenresMutation.mutate(spotifyIds);
+                        }
+                      }}
+                      disabled={enrichPlaylistGenresMutation.isPending}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    >
+                      <Music className="w-4 h-4 mr-2" />
+                      {enrichPlaylistGenresMutation.isPending ? 'Enriching...' : 'Enrich Genres'}
+                      <Info className="w-3 h-3 ml-2" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs max-w-xs">
+                      <p className="font-semibold mb-1">Fetch Genre Tags from Spotify</p>
+                      <p className="text-gray-300">Analyzes playlist tracks and artist genres</p>
+                      <p className="text-gray-400 mt-1">• Fetches top 5 genres per playlist</p>
+                      <p className="text-gray-400">• Updates database automatically</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
 
@@ -1180,6 +1258,46 @@ export default function PlaylistsPage() {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+                
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="default"
+                        onClick={() => {
+                          if (allPlaylists && allPlaylists.length > 0) {
+                            const spotifyIds = allPlaylists
+                              .map(p => p.spotify_id)
+                              .filter(Boolean);
+                            
+                            if (spotifyIds.length === 0) {
+                              toast({
+                                title: "No Valid Playlists",
+                                description: "No playlists found with Spotify IDs to enrich.",
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            
+                            enrichPlaylistGenresMutation.mutate(spotifyIds);
+                          }
+                        }}
+                        disabled={enrichPlaylistGenresMutation.isPending}
+                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                      >
+                        <Music className="w-4 h-4 mr-2" />
+                        {enrichPlaylistGenresMutation.isPending ? 'Enriching...' : 'Enrich Genres'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-xs max-w-xs">
+                        <p className="font-semibold mb-1">Fetch Genre Tags from Spotify</p>
+                        <p className="text-gray-300">Analyzes playlist tracks and artist genres</p>
+                        <p className="text-gray-400 mt-1">• Fetches top 5 genres per playlist</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
 
             {/* All Playlists Table */}

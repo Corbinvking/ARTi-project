@@ -164,6 +164,8 @@ USING (true);
 ---
 
 ## Member Portal
+test-member@artistinfluence.com
+TestMember123!
 
 ### Architecture
 
