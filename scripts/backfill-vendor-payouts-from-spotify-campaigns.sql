@@ -39,10 +39,11 @@ WHERE
     AND sc.sale_price != ''
     AND sc.sale_price != '$0.00'
     AND v.id IS NOT NULL  -- Only if we found a matching vendor
-ON CONFLICT (campaign_id, vendor_id) DO UPDATE SET
-    payment_status = EXCLUDED.payment_status,
-    cost_per_stream = EXCLUDED.cost_per_stream,
-    updated_at = NOW();
+    -- Only insert if not already exists
+    AND NOT EXISTS (
+        SELECT 1 FROM campaign_allocations_performance cap
+        WHERE cap.campaign_id = ssc.id AND cap.vendor_id = v.id
+    );
 
 -- Show summary
 SELECT 
