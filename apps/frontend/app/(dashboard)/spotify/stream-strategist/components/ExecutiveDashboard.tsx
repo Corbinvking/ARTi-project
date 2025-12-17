@@ -24,11 +24,19 @@ export const ExecutiveDashboard = () => {
     queryKey: ['campaign-details', selectedCampaignId],
     queryFn: async () => {
       if (!selectedCampaignId) return null;
-      const { data } = await supabase
+      console.log('🔍 Fetching campaign details for:', selectedCampaignId);
+      const { data, error } = await supabase
         .from('campaign_groups')
         .select('*')
         .eq('id', selectedCampaignId)
         .single();
+      
+      if (error) {
+        console.error('❌ Error fetching campaign:', error);
+        return null;
+      }
+      
+      console.log('✅ Campaign fetched:', data);
       return data;
     },
     enabled: !!selectedCampaignId,
@@ -165,7 +173,10 @@ export const ExecutiveDashboard = () => {
         </TabsContent>
 
         <TabsContent value="alerts">
-          <AlertsCenter onCampaignClick={(campaignId) => setSelectedCampaignId(campaignId)} />
+          <AlertsCenter onCampaignClick={(campaignId) => {
+            console.log('🎯 Alert campaign clicked in ExecutiveDashboard:', campaignId);
+            setSelectedCampaignId(campaignId);
+          }} />
         </TabsContent>
 
         <TabsContent value="interactive">
@@ -175,11 +186,17 @@ export const ExecutiveDashboard = () => {
 
       {/* Campaign Details Modal */}
       {selectedCampaign && (
-        <CampaignDetailsModal
-          campaign={selectedCampaign}
-          open={!!selectedCampaignId}
-          onClose={() => setSelectedCampaignId(null)}
-        />
+        <>
+          {console.log('📋 Opening modal for campaign:', selectedCampaign.name, selectedCampaign.id)}
+          <CampaignDetailsModal
+            campaign={selectedCampaign}
+            open={!!selectedCampaignId}
+            onClose={() => {
+              console.log('❌ Closing campaign modal');
+              setSelectedCampaignId(null);
+            }}
+          />
+        </>
       )}
     </div>
   );

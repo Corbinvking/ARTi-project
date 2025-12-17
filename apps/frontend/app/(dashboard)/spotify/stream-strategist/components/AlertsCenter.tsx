@@ -151,16 +151,19 @@ export const AlertsCenter = ({ onCampaignClick }: AlertsCenterProps) => {
                   )}
                 </div>
                 <div className="flex space-x-2">
-                  {onCampaignClick && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => onCampaignClick(alert.campaignId)}
-                    >
-                      <ExternalLink className="h-3 w-3 mr-1" />
-                      View
-                    </Button>
-                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      console.log('🔍 Alert View clicked:', alert.campaignId, alert.campaignName);
+                      if (onCampaignClick) {
+                        onCampaignClick(alert.campaignId);
+                      }
+                    }}
+                  >
+                    <ExternalLink className="h-3 w-3 mr-1" />
+                    View
+                  </Button>
                 </div>
               </div>
             ))}
