@@ -91,9 +91,19 @@ export function useCampaignGroups() {
           }
 
           // Calculate totals
-          const total_remaining = songs.reduce((sum, song) => sum + (parseInt(song.remaining) || 0), 0);
           const total_daily = songs.reduce((sum, song) => sum + (parseInt(song.daily) || 0), 0);
           const total_weekly = songs.reduce((sum, song) => sum + (parseInt(song.weekly) || 0), 0);
+          
+          // Calculate total_remaining - if all songs have no data yet, default to total_goal (not 0!)
+          const songs_remaining_sum = songs.reduce((sum, song) => sum + (parseInt(song.remaining) || 0), 0);
+          const has_any_data = songs.some(song => song.remaining && parseInt(song.remaining) > 0);
+          
+          // If no songs have remaining data yet, assume campaign hasn't started (remaining = goal)
+          // Otherwise use the sum of all song remainings
+          const total_remaining = (!has_any_data && songs_remaining_sum === 0) 
+            ? group.total_goal || 0
+            : songs_remaining_sum;
+          
           const progress_percentage = group.total_goal > 0 
             ? Math.round(((group.total_goal - total_remaining) / group.total_goal) * 100)
             : 0;
