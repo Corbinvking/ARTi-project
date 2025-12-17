@@ -11,12 +11,13 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=production
+      - DOCKER_ENV=true
       - PORT=3001
       - REDIS_URL=redis://redis:6379
     env_file:
       - apps/api/production.env
     volumes:
-      - ./spotify_scraper:/root/arti-marketing-ops/spotify_scraper:ro
+      - ./spotify_scraper:/app/scraper_data:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

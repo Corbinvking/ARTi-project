@@ -6,7 +6,12 @@ import path from 'path';
 
 const execAsync = promisify(exec);
 
-const SCRAPER_PATH = '/root/arti-marketing-ops/spotify_scraper';
+// Use different paths depending on environment
+// In Docker: /app/scraper_data (mounted volume)
+// On host: /root/arti-marketing-ops/spotify_scraper (for direct script execution)
+const SCRAPER_PATH = process.env.NODE_ENV === 'production' && process.env.DOCKER_ENV === 'true'
+  ? '/app/scraper_data'
+  : '/root/arti-marketing-ops/spotify_scraper';
 
 export async function scraperControlRoutes(server: FastifyInstance) {
   // Get health status (runs health check)
@@ -117,34 +122,27 @@ export async function scraperControlRoutes(server: FastifyInstance) {
   // Trigger manual scraper run
   server.post('/scraper/trigger', async (_request, reply) => {
     try {
-      // Check if already running
-      try {
-        const { stdout: psOutput } = await execAsync('ps aux | grep "run_scraper_with_monitoring\\|run_production_scraper" | grep -v grep');
-        if (psOutput.trim()) {
-          reply.code(409);
-          return { 
-            error: 'Scraper is already running',
-            isRunning: true 
-          };
-        }
-      } catch {}
-      
-      // Check lock file
+      // Check if already running (check lock file)
       try {
         await fs.access(path.join(SCRAPER_PATH, 'scraper.lock'));
         reply.code(409);
         return { 
-          error: 'Scraper lock file exists - another instance may be running',
+          error: 'Scraper is already running (lock file exists)',
           isRunning: true 
         };
       } catch {}
 
-      // Trigger in background using the monitoring wrapper
-      exec(`cd ${SCRAPER_PATH} && bash run_scraper_with_monitoring.sh >> logs/manual_run.log 2>&1 &`);
+      // Create a trigger file that the host's cron/watchdog can pick up
+      // This allows the API to trigger runs even from within Docker
+      const triggerFile = path.join(SCRAPER_PATH, 'trigger_manual_run.flag');
+      await fs.writeFile(triggerFile, JSON.stringify({
+        triggered_at: new Date().toISOString(),
+        triggered_by: 'admin_ui'
+      }));
       
       return { 
         success: true, 
-        message: 'Scraper triggered successfully with monitoring',
+        message: 'Scraper trigger requested - will start shortly if watchdog is running',
         timestamp: new Date().toISOString()
       };
     } catch (error) {
