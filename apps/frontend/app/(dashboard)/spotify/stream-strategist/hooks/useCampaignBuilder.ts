@@ -188,6 +188,44 @@ export function useCampaignBuilder() {
       
       console.log('✅ Campaign group created:', createdCampaignGroup.id);
       
+      // 1.5. Deduct client credits if any were allocated
+      const creditsAllocated = (data as any).credits_allocated || 0;
+      if (creditsAllocated > 0 && data.client_id) {
+        console.log(`💳 Deducting $${creditsAllocated} credits from client ${data.client_id}`);
+        
+        // Get current credit balance
+        const { data: clientData, error: clientFetchError } = await supabase
+          .from('clients')
+          .select('credit_balance')
+          .eq('id', data.client_id)
+          .single();
+        
+        if (clientFetchError) {
+          console.error('❌ Error fetching client credit balance:', clientFetchError);
+        } else {
+          const currentBalance = clientData.credit_balance || 0;
+          const newBalance = Math.max(0, currentBalance - creditsAllocated);
+          
+          // Update client credit balance
+          const { error: creditUpdateError } = await supabase
+            .from('clients')
+            .update({ credit_balance: newBalance })
+            .eq('id', data.client_id);
+          
+          if (creditUpdateError) {
+            console.error('❌ Error updating client credit balance:', creditUpdateError);
+            // Don't throw - we still want the campaign to be created even if credit deduction fails
+            toast({
+              title: "Warning",
+              description: "Campaign created but credits may not have been deducted. Please verify in Client Manager.",
+              variant: "destructive",
+            });
+          } else {
+            console.log(`✅ Client credit balance updated: $${currentBalance} → $${newBalance}`);
+          }
+        }
+      }
+      
       // 2. Create stream_strategist_campaigns entry (for vendor payments & main UI)
       const streamStrategistPayload = {
         org_id: '00000000-0000-0000-0000-000000000001',

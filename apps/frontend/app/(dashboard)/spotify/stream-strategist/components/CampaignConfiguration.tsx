@@ -303,7 +303,9 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
         ...data, 
         client_id: selectedClientId,
         sub_genre: selectedGenres.join(', '), 
-        track_name: trackName 
+        track_name: trackName,
+        credits_allocated: creditsToAllocate,
+        client_credit_balance: clientCreditBalance
       };
       
       console.log('Moving to AI Recommendations with data:', finalData);
