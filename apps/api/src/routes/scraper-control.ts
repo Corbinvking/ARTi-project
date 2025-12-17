@@ -45,12 +45,21 @@ export async function scraperControlRoutes(server: FastifyInstance) {
   // Get scraper status (quick check without running health)
   server.get('/scraper/status', async (_request, reply) => {
     try {
-      // Check if scraper is running
+      // Check if scraper is running (check for both script name and lock file)
       let isRunning = false;
       try {
-        const { stdout } = await execAsync('ps aux | grep run_production_scraper | grep -v grep');
+        // Check for running process
+        const { stdout } = await execAsync('ps aux | grep "run_scraper_with_monitoring\\|run_production_scraper" | grep -v grep');
         isRunning = !!stdout.trim();
       } catch {}
+      
+      // Also check lock file
+      if (!isRunning) {
+        try {
+          await fs.access(path.join(SCRAPER_PATH, 'scraper.lock'));
+          isRunning = true;
+        } catch {}
+      }
 
       // Read last health check results
       let healthData = null;
@@ -84,7 +93,7 @@ export async function scraperControlRoutes(server: FastifyInstance) {
       try {
         const { stdout } = await execAsync('crontab -l');
         const lines = stdout.split('\n');
-        const scraperLine = lines.find(l => l.includes('run_production_scraper'));
+        const scraperLine = lines.find(l => l.includes('run_scraper_with_monitoring') || l.includes('run_production_scraper'));
         if (scraperLine) {
           cronScheduled = true;
           cronSchedule = scraperLine.trim();
@@ -110,7 +119,7 @@ export async function scraperControlRoutes(server: FastifyInstance) {
     try {
       // Check if already running
       try {
-        const { stdout: psOutput } = await execAsync('ps aux | grep run_production_scraper | grep -v grep');
+        const { stdout: psOutput } = await execAsync('ps aux | grep "run_scraper_with_monitoring\\|run_production_scraper" | grep -v grep');
         if (psOutput.trim()) {
           reply.code(409);
           return { 
@@ -119,13 +128,23 @@ export async function scraperControlRoutes(server: FastifyInstance) {
           };
         }
       } catch {}
+      
+      // Check lock file
+      try {
+        await fs.access(path.join(SCRAPER_PATH, 'scraper.lock'));
+        reply.code(409);
+        return { 
+          error: 'Scraper lock file exists - another instance may be running',
+          isRunning: true 
+        };
+      } catch {}
 
-      // Trigger in background
-      exec(`cd ${SCRAPER_PATH} && bash run_production_scraper.sh >> logs/manual_run.log 2>&1 &`);
+      // Trigger in background using the monitoring wrapper
+      exec(`cd ${SCRAPER_PATH} && bash run_scraper_with_monitoring.sh >> logs/manual_run.log 2>&1 &`);
       
       return { 
         success: true, 
-        message: 'Scraper triggered successfully',
+        message: 'Scraper triggered successfully with monitoring',
         timestamp: new Date().toISOString()
       };
     } catch (error) {
