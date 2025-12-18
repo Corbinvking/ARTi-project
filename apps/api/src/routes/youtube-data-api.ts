@@ -48,6 +48,32 @@ async function fetchVideoStats(videoId: string) {
     });
 
     if (!response.data.items || response.data.items.length === 0) {
+      // Fallback to oEmbed to still retrieve title for public/unlisted videos
+      try {
+        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
+          `https://www.youtube.com/watch?v=${videoId}`
+        )}&format=json`;
+        const oembedRes = await fetch(oembedUrl, { method: 'GET' });
+        if (oembedRes.ok) {
+          const oembed = (await oembedRes.json()) as { title?: string };
+          if (oembed?.title) {
+            return {
+              videoId,
+              viewCount: 0,
+              likeCount: 0,
+              commentCount: 0,
+              title: oembed.title,
+              publishedAt: null,
+              duration: '',
+              success: false,
+              error: `Video not found via YouTube Data API (may be private/region-blocked). Title recovered via oEmbed.`,
+            };
+          }
+        }
+      } catch {
+        // ignore oEmbed errors
+      }
+
       throw new Error(`Video not found: ${videoId}`);
     }
 
@@ -93,13 +119,28 @@ async function fetchVideoStats(videoId: string) {
       error: null
     };
   } catch (error: any) {
+    // Last-resort fallback: try oEmbed for title even when YouTube API errors
+    let title = '';
+    try {
+      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
+        `https://www.youtube.com/watch?v=${videoId}`
+      )}&format=json`;
+      const oembedRes = await fetch(oembedUrl, { method: 'GET' });
+      if (oembedRes.ok) {
+        const oembed = (await oembedRes.json()) as { title?: string };
+        title = oembed?.title || '';
+      }
+    } catch {
+      // ignore
+    }
+
     console.error(`Error fetching stats for video ${videoId}:`, error.message);
     return {
       videoId,
       viewCount: 0,
       likeCount: 0,
       commentCount: 0,
-      title: '',
+      title,
       publishedAt: null,
       duration: '',
       success: false,
