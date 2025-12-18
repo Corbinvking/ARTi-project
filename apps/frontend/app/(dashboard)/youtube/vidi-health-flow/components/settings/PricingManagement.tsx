@@ -6,13 +6,23 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit2, Save, X } from "lucide-react";
+import { Plus, Edit2, Save, X, Trash2 } from "lucide-react";
 import { supabase } from "../../integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SERVICE_TYPES } from "../../lib/constants";
 import type { Database } from "../../integrations/supabase/types";
 
-type PricingTier = Database['public']['Tables']['pricing_tiers']['Row'];
+// Type for pricing tiers (matching youtube_pricing_tiers table)
+interface PricingTier {
+  id: string;
+  service_type: string;
+  tier_min_views: number;
+  tier_max_views: number | null;
+  cost_per_1k_views: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
 type ServiceType = Database['public']['Enums']['service_type'];
 
 export const PricingManagement = () => {
@@ -35,7 +45,7 @@ export const PricingManagement = () => {
   const fetchPricingTiers = async () => {
     try {
       const { data, error } = await supabase
-        .from('pricing_tiers')
+        .from('youtube_pricing_tiers')
         .select('*')
         .order('service_type')
         .order('tier_min_views');
@@ -57,7 +67,7 @@ export const PricingManagement = () => {
   const handleSaveTier = async (tier: PricingTier) => {
     try {
       const { error } = await supabase
-        .from('pricing_tiers')
+        .from('youtube_pricing_tiers')
         .update({
           tier_min_views: tier.tier_min_views,
           tier_max_views: tier.tier_max_views,
@@ -88,7 +98,7 @@ export const PricingManagement = () => {
   const handleAddTier = async () => {
     try {
       const { data, error } = await supabase
-        .from('pricing_tiers')
+        .from('youtube_pricing_tiers')
         .insert([newTier])
         .select()
         .single();
@@ -112,6 +122,32 @@ export const PricingManagement = () => {
       toast({
         title: "Error",
         description: "Failed to add pricing tier",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteTier = async (tierId: string) => {
+    if (!confirm('Are you sure you want to delete this pricing tier?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('youtube_pricing_tiers')
+        .delete()
+        .eq('id', tierId);
+
+      if (error) throw error;
+
+      setPricingTiers(prev => prev.filter(t => t.id !== tierId));
+      toast({
+        title: "Success",
+        description: "Pricing tier deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting pricing tier:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete pricing tier",
         variant: "destructive",
       });
     }
@@ -318,13 +354,23 @@ export const PricingManagement = () => {
                         </Button>
                       </div>
                     ) : (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setEditingId(tier.id)}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditingId(tier.id)}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteTier(tier.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>
