@@ -54,6 +54,27 @@ export const TestYouTubeAPI = () => {
         NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
       });
       
+      // First, test API connectivity with health check
+      console.log('Testing API connectivity...');
+      try {
+        const healthResponse = await fetch(`${apiUrl}/api/health`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!healthResponse.ok) {
+          throw new Error(`API health check failed: HTTP ${healthResponse.status}`);
+        }
+        
+        const healthData = await healthResponse.json();
+        console.log('✅ API server is reachable:', healthData);
+      } catch (healthError: any) {
+        console.error('❌ API health check failed:', healthError);
+        throw new Error(`Cannot reach API server at ${apiUrl}. ${healthError.message || 'Server may be down or unreachable.'}`);
+      }
+      
       // First, get an orgId from existing campaigns
       const { data: campaigns, error: campaignError } = await supabase
         .from('youtube_campaigns')
@@ -81,8 +102,21 @@ export const TestYouTubeAPI = () => {
             body: JSON.stringify({ videoUrl: testVideoUrl }),
           });
         } catch (fetchError: any) {
-          console.error('Fetch error:', fetchError);
-          errorMessage = `Network error: ${fetchError.message || 'Failed to connect to API server'}`;
+          console.error('Fetch error details:', {
+            message: fetchError.message,
+            name: fetchError.name,
+            stack: fetchError.stack,
+            endpoint,
+          });
+          
+          // More specific error messages
+          if (fetchError.message?.includes('CORS')) {
+            errorMessage = `CORS error: The API server is blocking requests from this origin. Check CORS configuration.`;
+          } else if (fetchError.message?.includes('Failed to fetch') || fetchError.message?.includes('NetworkError')) {
+            errorMessage = `Network error: Cannot connect to ${apiUrl}. The API server may be down, unreachable, or blocked by firewall/CORS.`;
+          } else {
+            errorMessage = `Network error: ${fetchError.message || 'Failed to connect to API server'}`;
+          }
           throw new Error(errorMessage);
         }
 
@@ -131,8 +165,21 @@ export const TestYouTubeAPI = () => {
           body: JSON.stringify({ orgId: campaigns.org_id }),
         });
       } catch (fetchError: any) {
-        console.error('Fetch error:', fetchError);
-        throw new Error(`Network error: ${fetchError.message || 'Failed to connect to API server. Make sure the API server is running on ${apiUrl}'}`);
+        console.error('Fetch error details:', {
+          message: fetchError.message,
+          name: fetchError.name,
+          stack: fetchError.stack,
+          endpoint,
+        });
+        
+        // More specific error messages
+        if (fetchError.message?.includes('CORS')) {
+          throw new Error(`CORS error: The API server is blocking requests from this origin. Check CORS configuration.`);
+        } else if (fetchError.message?.includes('Failed to fetch') || fetchError.message?.includes('NetworkError')) {
+          throw new Error(`Network error: Cannot connect to ${apiUrl}. The API server may be down, unreachable, or blocked by firewall/CORS.`);
+        } else {
+          throw new Error(`Network error: ${fetchError.message || 'Failed to connect to API server. Make sure the API server is running on ' + apiUrl}`);
+        }
       }
 
       if (!response.ok) {
