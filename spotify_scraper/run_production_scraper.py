@@ -380,6 +380,11 @@ async def scrape_campaign(page, spotify_page, campaign):
     logger.info(f"[{campaign_id}] Scraping: {campaign_name}")
     
     try:
+        # Check if page is still alive
+        if page.is_closed():
+            logger.error(f"[{campaign_id}] Page is closed! Cannot scrape.")
+            return None
+        
         # Navigate to song
         await spotify_page.navigate_to_song(sfa_url)
         await asyncio.sleep(2)
@@ -708,11 +713,29 @@ async def main(limit=None):
         headless=headless,
         args=[
             '--disable-blink-features=AutomationControlled',
-            '--disable-dev-shm-usage',
+            '--disable-dev-shm-usage',  # Prevents running out of shared memory
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--disable-gpu'
-        ]
+            '--disable-gpu',
+            '--disable-software-rasterizer',
+            '--disable-extensions',
+            '--disable-background-networking',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-breakpad',
+            '--disable-component-extensions-with-background-pages',
+            '--disable-features=TranslateUI',
+            '--disable-ipc-flooding-protection',
+            '--disable-renderer-backgrounding',
+            '--force-color-profile=srgb',
+            '--metrics-recording-only',
+            '--no-first-run',
+            '--password-store=basic',
+            '--use-mock-keychain',
+            '--disable-hang-monitor'  # Prevent browser from self-terminating
+        ],
+        # Add timeout to prevent hanging
+        timeout=60000
     )
     page = context.pages[0] if context.pages else await context.new_page()
     
@@ -744,6 +767,25 @@ async def main(limit=None):
         # Scrape each campaign
         for i, campaign in enumerate(campaigns, 1):
             logger.info(f"[{i}/{len(campaigns)}] Processing campaign {campaign['id']}")
+            
+            # CRITICAL: Check if browser is still alive before each campaign
+            try:
+                # Test if context is still responsive
+                if context.pages:
+                    test_page = context.pages[0]
+                    if test_page.is_closed():
+                        logger.error(f"⚠️  Browser context died! Attempting to recover...")
+                        # Browser crashed - need to restart
+                        raise Exception("Browser context closed unexpectedly")
+                else:
+                    logger.error(f"⚠️  No pages in context! Browser may have crashed.")
+                    raise Exception("No pages in browser context")
+            except Exception as browser_check_error:
+                logger.error(f"❌ Browser health check failed: {browser_check_error}")
+                logger.error(f"❌ Cannot continue scraping - browser has crashed")
+                # Log remaining campaigns as failed
+                failure_count += len(campaigns) - i + 1
+                break
             
             # Scrape data with automatic re-login on session expiry
             data = None
