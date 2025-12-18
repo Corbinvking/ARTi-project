@@ -26,8 +26,12 @@ export const TestYouTubeAPI = () => {
 
   const testYouTubeAPI = async () => {
     setLoading(true);
+    setResult(null);
+    
     try {
+      const apiUrl = getApiUrl();
       console.log('Testing YouTube API integration...');
+      console.log('API URL:', apiUrl);
       
       // First, get an orgId from existing campaigns
       const { data: campaigns, error: campaignError } = await supabase
@@ -40,17 +44,34 @@ export const TestYouTubeAPI = () => {
         // If no campaigns exist, test with a single video fetch instead
         console.log('No campaigns found, testing single video fetch...');
         const testVideoUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        const endpoint = `${apiUrl}/api/youtube-data-api/fetch-video-stats`;
         
-        const response = await fetch(`${getApiUrl()}/api/youtube-data-api/fetch-video-stats`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ videoUrl: testVideoUrl }),
-        });
+        console.log('Fetching from:', endpoint);
+        
+        let response: Response;
+        let errorMessage = '';
+        
+        try {
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ videoUrl: testVideoUrl }),
+          });
+        } catch (fetchError: any) {
+          console.error('Fetch error:', fetchError);
+          errorMessage = `Network error: ${fetchError.message || 'Failed to connect to API server'}`;
+          throw new Error(errorMessage);
+        }
 
         if (!response.ok) {
-          const errorData = await response.json();
+          let errorData: any;
+          try {
+            errorData = await response.json();
+          } catch {
+            errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+          }
           throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
         }
 
@@ -76,16 +97,30 @@ export const TestYouTubeAPI = () => {
 
       // Test bulk fetch for campaigns
       console.log('Testing bulk campaign fetch...');
-      const response = await fetch(`${getApiUrl()}/api/youtube-data-api/fetch-all-campaigns`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ orgId: campaigns.org_id }),
-      });
+      const endpoint = `${apiUrl}/api/youtube-data-api/fetch-all-campaigns`;
+      console.log('Fetching from:', endpoint);
+      
+      let response: Response;
+      try {
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ orgId: campaigns.org_id }),
+        });
+      } catch (fetchError: any) {
+        console.error('Fetch error:', fetchError);
+        throw new Error(`Network error: ${fetchError.message || 'Failed to connect to API server. Make sure the API server is running on ${apiUrl}'}`);
+      }
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData: any;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -98,12 +133,17 @@ export const TestYouTubeAPI = () => {
       });
     } catch (error: any) {
       console.error('Test failed:', error);
+      const errorMsg = error.message || 'Unknown error occurred';
       toast({
         title: "Test Failed",
-        description: error.message || 'Unknown error occurred',
+        description: errorMsg,
         variant: "destructive",
       });
-      setResult({ error: error.message || 'Unknown error occurred' });
+      setResult({ 
+        error: errorMsg,
+        apiUrl: getApiUrl(),
+        hint: errorMsg.includes('Network error') ? 'Make sure the API server is running. Check console for details.' : undefined
+      });
     } finally {
       setLoading(false);
     }
