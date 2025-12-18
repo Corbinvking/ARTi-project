@@ -984,34 +984,38 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                         <Line 
                           type="monotone" 
                           dataKey="views" 
-                          stroke="hsl(var(--primary))" 
+                          stroke="#3b82f6"
                           strokeWidth={2} 
                           name="Views"
-                          dot={{ r: 3 }}
+                          dot={{ r: 4, fill: "#3b82f6" }}
+                          activeDot={{ r: 6, fill: "#3b82f6" }}
                         />
                         <Line 
                           type="monotone" 
                           dataKey="likes" 
-                          stroke="hsl(var(--destructive))" 
+                          stroke="#ef4444"
                           strokeWidth={2} 
                           name="Likes"
-                          dot={{ r: 3 }}
+                          dot={{ r: 4, fill: "#ef4444" }}
+                          activeDot={{ r: 6, fill: "#ef4444" }}
                         />
                         <Line 
                           type="monotone" 
                           dataKey="comments" 
-                          stroke="hsl(var(--muted-foreground))" 
+                          stroke="#22c55e"
                           strokeWidth={2} 
                           name="Comments"
-                          dot={{ r: 3 }}
+                          dot={{ r: 4, fill: "#22c55e" }}
+                          activeDot={{ r: 6, fill: "#22c55e" }}
                         />
                         <Line 
                           type="monotone" 
                           dataKey="subscribers" 
-                          stroke="hsl(var(--accent-foreground))" 
+                          stroke="#a855f7"
                           strokeWidth={2} 
                           name="Subscribers"
-                          dot={{ r: 3 }}
+                          dot={{ r: 4, fill: "#a855f7" }}
+                          activeDot={{ r: 6, fill: "#a855f7" }}
                         />
                       </LineChart>
                     </ResponsiveContainer>

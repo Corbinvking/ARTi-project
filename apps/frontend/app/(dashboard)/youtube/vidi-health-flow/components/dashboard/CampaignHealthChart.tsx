@@ -26,10 +26,11 @@ export const CampaignHealthChart = ({ onHealthFilterChange, activeHealthFilter }
   const critical = scores.filter((s) => s < 60).length;
   const total = campaigns.length || 1;
 
+  // Use explicit hex colors so the chart always renders visible colors regardless of theme
   const healthData = [
-    { name: "Healthy", value: healthy, color: "hsl(var(--health-excellent))", filter: "healthy" as const },
-    { name: "At Risk", value: atRisk, color: "hsl(var(--health-moderate))", filter: "at-risk" as const },
-    { name: "Critical", value: critical, color: "hsl(var(--health-critical))", filter: "critical" as const },
+    { name: "Healthy", value: healthy, color: "#22c55e", filter: "healthy" as const },     // green
+    { name: "At Risk", value: atRisk, color: "#f59e0b", filter: "at-risk" as const },      // orange
+    { name: "Critical", value: critical, color: "#ef4444", filter: "critical" as const },  // red
   ];
 
   const handlePieClick = (data: any) => {

@@ -338,5 +338,276 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
 
     return { videoId, url };
   });
+
+  /**
+   * POST /youtube-data-api/collect-daily-stats
+   * Collect stats for a campaign and store in campaign_stats_daily table
+   * This endpoint is designed to be called 3x daily (morning, afternoon, evening)
+   */
+  server.post('/youtube-data-api/collect-daily-stats', async (request, reply) => {
+    try {
+      const { campaignId, timeOfDay } = request.body as { campaignId: string; timeOfDay?: string };
+
+      if (!campaignId) {
+        return reply.status(400).send({ error: 'campaignId is required' });
+      }
+
+      // Determine time of day
+      const hour = new Date().getHours();
+      const detectedTimeOfDay = timeOfDay || (hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening');
+
+      logger.info({ campaignId, timeOfDay: detectedTimeOfDay }, '📊 Collecting daily stats');
+
+      // Fetch campaign
+      const { data: campaign, error: campaignError } = await supabase
+        .from('youtube_campaigns')
+        .select('id, youtube_url, video_id, current_views, current_likes, current_comments, total_subscribers')
+        .eq('id', campaignId)
+        .single();
+
+      if (campaignError || !campaign) {
+        return reply.status(404).send({ error: 'Campaign not found' });
+      }
+
+      const videoId = campaign.video_id || extractVideoId(campaign.youtube_url);
+      if (!videoId) {
+        return reply.status(400).send({ error: 'No valid video ID for campaign' });
+      }
+
+      // Fetch fresh stats from YouTube
+      const stats = await fetchVideoStats(videoId);
+      if (!stats.success) {
+        return reply.status(500).send({ error: 'Failed to fetch YouTube stats', details: stats.error });
+      }
+
+      // Get today's date
+      const today = new Date().toISOString().split('T')[0];
+
+      // Get previous stats for subscriber change calculation
+      const { data: previousStats } = await supabase
+        .from('campaign_stats_daily')
+        .select('total_subscribers')
+        .eq('campaign_id', campaignId)
+        .order('collected_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      const subscribersGained = previousStats 
+        ? (campaign.total_subscribers || 0) - (previousStats.total_subscribers || 0)
+        : 0;
+
+      // Insert or update daily stats
+      const { data: insertedStats, error: insertError } = await supabase
+        .from('campaign_stats_daily')
+        .upsert({
+          campaign_id: campaignId,
+          date: today,
+          time_of_day: detectedTimeOfDay,
+          views: stats.viewCount,
+          likes: stats.likeCount,
+          comments: stats.commentCount,
+          total_subscribers: campaign.total_subscribers || 0,
+          subscribers_gained: subscribersGained,
+          collected_at: new Date().toISOString()
+        }, {
+          onConflict: 'campaign_id,date,time_of_day'
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        logger.error({ error: insertError }, 'Error inserting daily stats');
+        return reply.status(500).send({ error: 'Failed to store daily stats', details: insertError.message });
+      }
+
+      // Also update the campaign's current stats
+      await supabase
+        .from('youtube_campaigns')
+        .update({
+          current_views: stats.viewCount,
+          current_likes: stats.likeCount,
+          current_comments: stats.commentCount,
+          last_youtube_api_fetch: new Date().toISOString()
+        })
+        .eq('id', campaignId);
+
+      logger.info({ campaignId, date: today, timeOfDay: detectedTimeOfDay }, '✅ Daily stats collected');
+
+      return {
+        success: true,
+        campaignId,
+        date: today,
+        timeOfDay: detectedTimeOfDay,
+        stats: insertedStats
+      };
+    } catch (error: any) {
+      logger.error({ error: error.message }, 'Error in /collect-daily-stats');
+      return reply.status(500).send({ error: 'Internal server error', message: error.message });
+    }
+  });
+
+  /**
+   * POST /youtube-data-api/collect-all-daily-stats
+   * Collect daily stats for all active campaigns with youtube_api_enabled = true
+   */
+  server.post('/youtube-data-api/collect-all-daily-stats', async (request, reply) => {
+    try {
+      const { timeOfDay } = request.body as { timeOfDay?: string };
+
+      // Determine time of day
+      const hour = new Date().getHours();
+      const detectedTimeOfDay = timeOfDay || (hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening');
+      const today = new Date().toISOString().split('T')[0];
+
+      logger.info({ timeOfDay: detectedTimeOfDay }, '📊 Collecting daily stats for all active campaigns');
+
+      // Fetch all active campaigns with API enabled
+      const { data: campaigns, error: fetchError } = await supabase
+        .from('youtube_campaigns')
+        .select('id, youtube_url, video_id, current_views, current_likes, current_comments, total_subscribers')
+        .eq('youtube_api_enabled', true)
+        .in('status', ['active', 'pending']);
+
+      if (fetchError) {
+        return reply.status(500).send({ error: 'Failed to fetch campaigns', details: fetchError.message });
+      }
+
+      if (!campaigns || campaigns.length === 0) {
+        return { message: 'No campaigns to collect stats for', collected: 0 };
+      }
+
+      const results = {
+        total: campaigns.length,
+        collected: 0,
+        errors: 0,
+        details: [] as any[]
+      };
+
+      // Process campaigns in batches
+      const BATCH_SIZE = 50;
+      const batches = [];
+      for (let i = 0; i < campaigns.length; i += BATCH_SIZE) {
+        batches.push(campaigns.slice(i, i + BATCH_SIZE));
+      }
+
+      for (const batch of batches) {
+        const videoIds = batch
+          .map(c => c.video_id || extractVideoId(c.youtube_url))
+          .filter(Boolean) as string[];
+
+        if (videoIds.length === 0) continue;
+
+        try {
+          const response = await youtube.videos.list({
+            part: ['statistics'],
+            id: videoIds
+          });
+
+          if (!response.data.items) continue;
+
+          const statsMap = new Map();
+          response.data.items.forEach(video => {
+            if (video.id && video.statistics) {
+              statsMap.set(video.id, {
+                viewCount: parseInt(video.statistics.viewCount || '0'),
+                likeCount: parseInt(video.statistics.likeCount || '0'),
+                commentCount: parseInt(video.statistics.commentCount || '0')
+              });
+            }
+          });
+
+          for (const campaign of batch) {
+            const videoId = campaign.video_id || extractVideoId(campaign.youtube_url);
+            if (!videoId) continue;
+
+            const stats = statsMap.get(videoId);
+            if (!stats) continue;
+
+            // Insert daily stats
+            const { error: insertError } = await supabase
+              .from('campaign_stats_daily')
+              .upsert({
+                campaign_id: campaign.id,
+                date: today,
+                time_of_day: detectedTimeOfDay,
+                views: stats.viewCount,
+                likes: stats.likeCount,
+                comments: stats.commentCount,
+                total_subscribers: campaign.total_subscribers || 0,
+                subscribers_gained: 0,
+                collected_at: new Date().toISOString()
+              }, {
+                onConflict: 'campaign_id,date,time_of_day'
+              });
+
+            if (insertError) {
+              results.errors++;
+              results.details.push({
+                campaignId: campaign.id,
+                error: insertError.message
+              });
+            } else {
+              results.collected++;
+              
+              // Update campaign's current stats
+              await supabase
+                .from('youtube_campaigns')
+                .update({
+                  current_views: stats.viewCount,
+                  current_likes: stats.likeCount,
+                  current_comments: stats.commentCount,
+                  last_youtube_api_fetch: new Date().toISOString()
+                })
+                .eq('id', campaign.id);
+            }
+          }
+
+          // Rate limit delay
+          await new Promise(resolve => setTimeout(resolve, 200));
+
+        } catch (error: any) {
+          logger.error({ error: error.message }, 'Error processing batch');
+          results.errors += batch.length;
+        }
+      }
+
+      logger.info({ collected: results.collected, errors: results.errors }, '✅ Daily stats collection complete');
+
+      return results;
+    } catch (error: any) {
+      logger.error({ error: error.message }, 'Error in /collect-all-daily-stats');
+      return reply.status(500).send({ error: 'Internal server error', message: error.message });
+    }
+  });
+
+  /**
+   * GET /youtube-data-api/campaign-stats-history/:campaignId
+   * Get historical stats for a campaign
+   */
+  server.get('/youtube-data-api/campaign-stats-history/:campaignId', async (request, reply) => {
+    const { campaignId } = request.params as { campaignId: string };
+    const { days = '30' } = request.query as { days?: string };
+
+    try {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - parseInt(days));
+
+      const { data, error } = await supabase
+        .from('campaign_stats_daily')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .gte('date', daysAgo.toISOString().split('T')[0])
+        .order('date', { ascending: true })
+        .order('collected_at', { ascending: true });
+
+      if (error) {
+        return reply.status(500).send({ error: 'Failed to fetch stats history', details: error.message });
+      }
+
+      return { campaignId, days: parseInt(days), stats: data || [] };
+    } catch (error: any) {
+      return reply.status(500).send({ error: 'Internal server error', message: error.message });
+    }
+  });
 }
 

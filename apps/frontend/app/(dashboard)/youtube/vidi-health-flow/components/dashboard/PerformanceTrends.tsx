@@ -62,16 +62,16 @@ export const PerformanceTrends = () => {
           <AreaChart data={trendData}>
             <defs>
               <linearGradient id="viewVelocityGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0.05}/>
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
               </linearGradient>
               <linearGradient id="engagementGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(142 71% 45%)" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="hsl(142 71% 45%)" stopOpacity={0.05}/>
+                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#22c55e" stopOpacity={0.05}/>
               </linearGradient>
               <linearGradient id="goalGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(38 92% 50%)" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="hsl(38 92% 50%)" stopOpacity={0.05}/>
+                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.05}/>
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -89,7 +89,7 @@ export const PerformanceTrends = () => {
             <Area
               type="monotone"
               dataKey="viewVelocity"
-              stroke="hsl(217 91% 60%)"
+              stroke="#3b82f6"
               strokeWidth={2}
               fill="url(#viewVelocityGradient)"
               name="View Velocity"
@@ -97,7 +97,7 @@ export const PerformanceTrends = () => {
             <Area
               type="monotone"
               dataKey="engagementRatio"
-              stroke="hsl(142 71% 45%)"
+              stroke="#22c55e"
               strokeWidth={2}
               fill="url(#engagementGradient)"
               name="Engagement Ratio"
@@ -105,7 +105,7 @@ export const PerformanceTrends = () => {
             <Area
               type="monotone"
               dataKey="goalCompletion"
-              stroke="hsl(38 92% 50%)"
+              stroke="#f59e0b"
               strokeWidth={2}
               fill="url(#goalGradient)"
               name="Goal Completion"

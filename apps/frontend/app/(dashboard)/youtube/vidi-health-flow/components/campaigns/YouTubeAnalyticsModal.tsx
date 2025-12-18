@@ -248,34 +248,34 @@ export function YouTubeAnalyticsModal({ open, onOpenChange, campaign }: YouTubeA
                           <Line 
                             type="monotone" 
                             dataKey="views" 
-                            stroke="hsl(var(--primary))" 
+                            stroke="#3b82f6"
                             strokeWidth={2} 
                             name="Views" 
-                            dot={false}
+                            dot={{ r: 3, fill: "#3b82f6" }}
                           />
                           <Line 
                             type="monotone" 
                             dataKey="likes" 
-                            stroke="hsl(var(--destructive))" 
+                            stroke="#ef4444"
                             strokeWidth={2} 
                             name="Likes" 
-                            dot={false}
+                            dot={{ r: 3, fill: "#ef4444" }}
                           />
                           <Line 
                             type="monotone" 
                             dataKey="comments" 
-                            stroke="hsl(var(--muted-foreground))" 
+                            stroke="#22c55e"
                             strokeWidth={2} 
                             name="Comments" 
-                            dot={false}
+                            dot={{ r: 3, fill: "#22c55e" }}
                           />
                           <Line 
                             type="monotone" 
                             dataKey="subscribers" 
-                            stroke="hsl(var(--accent-foreground))" 
+                            stroke="#a855f7"
                             strokeWidth={2} 
                             name="Subscribers" 
-                            dot={false}
+                            dot={{ r: 3, fill: "#a855f7" }}
                           />
                         </LineChart>
                       </ResponsiveContainer>

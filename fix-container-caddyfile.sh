@@ -32,20 +32,9 @@ echo "----------------------------------------"
 # Create new Caddyfile with OPTIONS handling
 cat > "$CADDYFILE" << 'CADDYFILE_CONTENT'
 api.artistinfluence.com {
-    # Handle CORS preflight (OPTIONS) requests for /api/* routes
-    # This MUST come BEFORE other handlers to catch OPTIONS requests
-    @api_options {
-        path /api/*
-        method OPTIONS
-    }
-    handle @api_options {
-        header Access-Control-Allow-Origin "https://app.artistinfluence.com"
-        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, X-User-Agent, x-supabase-api-version, x-client-info, apikey, x-supabase-auth-token"
-        header Access-Control-Allow-Credentials "true"
-        header Access-Control-Max-Age "86400"
-        respond "" 204
-    }
+    # IMPORTANT:
+    # Do NOT special-case OPTIONS here.
+    # Let the Node API handle CORS/preflight (@fastify/cors already allows localhost:3000 + prod).
     
     # Custom API routes for specific paths
     @custom_api path /api/spotify-web-api/* /api/scraper/*
@@ -53,7 +42,7 @@ api.artistinfluence.com {
         reverse_proxy arti-api:3001
     }
     
-    # All other /api/* routes go to our API
+    # All other /api/* routes go to our API (including OPTIONS preflight)
     handle /api/* {
         reverse_proxy arti-api:3001
     }
@@ -126,10 +115,10 @@ echo "Testing OPTIONS endpoint in 5 seconds..."
 sleep 5
 
 echo ""
-curl -X OPTIONS https://api.artistinfluence.com/api/health \
-  -H 'Origin: https://app.artistinfluence.com' \
-  -H 'Access-Control-Request-Method: GET' \
-  -i 2>&1 | head -20
+curl -X OPTIONS https://api.artistinfluence.com/api/youtube-data-api/fetch-video-stats \
+  -H 'Origin: http://localhost:3000' \
+  -H 'Access-Control-Request-Method: POST' \
+  -i 2>&1 | head -30
 
 echo ""
 echo "If you see 'HTTP/2 204' and 'Access-Control-Allow-Origin' header,"

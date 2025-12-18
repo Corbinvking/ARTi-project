@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "../integrations/supabase/client";
 import type { Database } from "../integrations/supabase/types";
+import { getApiUrl } from "../lib/getApiUrl";
 
 // Use YouTube-specific table types
 type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'] & {
@@ -155,7 +156,7 @@ export const useCampaigns = () => {
       queryClient.invalidateQueries({ queryKey: ['youtube-campaigns'] });
       
       // Trigger immediate YouTube stats fetch for the new campaign
-      if (data?.video_id) {
+      if (data?.video_id || data?.youtube_url) {
         try {
           await triggerYouTubeStatsFetch(data.id);
         } catch (statsError) {
@@ -173,17 +174,39 @@ export const useCampaigns = () => {
 
   const triggerYouTubeStatsFetch = async (campaignId?: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('fetch_youtube_stats', {
-        body: campaignId ? { campaignId } : {}
+      if (!campaignId) {
+        throw new Error('campaignId is required');
+      }
+
+      // Fetch the campaign's YouTube URL so we can call the API route that already exists
+      const { data: campaign, error: campaignError } = await supabase
+        .from('youtube_campaigns')
+        .select('youtube_url')
+        .eq('id', campaignId)
+        .single();
+
+      if (campaignError) throw campaignError;
+      if (!campaign?.youtube_url) throw new Error('Campaign is missing youtube_url');
+
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/api/youtube-data-api/fetch-video-stats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoUrl: campaign.youtube_url, campaignId }),
       });
 
-      if (error) throw error;
-      console.log('YouTube stats fetch result:', data);
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`Failed to fetch stats (HTTP ${response.status}). ${text}`);
+      }
+
+      const result = await response.json();
+      console.log('YouTube stats fetch result:', result);
       
       // Invalidate campaigns cache after stats update
       queryClient.invalidateQueries({ queryKey: ['youtube-campaigns'] });
       
-      return { data, error: null };
+      return { data: result, error: null };
     } catch (error) {
       console.error('Error triggering YouTube stats fetch:', error);
       return { data: null, error };

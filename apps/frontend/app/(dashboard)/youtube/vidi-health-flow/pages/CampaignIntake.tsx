@@ -10,10 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "../integrations/supabase/client";
 import { GENRE_OPTIONS } from "../lib/constants";
 import { useCampaigns } from "../hooks/useCampaigns";
 import { MultiServiceTypeSelector } from "../components/campaigns/MultiServiceTypeSelector";
+import { getApiUrl } from "../lib/getApiUrl";
 import type { Database } from "../integrations/supabase/types";
 
 type ServiceType = Database['public']['Enums']['service_type'];
@@ -37,6 +37,7 @@ export default function CampaignIntake() {
   const [formData, setFormData] = useState({
     campaign_name: '',
     youtube_url: '',
+    video_id: '',
     client_id: '',
     salesperson_id: '',
     genre: '',
@@ -71,6 +72,7 @@ export default function CampaignIntake() {
 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [campaignNameTouched, setCampaignNameTouched] = useState(false);
 
   // Refs for dropdowns
   const genreRef = useRef<HTMLDivElement>(null);
@@ -210,45 +212,60 @@ export default function CampaignIntake() {
   };
 
   const extractVideoInfo = async (url: string) => {
-    const videoIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    if (videoIdMatch && !formData.campaign_name) {
-      const videoId = videoIdMatch[1];
-      
-      try {
-        // Call the get_video_info edge function to fetch actual video details
-        const { data, error } = await supabase.functions.invoke('get_video_info', {
-          body: { videoId }
-        });
+    const videoIdMatch = url.match(
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+    );
+    if (!videoIdMatch) return;
 
-        if (error) {
-          console.error('Error fetching video info:', error);
-          // Fallback to generic name if API call fails
-          setFormData(prev => ({ 
-            ...prev, 
-            campaign_name: `Campaign for ${videoId}`
-          }));
-          return;
-        }
+    const videoId = videoIdMatch[1];
+    const apiUrl = getApiUrl();
 
-        // Use the actual video title as campaign name
-        if (data?.title) {
-          setFormData(prev => ({ 
-            ...prev, 
-            campaign_name: data.title
-          }));
-        } else {
-          // Fallback if no title in response
-          setFormData(prev => ({ 
-            ...prev, 
-            campaign_name: `Campaign for ${videoId}`
-          }));
-        }
-      } catch (error) {
-        console.error('Error calling video info API:', error);
-        // Fallback to generic name if API call fails
-        setFormData(prev => ({ 
-          ...prev, 
-          campaign_name: `Campaign for ${videoId}`
+    try {
+      console.log("🎬 Fetching YouTube title for intake form", { apiUrl, url, videoId });
+      const response = await fetch(`${apiUrl}/api/youtube-data-api/fetch-video-stats`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoUrl: url }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new Error(`Failed to fetch video stats (HTTP ${response.status}). ${text}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Title fetch response", data);
+
+      // Only auto-fill campaign name if the user hasn't typed one
+      setFormData((prev) => {
+        const isAutoName =
+          !prev.campaign_name ||
+          prev.campaign_name === `Campaign for ${videoId}` ||
+          prev.campaign_name.startsWith("Campaign for ");
+
+        const nextName =
+          !campaignNameTouched && isAutoName && data?.title ? data.title : prev.campaign_name;
+
+        return {
+          ...prev,
+          campaign_name: nextName,
+          video_id: data?.videoId || videoId,
+        };
+      });
+    } catch (error) {
+      console.error("Error fetching video info:", error);
+      toast({
+        title: "Couldn’t fetch video title",
+        description:
+          "Using a placeholder name. Make sure the API server is reachable and has YOUTUBE_API_KEY configured.",
+        variant: "destructive",
+      });
+      // Fallback to generic name only if user hasn't typed one
+      if (!campaignNameTouched) {
+        setFormData((prev) => ({
+          ...prev,
+          campaign_name: prev.campaign_name ? prev.campaign_name : `Campaign for ${videoId}`,
+          video_id: prev.video_id || videoId,
         }));
       }
     }
@@ -330,6 +347,7 @@ export default function CampaignIntake() {
       const campaignData = {
         campaign_name: formData.campaign_name,
         youtube_url: formData.youtube_url,
+        video_id: formData.video_id || null,
         service_type: (firstServiceType as ServiceType) || 'ww_display', // Legacy field for compatibility
         goal_views: totalGoalViews, // Legacy field for compatibility
         service_types: serviceTypes as any, // New multi-service field
@@ -436,7 +454,10 @@ export default function CampaignIntake() {
                   <Input
                     id="campaign_name"
                     value={formData.campaign_name}
-                    onChange={(e) => handleInputChange('campaign_name', e.target.value)}
+                    onChange={(e) => {
+                      setCampaignNameTouched(true);
+                      handleInputChange('campaign_name', e.target.value);
+                    }}
                     required
                   />
                 </div>

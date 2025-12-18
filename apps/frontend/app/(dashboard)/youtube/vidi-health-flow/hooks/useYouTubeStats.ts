@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { getApiUrl } from '../lib/getApiUrl';
 
 interface VideoStats {
   videoId: string;
@@ -46,7 +46,8 @@ export function useYouTubeStats() {
     try {
       setIsRefreshing(true);
 
-      const response = await fetch(`${API_URL}/api/youtube-data-api/fetch-video-stats`, {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/api/youtube-data-api/fetch-video-stats`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +94,8 @@ export function useYouTubeStats() {
     try {
       setIsBulkRefreshing(true);
 
-      const response = await fetch(`${API_URL}/api/youtube-data-api/fetch-all-campaigns`, {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/api/youtube-data-api/fetch-all-campaigns`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
