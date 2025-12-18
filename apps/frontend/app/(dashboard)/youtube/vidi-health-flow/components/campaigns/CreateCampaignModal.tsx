@@ -462,7 +462,22 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="client_search">Client</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="client_search">Client</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowNewClientForm(true);
+                      setShowClientDropdown(false);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Users className="w-4 h-4" />
+                    New Client
+                  </Button>
+                </div>
                 <div className="relative" ref={clientDropdownRef}>
                   <Input
                     id="client_search"
@@ -687,6 +702,56 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
               serviceTypes={serviceTypes}
               onServiceTypesChange={setServiceTypes}
             />
+            
+            {/* Salesperson - moved to Step 1 for better UX */}
+            <div className="space-y-2">
+              <Label htmlFor="salesperson_id">Salesperson</Label>
+              <Select value={formData.salesperson_id} onValueChange={(value) => handleInputChange('salesperson_id', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select salesperson (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {salespersons && salespersons.length > 0 ? (
+                    salespersons.map((person) => (
+                      <SelectItem key={person.id} value={person.id}>
+                        {person.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>No salespersons available</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Start Date - moved to Step 1 for better UX */}
+            <div className="space-y-2">
+              <Label>Preferred Start Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={formData.start_date}
+                    onSelect={(date) => {
+                      if (date) {
+                        handleInputChange('start_date', date);
+                      }
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
             </div>
           )}
 
@@ -722,57 +787,31 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Start Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <CalendarComponent
-                        mode="single"
-                        selected={formData.start_date}
-                        onSelect={(date) => handleInputChange('start_date', date || new Date())}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="space-y-2">
                   <Label>End Date</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        className="w-full justify-start text-left font-normal"
+                      >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
+                    <PopoverContent className="w-auto p-0" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={formData.end_date}
-                        onSelect={(date) => handleInputChange('end_date', date || new Date())}
+                        onSelect={(date) => {
+                          if (date) {
+                            handleInputChange('end_date', date);
+                          }
+                        }}
                         initialFocus
-                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="desired_daily">Desired Daily Views (Auto-calculated)</Label>
-                  <Input
-                    id="desired_daily"
-                    type="number"
-                    placeholder="Will auto-calculate from total goals and dates"
-                    value={formData.desired_daily}
-                    onChange={(e) => handleInputChange('desired_daily', e.target.value)}
-                    disabled={Boolean(serviceTypes.some(st => st.goal_views > 0) && formData.start_date && formData.end_date)}
-                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status">Campaign Status</Label>
@@ -788,19 +827,15 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="salesperson_id">Salesperson</Label>
-                <Select value={formData.salesperson_id} onValueChange={(value) => handleInputChange('salesperson_id', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select salesperson" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {salespersons.map((person) => (
-                      <SelectItem key={person.id} value={person.id}>
-                        {person.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="desired_daily">Desired Daily Views (Auto-calculated)</Label>
+                <Input
+                  id="desired_daily"
+                  type="number"
+                  placeholder="Will auto-calculate from total goals and dates"
+                  value={formData.desired_daily}
+                  onChange={(e) => handleInputChange('desired_daily', e.target.value)}
+                  disabled={Boolean(serviceTypes.some(st => st.goal_views > 0) && formData.start_date && formData.end_date)}
+                />
               </div>
             </div>
           )}

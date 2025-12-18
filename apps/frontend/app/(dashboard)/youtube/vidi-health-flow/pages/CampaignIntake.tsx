@@ -473,39 +473,47 @@ export default function CampaignIntake() {
                   <Label>Preferred Start Date</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        className="w-full justify-start text-left font-normal"
+                      >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
+                    <PopoverContent className="w-auto p-0" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={formData.start_date}
-                        onSelect={(date) => handleInputChange('start_date', date || new Date())}
+                        onSelect={(date) => {
+                          if (date) {
+                            handleInputChange('start_date', date);
+                          }
+                        }}
                         initialFocus
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
-              </div>
-
-              {/* Salesperson Details */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Salesperson Information</h3>
                 
+                {/* Salesperson - added to main form */}
                 <div className="space-y-2">
                   <Label htmlFor="salesperson_id">Salesperson</Label>
                   <Select value={formData.salesperson_id} onValueChange={(value) => handleInputChange('salesperson_id', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select salesperson" />
+                      <SelectValue placeholder="Select salesperson (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      {salespersons?.map((person) => (
-                        <SelectItem key={person.id} value={person.id}>
-                          {person.name}
-                        </SelectItem>
-                      ))}
+                      {salespersons && salespersons.length > 0 ? (
+                        salespersons.map((person) => (
+                          <SelectItem key={person.id} value={person.id}>
+                            {person.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>No salespersons available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -516,7 +524,22 @@ export default function CampaignIntake() {
                 <h3 className="text-lg font-semibold">Client Information</h3>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="client_search">Client</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="client_search">Client</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowNewClientForm(true);
+                        setShowClientDropdown(false);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      New Client
+                    </Button>
+                  </div>
                   <div className="relative" ref={clientRef}>
                     <Input
                       id="client_search"
