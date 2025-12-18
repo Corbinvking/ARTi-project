@@ -17,7 +17,7 @@ services:
     env_file:
       - apps/api/production.env
     volumes:
-      - ./spotify_scraper:/app/scraper_data:ro
+      - ./spotify_scraper:/app/scraper_data:rw
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

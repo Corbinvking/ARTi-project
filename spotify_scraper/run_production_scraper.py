@@ -626,87 +626,48 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
         return False
 
 
-async def main(limit=None):
-    """Main scraper execution"""
-    logger.info("="*60)
-    logger.info("SPOTIFY FOR ARTISTS PRODUCTION SCRAPER")
-    logger.info("="*60)
-    logger.info(f"Supabase URL: {SUPABASE_URL}")
-    logger.info(f"Spotify Email: {SPOTIFY_EMAIL}")
-    logger.info(f"Limit: {limit if limit else 'No limit (all campaigns)'}")
-    logger.info("")
+def get_directory_size(path):
+    """Get total size of directory in bytes"""
+    import shutil
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            try:
+                total_size += os.path.getsize(filepath)
+            except (OSError, FileNotFoundError):
+                pass
+    return total_size
+
+
+def clear_browser_data_if_needed(user_data_dir, max_size_mb=500):
+    """Clear browser data if it exceeds the maximum size"""
+    import shutil
     
-    # Validate credentials
-    if not SPOTIFY_EMAIL or not SPOTIFY_PASSWORD:
-        logger.error("SPOTIFY_EMAIL and SPOTIFY_PASSWORD must be set in .env")
-        log_scraper_run('failed', error_message='Missing Spotify credentials')
+    if not os.path.exists(user_data_dir):
         return False
     
-    if not SUPABASE_SERVICE_ROLE_KEY:
-        logger.error("SUPABASE_SERVICE_ROLE_KEY must be set in .env")
-        log_scraper_run('failed', error_message='Missing Supabase key')
+    size_bytes = get_directory_size(user_data_dir)
+    size_mb = size_bytes / (1024 * 1024)
+    
+    if size_mb > max_size_mb:
+        logger.warning(f"⚠️  Browser data directory is {size_mb:.1f}MB (limit: {max_size_mb}MB)")
+        logger.info("🧹 Clearing browser data to prevent crashes...")
+        try:
+            shutil.rmtree(user_data_dir)
+            os.makedirs(user_data_dir, exist_ok=True)
+            logger.info("✅ Browser data cleared successfully")
+            return True
+        except Exception as e:
+            logger.error(f"❌ Failed to clear browser data: {e}")
+            return False
+    else:
+        logger.info(f"Browser data size: {size_mb:.1f}MB (limit: {max_size_mb}MB) - OK")
         return False
-    
-    # FAILSAFE: Pre-flight API health check
-    logger.info("")
-    if not check_api_health():
-        logger.error("🚨 CRITICAL: API is not reachable. Aborting scraper run.")
-        error_message = "API health check failed - cannot reach Supabase"
-        log_scraper_run('no_api', error_message=error_message)
-        
-        # Send alert email
-        send_alert_email(
-            "Scraper Failed - API Unreachable",
-            f"Timestamp: {datetime.now(timezone.utc).isoformat()}\n"
-            f"Error: {error_message}\n"
-            f"The scraper could not reach the Supabase API.\n"
-            f"Please check if the API is down or if there are network issues."
-        )
-        return False
-    
-    logger.info("")
-    
-    # Fetch campaigns from database (with retry logic)
-    campaigns = await fetch_campaigns_from_database(limit=limit)
-    
-    # Distinguish between "no campaigns" and "API error"
-    if campaigns is None:
-        # API error occurred (already logged and retried in fetch function)
-        logger.error("🚨 FATAL: Could not connect to API after multiple retries")
-        error_message = "Failed to fetch campaigns - API connection failed"
-        log_scraper_run('no_api', error_message=error_message)
-        
-        # Send alert email
-        send_alert_email(
-            "Scraper Failed - API Connection Error",
-            f"Timestamp: {datetime.now(timezone.utc).isoformat()}\n"
-            f"Error: {error_message}\n"
-            f"The scraper could not fetch campaigns after 3 retry attempts.\n"
-            f"Check API logs and server status."
-        )
-        return False
-    elif len(campaigns) == 0:
-        # No campaigns found (this is okay, not an error)
-        logger.warning("⚠️  No campaigns to scrape (no valid SFA URLs found)")
-        log_scraper_run('success', campaigns_total=0, campaigns_success=0)
-        return True  # Exit cleanly, not an error
-    
-    logger.info(f"✅ Found {len(campaigns)} campaigns to scrape")
-    logger.info("")
-    
-    # Initialize browser with persistent context (saves cookies/session)
-    logger.info("Initializing browser with persistent context...")
-    playwright = await async_playwright().start()
-    
-    # Use headless mode based on environment
-    headless = os.getenv('HEADLESS', 'false').lower() == 'true'
-    
-    # Use persistent context to save login session
-    user_data_dir = os.getenv('USER_DATA_DIR', '/root/arti-marketing-ops/spotify_scraper/data/browser_data')
-    os.makedirs(user_data_dir, exist_ok=True)
-    
-    logger.info(f"Browser data directory: {user_data_dir}")
-    
+
+
+async def launch_browser_context(playwright, user_data_dir, headless):
+    """Launch a fresh browser context with all stability args"""
     # Launch with persistent context (maintains session across runs)
     context = await playwright.chromium.launch_persistent_context(
         user_data_dir=user_data_dir,
@@ -732,58 +693,67 @@ async def main(limit=None):
             '--no-first-run',
             '--password-store=basic',
             '--use-mock-keychain',
-            '--disable-hang-monitor'  # Prevent browser from self-terminating
+            '--disable-hang-monitor',  # Prevent browser from self-terminating
+            '--single-process',  # Use single process to reduce memory
+            '--disable-features=site-per-process',  # Reduce process spawning
         ],
         # Add timeout to prevent hanging
         timeout=60000
     )
-    page = context.pages[0] if context.pages else await context.new_page()
+    return context
+
+
+async def process_batch(campaigns, batch_num, total_batches, user_data_dir, headless):
+    """Process a batch of campaigns with a fresh browser instance"""
+    logger.info("")
+    logger.info("="*60)
+    logger.info(f"BATCH {batch_num}/{total_batches} - Processing {len(campaigns)} campaigns")
+    logger.info("="*60)
     
     success_count = 0
     failure_count = 0
     
+    # Launch fresh browser for this batch
+    playwright = await async_playwright().start()
+    
     try:
+        context = await launch_browser_context(playwright, user_data_dir, headless)
+        page = context.pages[0] if context.pages else await context.new_page()
+        
         # Check if we already have a valid session
         already_logged_in = await check_if_logged_in(page)
         
         if not already_logged_in:
             # Need to perform fresh login
-            logger.info("Performing fresh login...")
+            logger.info("Performing fresh login for this batch...")
             login_success = await login_to_spotify(page, force_fresh=True)
             
             if not login_success:
-                logger.error("✗ Login failed, aborting scraper")
-                return False
+                logger.error("✗ Login failed for this batch")
+                return 0, len(campaigns)  # All campaigns in batch failed
         
-        logger.info("✓ Authentication verified, ready to scrape")
-        
-        logger.info("")
-        logger.info(f"Starting to scrape {len(campaigns)} campaigns...")
-        logger.info("")
+        logger.info("✓ Authentication verified, ready to scrape batch")
         
         # Create Spotify page helper
         spotify_page = SpotifyArtistsPage(page)
         
-        # Scrape each campaign
+        # Scrape each campaign in this batch
         for i, campaign in enumerate(campaigns, 1):
-            logger.info(f"[{i}/{len(campaigns)}] Processing campaign {campaign['id']}")
+            logger.info(f"[Batch {batch_num}: {i}/{len(campaigns)}] Processing campaign {campaign['id']}")
             
             # CRITICAL: Check if browser is still alive before each campaign
             try:
-                # Test if context is still responsive
                 if context.pages:
                     test_page = context.pages[0]
                     if test_page.is_closed():
-                        logger.error(f"⚠️  Browser context died! Attempting to recover...")
-                        # Browser crashed - need to restart
+                        logger.error(f"⚠️  Browser context died! Breaking batch...")
                         raise Exception("Browser context closed unexpectedly")
                 else:
                     logger.error(f"⚠️  No pages in context! Browser may have crashed.")
                     raise Exception("No pages in browser context")
             except Exception as browser_check_error:
                 logger.error(f"❌ Browser health check failed: {browser_check_error}")
-                logger.error(f"❌ Cannot continue scraping - browser has crashed")
-                # Log remaining campaigns as failed
+                # Log remaining campaigns in batch as failed
                 failure_count += len(campaigns) - i + 1
                 break
             
@@ -796,48 +766,33 @@ async def main(limit=None):
                 try:
                     data = await scrape_campaign(page, spotify_page, campaign)
                     
-                    # Check if we got logged out during scraping
                     if not data:
                         current_url = page.url
                         if 'login' in current_url.lower() or 'challenge' in current_url.lower():
-                            logger.warning(f"[{campaign['id']}] Session expired during scraping, attempting re-login...")
+                            logger.warning(f"[{campaign['id']}] Session expired, attempting re-login...")
                             retry_count += 1
-                            
-                            # Attempt re-login
                             if await login_to_spotify(page, force_fresh=True):
-                                logger.info(f"[{campaign['id']}] Re-login successful, retrying campaign...")
                                 continue
                             else:
-                                logger.error(f"[{campaign['id']}] Re-login failed, skipping campaign")
                                 break
                         else:
-                            # Data is None but not due to logout - skip campaign
                             break
                             
                 except Exception as e:
                     logger.error(f"[{campaign['id']}] Error during scrape: {e}")
                     retry_count += 1
                     if retry_count < max_retries:
-                        logger.info(f"[{campaign['id']}] Retrying... ({retry_count}/{max_retries})")
                         await asyncio.sleep(5)
                     else:
-                        logger.error(f"[{campaign['id']}] Max retries reached, skipping")
                         break
             
             if data:
-                # Update raw data in spotify_campaigns table
                 if await update_campaign_in_database(campaign['id'], data):
                     scrape_data = data.get('scrape_data', {})
-                    
-                    # FIX #1: Save historical data to scraped_data table
                     await save_to_scraped_data_table(campaign, scrape_data)
-                    
-                    # FIX #2: Sync playlist data to campaign_playlists for UI (with algorithmic detection)
                     if await sync_to_campaign_playlists(campaign['id'], scrape_data):
                         success_count += 1
                     else:
-                        # Raw data saved but sync failed - partial success
-                        logger.warning(f"[{campaign['id']}] Raw data saved but playlist sync failed")
                         success_count += 1  # Still count as success
                 else:
                     failure_count += 1
@@ -846,53 +801,181 @@ async def main(limit=None):
             
             logger.info("")
             
-            # Small delay between campaigns to avoid rate limiting
             if i < len(campaigns):
                 await asyncio.sleep(2)
         
     finally:
-        # Cleanup
-        await context.close()
+        # Always cleanup browser
+        try:
+            await context.close()
+        except:
+            pass
         await playwright.stop()
     
+    logger.info(f"Batch {batch_num} complete: {success_count} success, {failure_count} failed")
+    return success_count, failure_count
+
+
+async def main(limit=None):
+    """Main scraper execution with batch processing to prevent browser crashes"""
+    
+    # Configuration for batch processing
+    BATCH_SIZE = 15  # Process 15 campaigns per browser instance
+    MAX_BROWSER_DATA_MB = 500  # Clear browser data if larger than 500MB
+    
+    logger.info("="*60)
+    logger.info("SPOTIFY FOR ARTISTS PRODUCTION SCRAPER")
+    logger.info("(Batch Processing Mode - Browser Restarts Every 15 Campaigns)")
+    logger.info("="*60)
+    logger.info(f"Supabase URL: {SUPABASE_URL}")
+    logger.info(f"Spotify Email: {SPOTIFY_EMAIL}")
+    logger.info(f"Batch Size: {BATCH_SIZE} campaigns per browser instance")
+    logger.info(f"Limit: {limit if limit else 'No limit (all campaigns)'}")
+    logger.info("")
+    
+    # Validate credentials
+    if not SPOTIFY_EMAIL or not SPOTIFY_PASSWORD:
+        logger.error("SPOTIFY_EMAIL and SPOTIFY_PASSWORD must be set in .env")
+        log_scraper_run('failed', error_message='Missing Spotify credentials')
+        return False
+    
+    if not SUPABASE_SERVICE_ROLE_KEY:
+        logger.error("SUPABASE_SERVICE_ROLE_KEY must be set in .env")
+        log_scraper_run('failed', error_message='Missing Supabase key')
+        return False
+    
+    # FAILSAFE: Pre-flight API health check
+    logger.info("")
+    if not check_api_health():
+        logger.error("🚨 CRITICAL: API is not reachable. Aborting scraper run.")
+        error_message = "API health check failed - cannot reach Supabase"
+        log_scraper_run('no_api', error_message=error_message)
+        
+        send_alert_email(
+            "Scraper Failed - API Unreachable",
+            f"Timestamp: {datetime.now(timezone.utc).isoformat()}\n"
+            f"Error: {error_message}\n"
+            f"The scraper could not reach the Supabase API.\n"
+            f"Please check if the API is down or if there are network issues."
+        )
+        return False
+    
+    logger.info("")
+    
+    # Fetch campaigns from database (with retry logic)
+    campaigns = await fetch_campaigns_from_database(limit=limit)
+    
+    if campaigns is None:
+        logger.error("🚨 FATAL: Could not connect to API after multiple retries")
+        error_message = "Failed to fetch campaigns - API connection failed"
+        log_scraper_run('no_api', error_message=error_message)
+        
+        send_alert_email(
+            "Scraper Failed - API Connection Error",
+            f"Timestamp: {datetime.now(timezone.utc).isoformat()}\n"
+            f"Error: {error_message}\n"
+            f"The scraper could not fetch campaigns after 3 retry attempts.\n"
+            f"Check API logs and server status."
+        )
+        return False
+    elif len(campaigns) == 0:
+        logger.warning("⚠️  No campaigns to scrape (no valid SFA URLs found)")
+        log_scraper_run('success', campaigns_total=0, campaigns_success=0)
+        return True
+    
+    logger.info(f"✅ Found {len(campaigns)} campaigns to scrape")
+    logger.info("")
+    
+    # Use headless mode based on environment
+    headless = os.getenv('HEADLESS', 'false').lower() == 'true'
+    
+    # Browser data directory
+    user_data_dir = os.getenv('USER_DATA_DIR', '/root/arti-marketing-ops/spotify_scraper/data/browser_data')
+    os.makedirs(user_data_dir, exist_ok=True)
+    
+    logger.info(f"Browser data directory: {user_data_dir}")
+    
+    # CRASH PREVENTION: Clear browser data if it's too large
+    clear_browser_data_if_needed(user_data_dir, MAX_BROWSER_DATA_MB)
+    
+    # Calculate batches
+    total_campaigns = len(campaigns)
+    total_batches = (total_campaigns + BATCH_SIZE - 1) // BATCH_SIZE
+    
+    logger.info(f"")
+    logger.info(f"📦 Will process {total_campaigns} campaigns in {total_batches} batches")
+    logger.info(f"   Each batch gets a fresh browser to prevent memory issues")
+    logger.info(f"")
+    
+    total_success = 0
+    total_failure = 0
+    
+    # Process campaigns in batches
+    for batch_num in range(1, total_batches + 1):
+        batch_start = (batch_num - 1) * BATCH_SIZE
+        batch_end = min(batch_start + BATCH_SIZE, total_campaigns)
+        batch_campaigns = campaigns[batch_start:batch_end]
+        
+        # Process this batch with a fresh browser
+        success, failure = await process_batch(
+            batch_campaigns, 
+            batch_num, 
+            total_batches, 
+            user_data_dir, 
+            headless
+        )
+        
+        total_success += success
+        total_failure += failure
+        
+        # Brief pause between batches to let memory settle
+        if batch_num < total_batches:
+            logger.info(f"⏸️  Pausing 5 seconds before next batch...")
+            await asyncio.sleep(5)
+            
+            # Check if browser data needs clearing between batches
+            clear_browser_data_if_needed(user_data_dir, MAX_BROWSER_DATA_MB)
+    
     # Summary
+    logger.info("")
     logger.info("="*60)
     logger.info("SCRAPING COMPLETE")
     logger.info("="*60)
-    logger.info(f"Total campaigns: {len(campaigns)}")
-    logger.info(f"Successful: {success_count}")
-    logger.info(f"Failed: {failure_count}")
-    logger.info(f"Success rate: {(success_count/len(campaigns)*100):.1f}%")
+    logger.info(f"Total campaigns: {total_campaigns}")
+    logger.info(f"Total batches: {total_batches}")
+    logger.info(f"Successful: {total_success}")
+    logger.info(f"Failed: {total_failure}")
+    success_rate = (total_success / total_campaigns * 100) if total_campaigns > 0 else 0
+    logger.info(f"Success rate: {success_rate:.1f}%")
     logger.info("")
     
     # FAILSAFE: Log run status
-    if success_count == len(campaigns):
+    if total_success == total_campaigns:
         status = 'success'
         logger.info("✅ All campaigns scraped successfully")
-    elif success_count > 0:
+    elif total_success > 0:
         status = 'partial'
-        logger.warning(f"⚠️  Partial success: {failure_count} campaigns failed")
+        logger.warning(f"⚠️  Partial success: {total_failure} campaigns failed")
     else:
         status = 'failed'
         logger.error("❌ All campaigns failed")
         
-        # Send alert for complete failure
         send_alert_email(
             "Scraper Failed - All Campaigns Failed",
             f"Timestamp: {datetime.now(timezone.utc).isoformat()}\n"
-            f"Total campaigns: {len(campaigns)}\n"
-            f"All {len(campaigns)} campaigns failed to scrape.\n"
+            f"Total campaigns: {total_campaigns}\n"
+            f"All {total_campaigns} campaigns failed to scrape.\n"
             f"Check logs for details: /root/arti-marketing-ops/spotify_scraper/logs/production.log"
         )
     
     log_scraper_run(
         status=status,
-        campaigns_total=len(campaigns),
-        campaigns_success=success_count,
-        campaigns_failed=failure_count
+        campaigns_total=total_campaigns,
+        campaigns_success=total_success,
+        campaigns_failed=total_failure
     )
     
-    return success_count > 0
+    return total_success > 0
 
 
 if __name__ == "__main__":
