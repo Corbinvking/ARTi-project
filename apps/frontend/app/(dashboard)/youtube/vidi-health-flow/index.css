@@ -44,12 +44,12 @@ All colors MUST be HSL.
     --info: 217 91% 60%;
     --info-foreground: 0 0% 98%;
     
-    /* Health status colors */
-    --health-excellent: 142 76% 36%;
-    --health-good: 84 81% 44%;
-    --health-moderate: 45 93% 47%;
-    --health-poor: 25 95% 53%;
-    --health-critical: 0 84% 60%;
+    /* Health status colors - clear visual hierarchy */
+    --health-excellent: 142 71% 45%;  /* Emerald Green - Healthy */
+    --health-good: 160 84% 39%;       /* Teal Green - Good */
+    --health-moderate: 38 92% 50%;    /* Vibrant Orange - At Risk */
+    --health-poor: 25 95% 53%;        /* Deep Orange - Poor */
+    --health-critical: 0 84% 60%;     /* Red - Critical */
     
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(263 70% 50.4%), hsl(217 91% 60%));
@@ -57,12 +57,13 @@ All colors MUST be HSL.
     --gradient-warning: linear-gradient(135deg, hsl(45 93% 47%), hsl(25 95% 53%));
     --gradient-danger: linear-gradient(135deg, hsl(0 84% 60%), hsl(0 62% 30%));
     
-    /* Chart colors */
-    --chart-1: 263 70% 50%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 45 93% 47%;
-    --chart-4: 0 84% 60%;
-    --chart-5: 217 91% 60%;
+    /* Chart colors - semantically meaningful and vibrant */
+    --chart-1: 217 91% 60%;    /* Electric Blue - View Velocity/Progress */
+    --chart-2: 142 71% 45%;    /* Emerald Green - Engagement/Success */
+    --chart-3: 38 92% 50%;     /* Vibrant Orange - Goal Completion/Achievement */
+    --chart-4: 0 84% 60%;      /* Red - Critical/Danger */
+    --chart-5: 263 70% 58%;    /* Purple - Accent/Secondary */
+    --chart-6: 187 85% 43%;    /* Cyan/Teal - Alternative */
 
     --radius: 0.5rem;
 
