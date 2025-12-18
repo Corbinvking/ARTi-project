@@ -1,9 +1,31 @@
 api.artistinfluence.com {
+    # Handle CORS preflight (OPTIONS) requests for /api/* routes
+    # This MUST come BEFORE other handlers to catch OPTIONS requests
+    @api_options {
+        path /api/*
+        method OPTIONS
+    }
+    handle @api_options {
+        header Access-Control-Allow-Origin "https://app.artistinfluence.com"
+        header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        header Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Cache-Control, X-User-Agent, x-supabase-api-version, x-client-info, apikey, x-supabase-auth-token"
+        header Access-Control-Allow-Credentials "true"
+        header Access-Control-Max-Age "86400"
+        respond "" 204
+    }
+    
+    # Custom API routes for specific paths
     @custom_api path /api/spotify-web-api/* /api/scraper/*
     handle @custom_api {
         reverse_proxy arti-api:3001
     }
     
+    # All other /api/* routes go to our API
+    handle /api/* {
+        reverse_proxy arti-api:3001
+    }
+    
+    # Everything else goes to Supabase Kong
     handle {
         reverse_proxy supabase_kong_arti-marketing-ops:8000
     }
