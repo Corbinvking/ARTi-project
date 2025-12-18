@@ -7,16 +7,31 @@ import { Loader2, Play } from "lucide-react";
 
 const getApiUrl = () => {
   if (typeof window !== 'undefined') {
-    const envUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
-    if (envUrl) {
-      return envUrl;
+    const hostname = window.location.hostname;
+    
+    // Always use localhost for local development
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0' || hostname.startsWith('192.168.') || hostname.startsWith('10.0.')) {
+      return 'http://localhost:3001';
     }
-    if (window.location.hostname === 'app.artistinfluence.com') {
+    
+    // Production detection
+    if (hostname === 'app.artistinfluence.com' || hostname.includes('artistinfluence.com')) {
       return 'https://api.artistinfluence.com';
     }
+    
+    // Check environment variables (but only if not localhost)
+    const envUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (envUrl && !envUrl.includes('localhost')) {
+      return envUrl;
+    }
+    
+    // Default to localhost for development
     return 'http://localhost:3001';
   }
-  return process.env.API_URL || process.env.API_BASE_URL || 'http://localhost:3001';
+  
+  // Server-side: check env vars, default to localhost
+  const envUrl = process.env.API_URL || process.env.API_BASE_URL;
+  return envUrl || 'http://localhost:3001';
 };
 
 export const TestYouTubeAPI = () => {
@@ -30,8 +45,14 @@ export const TestYouTubeAPI = () => {
     
     try {
       const apiUrl = getApiUrl();
+      const hostname = typeof window !== 'undefined' ? window.location.hostname : 'server';
       console.log('Testing YouTube API integration...');
+      console.log('Hostname:', hostname);
       console.log('API URL:', apiUrl);
+      console.log('Env vars:', {
+        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+        NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+      });
       
       // First, get an orgId from existing campaigns
       const { data: campaigns, error: campaignError } = await supabase
