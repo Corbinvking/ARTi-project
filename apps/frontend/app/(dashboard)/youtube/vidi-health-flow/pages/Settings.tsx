@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { TestYouTubeAPI } from "../components/TestYouTubeAPI";
 import { SystemHealthDashboard } from "../components/admin/SystemHealthDashboard";
-import { SERVICE_TYPES } from "../lib/constants";
 import { useSettings } from "../hooks/useSettings";
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,10 +34,7 @@ const Settings = () => {
       refreshInterval: '30',
     },
     defaults: {
-      defaultServiceType: 'worldwide',
-      defaultGoalViews: '100000',
-      defaultDesiredDaily: '5000',
-      defaultWaitTime: '300',
+      defaultWaitTime: '300', // For Ratio Fixer
     },
     export: {
       includeHealthScores: true,
@@ -237,47 +233,9 @@ const Settings = () => {
         <TabsContent value="defaults" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Default Campaign Settings</CardTitle>
+              <CardTitle>Ratio Fixer Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="default-service">Default Service Type</Label>
-                <Select
-                  value={settings.defaults.defaultServiceType}
-                  onValueChange={(value) => handleSettingChange('defaults', 'defaultServiceType', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SERVICE_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="default-goal">Default Goal Views</Label>
-                  <Input
-                    id="default-goal"
-                    type="number"
-                    value={settings.defaults.defaultGoalViews}
-                    onChange={(e) => handleSettingChange('defaults', 'defaultGoalViews', e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="default-daily">Default Desired Daily</Label>
-                  <Input
-                    id="default-daily"
-                    type="number"
-                    value={settings.defaults.defaultDesiredDaily}
-                    onChange={(e) => handleSettingChange('defaults', 'defaultDesiredDaily', e.target.value)}
-                  />
-                </div>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="default-wait">Default Wait Time (seconds)</Label>
                 <Input
@@ -286,9 +244,34 @@ const Settings = () => {
                   value={settings.defaults.defaultWaitTime}
                   onChange={(e) => handleSettingChange('defaults', 'defaultWaitTime', e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Time between engagement actions in the Ratio Fixer (default: 300 seconds = 5 minutes)
+                </p>
               </div>
               <div className="pt-4 border-t">
-                <Button onClick={handleSave}>Save Default Settings</Button>
+                <Button onClick={handleSave}>Save Settings</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Campaign Calculations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-muted p-4 rounded-lg space-y-2">
+                <h4 className="text-sm font-medium">Automatic Calculations</h4>
+                <p className="text-sm text-muted-foreground">
+                  The following values are calculated automatically when creating campaigns:
+                </p>
+                <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 mt-2">
+                  <li>
+                    <strong>Desired Daily:</strong> Calculated from Goal Views ÷ Campaign Duration (days between start and end date)
+                  </li>
+                  <li>
+                    <strong>Vendor Cost:</strong> Calculated from views × pricing rate based on service type
+                  </li>
+                </ul>
               </div>
             </CardContent>
           </Card>
