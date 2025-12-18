@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,6 +15,7 @@ export function ScraperStatusCard() {
   const triggerScraper = useTriggerScraper()
   const [showLogs, setShowLogs] = useState(false)
   const [logType, setLogType] = useState<'production' | 'errors' | 'cron'>('production')
+  const [autoRefresh, setAutoRefresh] = useState(false)
   const { data: logs, refetch: fetchLogs, isFetching: logsLoading } = useScraperLogs(logType, 100)
 
   const lastRunHoursAgo = status?.lastRun?.timestamp
@@ -54,11 +55,33 @@ export function ScraperStatusCard() {
     setLogType(type)
     if (showLogs && logType === type) {
       setShowLogs(false)
+      setAutoRefresh(false) // Stop auto-refresh when closing logs
     } else {
       setShowLogs(true)
       await fetchLogs()
     }
   }
+
+  const handleRefreshLogs = async () => {
+    await fetchLogs()
+  }
+
+  // Auto-refresh logs every 3 seconds when enabled
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined
+    
+    if (autoRefresh && showLogs) {
+      interval = setInterval(() => {
+        fetchLogs()
+      }, 3000) // Refresh every 3 seconds
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval)
+      }
+    }
+  }, [autoRefresh, showLogs, fetchLogs])
 
   if (statusLoading) {
     return (
@@ -288,10 +311,34 @@ export function ScraperStatusCard() {
         {showLogs && logs && (
           <div className="bg-muted rounded-lg p-4 max-h-96 overflow-auto">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">{logType.charAt(0).toUpperCase() + logType.slice(1)} Logs (Last {logs.logs.length} lines)</span>
-              <Button variant="ghost" size="sm" onClick={() => setShowLogs(false)}>
-                Close
-              </Button>
+              <span className="text-sm font-medium">
+                {logType.charAt(0).toUpperCase() + logType.slice(1)} Logs (Last {logs.logs.length} lines)
+                {autoRefresh && <Badge variant="default" className="ml-2 text-xs">Auto-refreshing</Badge>}
+              </span>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant={autoRefresh ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => setAutoRefresh(!autoRefresh)}
+                  title={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh (every 3s)"}
+                >
+                  <RefreshCw className={`h-3 w-3 mr-1 ${autoRefresh ? 'animate-spin' : ''}`} />
+                  Auto
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleRefreshLogs}
+                  disabled={logsLoading}
+                  title="Refresh logs now"
+                >
+                  <RefreshCw className={`h-3 w-3 mr-1 ${logsLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowLogs(false)}>
+                  Close
+                </Button>
+              </div>
             </div>
             <pre className="text-xs font-mono whitespace-pre-wrap break-all">
               {logs.logs.join('\n') || 'No logs available'}

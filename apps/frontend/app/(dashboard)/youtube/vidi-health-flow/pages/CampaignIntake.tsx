@@ -42,6 +42,8 @@ export default function CampaignIntake() {
     genre: '',
     sale_price: '',
     start_date: undefined as Date | undefined,
+    end_date: undefined as Date | undefined,
+    desired_daily: '',
     notes: ''
   });
 
@@ -109,6 +111,23 @@ export default function CampaignIntake() {
     setHighlightedClientIndex(0);
   }, [filteredClients.length, clientSearch]);
 
+  // Recalculate desired_daily when service types change
+  useEffect(() => {
+    if (formData.start_date && formData.end_date && serviceTypes.length > 0) {
+      const totalGoalViews = serviceTypes.reduce((sum, st) => sum + st.goal_views, 0);
+      const startDate = new Date(formData.start_date);
+      const endDate = new Date(formData.end_date);
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysDiff > 0 && totalGoalViews > 0) {
+        setFormData(prev => ({
+          ...prev,
+          desired_daily: Math.ceil(totalGoalViews / daysDiff).toString()
+        }));
+      }
+    }
+  }, [serviceTypes]);
+
   const handleGenreKeyDown = (e: React.KeyboardEvent) => {
     if (!showGenreDropdown) return;
     
@@ -172,7 +191,22 @@ export default function CampaignIntake() {
   };
 
   const handleInputChange = (field: string, value: string | Date) => {
-    setFormData({ ...formData, [field]: value });
+    const newData = { ...formData, [field]: value };
+    
+    // Auto-calculate desired daily views based on total goal views and dates
+    if ((field === 'start_date' || field === 'end_date') && 
+        newData.start_date && newData.end_date && serviceTypes.length > 0) {
+      const totalGoalViews = serviceTypes.reduce((sum, st) => sum + st.goal_views, 0);
+      const startDate = new Date(newData.start_date);
+      const endDate = new Date(newData.end_date);
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysDiff > 0 && totalGoalViews > 0) {
+        newData.desired_daily = Math.ceil(totalGoalViews / daysDiff).toString();
+      }
+    }
+    
+    setFormData(newData);
   };
 
   const extractVideoInfo = async (url: string) => {
@@ -301,6 +335,8 @@ export default function CampaignIntake() {
         service_types: serviceTypes as any, // New multi-service field
         sale_price: parseFloat(formData.sale_price) || null,
         start_date: formData.start_date ? format(formData.start_date, 'yyyy-MM-dd') : null,
+        end_date: formData.end_date ? format(formData.end_date, 'yyyy-MM-dd') : null,
+        desired_daily: formData.desired_daily ? parseInt(formData.desired_daily) : 0,
         genre: formData.genre || null,
         client_id: formData.client_id || null,
         salesperson_id: formData.salesperson_id || null,
@@ -469,33 +505,76 @@ export default function CampaignIntake() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Preferred Start Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button 
-                        type="button"
-                        variant="outline" 
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={formData.start_date}
-                        onSelect={(date) => {
-                          if (date) {
-                            handleInputChange('start_date', date);
-                          }
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Start Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={formData.start_date}
+                          onSelect={(date) => {
+                            if (date) {
+                              handleInputChange('start_date', date);
+                            }
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>End Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          type="button"
+                          variant="outline" 
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={formData.end_date}
+                          onSelect={(date) => {
+                            if (date) {
+                              handleInputChange('end_date', date);
+                            }
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
+
+                {/* Calculated Desired Daily Views */}
+                {formData.start_date && formData.end_date && formData.desired_daily && (
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Calculated Desired Daily Views:</span>
+                      <span className="font-semibold">{Number(formData.desired_daily).toLocaleString()}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Based on total goal views ÷ campaign duration
+                    </p>
+                  </div>
+                )}
                 
                 {/* Salesperson - added to main form */}
                 <div className="space-y-2">
