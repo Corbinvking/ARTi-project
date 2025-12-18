@@ -15,36 +15,56 @@ export interface VendorPaymentResult {
   breakdown: VendorPaymentBreakdown[];
   campaign_id: string;
   error?: string;
+  isCustomCost?: boolean; // True if custom_vendor_cost was used
 }
 
-// Default pricing rates (used when youtube_pricing_tiers table doesn't exist)
+// Default pricing rates (cost per 1K views) - based on pricing matrix
+// Updated to match Ads - Pricing Calculator 25
+// CPV from CSV × 1000 = cost per 1K views
 const DEFAULT_PRICING_RATES: Record<string, number> = {
-  'ww_display': 1.20,
-  'ww_website': 1.20,
-  'ww_skip': 1.40,
-  'ww_website_ads': 1.20,
-  'us_display': 6.50,
-  'us_website': 6.50,
-  'us_website_ads': 6.50,
-  'us_skip': 6.50,
-  'us_eur_website': 6.50,
-  'latam_display': 2.80,
-  'latam_website': 2.80,
-  'latam_skip': 2.80,
-  'eur_display': 6.50,
-  'eur_website': 6.50,
-  'eur_skip': 6.50,
-  'asia_website': 3.00,
-  'mena_display': 3.50,
-  'cad_display': 6.50,
-  'cad_website': 6.50,
-  'cad_skip': 6.50,
-  'aus_display': 6.50,
-  'aus_website': 6.50,
-  'aus_skip': 6.50,
-  'youtube_eng_ad': 0.00,
+  // Worldwide
+  'ww_display': 3.50,      // CPV $0.0035
+  'ww_website': 2.00,      // CPV $0.0020
+  'ww_skip': 1.40,         // CPV $0.0014
+  'ww_website_ads': 2.00,  // Same as ww_website
+  
+  // USA / US
+  'us_display': 5.00,      // CPV $0.0050 (US/EU/AUS rate)
+  'us_website': 6.50,      // CPV $0.0065
+  'us_website_ads': 6.50,  // Same as us_website
+  'us_skip': 5.00,         // CPV $0.0050 (US/EU/AUS rate)
+  'us_eur_website': 6.50,  // CPV $0.0065 (External rate)
+  
+  // LATAM
+  'latam_display': 2.80,   // CPV $0.0028
+  'latam_website': 2.80,   // CPV $0.0028
+  'latam_skip': 2.80,      // CPV $0.0028
+  
+  // Europe
+  'eur_display': 5.00,     // CPV $0.0050 (US/EU/AUS rate)
+  'eur_website': 6.00,     // CPV $0.0060
+  'eur_skip': 5.00,        // CPV $0.0050 (US/EU/AUS rate)
+  
+  // Asia
+  'asia_website': 3.00,    // CPV $0.0030
+  
+  // MENA
+  'mena_display': 3.50,    // Estimated similar to WW Display
+  
+  // Canada
+  'cad_display': 5.00,     // CPV $0.0050 (similar to US/EU/AUS)
+  'cad_website': 6.50,     // Same as US
+  'cad_skip': 5.00,        // Same as US
+  
+  // Australia
+  'aus_display': 5.00,     // CPV $0.0050 (US/EU/AUS rate)
+  'aus_website': 6.50,     // Same as US
+  'aus_skip': 5.00,        // Same as US
+  
+  // Special / No vendor cost
+  'youtube_eng_ad': 0.00,  // Engagement only, no vendor cost
   'engagements_only': 0.00,
-  'custom': 0.00
+  'custom': 0.00           // Will use custom_vendor_cost field
 };
 
 // Cache to track if pricing_tiers table exists (avoid repeated 404s)
@@ -141,6 +161,21 @@ export async function calculateVendorPayment(
         };
       }
       campaign = data;
+    }
+
+    // Use custom_vendor_cost if set (manual override)
+    if (campaign.custom_vendor_cost !== null && campaign.custom_vendor_cost !== undefined) {
+      return {
+        total_cost: parseFloat(campaign.custom_vendor_cost.toString()),
+        breakdown: [{
+          service_type: campaign.service_type || 'custom',
+          views: campaign.current_views || 0,
+          rate_per_1k: 0, // Custom cost, rate not applicable
+          cost: parseFloat(campaign.custom_vendor_cost.toString())
+        }],
+        campaign_id: campaignId,
+        isCustomCost: true
+      };
     }
 
     // Use calculated_vendor_payment if already set

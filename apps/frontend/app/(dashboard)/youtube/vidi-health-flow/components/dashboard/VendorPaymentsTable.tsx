@@ -34,6 +34,9 @@ import {
   TrendingUp,
   Calendar,
   History,
+  Edit2,
+  Save,
+  X,
 } from "lucide-react";
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { useToast } from "@/hooks/use-toast";
@@ -73,6 +76,8 @@ export const VendorPaymentsTable = () => {
   const [calculatingPayments, setCalculatingPayments] = useState<Set<string>>(new Set());
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<'summary' | 'analytics' | 'history' | 'audit'>('summary');
+  const [editingCustomCost, setEditingCustomCost] = useState<string | null>(null);
+  const [customCostValue, setCustomCostValue] = useState<string>('');
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -278,6 +283,97 @@ export const VendorPaymentsTable = () => {
       }
       return newSet;
     });
+  };
+
+  const startEditingCustomCost = (campaignId: string, currentCost?: number) => {
+    setEditingCustomCost(campaignId);
+    setCustomCostValue(currentCost ? currentCost.toString() : '');
+  };
+
+  const cancelEditingCustomCost = () => {
+    setEditingCustomCost(null);
+    setCustomCostValue('');
+  };
+
+  const saveCustomCost = async (campaignId: string) => {
+    try {
+      const customCost = parseFloat(customCostValue);
+      if (isNaN(customCost) || customCost < 0) {
+        toast({
+          title: "Invalid Cost",
+          description: "Please enter a valid positive number",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await updateCampaign(campaignId, { 
+        custom_vendor_cost: customCost 
+      });
+      
+      if (error) throw error;
+      
+      // Update the vendor payments map with the custom cost
+      setVendorPayments(prev => {
+        const newMap = new Map(prev);
+        newMap.set(campaignId, {
+          total_cost: customCost,
+          breakdown: [{
+            service_type: 'custom' as any,
+            views: 0,
+            rate_per_1k: 0,
+            cost: customCost
+          }],
+          campaign_id: campaignId,
+          isCustomCost: true
+        });
+        return newMap;
+      });
+      
+      toast({
+        title: "Custom Cost Saved",
+        description: `Vendor cost set to ${formatCurrency(customCost)}`,
+      });
+      
+      setEditingCustomCost(null);
+      setCustomCostValue('');
+    } catch (error) {
+      console.error('Error saving custom cost:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save custom cost. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const clearCustomCost = async (campaignId: string) => {
+    try {
+      const { error } = await updateCampaign(campaignId, { 
+        custom_vendor_cost: null 
+      });
+      
+      if (error) throw error;
+      
+      // Clear from vendor payments so it can be recalculated
+      setVendorPayments(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(campaignId);
+        return newMap;
+      });
+      
+      toast({
+        title: "Custom Cost Cleared",
+        description: "Vendor cost will be calculated automatically",
+      });
+    } catch (error) {
+      console.error('Error clearing custom cost:', error);
+      toast({
+        title: "Clear Failed",
+        description: "Failed to clear custom cost. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Don't auto-calculate on page load - let user trigger manually
@@ -608,28 +704,89 @@ export const VendorPaymentsTable = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {calculatingPayments.has(campaign.id) ? (
+                        {editingCustomCost === campaign.id ? (
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={customCostValue}
+                              onChange={(e) => setCustomCostValue(e.target.value)}
+                              className="w-24 h-8 text-sm"
+                              placeholder="0.00"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveCustomCost(campaign.id);
+                                if (e.key === 'Escape') cancelEditingCustomCost();
+                              }}
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              onClick={() => saveCustomCost(campaign.id)}
+                            >
+                              <Save className="w-4 h-4 text-green-600" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              onClick={cancelEditingCustomCost}
+                            >
+                              <X className="w-4 h-4 text-red-600" />
+                            </Button>
+                          </div>
+                        ) : calculatingPayments.has(campaign.id) ? (
                           <div className="flex items-center gap-2">
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                             <span className="text-sm text-muted-foreground">Calculating...</span>
                           </div>
                         ) : (
-                          <div className="font-mono">
+                          <div className="font-mono flex items-center gap-1">
                             {vendorPayments.get(campaign.id) ? (
-                              <div className="flex flex-col">
-                                <span>{formatCurrency(vendorPayments.get(campaign.id)!.total_cost)}</span>
-                                {vendorPayments.get(campaign.id)!.error && (
-                                  <span className="text-xs text-red-500">Error: {vendorPayments.get(campaign.id)!.error}</span>
-                                )}
+                              <div className="flex items-center gap-2">
+                                <div className="flex flex-col">
+                                  <span>{formatCurrency(vendorPayments.get(campaign.id)!.total_cost)}</span>
+                                  {vendorPayments.get(campaign.id)!.isCustomCost && (
+                                    <span className="text-xs text-blue-500">(Custom)</span>
+                                  )}
+                                  {vendorPayments.get(campaign.id)!.error && (
+                                    <span className="text-xs text-red-500">Error: {vendorPayments.get(campaign.id)!.error}</span>
+                                  )}
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => startEditingCustomCost(campaign.id, vendorPayments.get(campaign.id)?.total_cost)}
+                                  title="Set custom cost"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </Button>
                               </div>
                             ) : (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => calculateSinglePayment(campaign.id)}
-                              >
-                                <Calculator className="w-4 h-4" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">$0.00</span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => calculateSinglePayment(campaign.id)}
+                                  title="Calculate cost"
+                                >
+                                  <Calculator className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => startEditingCustomCost(campaign.id)}
+                                  title="Set custom cost"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </Button>
+                              </div>
                             )}
                           </div>
                         )}
@@ -649,8 +806,45 @@ export const VendorPaymentsTable = () => {
                     <TableRow>
                       <TableCell colSpan={7} className="bg-muted/30">
                         <div className="p-4 space-y-3">
-                          <h4 className="font-medium">Payment Breakdown</h4>
-                          {vendorPayments.get(campaign.id)?.breakdown && vendorPayments.get(campaign.id)!.breakdown.length > 0 ? (
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">Payment Breakdown</h4>
+                            <div className="flex items-center gap-2">
+                              {vendorPayments.get(campaign.id)?.isCustomCost && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => clearCustomCost(campaign.id)}
+                                >
+                                  <X className="w-4 h-4 mr-1" />
+                                  Clear Custom Cost
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => startEditingCustomCost(campaign.id, vendorPayments.get(campaign.id)?.total_cost)}
+                              >
+                                <Edit2 className="w-4 h-4 mr-1" />
+                                Set Custom Cost
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {vendorPayments.get(campaign.id)?.isCustomCost ? (
+                            <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                  Custom Cost
+                                </Badge>
+                              </div>
+                              <div className="text-2xl font-bold">
+                                {formatCurrency(vendorPayments.get(campaign.id)!.total_cost)}
+                              </div>
+                              <div className="text-sm text-muted-foreground mt-1">
+                                This is a manually set vendor cost. Click "Clear Custom Cost" to calculate automatically.
+                              </div>
+                            </div>
+                          ) : vendorPayments.get(campaign.id)?.breakdown && vendorPayments.get(campaign.id)!.breakdown.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               {vendorPayments.get(campaign.id)!.breakdown.map((breakdown, index) => (
                                 <div key={index} className="bg-background p-3 rounded-lg border">
@@ -667,7 +861,7 @@ export const VendorPaymentsTable = () => {
                             </div>
                           ) : (
                             <div className="text-sm text-muted-foreground">
-                              No detailed breakdown available. 
+                              No detailed breakdown available. Click "Calculate" or "Set Custom Cost" to add vendor cost.
                               {vendorPayments.get(campaign.id)?.error && (
                                 <span className="text-red-500"> Error: {vendorPayments.get(campaign.id)!.error}</span>
                               )}
