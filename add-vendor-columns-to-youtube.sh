@@ -8,22 +8,28 @@ echo "Adding Vendor Columns to youtube_campaigns"
 echo "=========================================="
 echo ""
 
-# Check if we're running inside Docker or on host
-if command -v psql &> /dev/null; then
-    # Direct psql available
-    PSQL_CMD="psql"
-elif docker ps | grep -q supabase_db; then
-    # Use Docker container
-    CONTAINER=$(docker ps | grep supabase_db | awk '{print $1}' | head -1)
-    PSQL_CMD="docker exec -i $CONTAINER psql -U postgres -d postgres"
-else
-    echo "❌ Cannot find PostgreSQL. Make sure Docker is running or psql is available."
+# Find the Supabase database container
+CONTAINER=""
+if docker ps | grep -q "supabase_db_arti"; then
+    CONTAINER=$(docker ps | grep "supabase_db_arti" | awk '{print $1}' | head -1)
+elif docker ps | grep -q "supabase-db"; then
+    CONTAINER=$(docker ps | grep "supabase-db" | awk '{print $1}' | head -1)
+elif docker ps | grep -q "postgres"; then
+    CONTAINER=$(docker ps | grep "postgres" | awk '{print $1}' | head -1)
+fi
+
+if [ -z "$CONTAINER" ]; then
+    echo "❌ Cannot find Supabase PostgreSQL container."
+    echo "Available containers:"
+    docker ps --format "table {{.Names}}\t{{.Image}}"
     exit 1
 fi
 
+echo "Found database container: $CONTAINER"
+echo ""
 echo "Running migration..."
 
-$PSQL_CMD << 'SQL'
+docker exec -i "$CONTAINER" psql -U postgres -d postgres << 'SQL'
 -- Add vendor_paid column if it doesn't exist
 DO $$
 BEGIN
@@ -93,4 +99,3 @@ echo "  - vendor_paid: Boolean (default FALSE)"
 echo "  - custom_vendor_cost: Numeric (nullable)"
 echo "  - calculated_vendor_payment: Numeric (nullable)"
 echo ""
-
