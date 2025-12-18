@@ -718,7 +718,9 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="" disabled>No salespersons available</SelectItem>
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      No salespersons available
+                    </div>
                   )}
                 </SelectContent>
               </Select>
