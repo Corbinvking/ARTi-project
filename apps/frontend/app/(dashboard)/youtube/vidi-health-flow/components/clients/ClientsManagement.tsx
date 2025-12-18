@@ -400,18 +400,29 @@ export function ClientsManagement() {
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-2">
+                        <Switch
+                          disabled={
+                            youtubeAccessLoading === client.id ||
+                            !client.email ||
+                            client.youtube_access_requested === true
+                          }
+                          checked={client.youtube_access_requested === true}
+                          onCheckedChange={(checked) => {
+                            // This switch is a one-way action: OFF -> request access (ON).
+                            // After requested, it becomes locked to avoid accidental toggling.
+                            if (checked && !client.youtube_access_requested) {
+                              handleYouTubeAccessRequest(client.id, client.name);
+                            }
+                          }}
+                        />
                         {client.youtube_access_requested ? (
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span className="text-xs">Requested</span>
+                            <span>Requested</span>
                           </div>
-                        ) : (
-                          <Switch
-                            disabled={youtubeAccessLoading === client.id || !client.email}
-                            checked={false}
-                            onCheckedChange={() => handleYouTubeAccessRequest(client.id, client.name)}
-                          />
-                        )}
+                        ) : !client.email ? (
+                          <span className="text-xs text-muted-foreground">Add email to enable</span>
+                        ) : null}
                       </div>
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
