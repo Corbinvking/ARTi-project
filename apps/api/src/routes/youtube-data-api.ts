@@ -57,15 +57,38 @@ async function fetchVideoStats(videoId: string) {
     }
     
     const stats = video.statistics;
+    let title = video.snippet?.title || '';
+    let publishedAt = video.snippet?.publishedAt || null;
+    let duration = video.contentDetails?.duration || '';
+
+    // Fallback: some deployments/configs have returned blank snippet/contentDetails.
+    // Use YouTube oEmbed (no API key required) to fetch title reliably for public videos.
+    if (!title) {
+      try {
+        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
+          `https://www.youtube.com/watch?v=${videoId}`
+        )}&format=json`;
+        // Node 18+ has global fetch
+        const oembedRes = await fetch(oembedUrl, { method: 'GET' });
+        if (oembedRes.ok) {
+          const oembed = (await oembedRes.json()) as { title?: string };
+          if (oembed?.title) {
+            title = oembed.title;
+          }
+        }
+      } catch {
+        // ignore oEmbed errors; we still return stats
+      }
+    }
 
     return {
       videoId,
       viewCount: parseInt(stats?.viewCount || '0'),
       likeCount: parseInt(stats?.likeCount || '0'),
       commentCount: parseInt(stats?.commentCount || '0'),
-      title: video.snippet?.title || '',
-      publishedAt: video.snippet?.publishedAt || null,
-      duration: video.contentDetails?.duration || '',
+      title,
+      publishedAt,
+      duration,
       success: true,
       error: null
     };

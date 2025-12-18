@@ -244,7 +244,9 @@ export default function CampaignIntake() {
           prev.campaign_name.startsWith("Campaign for ");
 
         const nextName =
-          !campaignNameTouched && isAutoName && data?.title ? data.title : prev.campaign_name;
+          !campaignNameTouched && isAutoName
+            ? (data?.title || `Campaign for ${videoId}`)
+            : prev.campaign_name;
 
         return {
           ...prev,
