@@ -4,7 +4,24 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../integrations/supabase/client";
 import { addDays, format } from "date-fns";
 
+export interface CampaignForecast {
+  campaign_id: number;
+  campaign_name: string;
+  artist_name: string;
+  current_streams_28d: number;
+  daily_rate: number;
+  stream_goal: number;
+  progress_percent: number;
+  days_to_goal: number;
+  forecast: Array<{
+    date: string;
+    predictedStreams: number;
+    confidence: number;
+  }>;
+}
+
 export interface PredictiveAnalyticsData {
+  campaigns: CampaignForecast[];
   performanceForecast: Array<{
     date: string;
     predictedStreams: number;
@@ -44,38 +61,82 @@ export const usePredictiveAnalytics = () => {
   return useQuery({
     queryKey: ["predictive-analytics"],
     queryFn: async (): Promise<PredictiveAnalyticsData> => {
-      // Get campaigns data
+      // Get spotify campaigns with actual stream data
+      const { data: spotifyCampaigns, error: spotifyError } = await supabase
+        .from("spotify_campaigns")
+        .select("id, campaign, track_name, artist_name, streams_28d, streams_7d, streams_24h, stream_goal, status")
+        .not("streams_28d", "is", null)
+        .order("streams_28d", { ascending: false });
+
+      if (spotifyError) throw spotifyError;
+
+      // Get campaigns data for legacy support
       const { data: campaigns, error: campaignsError } = await supabase
         .from("campaigns")
         .select("*");
-
-      if (campaignsError) throw campaignsError;
 
       // Get campaign allocations performance
       const { data: performance, error: performanceError } = await supabase
         .from("campaign_allocations_performance")
         .select("*");
 
-      if (performanceError) throw performanceError;
-
       // Get vendor data for optimization recommendations
       const { data: vendors, error: vendorsError } = await supabase
         .from("vendors")
         .select("*");
 
-      if (vendorsError) throw vendorsError;
+      // Generate per-campaign forecasts based on actual data
+      const campaignForecasts: CampaignForecast[] = (spotifyCampaigns || [])
+        .filter(sc => sc.streams_28d > 0)
+        .map(sc => {
+          const streams28d = sc.streams_28d || 0;
+          const streams7d = sc.streams_7d || 0;
+          const dailyRate = streams7d > 0 ? streams7d / 7 : streams28d / 28;
+          const streamGoal = sc.stream_goal || streams28d * 2; // Default goal if not set
+          const progressPercent = streamGoal > 0 ? (streams28d / streamGoal) * 100 : 0;
+          const remainingStreams = Math.max(0, streamGoal - streams28d);
+          const daysToGoal = dailyRate > 0 ? Math.ceil(remainingStreams / dailyRate) : 999;
 
-      // Generate performance forecast (next 30 days)
+          // Generate 30-day forecast for this campaign
+          const forecast = Array.from({ length: 30 }, (_, i) => {
+            const date = addDays(new Date(), i + 1);
+            // Predict with some variance based on recent performance
+            const weeklyGrowth = streams7d > 0 ? (streams7d / (streams28d / 4)) : 1;
+            const predictedDaily = dailyRate * Math.pow(weeklyGrowth, i / 7);
+            const cumulativeStreams = streams28d + (predictedDaily * (i + 1));
+            
+            return {
+              date: format(date, 'MMM dd'),
+              predictedStreams: Math.round(cumulativeStreams),
+              confidence: Math.max(50, 95 - (i * 1.5)), // Confidence decreases over time
+            };
+          });
+
+          return {
+            campaign_id: sc.id,
+            campaign_name: sc.track_name || sc.campaign || 'Unknown',
+            artist_name: sc.artist_name || 'Unknown',
+            current_streams_28d: streams28d,
+            daily_rate: Math.round(dailyRate),
+            stream_goal: streamGoal,
+            progress_percent: Math.round(progressPercent),
+            days_to_goal: daysToGoal,
+            forecast,
+          };
+        });
+
+      // Generate aggregate performance forecast (next 30 days)
+      const totalDailyRate = campaignForecasts.reduce((sum, c) => sum + c.daily_rate, 0);
       const performanceForecast = Array.from({ length: 30 }, (_, i) => {
         const date = addDays(new Date(), i + 1);
-        const baseStreams = 50000 + Math.random() * 20000;
-        const trendFactor = 1 + (i * 0.02); // Growth trend
-        const seasonality = 1 + Math.sin(i / 7) * 0.1; // Weekly pattern
+        const baseStreams = totalDailyRate * (i + 1);
+        const trendFactor = 1 + (i * 0.01); // Slight growth trend
+        const seasonality = 1 + Math.sin(i / 7) * 0.05; // Weekly pattern
         
         return {
           date: format(date, 'MMM dd'),
           predictedStreams: Math.round(baseStreams * trendFactor * seasonality),
-          confidence: 85 + Math.random() * 10, // 85-95% confidence
+          confidence: Math.max(50, 90 - (i * 1)), // 90% to 60%
         };
       });
 
@@ -186,6 +247,7 @@ export const usePredictiveAnalytics = () => {
       });
 
       return {
+        campaigns: campaignForecasts,
         performanceForecast,
         completionPredictions,
         goalAchievementProbability,
@@ -194,7 +256,7 @@ export const usePredictiveAnalytics = () => {
           budgetOptimization,
           vendorOptimization
         },
-        modelConfidence: 87.5 // Mock confidence score
+        modelConfidence: campaignForecasts.length > 0 ? 85 : 50 // Higher confidence with real data
       };
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
