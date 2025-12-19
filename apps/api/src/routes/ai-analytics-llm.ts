@@ -7,9 +7,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 // LLM Configuration - Just add your API key to use
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _LLM_PROVIDER = process.env.LLM_PROVIDER || 'anthropic'; // 'anthropic' or 'openai' - reserved for future use
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+// LLM_PROVIDER can be 'anthropic' or 'openai' - reserved for future multi-provider support
 
 // Database Schema Context for the LLM
 const DATABASE_SCHEMA = `
