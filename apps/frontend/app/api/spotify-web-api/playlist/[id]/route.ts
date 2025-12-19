@@ -6,14 +6,17 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: any
 ) {
   try {
-    // Handle both Next.js 14 (sync) and Next.js 15 (async) params
-    const resolvedParams = await context.params;
-    const id = resolvedParams.id;
+    // Extract ID from the URL path instead of using params
+    // This is more reliable across Next.js versions
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const id = pathParts[pathParts.length - 1];
     
-    console.log('[Spotify Proxy] Fetching playlist:', id);
+    console.log('[Spotify Proxy] Request URL:', request.url);
+    console.log('[Spotify Proxy] Extracted playlist ID:', id);
     
     if (!id || id.length !== 22) {
       console.log('[Spotify Proxy] Invalid ID length:', id?.length);
