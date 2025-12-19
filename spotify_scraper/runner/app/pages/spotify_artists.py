@@ -80,8 +80,14 @@ class SpotifyArtistsPage:
             # Human-like delay before interaction
             await asyncio.sleep(1 + (0.3 * asyncio.get_event_loop().time()) % 0.7)
             
-            # Look for the Playlists tab
+            # First, scroll down a bit to get past the sticky header
+            await self.page.evaluate("window.scrollBy(0, 100)")
+            await asyncio.sleep(0.5)
+            
+            # Look for the Playlists tab - prioritize the data-testid selector
             playlist_tab_selectors = [
+                '[data-testid="tab-playlists"]',  # Most specific selector
+                'a[href*="/playlists"]',  # Link to playlists URL
                 'text="Playlists"',
                 '[role="tab"]:has-text("Playlists")',
                 'button:has-text("Playlists")',
@@ -90,13 +96,12 @@ class SpotifyArtistsPage:
             
             for selector in playlist_tab_selectors:
                 try:
-                    if await self.page.locator(selector).count() > 0:
-                        # Human-like hover before click
-                        await self.page.hover(selector)
-                        await asyncio.sleep(0.3 + (0.2 * asyncio.get_event_loop().time()) % 0.4)
-                        
-                        await self.page.click(selector)
-                        print("Clicked Playlists tab")
+                    locator = self.page.locator(selector).first
+                    if await locator.count() > 0:
+                        # Use force click to bypass sticky header interception
+                        # This is necessary because Spotify's top nav bar intercepts pointer events
+                        await locator.click(force=True, timeout=5000)
+                        print(f"Clicked Playlists tab with {selector}")
                         
                         # Wait for content to load
                         await asyncio.sleep(2 + (0.5 * asyncio.get_event_loop().time()) % 1)
@@ -104,6 +109,24 @@ class SpotifyArtistsPage:
                 except Exception as e:
                     print(f"Failed to click Playlists tab with {selector}: {e}")
                     continue
+            
+            # If click methods fail, try JavaScript click as last resort
+            try:
+                result = await self.page.evaluate('''() => {
+                    const tab = document.querySelector('[data-testid="tab-playlists"]') 
+                             || document.querySelector('a[href*="/playlists"]');
+                    if (tab) {
+                        tab.click();
+                        return true;
+                    }
+                    return false;
+                }''')
+                if result:
+                    print("Clicked Playlists tab via JavaScript")
+                    await asyncio.sleep(2)
+                    return
+            except Exception as e:
+                print(f"JavaScript click failed: {e}")
             
             print("Could not find Playlists tab, might already be there")
             
@@ -318,12 +341,10 @@ class SpotifyArtistsPage:
             dropdown_clicked = False
             for selector in dropdown_selectors:
                 try:
-                    if await self.page.locator(selector).count() > 0:
-                        # Human-like hover before click
-                        await self.page.hover(selector)
-                        await asyncio.sleep(0.3 + (0.2 * asyncio.get_event_loop().time()) % 0.5)
-                        
-                        await self.page.click(selector)
+                    locator = self.page.locator(selector).first
+                    if await locator.count() > 0:
+                        # Use force click to bypass sticky header interception
+                        await locator.click(force=True, timeout=5000)
                         print(f"Clicked dropdown with selector: {selector}")
                         dropdown_clicked = True
                         break
@@ -361,12 +382,10 @@ class SpotifyArtistsPage:
                 
                 for selector in option_selectors:
                     try:
-                        if await self.page.locator(selector).count() > 0:
-                            # Human-like hover before click
-                            await self.page.hover(selector)
-                            await asyncio.sleep(0.2 + (0.1 * asyncio.get_event_loop().time()) % 0.3)
-                            
-                            await self.page.click(selector)
+                        locator = self.page.locator(selector).first
+                        if await locator.count() > 0:
+                            # Use force click to bypass any interception
+                            await locator.click(force=True, timeout=5000)
                             print(f"Selected option: {option_text}")
                             option_clicked = True
                             break
