@@ -380,14 +380,15 @@ export const useBulkMarkPayoutsPaid = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (payouts: Array<{ campaignId: string; vendorId: string; amount: number }>) => {
+    mutationFn: async (payouts: Array<{ campaignId: string; vendorId: string; amount: number; markAsPaid?: boolean }>) => {
       const results = [];
+      const markAsPaid = payouts[0]?.markAsPaid ?? true; // Use first payout's markAsPaid value
       
       for (const payout of payouts) {
         // Update spotify_campaigns.paid_vendor directly
         const { error: spotifyError } = await supabase
           .from('spotify_campaigns')
-          .update({ paid_vendor: 'true' })
+          .update({ paid_vendor: markAsPaid ? 'true' : 'false' })
           .eq('campaign_group_id', payout.campaignId);
 
         if (spotifyError) {
@@ -407,12 +408,12 @@ export const useBulkMarkPayoutsPaid = () => {
             await supabase
               .from('campaign_invoices')
               .update({
-                status: 'paid',
-                paid_date: new Date().toISOString().split('T')[0],
+                status: markAsPaid ? 'paid' : 'pending',
+                paid_date: markAsPaid ? new Date().toISOString().split('T')[0] : null,
                 amount: payout.amount
               })
               .eq('id', existingInvoice.id);
-          } else {
+          } else if (markAsPaid) {
             await supabase
               .from('campaign_invoices')
               .insert({
@@ -430,20 +431,20 @@ export const useBulkMarkPayoutsPaid = () => {
         results.push(payout.campaignId);
       }
       
-      return results;
+      return { results, markAsPaid };
     },
-    onSuccess: (_, payouts) => {
+    onSuccess: (data, payouts) => {
       queryClient.invalidateQueries({ queryKey: ['vendor-payouts'] });
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] });
       toast({
-        title: "Bulk Payment Processed",
-        description: `${payouts.length} vendor payouts have been marked as paid.`,
+        title: data.markAsPaid ? "Marked as Paid" : "Marked as Unpaid",
+        description: `${payouts.length} campaigns have been updated.`,
       });
     },
     onError: (error) => {
       toast({
-        title: "Bulk Payment Failed",
-        description: "Failed to process bulk payments. Please try again.",
+        title: "Bulk Update Failed",
+        description: "Failed to update campaigns. Please try again.",
         variant: "destructive",
       });
     }

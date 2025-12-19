@@ -62,9 +62,9 @@ export function VendorPayoutManager() {
   }).sort((a, b) => b.total_owed - a.total_owed) || [];
 
   // Calculate summary stats from all vendors
-  const allUnpaidCampaigns = vendorPayouts?.flatMap(vendor => 
-    vendor.campaigns.filter(campaign => campaign.payment_status === 'unpaid')
-  ) || [];
+  const allCampaigns = vendorPayouts?.flatMap(vendor => vendor.campaigns) || [];
+  const allUnpaidCampaigns = allCampaigns.filter(campaign => campaign.payment_status === 'unpaid');
+  const allPaidCampaigns = allCampaigns.filter(campaign => campaign.payment_status === 'paid');
   const totalUnpaidAmount = allUnpaidCampaigns.reduce((sum, campaign) => sum + campaign.amount_owed, 0);
   const uniqueVendorsWithUnpaidCampaigns = new Set(
     allUnpaidCampaigns.map(campaign => campaign.vendor_id)
@@ -92,8 +92,8 @@ export function VendorPayoutManager() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const unpaidKeys = allUnpaidCampaigns.map(p => `${p.campaign_id}-${p.vendor_id}`);
-      setSelectedPayouts(new Set(unpaidKeys));
+      const allKeys = allCampaigns.map(p => `${p.campaign_id}-${p.vendor_id}`);
+      setSelectedPayouts(new Set(allKeys));
     } else {
       setSelectedPayouts(new Set());
     }
@@ -103,16 +103,15 @@ export function VendorPayoutManager() {
     const vendor = vendorPayouts?.find(v => v.vendor_id === vendorId);
     if (!vendor) return;
 
-    const unpaidCampaignKeys = vendor.campaigns
-      .filter(campaign => campaign.payment_status === 'unpaid')
+    const campaignKeys = vendor.campaigns
       .map(campaign => `${campaign.campaign_id}-${campaign.vendor_id}`);
 
     setSelectedPayouts(prev => {
       const newSet = new Set(prev);
       if (checked) {
-        unpaidCampaignKeys.forEach(key => newSet.add(key));
+        campaignKeys.forEach(key => newSet.add(key));
       } else {
-        unpaidCampaignKeys.forEach(key => newSet.delete(key));
+        campaignKeys.forEach(key => newSet.delete(key));
       }
       return newSet;
     });
@@ -142,27 +141,28 @@ export function VendorPayoutManager() {
     setAllExpanded(false);
   };
 
-  const handleBulkMarkPaid = () => {
-    const selectedUnpaidPayouts = allUnpaidCampaigns.filter(p => 
+  const handleBulkMarkPaid = (markAsPaid: boolean = true) => {
+    const selectedCampaigns = allCampaigns.filter(p => 
       selectedPayouts.has(`${p.campaign_id}-${p.vendor_id}`)
     );
 
-    if (selectedUnpaidPayouts.length === 0) {
+    if (selectedCampaigns.length === 0) {
       toast({
-        title: "No Payouts Selected",
-        description: "Please select unpaid campaigns to mark as paid.",
+        title: "No Campaigns Selected",
+        description: "Please select campaigns to update.",
         variant: "destructive",
       });
       return;
     }
 
-    const payoutData = selectedUnpaidPayouts.map(p => {
+    const payoutData = selectedCampaigns.map(p => {
       const payoutKey = `${p.campaign_id}-${p.vendor_id}`;
       const editedAmount = pendingEdits.get(payoutKey);
       return {
         campaignId: p.campaign_id,
         vendorId: p.vendor_id,
-        amount: editedAmount !== undefined ? editedAmount : p.amount_owed
+        amount: editedAmount !== undefined ? editedAmount : p.amount_owed,
+        markAsPaid
       };
     });
 
@@ -342,46 +342,57 @@ export function VendorPayoutManager() {
             </Button>
           </div>
 
-          {/* Bulk Actions - Always visible when there are unpaid campaigns */}
+          {/* Bulk Actions - Always visible */}
           <div className={`flex items-center justify-between gap-4 mb-4 p-4 rounded-lg border-2 ${
             selectedPayouts.size > 0 ? 'bg-primary/10 border-primary' : 'bg-muted border-muted'
           }`}>
             <div className="flex items-center gap-4">
               <Checkbox
-                checked={selectedPayouts.size === allUnpaidCampaigns.length && allUnpaidCampaigns.length > 0}
+                checked={selectedPayouts.size === allCampaigns.length && allCampaigns.length > 0}
                 onCheckedChange={handleSelectAll}
                 id="select-all-main"
               />
               <label htmlFor="select-all-main" className="text-sm font-medium cursor-pointer">
                 {selectedPayouts.size > 0 
-                  ? `${selectedPayouts.size} of ${allUnpaidCampaigns.length} campaigns selected`
-                  : `Select all ${allUnpaidCampaigns.length} unpaid campaigns`
+                  ? `${selectedPayouts.size} of ${allCampaigns.length} campaigns selected`
+                  : `Select all ${allCampaigns.length} campaigns`
                 }
               </label>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {selectedPayouts.size > 0 && (
                 <>
                   <span className="text-sm font-bold text-primary">
-                    ${allUnpaidCampaigns
+                    ${allCampaigns
                       .filter(p => selectedPayouts.has(`${p.campaign_id}-${p.vendor_id}`))
                       .reduce((sum, p) => sum + (pendingEdits.get(`${p.campaign_id}-${p.vendor_id}`) || p.amount_owed), 0)
-                      .toFixed(2)} selected
+                      .toFixed(2)} total
                   </span>
                   <Button 
-                    onClick={handleBulkMarkPaid} 
+                    onClick={() => handleBulkMarkPaid(true)} 
                     disabled={bulkMarkPayoutsPaid.isPending}
                     size="default"
+                    className="bg-green-600 hover:bg-green-700"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    {bulkMarkPayoutsPaid.isPending ? 'Processing...' : 'Mark Selected as Paid'}
+                    {bulkMarkPayoutsPaid.isPending ? 'Processing...' : 'Mark as Paid'}
+                  </Button>
+                  <Button 
+                    onClick={() => handleBulkMarkPaid(false)} 
+                    disabled={bulkMarkPayoutsPaid.isPending}
+                    size="default"
+                    variant="outline"
+                  >
+                    <Clock className="w-4 h-4 mr-2" />
+                    Mark as Unpaid
                   </Button>
                   <Button 
                     onClick={() => setSelectedPayouts(new Set())} 
-                    variant="outline"
+                    variant="ghost"
                     size="default"
                   >
-                    Clear Selection
+                    <X className="w-4 h-4 mr-2" />
+                    Clear
                   </Button>
                 </>
               )}
@@ -412,23 +423,22 @@ export function VendorPayoutManager() {
               <TableBody>
                 {filteredVendors.map((vendor) => {
                   const isExpanded = expandedVendors.has(vendor.vendor_id);
-                  const unpaidCampaigns = vendor.campaigns.filter(c => c.payment_status === 'unpaid');
-                  const selectedUnpaidCampaigns = unpaidCampaigns.filter(c => 
+                  const vendorCampaigns = vendor.campaigns;
+                  const selectedVendorCampaigns = vendorCampaigns.filter(c => 
                     selectedPayouts.has(`${c.campaign_id}-${c.vendor_id}`)
                   );
-                  const allUnpaidSelected = unpaidCampaigns.length > 0 && selectedUnpaidCampaigns.length === unpaidCampaigns.length;
+                  const allVendorSelected = vendorCampaigns.length > 0 && selectedVendorCampaigns.length === vendorCampaigns.length;
+                  const unpaidCampaigns = vendor.campaigns.filter(c => c.payment_status === 'unpaid');
                   
                   return (
                     <>
                       {/* Vendor Header Row */}
                       <TableRow key={vendor.vendor_id} className="bg-muted/50 border-b-2">
                         <TableCell>
-                          {unpaidCampaigns.length > 0 && (
-                            <Checkbox
-                              checked={allUnpaidSelected}
-                              onCheckedChange={(checked) => handleSelectVendor(vendor.vendor_id, checked as boolean)}
-                            />
-                          )}
+                          <Checkbox
+                            checked={allVendorSelected}
+                            onCheckedChange={(checked) => handleSelectVendor(vendor.vendor_id, checked as boolean)}
+                          />
                         </TableCell>
                         <TableCell>
                           <Button
@@ -492,15 +502,13 @@ export function VendorPayoutManager() {
                         </TableCell>
                         <TableCell></TableCell>
                         <TableCell>
-                          {unpaidCampaigns.length > 0 && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleSelectVendor(vendor.vendor_id, !allUnpaidSelected)}
-                            >
-                              {allUnpaidSelected ? 'Deselect All' : 'Select All'}
-                            </Button>
-                          )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleSelectVendor(vendor.vendor_id, !allVendorSelected)}
+                          >
+                            {allVendorSelected ? 'Deselect All' : 'Select All'}
+                          </Button>
                         </TableCell>
                       </TableRow>
 
@@ -513,20 +521,12 @@ export function VendorPayoutManager() {
                           <TableRow key={payoutKey} className="bg-background">
                             <TableCell 
                               className="pl-8 cursor-pointer"
-                              onClick={() => {
-                                if (campaign.payment_status !== 'paid') {
-                                  handleSelectPayout(payoutKey, !isSelected);
-                                }
-                              }}
+                              onClick={() => handleSelectPayout(payoutKey, !isSelected)}
                             >
                               <Checkbox
                                 checked={isSelected}
-                                onCheckedChange={(checked) => {
-                                  console.log('Checkbox clicked:', payoutKey, checked);
-                                  handleSelectPayout(payoutKey, checked as boolean);
-                                }}
-                                disabled={campaign.payment_status === 'paid'}
-                                className={campaign.payment_status === 'paid' ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
+                                onCheckedChange={(checked) => handleSelectPayout(payoutKey, checked as boolean)}
+                                className="cursor-pointer"
                               />
                             </TableCell>
                             <TableCell></TableCell>
