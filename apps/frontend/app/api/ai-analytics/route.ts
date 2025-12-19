@@ -1,14 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Get the backend API URL - use internal Docker network in production
-const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3001';
+// Get the backend API URL
+function getApiUrl() {
+  // Server-side: check env vars, with production fallback
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || process.env.API_BASE_URL;
+  if (envUrl) return envUrl;
+  
+  // Production fallback
+  return 'https://api.artistinfluence.com';
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
     // Forward request to backend API
-    const response = await fetch(`${API_URL}/api/ai-analytics`, {
+    const apiUrl = getApiUrl();
+    console.log('[AI Analytics] Forwarding to:', apiUrl);
+    
+    const response = await fetch(`${apiUrl}/api/ai-analytics`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,7 +56,8 @@ export async function POST(request: NextRequest) {
 // Health check endpoint
 export async function GET() {
   try {
-    const response = await fetch(`${API_URL}/api/ai-analytics/health`);
+    const apiUrl = getApiUrl();
+    const response = await fetch(`${apiUrl}/api/ai-analytics/health`);
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error: any) {
