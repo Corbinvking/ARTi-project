@@ -7,7 +7,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 // LLM Configuration - Just add your API key to use
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const LLM_PROVIDER = process.env.LLM_PROVIDER || 'anthropic'; // 'anthropic' or 'openai'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _LLM_PROVIDER = process.env.LLM_PROVIDER || 'anthropic'; // 'anthropic' or 'openai' - reserved for future use
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 
 // Database Schema Context for the LLM
@@ -240,7 +241,7 @@ Answer this question about the platform using general knowledge. Be helpful and 
 }
 
 // Fallback formatting without LLM
-function formatResultsWithoutLLM(query: string, results: any[]): string {
+function formatResultsWithoutLLM(_query: string, results: any[]): string {
   if (!results || results.length === 0) {
     return "No results found for your query.";
   }
@@ -307,10 +308,10 @@ export default async function aiAnalyticsLLMRoutes(fastify: FastifyInstance) {
             
             // Parse the table from SQL (simple extraction)
             const tableMatch = sql.match(/FROM\s+(\w+)/i);
-            if (tableMatch) {
-              const tableName = tableMatch[1];
+            if (tableMatch && tableMatch[1]) {
+              const tableName: string = tableMatch[1];
               const { data: directData, error: directError } = await supabase
-                .from(tableName)
+                .from(tableName as string)
                 .select('*')
                 .limit(20);
               
