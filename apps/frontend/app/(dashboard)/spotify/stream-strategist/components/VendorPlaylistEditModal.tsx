@@ -148,7 +148,11 @@ export function VendorPlaylistEditModal({ playlist, isOpen, onClose }: VendorPla
   // Refresh follower count from Spotify Web API
   const refreshFromSpotify = async () => {
     if (!hasValidSpotifyId) {
-      toast.error('This playlist has an invalid Spotify URL. Please update the URL to a valid Spotify playlist link.');
+      const currentUrl = playlist?.url || 'No URL set';
+      toast.error(
+        `Invalid Spotify URL: "${currentUrl}"\n\nSpotify URLs should look like:\nhttps://open.spotify.com/playlist/3XDx4ZH82386rU1QKqWV2Q\n\nPlease update the Spotify URL field above.`,
+        { duration: 8000 }
+      );
       return;
     }
     
@@ -321,12 +325,12 @@ export function VendorPlaylistEditModal({ playlist, isOpen, onClose }: VendorPla
                     />
                     <Button
                       type="button"
-                      variant={hasValidSpotifyId ? "outline" : "ghost"}
+                      variant={hasValidSpotifyId ? "outline" : "destructive"}
                       size="sm"
                       onClick={refreshFromSpotify}
-                      disabled={isRefreshing || !hasValidSpotifyId}
+                      disabled={isRefreshing}
                       className="shrink-0"
-                      title={hasValidSpotifyId ? "Sync follower count from Spotify" : "No valid Spotify URL - please update the URL first"}
+                      title={hasValidSpotifyId ? "Sync follower count from Spotify" : "Invalid Spotify URL - click to see details"}
                     >
                       <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
                       {isRefreshing ? 'Syncing...' : 'Sync'}
