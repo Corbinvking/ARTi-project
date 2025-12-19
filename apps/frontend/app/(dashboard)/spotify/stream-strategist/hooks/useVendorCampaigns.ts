@@ -75,17 +75,41 @@ export function useVendorCampaigns() {
       
       const playlistIds = playlists?.map(p => p.id) || [];
 
-      // Fetch campaign allocations for this vendor to find which campaigns they're in
-      const { data: allocations, error: allocError } = await supabase
-        .from('campaign_allocations_performance')
+      // Fetch campaign_playlists for this vendor to find which campaigns they're in
+      // campaign_playlists.campaign_id references spotify_campaigns.id (integer)
+      const { data: campaignPlaylists, error: cpError } = await supabase
+        .from('campaign_playlists')
         .select('campaign_id')
         .in('vendor_id', vendorIds);
 
-      if (allocError) throw allocError;
-
-      const campaignIdsWithAllocations = [...new Set(allocations?.map(a => a.campaign_id) || [])];
+      if (cpError) throw cpError;
       
-      if (campaignIdsWithAllocations.length === 0) return [];
+      // Get unique campaign IDs (these are spotify_campaigns.id, not campaign_groups.id)
+      const spotifyCampaignIds = [...new Set(campaignPlaylists?.map(cp => cp.campaign_id).filter(Boolean) || [])];
+      
+      if (spotifyCampaignIds.length === 0) {
+        console.log('📋 No campaign playlists found for vendor');
+        return [];
+      }
+      
+      console.log('📋 Found', spotifyCampaignIds.length, 'spotify campaign IDs');
+      
+      // Get the campaign_group_ids from spotify_campaigns
+      const { data: spotifyCampaigns, error: scError } = await supabase
+        .from('spotify_campaigns')
+        .select('id, campaign_group_id')
+        .in('id', spotifyCampaignIds);
+      
+      if (scError) throw scError;
+      
+      const campaignIdsWithAllocations = [...new Set(spotifyCampaigns?.map(sc => sc.campaign_group_id).filter(Boolean) || [])];
+      
+      if (campaignIdsWithAllocations.length === 0) {
+        console.log('📋 No campaign groups found for vendor campaigns');
+        return [];
+      }
+      
+      console.log('📋 Found', campaignIdsWithAllocations.length, 'campaign group IDs');
 
       // Fetch only campaigns where this vendor has allocations AND status is 'Active'
       const { data: campaigns, error: campaignError } = await supabase
@@ -96,15 +120,24 @@ export function useVendorCampaigns() {
 
       if (campaignError) throw campaignError;
 
-      // Get payment data for campaigns involving this vendor
+      // Get payment/performance data from campaign_playlists (actual scraped data)
       const campaignIds = campaigns?.map(c => c.id) || [];
-      const { data: paymentData, error: paymentError } = await supabase
-        .from('campaign_allocations_performance')
+      
+      // Get spotify_campaigns for these campaign_groups to link back to campaign_playlists
+      const spotifyCampaignIdsForPayment = spotifyCampaigns
+        ?.filter(sc => campaignIds.includes(sc.campaign_group_id))
+        ?.map(sc => sc.id) || [];
+      
+      // Fetch playlist performance data for these campaigns
+      const { data: playlistPerformance, error: perfError } = await supabase
+        .from('campaign_playlists')
         .select('*')
-        .in('campaign_id', campaignIds)
+        .in('campaign_id', spotifyCampaignIdsForPayment)
         .in('vendor_id', vendorIds);
-
-      if (paymentError) throw paymentError;
+      
+      if (perfError) throw perfError;
+      
+      console.log('📋 Found', playlistPerformance?.length || 0, 'playlist performance records');
 
       // Process campaigns to include vendor-specific data
       const vendorCampaigns = campaigns?.map(campaign => {
@@ -139,39 +172,35 @@ export function useVendorCampaigns() {
           }
         }
 
-        // Get payment data for this campaign and vendor
-        const campaignPayments = paymentData?.filter(p => 
-          p.campaign_id === campaign.id && vendorIds.includes(p.vendor_id)
+        // Get campaign's spotify_campaign IDs
+        const campaignSpotifyIds = spotifyCampaigns
+          ?.filter(sc => sc.campaign_group_id === campaign.id)
+          ?.map(sc => sc.id) || [];
+        
+        // Get playlist performance for this campaign and vendor
+        const campaignPlaylistPerf = playlistPerformance?.filter(p => 
+          campaignSpotifyIds.includes(p.campaign_id) && vendorIds.includes(p.vendor_id)
         ) || [];
 
-        // Calculate total amount owed and determine payment status based on allocated streams
-        let totalAmountOwed = 0;
+        // Calculate total streams and estimate payment
+        let totalStreams = 0;
         let paymentStatus: 'paid' | 'unpaid' | 'pending' = 'pending';
-        let hasUnpaid = false;
-        let hasPaid = false;
 
-        // Always calculate from campaign allocation performance records
-        if (campaignPayments.length > 0) {
-          for (const payment of campaignPayments) {
-            const costPerStream = payment.cost_per_stream || 0;
-            const allocatedStreams = payment.allocated_streams || 0;
-            const paymentAmount = allocatedStreams * costPerStream;
-            
-            totalAmountOwed += paymentAmount;
-            
-            if (payment.payment_status === 'paid') {
-              hasPaid = true;
-            } else {
-              hasUnpaid = true;
-            }
-          }
-          
-          // Set payment status based on actual payment records
-          if (hasPaid && !hasUnpaid) {
-            paymentStatus = 'paid';
-          } else if (hasUnpaid || totalAmountOwed > 0) {
-            paymentStatus = 'unpaid';
-          }
+        // Sum up streams from all vendor playlists in this campaign
+        for (const perf of campaignPlaylistPerf) {
+          totalStreams += (perf.streams_28d || 0);
+        }
+        
+        // Get vendor cost rate
+        const vendorData = vendorUsers?.find(vu => vendorIds.includes(vu.vendor_id))?.vendors as any;
+        const costPer1kStreams = vendorData?.cost_per_1k_streams || 0;
+        
+        // Calculate amount owed based on streams
+        const totalAmountOwed = (totalStreams / 1000) * costPer1kStreams;
+        
+        // For now, mark as unpaid if there are streams, pending if no data
+        if (totalStreams > 0) {
+          paymentStatus = 'unpaid';
         }
 
         return {
