@@ -146,9 +146,8 @@ export function VendorPlaylistEditModal({ playlist, isOpen, onClose }: VendorPla
         return;
       }
       
-      // Use the production API URL
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
-      const response = await fetch(`${apiBaseUrl}/api/spotify-web-api/playlist/${playlistId}`);
+      // Use local Next.js API proxy (handles CORS in dev, works in prod too)
+      const response = await fetch(`/api/spotify-web-api/playlist/${playlistId}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
