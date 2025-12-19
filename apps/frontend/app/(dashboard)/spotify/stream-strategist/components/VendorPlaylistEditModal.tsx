@@ -160,8 +160,18 @@ export function VendorPlaylistEditModal({ playlist, isOpen, onClose }: VendorPla
     try {
       const playlistId = validSpotifyId;
       
+      console.log('[Sync] Playlist data:', { 
+        id: playlist?.id, 
+        spotify_id: playlist?.spotify_id, 
+        url: playlist?.url,
+        extracted_id: playlistId 
+      });
+      
       // Use local Next.js API proxy (handles CORS in dev, works in prod too)
-      const response = await fetch(`/api/spotify-web-api/playlist/${playlistId}`);
+      const apiUrl = `/api/spotify-web-api/playlist/${playlistId}`;
+      console.log('[Sync] Fetching:', apiUrl);
+      
+      const response = await fetch(apiUrl);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
