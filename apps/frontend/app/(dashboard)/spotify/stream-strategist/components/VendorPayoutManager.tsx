@@ -512,12 +512,12 @@ export function VendorPayoutManager() {
                         return (
                           <TableRow key={payoutKey} className="bg-background">
                             <TableCell className="pl-8">
-                              {campaign.payment_status === 'unpaid' && (
-                                <Checkbox
-                                  checked={isSelected}
-                                  onCheckedChange={(checked) => handleSelectPayout(payoutKey, checked as boolean)}
-                                />
-                              )}
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={(checked) => handleSelectPayout(payoutKey, checked as boolean)}
+                                disabled={campaign.payment_status === 'paid'}
+                                className={campaign.payment_status === 'paid' ? 'opacity-30' : ''}
+                              />
                             </TableCell>
                             <TableCell></TableCell>
                             <TableCell className="pl-8 text-sm">
