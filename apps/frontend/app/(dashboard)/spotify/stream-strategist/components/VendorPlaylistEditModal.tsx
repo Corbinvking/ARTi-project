@@ -124,27 +124,37 @@ export function VendorPlaylistEditModal({ playlist, isOpen, onClose }: VendorPla
     enabled: isOpen && !!playlist?.id
   });
 
+  // Check if playlist has a valid Spotify ID
+  const getValidSpotifyId = (): string | null => {
+    // First check if spotify_id is set
+    if (playlist?.spotify_id && playlist.spotify_id.length === 22) {
+      return playlist.spotify_id;
+    }
+    
+    // Try to extract from URL
+    if (playlist?.url) {
+      const match = playlist.url.match(/playlist\/([a-zA-Z0-9]{22})/);
+      if (match) {
+        return match[1];
+      }
+    }
+    
+    return null;
+  };
+  
+  const validSpotifyId = getValidSpotifyId();
+  const hasValidSpotifyId = !!validSpotifyId;
+
   // Refresh follower count from Spotify Web API
   const refreshFromSpotify = async () => {
+    if (!hasValidSpotifyId) {
+      toast.error('This playlist has an invalid Spotify URL. Please update the URL to a valid Spotify playlist link.');
+      return;
+    }
+    
     setIsRefreshing(true);
     try {
-      // Try to get Spotify ID from various sources
-      let playlistId = playlist?.spotify_id;
-      
-      // If no spotify_id, try to extract from URL
-      if (!playlistId && playlist?.url) {
-        // Match various Spotify URL formats
-        const match = playlist.url.match(/playlist\/([a-zA-Z0-9]{22})/);
-        if (match) {
-          playlistId = match[1];
-        }
-      }
-      
-      if (!playlistId) {
-        toast.error('No valid Spotify playlist ID found. Please add a Spotify URL first.');
-        setIsRefreshing(false);
-        return;
-      }
+      const playlistId = validSpotifyId;
       
       // Use local Next.js API proxy (handles CORS in dev, works in prod too)
       const response = await fetch(`/api/spotify-web-api/playlist/${playlistId}`);
@@ -311,22 +321,32 @@ export function VendorPlaylistEditModal({ playlist, isOpen, onClose }: VendorPla
                     />
                     <Button
                       type="button"
-                      variant="outline"
+                      variant={hasValidSpotifyId ? "outline" : "ghost"}
                       size="sm"
                       onClick={refreshFromSpotify}
-                      disabled={isRefreshing || !playlist?.url}
+                      disabled={isRefreshing || !hasValidSpotifyId}
                       className="shrink-0"
+                      title={hasValidSpotifyId ? "Sync follower count from Spotify" : "No valid Spotify URL - please update the URL first"}
                     >
                       <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
                       {isRefreshing ? 'Syncing...' : 'Sync'}
                     </Button>
                   </div>
                   
+                  {/* Warning if no valid Spotify ID */}
+                  {!hasValidSpotifyId && (
+                    <p className="text-xs text-amber-600 dark:text-amber-500">
+                      ⚠️ Invalid Spotify URL. Update the URL to enable syncing.
+                    </p>
+                  )}
+                  
                   {/* Follower Growth Sparkline */}
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">Tracked from Spotify API</p>
-                    <FollowerSparkline data={followerHistory} isLoading={historyLoading} />
-                  </div>
+                  {hasValidSpotifyId && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">Tracked from Spotify API</p>
+                      <FollowerSparkline data={followerHistory} isLoading={historyLoading} />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-4 items-start gap-4">
