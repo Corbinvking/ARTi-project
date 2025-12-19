@@ -235,8 +235,9 @@ export const SalespersonCampaignTable = ({ campaigns, loading, healthFilter }: S
           bValue = b.current_views || 0;
           break;
         case 'wow_change':
-          aValue = a.views_7_days > 0 ? ((a.current_views || 0) - a.views_7_days) / a.views_7_days * 100 : 0;
-          bValue = b.views_7_days > 0 ? ((b.current_views || 0) - b.views_7_days) / b.views_7_days * 100 : 0;
+          // Weekly growth rate: what percentage of total views came in the last 7 days
+          aValue = (a.current_views || 0) > 0 ? ((a.views_7_days || 0) / (a.current_views || 1)) * 100 : 0;
+          bValue = (b.current_views || 0) > 0 ? ((b.views_7_days || 0) / (b.current_views || 1)) * 100 : 0;
           break;
         case 'likes_comments':
           aValue = (a.current_likes || 0) + (a.current_comments || 0);
@@ -360,9 +361,10 @@ export const SalespersonCampaignTable = ({ campaigns, loading, healthFilter }: S
               <TableHead 
                 className="cursor-pointer select-none text-center"
                 onClick={() => handleSort('wow_change')}
+                title="Percentage of total views gained in the last 7 days"
               >
                 <div className="flex items-center justify-center gap-2">
-                  WoW Change
+                  7-Day %
                   {getSortIcon('wow_change')}
                 </div>
               </TableHead>
@@ -412,8 +414,9 @@ export const SalespersonCampaignTable = ({ campaigns, loading, healthFilter }: S
                 const totalGoalViews = serviceTypes.reduce((sum: number, st: any) => sum + (st.goal_views || 0), 0);
                 const viewsProgress = totalGoalViews > 0 ? (campaign.current_views || 0) / totalGoalViews * 100 : 0;
                 
-                const wowChange = campaign.views_7_days > 0 ? 
-                  ((campaign.current_views || 0) - campaign.views_7_days) / campaign.views_7_days * 100 : 0;
+                // Weekly growth rate: what percentage of total views came in the last 7 days
+                const wowChange = (campaign.current_views || 0) > 0 ? 
+                  ((campaign.views_7_days || 0) / (campaign.current_views || 1)) * 100 : 0;
 
                 return (
                   <TableRow 
