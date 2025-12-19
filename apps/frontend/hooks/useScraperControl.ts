@@ -34,7 +34,11 @@ export function useScraperStatus() {
       if (!response.ok) throw new Error('Failed to fetch scraper status');
       return response.json();
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: (query) => {
+      // Poll more frequently when scraper is running (5s vs 30s)
+      const isRunning = query.state.data?.isRunning ?? false;
+      return isRunning ? 5000 : 30000;
+    },
   });
 }
 

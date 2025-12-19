@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,12 +17,34 @@ export function ScraperStatusCard() {
   const [logType, setLogType] = useState<'production' | 'errors' | 'cron'>('production')
   const [autoRefresh, setAutoRefresh] = useState(false)
   const { data: logs, refetch: fetchLogs, isFetching: logsLoading } = useScraperLogs(logType, 100)
+  const logsContainerRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom when logs update
+  useEffect(() => {
+    if (autoRefresh && logsContainerRef.current) {
+      logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight
+    }
+  }, [logs, autoRefresh])
 
   const lastRunHoursAgo = status?.lastRun?.timestamp
     ? Math.floor((Date.now() - new Date(status.lastRun.timestamp).getTime()) / (1000 * 60 * 60))
     : null
 
   const isStale = lastRunHoursAgo !== null && lastRunHoursAgo > 36
+  const isRunning = status?.isRunning ?? false
+
+  // Auto-open logs and enable streaming when scraper is running
+  useEffect(() => {
+    if (isRunning) {
+      setShowLogs(true)
+      setAutoRefresh(true)
+      setLogType('production')
+      fetchLogs()
+    } else {
+      // Stop auto-refresh when scraper stops
+      setAutoRefresh(false)
+    }
+  }, [isRunning])
 
   const getStatusColor = (healthStatus?: string) => {
     switch (healthStatus) {
@@ -309,7 +331,7 @@ export function ScraperStatusCard() {
 
         {/* Logs Display */}
         {showLogs && logs && (
-          <div className="bg-muted rounded-lg p-4 max-h-96 overflow-auto">
+          <div ref={logsContainerRef} className="bg-muted rounded-lg p-4 max-h-96 overflow-auto">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">
                 {logType.charAt(0).toUpperCase() + logType.slice(1)} Logs (Last {logs.logs.length} lines)
