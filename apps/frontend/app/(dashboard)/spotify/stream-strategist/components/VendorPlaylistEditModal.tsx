@@ -126,39 +126,67 @@ export function VendorPlaylistEditModal({ playlist, isOpen, onClose }: VendorPla
 
   // Refresh follower count from Spotify Web API
   const refreshFromSpotify = async () => {
-    if (!playlist?.url) {
-      toast.error('No Spotify URL available');
-      return;
-    }
-    
     setIsRefreshing(true);
     try {
-      // Extract playlist ID from URL
-      const match = playlist.url.match(/playlist\/([a-zA-Z0-9]+)/);
-      if (!match) {
-        toast.error('Invalid Spotify playlist URL');
+      // Try to get Spotify ID from various sources
+      let playlistId = playlist?.spotify_id;
+      
+      // If no spotify_id, try to extract from URL
+      if (!playlistId && playlist?.url) {
+        // Match various Spotify URL formats
+        const match = playlist.url.match(/playlist\/([a-zA-Z0-9]{22})/);
+        if (match) {
+          playlistId = match[1];
+        }
+      }
+      
+      if (!playlistId) {
+        toast.error('No valid Spotify playlist ID found. Please add a Spotify URL first.');
+        setIsRefreshing(false);
         return;
       }
       
-      const playlistId = match[1];
-      
-      // Call our API to fetch from Spotify
-      const response = await fetch(`/api/spotify-web-api/playlist/${playlistId}`);
+      // Use the production API URL
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
+      const response = await fetch(`${apiBaseUrl}/api/spotify-web-api/playlist/${playlistId}`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch from Spotify');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch from Spotify');
       }
       
-      const spotifyData = await response.json();
-      const newFollowerCount = spotifyData.followers?.total || spotifyData.follower_count || 0;
+      const result = await response.json();
+      const spotifyData = result.data || result;
+      const newFollowerCount = spotifyData.followers || spotifyData.follower_count || 0;
+      
+      if (newFollowerCount === 0) {
+        toast.error('Could not get follower count from Spotify');
+        setIsRefreshing(false);
+        return;
+      }
       
       // Update form data
       setFormData(prev => ({ ...prev, follower_count: newFollowerCount }));
       
+      // Also update the database directly
+      if (playlist?.id) {
+        const { error } = await supabase
+          .from('playlists')
+          .update({ 
+            follower_count: newFollowerCount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', playlist.id);
+        
+        if (error) {
+          console.error('Failed to save to database:', error);
+        }
+      }
+      
       toast.success(`Updated to ${newFollowerCount.toLocaleString()} followers`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Spotify refresh error:', error);
-      toast.error('Failed to refresh from Spotify');
+      toast.error(error.message || 'Failed to refresh from Spotify');
     } finally {
       setIsRefreshing(false);
     }
