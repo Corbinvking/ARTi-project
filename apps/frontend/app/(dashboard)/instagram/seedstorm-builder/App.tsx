@@ -7,7 +7,7 @@ import { AuthProvider } from "../contexts/AuthContext";
 import Navigation from "../components/Navigation";
 
 // Import project guard to verify integrity on app start
-import "@/lib/projectGuard";
+import "./lib/projectGuard";
 
 // Pages
 import Index from "./pages/Index";

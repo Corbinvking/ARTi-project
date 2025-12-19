@@ -152,7 +152,7 @@ export const AddCreatorForm = ({ onSuccess }: AddCreatorFormProps) => {
     
     // Trigger a full sync to catch any new data  
     try {
-      const { syncCreatorDataToTags } = await import('@/lib/tagStorage');
+      const { syncCreatorDataToTags } = await import('../lib/tagStorage');
       await syncCreatorDataToTags();
     } catch (error) {
       console.error('Error syncing creator data to tags:', error);
