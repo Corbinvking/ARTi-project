@@ -287,8 +287,8 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
                 </SelectTrigger>
                 <SelectContent>
                   {LIKE_SERVER_OPTIONS.map((server) => (
-                    <SelectItem key={server} value={server}>
-                      {server}
+                    <SelectItem key={server.value} value={server.value}>
+                      {server.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -302,8 +302,8 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
                 </SelectTrigger>
                 <SelectContent>
                   {COMMENT_SERVER_OPTIONS.map((server) => (
-                    <SelectItem key={server} value={server}>
-                      {server}
+                    <SelectItem key={server.value} value={server.value}>
+                      {server.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

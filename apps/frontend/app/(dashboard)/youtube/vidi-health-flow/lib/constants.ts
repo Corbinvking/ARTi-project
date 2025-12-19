@@ -42,26 +42,25 @@ export const GENRE_OPTIONS = [
   'R&B'
 ];
 
+// JingleSMM Like Server Options (service_id from JingleSMM API)
 export const LIKE_SERVER_OPTIONS = [
-  'Server-LA-01',
-  'Server-NY-02',
-  'Server-EU-01',
-  'Server-ASIA-01',
-  'Server-LA-03',
-  'Server-NY-04'
+  { value: '113', label: 'Youtube Likes (Non drop) [30 DAYS REFILL] INSTANT' },
+  { value: '2324', label: 'Youtube Likes [Non Drop] [MAX 100K] - SUPER FAST [Refill 30 Days]' },
+  { value: '438', label: 'Youtube Video Likes [Refill 30 days] [No Drop] [MAX - 5k]' },
 ];
 
+// JingleSMM Comment Server Options (service_id from JingleSMM API)
 export const COMMENT_SERVER_OPTIONS = [
-  'Comment-US-East',
-  'Comment-US-West',
-  'Comment-EU-Central',
-  'Comment-Asia-Pacific',
-  'Comment-Canada-01',
-  'Comment-Australia-01'
+  { value: '439', label: 'Youtube Custom Comments [Non Drop] [Speed 10K/Day] [Super Instant] [English Names]' },
+  { value: '2557', label: 'Youtube Custom Comments [Instant Start]' },
+  { value: '4458', label: 'YouTube Comments [Custom] [USA]' },
+  { value: '1579', label: 'Youtube Comments [CUSTOM] [100] [HISPANIC]' },
+  { value: '1378', label: 'Youtube Custom Comments [High Quality] [English Names] [Start Time: Instant] Non Drop' },
 ];
 
+// Google Sheets GID values for comment tiers
 export const SHEET_TIER_OPTIONS = [
-  { value: '1', label: 'Tier 1' },
-  { value: '2', label: 'Tier 2' },
-  { value: '3', label: 'Tier 3' }
+  { value: '0', label: 'Tier 1 (Main Sheet)' },
+  { value: '1606211645', label: 'Tier 2' },
+  { value: '793138276', label: 'Tier 3' }
 ];

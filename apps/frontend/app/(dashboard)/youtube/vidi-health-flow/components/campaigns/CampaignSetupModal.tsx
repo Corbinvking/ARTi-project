@@ -275,8 +275,8 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
                     </SelectTrigger>
                     <SelectContent>
                       {LIKE_SERVER_OPTIONS.map((server) => (
-                        <SelectItem key={server} value={server}>
-                          {server}
+                        <SelectItem key={server.value} value={server.value}>
+                          {server.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -291,8 +291,8 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
                     </SelectTrigger>
                     <SelectContent>
                       {COMMENT_SERVER_OPTIONS.map((server) => (
-                        <SelectItem key={server} value={server}>
-                          {server}
+                        <SelectItem key={server.value} value={server.value}>
+                          {server.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

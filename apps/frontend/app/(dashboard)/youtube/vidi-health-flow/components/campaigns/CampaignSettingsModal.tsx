@@ -645,9 +645,9 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                         <SelectValue placeholder="Select server" />
                       </SelectTrigger>
                       <SelectContent>
-                        {LIKE_SERVER_OPTIONS.map((server, index) => (
-                          <SelectItem key={index} value={server}>
-                            {server}
+                        {LIKE_SERVER_OPTIONS.map((server) => (
+                          <SelectItem key={server.value} value={server.value}>
+                            {server.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -660,9 +660,9 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                         <SelectValue placeholder="Select server" />
                       </SelectTrigger>
                       <SelectContent>
-                        {COMMENT_SERVER_OPTIONS.map((server, index) => (
-                          <SelectItem key={index} value={server}>
-                            {server}
+                        {COMMENT_SERVER_OPTIONS.map((server) => (
+                          <SelectItem key={server.value} value={server.value}>
+                            {server.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
