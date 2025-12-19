@@ -511,12 +511,22 @@ export function VendorPayoutManager() {
                         
                         return (
                           <TableRow key={payoutKey} className="bg-background">
-                            <TableCell className="pl-8">
+                            <TableCell 
+                              className="pl-8 cursor-pointer"
+                              onClick={() => {
+                                if (campaign.payment_status !== 'paid') {
+                                  handleSelectPayout(payoutKey, !isSelected);
+                                }
+                              }}
+                            >
                               <Checkbox
                                 checked={isSelected}
-                                onCheckedChange={(checked) => handleSelectPayout(payoutKey, checked as boolean)}
+                                onCheckedChange={(checked) => {
+                                  console.log('Checkbox clicked:', payoutKey, checked);
+                                  handleSelectPayout(payoutKey, checked as boolean);
+                                }}
                                 disabled={campaign.payment_status === 'paid'}
-                                className={campaign.payment_status === 'paid' ? 'opacity-30' : ''}
+                                className={campaign.payment_status === 'paid' ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
                               />
                             </TableCell>
                             <TableCell></TableCell>
