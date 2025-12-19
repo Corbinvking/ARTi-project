@@ -68,22 +68,36 @@ export const usePredictiveAnalytics = () => {
         .not("streams_28d", "is", null)
         .order("streams_28d", { ascending: false });
 
-      if (spotifyError) throw spotifyError;
+      if (spotifyError) {
+        console.error("Error fetching spotify_campaigns:", spotifyError);
+      }
 
-      // Get campaigns data for legacy support
-      const { data: campaigns, error: campaignsError } = await supabase
-        .from("campaigns")
-        .select("*");
+      // Get campaigns data for legacy support (optional - don't fail if missing)
+      let campaigns: any[] = [];
+      try {
+        const { data, error } = await supabase.from("campaigns").select("*");
+        if (!error && data) campaigns = data;
+      } catch (e) {
+        console.warn("campaigns table not available:", e);
+      }
 
-      // Get campaign allocations performance
-      const { data: performance, error: performanceError } = await supabase
-        .from("campaign_allocations_performance")
-        .select("*");
+      // Get campaign allocations performance (optional)
+      let performance: any[] = [];
+      try {
+        const { data, error } = await supabase.from("campaign_allocations_performance").select("*");
+        if (!error && data) performance = data;
+      } catch (e) {
+        console.warn("campaign_allocations_performance not available:", e);
+      }
 
       // Get vendor data for optimization recommendations
       const { data: vendors, error: vendorsError } = await supabase
         .from("vendors")
         .select("*");
+      
+      if (vendorsError) {
+        console.warn("Error fetching vendors:", vendorsError);
+      }
 
       // Generate per-campaign forecasts based on actual data
       const campaignForecasts: CampaignForecast[] = (spotifyCampaigns || [])
@@ -126,10 +140,12 @@ export const usePredictiveAnalytics = () => {
         });
 
       // Generate aggregate performance forecast (next 30 days)
-      const totalDailyRate = campaignForecasts.reduce((sum, c) => sum + c.daily_rate, 0);
+      const totalDailyRate = campaignForecasts.length > 0 
+        ? campaignForecasts.reduce((sum, c) => sum + c.daily_rate, 0)
+        : 5000; // Default daily rate if no data
       const performanceForecast = Array.from({ length: 30 }, (_, i) => {
         const date = addDays(new Date(), i + 1);
-        const baseStreams = totalDailyRate * (i + 1);
+        const baseStreams = Math.max(1000, totalDailyRate) * (i + 1);
         const trendFactor = 1 + (i * 0.01); // Slight growth trend
         const seasonality = 1 + Math.sin(i / 7) * 0.05; // Weekly pattern
         
