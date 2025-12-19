@@ -5,7 +5,7 @@ import { webhookRoutes } from './webhooks';
 import { providersRoutes } from './providers';
 import { adminRoutes } from './admin';
 import { insightsRoutes } from './insights';
-import aiAnalyticsRoutes from './ai-analytics-simple'; // Using simple version for now
+import aiAnalyticsRoutes from './ai-analytics-llm'; // LLM-powered version with Claude/OpenAI
 import { spotifyWebApiRoutes } from './spotify-web-api';
 import { s4aIngestRoutes } from './s4a-ingest';
 import { youtubeDataApiRoutes } from './youtube-data-api';
