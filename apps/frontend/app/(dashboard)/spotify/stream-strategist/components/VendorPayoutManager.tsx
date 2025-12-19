@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { useVendorPayouts, useMarkPayoutPaid, useBulkMarkPayoutsPaid, VendorPayout } from '../hooks/useVendorPayouts';
 import { useCreatePaymentRecord } from '../hooks/usePaymentHistory';
-import { Search, Download, DollarSign, CheckCircle, Clock, Receipt, Edit, Save, X, ChevronRight, ChevronDown } from 'lucide-react';
+import { Search, Download, DollarSign, CheckCircle, Clock, Receipt, Edit, Save, X, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import Papa from 'papaparse';
 import { useToast } from '../hooks/use-toast';
 
@@ -35,8 +35,16 @@ export function VendorPayoutManager() {
   const [editingPayouts, setEditingPayouts] = useState<Map<string, number>>(new Map());
   const [pendingEdits, setPendingEdits] = useState<Map<string, number>>(new Map());
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
+  const [allExpanded, setAllExpanded] = useState(true); // Default to expanded
   
   const { data: vendorPayouts, isLoading } = useVendorPayouts();
+  
+  // Auto-expand all vendors on first load
+  useEffect(() => {
+    if (vendorPayouts && vendorPayouts.length > 0 && expandedVendors.size === 0 && allExpanded) {
+      setExpandedVendors(new Set(vendorPayouts.map(v => v.vendor_id)));
+    }
+  }, [vendorPayouts]);
   const markPayoutPaid = useMarkPayoutPaid();
   const bulkMarkPayoutsPaid = useBulkMarkPayoutsPaid();
   const createPaymentRecord = useCreatePaymentRecord();
@@ -120,6 +128,18 @@ export function VendorPayoutManager() {
       }
       return newSet;
     });
+  };
+
+  const handleExpandAll = () => {
+    if (vendorPayouts) {
+      setExpandedVendors(new Set(vendorPayouts.map(v => v.vendor_id)));
+      setAllExpanded(true);
+    }
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedVendors(new Set());
+    setAllExpanded(false);
   };
 
   const handleBulkMarkPaid = () => {
@@ -303,24 +323,70 @@ export function VendorPayoutManager() {
               <Download className="w-4 h-4 mr-2" />
               Export CSV
             </Button>
+            <Button 
+              onClick={allExpanded ? handleCollapseAll : handleExpandAll} 
+              variant="outline"
+              size="default"
+            >
+              {allExpanded ? (
+                <>
+                  <ChevronUp className="w-4 h-4 mr-2" />
+                  Collapse All
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4 mr-2" />
+                  Expand All
+                </>
+              )}
+            </Button>
           </div>
 
-          {/* Bulk Actions */}
-          {selectedPayouts.size > 0 && (
-            <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-lg">
-              <span className="text-sm text-muted-foreground">
-                {selectedPayouts.size} campaigns selected
-              </span>
-              <Button 
-                onClick={handleBulkMarkPaid} 
-                disabled={bulkMarkPayoutsPaid.isPending}
-                size="sm"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Mark All as Paid
-              </Button>
+          {/* Bulk Actions - Always visible when there are unpaid campaigns */}
+          <div className={`flex items-center justify-between gap-4 mb-4 p-4 rounded-lg border-2 ${
+            selectedPayouts.size > 0 ? 'bg-primary/10 border-primary' : 'bg-muted border-muted'
+          }`}>
+            <div className="flex items-center gap-4">
+              <Checkbox
+                checked={selectedPayouts.size === allUnpaidCampaigns.length && allUnpaidCampaigns.length > 0}
+                onCheckedChange={handleSelectAll}
+                id="select-all-main"
+              />
+              <label htmlFor="select-all-main" className="text-sm font-medium cursor-pointer">
+                {selectedPayouts.size > 0 
+                  ? `${selectedPayouts.size} of ${allUnpaidCampaigns.length} campaigns selected`
+                  : `Select all ${allUnpaidCampaigns.length} unpaid campaigns`
+                }
+              </label>
             </div>
-          )}
+            <div className="flex items-center gap-2">
+              {selectedPayouts.size > 0 && (
+                <>
+                  <span className="text-sm font-bold text-primary">
+                    ${allUnpaidCampaigns
+                      .filter(p => selectedPayouts.has(`${p.campaign_id}-${p.vendor_id}`))
+                      .reduce((sum, p) => sum + (pendingEdits.get(`${p.campaign_id}-${p.vendor_id}`) || p.amount_owed), 0)
+                      .toFixed(2)} selected
+                  </span>
+                  <Button 
+                    onClick={handleBulkMarkPaid} 
+                    disabled={bulkMarkPayoutsPaid.isPending}
+                    size="default"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {bulkMarkPayoutsPaid.isPending ? 'Processing...' : 'Mark Selected as Paid'}
+                  </Button>
+                  <Button 
+                    onClick={() => setSelectedPayouts(new Set())} 
+                    variant="outline"
+                    size="default"
+                  >
+                    Clear Selection
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
 
           {/* Payouts Table */}
           <div className="border rounded-lg">
