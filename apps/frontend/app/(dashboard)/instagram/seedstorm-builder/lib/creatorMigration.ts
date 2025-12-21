@@ -121,9 +121,33 @@ export const saveCreatorToSupabase = async (creator: any) => {
 };
 
 export const getSupabaseCreators = async () => {
-  const { data: creators, error } = await supabase.rpc('get_public_creators');
-
-  if (error) {
+  // Try RPC first, then fallback to direct table query
+  let creators: any[] = [];
+  
+  try {
+    const { data: rpcCreators, error: rpcError } = await supabase.rpc('get_public_creators');
+    
+    if (!rpcError && rpcCreators) {
+      creators = rpcCreators;
+      console.log('✅ Fetched creators via RPC:', creators.length);
+    } else {
+      console.warn('⚠️ RPC failed, trying direct query:', rpcError?.message);
+      
+      // Fallback to direct table query
+      const { data: tableCreators, error: tableError } = await supabase
+        .from('creators')
+        .select('*')
+        .limit(500);
+      
+      if (tableError) {
+        console.error('❌ Direct query also failed:', tableError);
+        throw tableError;
+      }
+      
+      creators = tableCreators || [];
+      console.log('✅ Fetched creators via direct query:', creators.length);
+    }
+  } catch (error) {
     console.error('Error fetching creators from Supabase:', error);
     throw error;
   }

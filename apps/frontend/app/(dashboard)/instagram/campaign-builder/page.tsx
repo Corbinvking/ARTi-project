@@ -149,8 +149,34 @@ export default function InstagramCampaignBuilderPage() {
         console.log('🔄 Generating campaign with fresh creator data...');
         
         // Always fetch from Supabase for campaign generation
-        const freshCreators = await getSupabaseCreators();
-        console.log(`📊 Using ${freshCreators.length} creators for campaign generation`);
+        let freshCreators: Creator[] = [];
+        try {
+          freshCreators = await getSupabaseCreators();
+          console.log(`📊 Using ${freshCreators.length} creators from Supabase`);
+        } catch (supabaseError: any) {
+          console.error('❌ Supabase error:', supabaseError);
+          // Fallback to localStorage creators
+          freshCreators = creators;
+          console.log(`📊 Fallback: Using ${freshCreators.length} creators from local state`);
+          
+          if (freshCreators.length === 0) {
+            toast({
+              title: "No Creators Available",
+              description: "No creators found in database. Please add creators first.",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+        
+        if (freshCreators.length === 0) {
+          toast({
+            title: "No Creators Available",
+            description: "No creators found in database. Please add creators to run a campaign.",
+            variant: "destructive",
+          });
+          return;
+        }
         
         const results = generateCampaign(formData, freshCreators);
         
@@ -169,11 +195,11 @@ export default function InstagramCampaignBuilderPage() {
         
         setCampaignResults(results);
         setStep(2);
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Error generating campaign:', error);
         toast({
           title: "Campaign Generation Failed",
-          description: "Check console for details. Ensure creators have valid rates and data.",
+          description: error?.message || "Check console for details. Ensure creators have valid rates and data.",
           variant: "destructive",
         });
       }
