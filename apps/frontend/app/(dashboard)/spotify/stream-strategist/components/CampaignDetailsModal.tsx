@@ -768,11 +768,21 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       return total + (allocatedStreams * costPerStream);
     }, 0) || 0;
     
-    // Determine payment status based on performance data
+    // Determine payment status - check both performance data AND spotify_campaigns.paid_vendor
     const hasUnpaidAllocations = vendorGroup.vendorPerformance?.playlists?.some(p => 
       p.payment_status !== 'paid'
-    ) ?? true;
-    vendorGroup.paymentStatus = hasUnpaidAllocations ? 'Unpaid' : 'Paid';
+    );
+    
+    // Check if songs have paid_vendor set to 'true' (fallback when no performance data)
+    const allSongsPaidVendor = campaignData?.songs?.length > 0 && 
+      campaignData.songs.every((song: any) => song.paid_vendor === 'true');
+    
+    // If performance data exists, use it; otherwise check paid_vendor on songs
+    if (vendorGroup.vendorPerformance?.playlists?.length > 0) {
+      vendorGroup.paymentStatus = hasUnpaidAllocations ? 'Unpaid' : 'Paid';
+    } else {
+      vendorGroup.paymentStatus = allSongsPaidVendor ? 'Paid' : 'Unpaid';
+    }
   });
 
   const toggleVendor = (vendorId: string) => {
@@ -821,24 +831,35 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       // If no rows were updated, try updating spotify_campaigns.paid_vendor instead
       if (!updatedRows || updatedRows.length === 0) {
         console.log('💰 [MarkPaid] No allocations found, trying spotify_campaigns...');
-        const { error: spotifyError } = await supabase
+        const { data: updatedSongs, error: spotifyError } = await supabase
           .from('spotify_campaigns')
           .update({ paid_vendor: 'true' })
-          .eq('campaign_group_id', campaignId);
+          .eq('campaign_group_id', campaignId)
+          .select();
         
         if (spotifyError) {
           console.error('💰 [MarkPaid] spotify_campaigns update failed:', spotifyError);
-        } else {
-          console.log('💰 [MarkPaid] Updated spotify_campaigns.paid_vendor');
+          throw spotifyError;
+        }
+        
+        console.log('💰 [MarkPaid] Updated spotify_campaigns.paid_vendor for', updatedSongs?.length || 0, 'songs');
+        
+        if (!updatedSongs || updatedSongs.length === 0) {
+          throw new Error('No spotify_campaigns found for this campaign');
         }
       }
+      
+      // Invalidate relevant queries to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-payouts'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-campaigns'] });
       
       // Refresh campaign details to show updated payment status
       await fetchCampaignDetails();
       
       toast({
         title: "Payment Marked as Paid",
-        description: `Payment of $${amount.toFixed(2)} to ${vendorName} has been marked as paid`,
+        description: `Payment of $${amount.toFixed(2)} to ${vendorName} has been marked as paid.`,
       });
     } catch (error) {
       console.error('Failed to mark payment as paid:', error);
