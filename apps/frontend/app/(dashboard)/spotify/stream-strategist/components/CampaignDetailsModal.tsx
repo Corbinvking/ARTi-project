@@ -117,7 +117,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const { data: overallPerformance } = useCampaignOverallPerformance(campaign?.id);
   
   // Fetch campaign playlists (real scraped data) - separated into vendor and algorithmic
-  const { data: campaignPlaylistsData = { vendor: [], algorithmic: [] }, isLoading: playlistsLoading } = useQuery({
+  const { data: campaignPlaylistsData = { vendor: [], algorithmic: [], unassigned: [] }, isLoading: playlistsLoading } = useQuery({
     queryKey: ['campaign-playlists', campaign?.id],
     queryFn: async () => {
       if (!campaign?.id) {
@@ -167,36 +167,38 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         return { vendor: [], algorithmic: [] };
       }
       
-      // Separate vendor playlists from algorithmic playlists
-      // Algorithmic = is_algorithmic is true AND playlist_curator is 'Spotify' AND no vendor_id
+      // Separate playlists into three categories:
+      // 1. Algorithmic = is_algorithmic is true AND playlist_curator is 'Spotify' AND no vendor_id
       const algorithmicPlaylists = (data || []).filter((p: any) => 
         p.is_algorithmic === true && 
         !p.vendor_id && 
         (p.playlist_curator?.toLowerCase() === 'spotify' || !p.playlist_curator)
       );
       
-      // Vendor playlists = everything else (has vendor_id OR is_algorithmic is false)
-      const vendorPlaylists = (data || []).filter((p: any) => 
-        !p.is_algorithmic || 
-        p.vendor_id || 
-        (p.playlist_curator && p.playlist_curator.toLowerCase() !== 'spotify')
+      // 2. Vendor playlists = has an actual vendor_id assigned
+      const vendorPlaylists = (data || []).filter((p: any) => !!p.vendor_id);
+      
+      // 3. Unassigned playlists = no vendor_id AND not algorithmic
+      const unassignedPlaylists = (data || []).filter((p: any) => 
+        !p.vendor_id && !p.is_algorithmic
       );
       
-      console.log('✅ Found playlists - Vendor:', vendorPlaylists.length, 'Algorithmic:', algorithmicPlaylists.length);
+      console.log('✅ Found playlists - Vendor:', vendorPlaylists.length, 'Algorithmic:', algorithmicPlaylists.length, 'Unassigned:', unassignedPlaylists.length);
       
-      // Debug: Log algorithmic playlists to verify they're all Spotify official
-      if (algorithmicPlaylists.length > 0) {
-        console.log('🔍 Algorithmic playlists (Spotify only):', algorithmicPlaylists.map((p: any) => ({
+      // Debug: Log unassigned playlists that need vendor assignment
+      if (unassignedPlaylists.length > 0) {
+        console.log('⚠️ Unassigned playlists (need vendor):', unassignedPlaylists.map((p: any) => ({
+          id: p.id,
           name: p.playlist_name,
           curator: p.playlist_curator,
-          is_algorithmic: p.is_algorithmic,
-          vendor_id: p.vendor_id
+          streams_28d: p.streams_28d
         })));
       }
       
       return {
         vendor: vendorPlaylists,
-        algorithmic: algorithmicPlaylists
+        algorithmic: algorithmicPlaylists,
+        unassigned: unassignedPlaylists
       };
     },
     enabled: !!campaign?.id && open
@@ -205,6 +207,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   // Extract for easier access
   const campaignPlaylists = campaignPlaylistsData.vendor || [];
   const algorithmicPlaylists = campaignPlaylistsData.algorithmic || [];
+  const unassignedPlaylists = campaignPlaylistsData.unassigned || [];
   
   const canEditCampaign = hasRole('admin') || hasRole('manager');
 
@@ -620,10 +623,13 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   };
 
   // Group playlists by vendor ID with performance data
-  // Use campaignPlaylistsData.vendor which has proper vendor relationships from DB
+  // Use campaignPlaylistsData.vendor which now ONLY includes playlists with vendor_id
   const playlistsForPayments = campaignPlaylistsData?.vendor || [];
   const groupedPlaylists = playlistsForPayments.reduce((acc, playlist, idx) => {
-    const vendorId = playlist.vendor_id || 'unknown';
+    // vendor_id is now guaranteed to exist since we filter for it
+    const vendorId = playlist.vendor_id;
+    if (!vendorId) return acc; // Skip if somehow null (shouldn't happen with new filter)
+    
     // Access vendor name from the vendors join (not vendor_name)
     const vendorName = playlist.vendors?.name || playlist.vendor_name || 'Unknown Vendor';
     
@@ -1323,6 +1329,89 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     </Table>
                   </div>
                 </div>
+
+                {/* Unassigned Playlists Section */}
+                {unassignedPlaylists.length > 0 && (
+                  <div className="space-y-4 mt-6">
+                    <div className="flex items-center gap-2 pb-2 border-b border-orange-300 dark:border-orange-700">
+                      <AlertCircle className="h-5 w-5 text-orange-500" />
+                      <h3 className="text-lg font-semibold text-orange-700 dark:text-orange-400">Unassigned Playlists</h3>
+                      <Badge variant="outline" className="border-orange-400 text-orange-600">{unassignedPlaylists.length}</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      These playlists were found in your campaign but don't have a vendor assigned. Assign a vendor to enable payment tracking.
+                    </p>
+                    <div className="border rounded-lg overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-orange-50 dark:bg-orange-950">
+                            <TableHead>Playlist Name</TableHead>
+                            <TableHead>Curator</TableHead>
+                            <TableHead className="text-right">Streams (28d)</TableHead>
+                            <TableHead>Assign Vendor</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {unassignedPlaylists.map((playlist: any) => (
+                            <TableRow key={playlist.id}>
+                              <TableCell className="font-medium py-2">
+                                <div className="truncate text-sm max-w-[200px]" title={playlist.playlist_name}>
+                                  {playlist.playlist_name}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-muted-foreground text-sm py-2">
+                                {playlist.playlist_curator || '—'}
+                              </TableCell>
+                              <TableCell className="text-right font-mono text-sm py-2">
+                                {(playlist.streams_28d || 0).toLocaleString()}
+                              </TableCell>
+                              <TableCell className="py-2">
+                                <Select
+                                  onValueChange={async (vendorId) => {
+                                    try {
+                                      const { error } = await supabase
+                                        .from('campaign_playlists')
+                                        .update({ vendor_id: vendorId })
+                                        .eq('id', playlist.id);
+                                      
+                                      if (error) throw error;
+                                      
+                                      // Refetch playlists data
+                                      queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
+                                      
+                                      toast({
+                                        title: "Vendor Assigned",
+                                        description: `Playlist "${playlist.playlist_name}" assigned to vendor successfully.`,
+                                      });
+                                    } catch (error) {
+                                      console.error('Failed to assign vendor:', error);
+                                      toast({
+                                        title: "Error",
+                                        description: "Failed to assign vendor. Please try again.",
+                                        variant: "destructive"
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select vendor..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {Object.values(vendorData).map((vendor: any) => (
+                                      <SelectItem key={vendor.id} value={vendor.id}>
+                                        {vendor.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
 
                 {/* Vendor Performance Breakdown */}
                 <div className="space-y-4">
