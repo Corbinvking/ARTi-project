@@ -40,7 +40,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle } from 'lucide-react';
+import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle, Loader2, Sparkles, Zap } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import { PlaylistSelector } from './PlaylistSelector';
@@ -211,6 +211,84 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const campaignPlaylists = campaignPlaylistsData.vendor || [];
   const algorithmicPlaylists = campaignPlaylistsData.algorithmic || [];
   const unassignedPlaylists = campaignPlaylistsData.unassigned || [];
+  
+  // Fetch all vendor playlists for name matching
+  const { data: vendorPlaylistsForMatching = [] } = useQuery({
+    queryKey: ['vendor-playlists-for-matching'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('playlists')
+        .select('id, name, vendor_id, vendors(id, name)')
+        .not('vendor_id', 'is', null);
+      return data || [];
+    },
+    enabled: open && unassignedPlaylists.length > 0
+  });
+  
+  // Function to find matching vendor by playlist name (case-insensitive)
+  const findMatchingVendor = (playlistName: string): { vendorId: string; vendorName: string; playlistId: string } | null => {
+    if (!playlistName) return null;
+    const normalizedName = playlistName.toLowerCase().trim();
+    const match = vendorPlaylistsForMatching.find(
+      (p: any) => p.name?.toLowerCase().trim() === normalizedName
+    );
+    if (match) {
+      return {
+        vendorId: match.vendor_id,
+        vendorName: (match.vendors as any)?.name || 'Unknown Vendor',
+        playlistId: match.id
+      };
+    }
+    return null;
+  };
+  
+  // Get all unassigned playlists with their matching status
+  const unassignedWithMatches = unassignedPlaylists.map((playlist: any) => {
+    const match = findMatchingVendor(playlist.playlist_name);
+    return { ...playlist, suggestedMatch: match };
+  });
+  
+  // Count matches found
+  const matchesFound = unassignedWithMatches.filter((p: any) => p.suggestedMatch).length;
+  
+  // State for bulk assign loading
+  const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+  
+  // Auto-assign all matched playlists
+  const handleAutoAssignAll = async () => {
+    const playlistsWithMatches = unassignedWithMatches.filter((p: any) => p.suggestedMatch);
+    if (playlistsWithMatches.length === 0) return;
+    
+    setIsAutoAssigning(true);
+    try {
+      let successCount = 0;
+      for (const playlist of playlistsWithMatches) {
+        const { error } = await supabase
+          .from('campaign_playlists')
+          .update({ vendor_id: playlist.suggestedMatch.vendorId })
+          .eq('id', playlist.id);
+        
+        if (!error) successCount++;
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-campaigns'] });
+      
+      toast({
+        title: "Auto-Assign Complete",
+        description: `Successfully assigned ${successCount} of ${playlistsWithMatches.length} playlists to their matching vendors.`,
+      });
+    } catch (error: any) {
+      console.error('Auto-assign error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to auto-assign some playlists.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAutoAssigning(false);
+    }
+  };
   
   const canEditCampaign = hasRole('admin') || hasRole('manager');
 
@@ -1337,13 +1415,44 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                 {/* Unassigned Playlists Section */}
                 {unassignedPlaylists.length > 0 && (
                   <div className="space-y-4 mt-6">
-                    <div className="flex items-center gap-2 pb-2 border-b border-orange-300 dark:border-orange-700">
-                      <AlertCircle className="h-5 w-5 text-orange-500" />
-                      <h3 className="text-lg font-semibold text-orange-700 dark:text-orange-400">Unassigned Playlists</h3>
-                      <Badge variant="outline" className="border-orange-400 text-orange-600">{unassignedPlaylists.length}</Badge>
+                    <div className="flex items-center justify-between pb-2 border-b border-orange-300 dark:border-orange-700">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-5 w-5 text-orange-500" />
+                        <h3 className="text-lg font-semibold text-orange-700 dark:text-orange-400">Unassigned Playlists</h3>
+                        <Badge variant="outline" className="border-orange-400 text-orange-600">{unassignedPlaylists.length}</Badge>
+                        {matchesFound > 0 && (
+                          <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 ml-2">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            {matchesFound} match{matchesFound > 1 ? 'es' : ''} found
+                          </Badge>
+                        )}
+                      </div>
+                      {matchesFound > 0 && (
+                        <Button
+                          size="sm"
+                          onClick={handleAutoAssignAll}
+                          disabled={isAutoAssigning}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          {isAutoAssigning ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Assigning...
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="h-4 w-4 mr-2" />
+                              Auto-Assign All ({matchesFound})
+                            </>
+                          )}
+                        </Button>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      These playlists were found in your campaign but don't have a vendor assigned. Assign a vendor to enable payment tracking.
+                      These playlists were found in your campaign but don't have a vendor assigned. 
+                      {matchesFound > 0 && (
+                        <span className="text-green-600 dark:text-green-400 font-medium"> We found {matchesFound} playlist{matchesFound > 1 ? 's' : ''} matching your vendor database.</span>
+                      )}
                     </p>
                     <div className="border rounded-lg overflow-hidden">
                       <Table>
@@ -1356,61 +1465,159 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {unassignedPlaylists.map((playlist: any) => (
-                            <TableRow key={playlist.id}>
-                              <TableCell className="font-medium py-2">
-                                <div className="truncate text-sm max-w-[200px]" title={playlist.playlist_name}>
-                                  {playlist.playlist_name}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-muted-foreground text-sm py-2">
-                                {playlist.playlist_curator || '—'}
-                              </TableCell>
-                              <TableCell className="text-right font-mono text-sm py-2">
-                                {(playlist.streams_28d || 0).toLocaleString()}
-                              </TableCell>
-                              <TableCell className="py-2">
-                                <Select
-                                  onValueChange={async (vendorId) => {
-                                    try {
-                                      const { error } = await supabase
-                                        .from('campaign_playlists')
-                                        .update({ vendor_id: vendorId })
-                                        .eq('id', playlist.id);
-                                      
-                                      if (error) throw error;
-                                      
-                                      // Refetch playlists data
-                                      queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
-                                      
-                                      toast({
-                                        title: "Vendor Assigned",
-                                        description: `Playlist "${playlist.playlist_name}" assigned to vendor successfully.`,
-                                      });
-                                    } catch (error) {
-                                      console.error('Failed to assign vendor:', error);
-                                      toast({
-                                        title: "Error",
-                                        description: "Failed to assign vendor. Please try again.",
-                                        variant: "destructive"
-                                      });
-                                    }
-                                  }}
-                                >
-                                  <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Select vendor..." />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {Object.values(vendorData).map((vendor: any) => (
-                                      <SelectItem key={vendor.id} value={vendor.id}>
-                                        {vendor.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {unassignedWithMatches.map((playlist: any) => {
+                            const hasMatch = !!playlist.suggestedMatch;
+                            return (
+                              <TableRow 
+                                key={playlist.id}
+                                className={hasMatch ? 'bg-green-50 dark:bg-green-950/30' : ''}
+                              >
+                                <TableCell className="font-medium py-2">
+                                  <div className="flex items-center gap-2">
+                                    {hasMatch && (
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger>
+                                            <Sparkles className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Match found: {playlist.suggestedMatch.vendorName}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    )}
+                                    <div className="truncate text-sm max-w-[180px]" title={playlist.playlist_name}>
+                                      {playlist.playlist_name}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-muted-foreground text-sm py-2">
+                                  {playlist.playlist_curator || '—'}
+                                </TableCell>
+                                <TableCell className="text-right font-mono text-sm py-2">
+                                  {(playlist.streams_28d || 0).toLocaleString()}
+                                </TableCell>
+                                <TableCell className="py-2">
+                                  {hasMatch ? (
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                                        {playlist.suggestedMatch.vendorName}
+                                      </Badge>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 px-2 text-green-600 hover:text-green-700 hover:bg-green-100"
+                                        onClick={async () => {
+                                          try {
+                                            const { error } = await supabase
+                                              .from('campaign_playlists')
+                                              .update({ vendor_id: playlist.suggestedMatch.vendorId })
+                                              .eq('id', playlist.id);
+                                            
+                                            if (error) throw error;
+                                            
+                                            queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
+                                            queryClient.invalidateQueries({ queryKey: ['vendor-campaigns'] });
+                                            
+                                            toast({
+                                              title: "Vendor Assigned",
+                                              description: `"${playlist.playlist_name}" assigned to ${playlist.suggestedMatch.vendorName}.`,
+                                            });
+                                          } catch (error) {
+                                            console.error('Failed to assign vendor:', error);
+                                            toast({
+                                              title: "Error",
+                                              description: "Failed to assign vendor.",
+                                              variant: "destructive"
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        <CheckCircle className="h-4 w-4" />
+                                      </Button>
+                                      <Select
+                                        onValueChange={async (vendorId) => {
+                                          try {
+                                            const { error } = await supabase
+                                              .from('campaign_playlists')
+                                              .update({ vendor_id: vendorId })
+                                              .eq('id', playlist.id);
+                                            
+                                            if (error) throw error;
+                                            
+                                            queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
+                                            queryClient.invalidateQueries({ queryKey: ['vendor-campaigns'] });
+                                            
+                                            toast({
+                                              title: "Vendor Assigned",
+                                              description: `Playlist assigned to vendor successfully.`,
+                                            });
+                                          } catch (error) {
+                                            console.error('Failed to assign vendor:', error);
+                                            toast({
+                                              title: "Error",
+                                              description: "Failed to assign vendor.",
+                                              variant: "destructive"
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        <SelectTrigger className="w-[100px] h-7 text-xs">
+                                          <SelectValue placeholder="Other..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {Object.values(vendorData).map((vendor: any) => (
+                                            <SelectItem key={vendor.id} value={vendor.id}>
+                                              {vendor.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  ) : (
+                                    <Select
+                                      onValueChange={async (vendorId) => {
+                                        try {
+                                          const { error } = await supabase
+                                            .from('campaign_playlists')
+                                            .update({ vendor_id: vendorId })
+                                            .eq('id', playlist.id);
+                                          
+                                          if (error) throw error;
+                                          
+                                          queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
+                                          queryClient.invalidateQueries({ queryKey: ['vendor-campaigns'] });
+                                          
+                                          toast({
+                                            title: "Vendor Assigned",
+                                            description: `Playlist "${playlist.playlist_name}" assigned to vendor successfully.`,
+                                          });
+                                        } catch (error) {
+                                          console.error('Failed to assign vendor:', error);
+                                          toast({
+                                            title: "Error",
+                                            description: "Failed to assign vendor. Please try again.",
+                                            variant: "destructive"
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Select vendor..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {Object.values(vendorData).map((vendor: any) => (
+                                          <SelectItem key={vendor.id} value={vendor.id}>
+                                            {vendor.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </div>
