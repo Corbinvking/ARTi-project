@@ -329,12 +329,13 @@ export const useMarkPayoutPaid = () => {
         throw spotifyError;
       }
       
-      if (!updatedRows || updatedRows.length === 0) {
-        console.warn('💰 [MarkPaid] No rows matched campaign_group_id:', campaignId);
-        // Don't throw - just log. The campaign might not have a spotify_campaigns entry yet
+      let updateSucceeded = (updatedRows && updatedRows.length > 0);
+      
+      if (!updateSucceeded) {
+        console.warn('💰 [MarkPaid] No spotify_campaigns matched, trying invoice update...');
       }
 
-      // Also try to update/create invoice (but don't fail if RLS blocks it)
+      // Also try to update/create invoice
       try {
         const { data: existingInvoice } = await supabase
           .from('campaign_invoices')
@@ -342,8 +343,10 @@ export const useMarkPayoutPaid = () => {
           .eq('campaign_id', campaignId)
           .maybeSingle();
 
+        console.log('💰 [MarkPaid] Existing invoice:', existingInvoice);
+
         if (existingInvoice) {
-          await supabase
+          const { error: invoiceUpdateError } = await supabase
             .from('campaign_invoices')
             .update({
               status: markAsPaid ? 'paid' : 'pending',
@@ -351,8 +354,15 @@ export const useMarkPayoutPaid = () => {
               amount: amount
             })
             .eq('id', existingInvoice.id);
+          
+          if (!invoiceUpdateError) {
+            updateSucceeded = true;
+            console.log('💰 [MarkPaid] Invoice updated successfully');
+          } else {
+            console.error('💰 [MarkPaid] Invoice update error:', invoiceUpdateError);
+          }
         } else if (markAsPaid) {
-          await supabase
+          const { error: invoiceInsertError } = await supabase
             .from('campaign_invoices')
             .insert({
               campaign_id: campaignId,
@@ -361,10 +371,20 @@ export const useMarkPayoutPaid = () => {
               paid_date: new Date().toISOString().split('T')[0],
               invoice_number: `INV-${campaignId.substring(0, 8)}-${Date.now()}`
             });
+          
+          if (!invoiceInsertError) {
+            updateSucceeded = true;
+            console.log('💰 [MarkPaid] Invoice created successfully');
+          } else {
+            console.error('💰 [MarkPaid] Invoice insert error:', invoiceInsertError);
+          }
         }
       } catch (invoiceError) {
-        // Log but don't fail - invoice is optional, paid_vendor is the source of truth
-        console.warn('Invoice update failed (this is okay):', invoiceError);
+        console.error('💰 [MarkPaid] Invoice operation failed:', invoiceError);
+      }
+
+      if (!updateSucceeded) {
+        throw new Error(`No matching campaign found for ID: ${campaignId}. The campaign may not be linked to spotify_campaigns.`);
       }
 
       return { campaignId, markAsPaid };
