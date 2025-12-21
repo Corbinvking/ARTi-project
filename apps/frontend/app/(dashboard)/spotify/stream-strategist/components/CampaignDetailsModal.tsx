@@ -167,7 +167,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         return { vendor: [], algorithmic: [] };
       }
       
-      // Separate playlists into three categories:
+      // Separate playlists into categories:
       // 1. Algorithmic = is_algorithmic is true AND playlist_curator is 'Spotify' AND no vendor_id
       const algorithmicPlaylists = (data || []).filter((p: any) => 
         p.is_algorithmic === true && 
@@ -175,19 +175,22 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         (p.playlist_curator?.toLowerCase() === 'spotify' || !p.playlist_curator)
       );
       
-      // 2. Vendor playlists = has an actual vendor_id assigned
-      const vendorPlaylists = (data || []).filter((p: any) => !!p.vendor_id);
-      
-      // 3. Unassigned playlists = no vendor_id AND not algorithmic
-      const unassignedPlaylists = (data || []).filter((p: any) => 
-        !p.vendor_id && !p.is_algorithmic
+      // 2. Vendor playlists = ALL non-algorithmic playlists (for display and payment tracking)
+      // These include both assigned (has vendor_id) and unassigned (no vendor_id)
+      const vendorPlaylists = (data || []).filter((p: any) => 
+        !p.is_algorithmic || 
+        p.vendor_id || 
+        (p.playlist_curator && p.playlist_curator.toLowerCase() !== 'spotify')
       );
+      
+      // 3. Unassigned playlists = subset of vendor playlists that need vendor assignment
+      const unassignedPlaylists = vendorPlaylists.filter((p: any) => !p.vendor_id);
       
       console.log('✅ Found playlists - Vendor:', vendorPlaylists.length, 'Algorithmic:', algorithmicPlaylists.length, 'Unassigned:', unassignedPlaylists.length);
       
       // Debug: Log unassigned playlists that need vendor assignment
       if (unassignedPlaylists.length > 0) {
-        console.log('⚠️ Unassigned playlists (need vendor):', unassignedPlaylists.map((p: any) => ({
+        console.log('⚠️ Unassigned playlists (need vendor):', unassignedPlaylists.slice(0, 5).map((p: any) => ({
           id: p.id,
           name: p.playlist_name,
           curator: p.playlist_curator,
@@ -623,15 +626,16 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   };
 
   // Group playlists by vendor ID with performance data
-  // Use campaignPlaylistsData.vendor which now ONLY includes playlists with vendor_id
+  // Use campaignPlaylistsData.vendor which includes all non-algorithmic playlists
   const playlistsForPayments = campaignPlaylistsData?.vendor || [];
   const groupedPlaylists = playlistsForPayments.reduce((acc, playlist, idx) => {
-    // vendor_id is now guaranteed to exist since we filter for it
-    const vendorId = playlist.vendor_id;
-    if (!vendorId) return acc; // Skip if somehow null (shouldn't happen with new filter)
+    // Use 'unassigned' key for playlists without vendor_id
+    const vendorId = playlist.vendor_id || 'unassigned';
     
     // Access vendor name from the vendors join (not vendor_name)
-    const vendorName = playlist.vendors?.name || playlist.vendor_name || 'Unknown Vendor';
+    const vendorName = playlist.vendor_id 
+      ? (playlist.vendors?.name || playlist.vendor_name || 'Unknown Vendor')
+      : 'Unassigned';
     
     if (!acc[vendorId]) {
       // Get vendor notes from vendorResponses
@@ -701,12 +705,12 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   };
 
   const markVendorPaymentAsPaid = async (campaignId: string, vendorId: string, vendorName: string, amount: number) => {
-    // Validate vendorId is a valid UUID
-    if (!vendorId || vendorId === 'unknown' || vendorId.length !== 36) {
+    // Validate vendorId is a valid UUID (not 'unknown' or 'unassigned')
+    if (!vendorId || vendorId === 'unknown' || vendorId === 'unassigned' || vendorId.length !== 36) {
       console.error('Invalid vendor ID:', vendorId);
       toast({
         title: "Error",
-        description: "Cannot mark payment - vendor ID is invalid or unknown. Please assign a vendor first.",
+        description: "Cannot mark payment - vendor ID is invalid or unassigned. Please assign a vendor first.",
         variant: "destructive"
       });
       return;
@@ -1754,11 +1758,11 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           </div>
                         </div>
 
-                        {vendorData.paymentStatus !== 'Paid' && canEditCampaign && vendorId !== 'unknown' && (
+                        {vendorData.paymentStatus !== 'Paid' && canEditCampaign && vendorId !== 'unknown' && vendorId !== 'unassigned' && (
                           <div className="flex items-center gap-4 pt-4 border-t">
                             <Button
                               onClick={() => markVendorPaymentAsPaid(campaignData?.id, vendorId, vendorData.vendorName, vendorData.totalPayment)}
-                              disabled={markingPaid[`${campaignData?.id}-${vendorId}`] || vendorId === 'unknown'}
+                              disabled={markingPaid[`${campaignData?.id}-${vendorId}`] || vendorId === 'unknown' || vendorId === 'unassigned'}
                               className="flex items-center gap-2"
                             >
                               {markingPaid[`${campaignData?.id}-${vendorId}`] ? (
