@@ -32,23 +32,74 @@ export default function InstagramCampaignsPage() {
   const { toast } = useToast();
   const { updateCampaign, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
 
-  // Fetch campaigns from Supabase
+  // Fetch campaigns from Supabase with calculated spend from campaign_creators
   const { data: campaigns = [], isLoading } = useQuery({
     queryKey: ['instagram-campaigns'],
     queryFn: async () => {
       console.log('📡 Fetching Instagram campaigns...');
-      const { data, error } = await supabase
+      
+      // Fetch campaigns
+      const { data: campaignsData, error: campaignsError } = await supabase
         .from('instagram_campaigns')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error('❌ Error fetching campaigns:', error);
-        throw error;
+      if (campaignsError) {
+        console.error('❌ Error fetching campaigns:', campaignsError);
+        throw campaignsError;
       }
       
-      console.log(`✅ Fetched ${data?.length || 0} campaigns:`, data?.[0]);
-      return data || [];
+      // Fetch all campaign creators with payment status
+      const { data: creatorsData, error: creatorsError } = await supabase
+        .from('campaign_creators')
+        .select('campaign_id, rate, posts_count, payment_status');
+      
+      if (creatorsError) {
+        console.warn('⚠️ Could not fetch campaign_creators:', creatorsError);
+      }
+      
+      // Calculate spend and remaining for each campaign
+      const campaignsWithCalculatedSpend = (campaignsData || []).map(campaign => {
+        // Get creators for this campaign
+        const campaignCreators = (creatorsData || []).filter(
+          (c: any) => c.campaign_id === campaign.id
+        );
+        
+        // Calculate total paid (sum of rate * posts_count for paid creators)
+        const paidAmount = campaignCreators
+          .filter((c: any) => c.payment_status === 'paid')
+          .reduce((sum: number, c: any) => sum + ((c.rate || 0) * (c.posts_count || 1)), 0);
+        
+        // Calculate total committed (all creators, regardless of payment status)
+        const totalCommitted = campaignCreators
+          .reduce((sum: number, c: any) => sum + ((c.rate || 0) * (c.posts_count || 1)), 0);
+        
+        // Parse budget from price field
+        const budgetNum = parseFloat(campaign.price?.replace(/[^0-9.]/g, '') || '0');
+        
+        // Calculate remaining: budget - total committed
+        const calculatedRemaining = Math.max(0, budgetNum - totalCommitted);
+        
+        // Use calculated values if we have creator data, otherwise use stored values
+        const hasCreatorData = campaignCreators.length > 0;
+        
+        return {
+          ...campaign,
+          // Calculated spend (what's been paid to creators)
+          calculated_spend: paidAmount,
+          calculated_committed: totalCommitted,
+          calculated_remaining: calculatedRemaining,
+          // Override display values if we have creator data
+          spend: hasCreatorData ? `$${paidAmount.toFixed(2)}` : campaign.spend,
+          remaining: hasCreatorData ? `$${calculatedRemaining.toFixed(2)}` : campaign.remaining,
+          // Add creator counts for display
+          creator_count: campaignCreators.length,
+          paid_creator_count: campaignCreators.filter((c: any) => c.payment_status === 'paid').length,
+        };
+      });
+      
+      console.log(`✅ Fetched ${campaignsWithCalculatedSpend?.length || 0} campaigns with calculated spend`);
+      return campaignsWithCalculatedSpend;
     }
   });
 
@@ -163,14 +214,20 @@ export default function InstagramCampaignsPage() {
       const price = parseFloat(c.price?.replace(/[^0-9.]/g, '') || '0');
       return sum + price;
     }, 0),
+    // Use calculated spend from creator payments when available
     totalSpend: campaigns.reduce((sum: number, c: any) => {
-      const spend = parseFloat(c.spend?.replace(/[^0-9.]/g, '') || '0');
-      return sum + spend;
+      return sum + (c.calculated_spend || parseFloat(c.spend?.replace(/[^0-9.]/g, '') || '0'));
     }, 0),
+    // Use calculated remaining when available
     totalRemaining: campaigns.reduce((sum: number, c: any) => {
-      const remaining = parseFloat(c.remaining?.replace(/[^0-9.]/g, '') || '0');
-      return sum + remaining;
+      return sum + (c.calculated_remaining ?? parseFloat(c.remaining?.replace(/[^0-9.]/g, '') || '0'));
     }, 0),
+    // Total committed to creators (regardless of payment status)
+    totalCommitted: campaigns.reduce((sum: number, c: any) => {
+      return sum + (c.calculated_committed || 0);
+    }, 0),
+    // Total creators across all campaigns
+    totalCreators: campaigns.reduce((sum: number, c: any) => sum + (c.creator_count || 0), 0),
   };
 
   // Calculate completion rate
@@ -442,11 +499,13 @@ export default function InstagramCampaignsPage() {
               </TableHeader>
               <TableBody>
                 {filteredCampaigns.map((campaign: any) => {
-                  // Calculate budget progress
+                  // Calculate budget progress using calculated values when available
                   const priceNum = parseFloat(campaign.price?.replace(/[^0-9.]/g, '') || '0');
-                  const spendNum = parseFloat(campaign.spend?.replace(/[^0-9.]/g, '') || '0');
-                  const remainingNum = parseFloat(campaign.remaining?.replace(/[^0-9.]/g, '') || '0');
-                  const progressPercent = priceNum > 0 ? (spendNum / priceNum) * 100 : 0;
+                  const spendNum = campaign.calculated_spend ?? parseFloat(campaign.spend?.replace(/[^0-9.]/g, '') || '0');
+                  const committedNum = campaign.calculated_committed ?? spendNum;
+                  const remainingNum = campaign.calculated_remaining ?? parseFloat(campaign.remaining?.replace(/[^0-9.]/g, '') || '0');
+                  // Progress shows committed amount (what's been allocated to creators)
+                  const progressPercent = priceNum > 0 ? (committedNum / priceNum) * 100 : 0;
                   
                   return (
                     <TableRow
