@@ -695,12 +695,25 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   };
 
   const markVendorPaymentAsPaid = async (campaignId: string, vendorId: string, vendorName: string, amount: number) => {
+    // Validate vendorId is a valid UUID
+    if (!vendorId || vendorId === 'unknown' || vendorId.length !== 36) {
+      console.error('Invalid vendor ID:', vendorId);
+      toast({
+        title: "Error",
+        description: "Cannot mark payment - vendor ID is invalid or unknown. Please assign a vendor first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const paymentKey = `${campaignId}-${vendorId}`;
     setMarkingPaid(prev => ({ ...prev, [paymentKey]: true }));
     
     try {
+      console.log('💰 [MarkPaid] Updating payment:', { campaignId, vendorId, vendorName, amount });
+      
       // Update campaign_allocations_performance for this vendor
-      const { error } = await supabase
+      const { data: updatedRows, error } = await supabase
         .from('campaign_allocations_performance')
         .update({
           payment_status: 'paid',
@@ -710,9 +723,27 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
           updated_at: new Date().toISOString()
         })
         .eq('campaign_id', campaignId)
-        .eq('vendor_id', vendorId);
+        .eq('vendor_id', vendorId)
+        .select();
+
+      console.log('💰 [MarkPaid] Update result:', { updatedRows: updatedRows?.length, error });
 
       if (error) throw error;
+      
+      // If no rows were updated, try updating spotify_campaigns.paid_vendor instead
+      if (!updatedRows || updatedRows.length === 0) {
+        console.log('💰 [MarkPaid] No allocations found, trying spotify_campaigns...');
+        const { error: spotifyError } = await supabase
+          .from('spotify_campaigns')
+          .update({ paid_vendor: 'true' })
+          .eq('campaign_group_id', campaignId);
+        
+        if (spotifyError) {
+          console.error('💰 [MarkPaid] spotify_campaigns update failed:', spotifyError);
+        } else {
+          console.log('💰 [MarkPaid] Updated spotify_campaigns.paid_vendor');
+        }
+      }
       
       // Refresh campaign details to show updated payment status
       await fetchCampaignDetails();
@@ -1634,11 +1665,11 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           </div>
                         </div>
 
-                        {vendorData.paymentStatus !== 'Paid' && canEditCampaign && (
+                        {vendorData.paymentStatus !== 'Paid' && canEditCampaign && vendorId !== 'unknown' && (
                           <div className="flex items-center gap-4 pt-4 border-t">
                             <Button
                               onClick={() => markVendorPaymentAsPaid(campaignData?.id, vendorId, vendorData.vendorName, vendorData.totalPayment)}
-                              disabled={markingPaid[`${campaignData?.id}-${vendorId}`]}
+                              disabled={markingPaid[`${campaignData?.id}-${vendorId}`] || vendorId === 'unknown'}
                               className="flex items-center gap-2"
                             >
                               {markingPaid[`${campaignData?.id}-${vendorId}`] ? (
