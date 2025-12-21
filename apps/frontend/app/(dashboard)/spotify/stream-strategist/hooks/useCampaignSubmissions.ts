@@ -311,8 +311,8 @@ export function useApproveCampaignSubmission() {
         .from('campaign_submissions')
         .update({ 
           status: 'approved',
-          approved_at: new Date().toISOString(),
-          approved_by: 'admin' // Could be enhanced with actual user info
+          approved_at: new Date().toISOString()
+          // Note: approved_by requires a UUID, would need user context to set properly
         })
         .eq('id', submissionId);
 
