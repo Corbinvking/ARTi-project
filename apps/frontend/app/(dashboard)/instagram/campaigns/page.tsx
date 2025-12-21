@@ -28,6 +28,7 @@ export default function InstagramCampaignsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [copiedLink, setCopiedLink] = useState(false);
   const [isScrapingCampaign, setIsScrapingCampaign] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
   const { toast } = useToast();
   const { updateCampaign, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
@@ -235,17 +236,94 @@ export default function InstagramCampaignsPage() {
     ? ((kpis.totalSpend / kpis.totalBudget) * 100).toFixed(1)
     : '0';
 
+  // Handle column sort
+  const handleSort = (key: string) => {
+    setSortConfig(current => {
+      if (current?.key === key) {
+        // Toggle direction or clear if already desc
+        if (current.direction === 'asc') {
+          return { key, direction: 'desc' };
+        } else {
+          return null; // Clear sort
+        }
+      }
+      return { key, direction: 'asc' };
+    });
+  };
+
+  // Get sort indicator for column
+  const getSortIndicator = (key: string) => {
+    if (sortConfig?.key !== key) return null;
+    return sortConfig.direction === 'asc' ? '↑' : '↓';
+  };
+
   // Filter campaigns based on search and status
-  const filteredCampaigns = campaigns.filter((campaign: any) => {
-    const matchesSearch = 
-      campaign.campaign?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.clients?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.salespeople?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || campaign.status?.toLowerCase() === statusFilter.toLowerCase();
-    
-    return matchesSearch && matchesStatus;
-  });
+  const filteredCampaigns = campaigns
+    .filter((campaign: any) => {
+      const matchesSearch = 
+        campaign.campaign?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        campaign.clients?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        campaign.salespeople?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || campaign.status?.toLowerCase() === statusFilter.toLowerCase();
+      
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a: any, b: any) => {
+      if (!sortConfig) return 0;
+      
+      const { key, direction } = sortConfig;
+      let aVal: any, bVal: any;
+      
+      switch (key) {
+        case 'campaign':
+          aVal = a.campaign?.toLowerCase() || '';
+          bVal = b.campaign?.toLowerCase() || '';
+          break;
+        case 'clients':
+          aVal = a.clients?.toLowerCase() || '';
+          bVal = b.clients?.toLowerCase() || '';
+          break;
+        case 'status':
+          aVal = a.status?.toLowerCase() || '';
+          bVal = b.status?.toLowerCase() || '';
+          break;
+        case 'progress':
+          const aPriceNum = parseFloat(a.price?.replace(/[^0-9.]/g, '') || '0');
+          const aCommitted = a.calculated_committed ?? parseFloat(a.spend?.replace(/[^0-9.]/g, '') || '0');
+          aVal = aPriceNum > 0 ? (aCommitted / aPriceNum) * 100 : 0;
+          const bPriceNum = parseFloat(b.price?.replace(/[^0-9.]/g, '') || '0');
+          const bCommitted = b.calculated_committed ?? parseFloat(b.spend?.replace(/[^0-9.]/g, '') || '0');
+          bVal = bPriceNum > 0 ? (bCommitted / bPriceNum) * 100 : 0;
+          break;
+        case 'budget':
+          aVal = parseFloat(a.price?.replace(/[^0-9.]/g, '') || '0');
+          bVal = parseFloat(b.price?.replace(/[^0-9.]/g, '') || '0');
+          break;
+        case 'spend':
+          aVal = a.calculated_spend ?? parseFloat(a.spend?.replace(/[^0-9.]/g, '') || '0');
+          bVal = b.calculated_spend ?? parseFloat(b.spend?.replace(/[^0-9.]/g, '') || '0');
+          break;
+        case 'remaining':
+          aVal = a.calculated_remaining ?? parseFloat(a.remaining?.replace(/[^0-9.]/g, '') || '0');
+          bVal = b.calculated_remaining ?? parseFloat(b.remaining?.replace(/[^0-9.]/g, '') || '0');
+          break;
+        case 'salespeople':
+          aVal = a.salespeople?.toLowerCase() || '';
+          bVal = b.salespeople?.toLowerCase() || '';
+          break;
+        case 'date':
+          aVal = a.start_date ? new Date(a.start_date).getTime() : 0;
+          bVal = b.start_date ? new Date(b.start_date).getTime() : 0;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
 
   return (
     <div className="container mx-auto p-6">
@@ -486,15 +564,78 @@ export default function InstagramCampaignsPage() {
             <Table className="table-fixed">
               <TableHeader>
                 <TableRow className="text-xs">
-                  <TableHead className="w-[16%] px-3">Campaign</TableHead>
-                  <TableHead className="w-[10%] px-2">Client</TableHead>
-                  <TableHead className="w-[9%] px-2">Status</TableHead>
-                  <TableHead className="w-[18%] px-2">Progress</TableHead>
-                  <TableHead className="text-right w-[10%] px-2">Budget</TableHead>
-                  <TableHead className="text-right w-[10%] px-2">Spend</TableHead>
-                  <TableHead className="text-right w-[10%] px-2">Left</TableHead>
-                  <TableHead className="w-[9%] px-2">Sales</TableHead>
-                  <TableHead className="w-[8%] px-2">Date</TableHead>
+                  <TableHead 
+                    className="w-[16%] px-3 cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort('campaign')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Campaign {getSortIndicator('campaign')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="w-[10%] px-2 cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort('clients')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Client {getSortIndicator('clients')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="w-[9%] px-2 cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Status {getSortIndicator('status')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="w-[18%] px-2 cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort('progress')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Progress {getSortIndicator('progress')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-right w-[10%] px-2 cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort('budget')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Budget {getSortIndicator('budget')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-right w-[10%] px-2 cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort('spend')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Spend {getSortIndicator('spend')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-right w-[10%] px-2 cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort('remaining')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      Left {getSortIndicator('remaining')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="w-[9%] px-2 cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort('salespeople')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Sales {getSortIndicator('salespeople')}
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="w-[8%] px-2 cursor-pointer hover:bg-muted/50 select-none"
+                    onClick={() => handleSort('date')}
+                  >
+                    <div className="flex items-center gap-1">
+                      Date {getSortIndicator('date')}
+                    </div>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
