@@ -309,15 +309,29 @@ export const useMarkPayoutPaid = () => {
       amount: number;
       markAsPaid?: boolean;
     }) => {
+      console.log('💰 [MarkPaid] Starting mutation:', { campaignId, vendorId, amount, markAsPaid });
+      
       // Update spotify_campaigns.paid_vendor directly
-      const { error: spotifyError } = await supabase
+      const { data: updatedRows, error: spotifyError } = await supabase
         .from('spotify_campaigns')
         .update({ paid_vendor: markAsPaid ? 'true' : 'false' })
-        .eq('campaign_group_id', campaignId);
+        .eq('campaign_group_id', campaignId)
+        .select('id, campaign, campaign_group_id, paid_vendor');
+
+      console.log('💰 [MarkPaid] Update result:', { 
+        updatedRows: updatedRows?.length || 0, 
+        rowsData: updatedRows,
+        error: spotifyError 
+      });
 
       if (spotifyError) {
-        console.error('Failed to update spotify_campaigns:', spotifyError);
+        console.error('💰 [MarkPaid] Failed to update spotify_campaigns:', spotifyError);
         throw spotifyError;
+      }
+      
+      if (!updatedRows || updatedRows.length === 0) {
+        console.warn('💰 [MarkPaid] No rows matched campaign_group_id:', campaignId);
+        // Don't throw - just log. The campaign might not have a spotify_campaigns entry yet
       }
 
       // Also try to update/create invoice (but don't fail if RLS blocks it)
