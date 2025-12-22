@@ -56,10 +56,79 @@ import { UNIFIED_GENRES } from "../lib/constants";
 
 const popularGenres = UNIFIED_GENRES;
 
+// Genre mapping from Spotify's specific genres to our broader categories
+const GENRE_MAPPING: Record<string, string[]> = {
+  'phonk': ['phonk', 'drift phonk', 'brazilian phonk', 'dark phonk'],
+  'tech house': ['tech house', 'melodic house', 'deep tech'],
+  'techno': ['techno', 'dark techno', 'industrial techno', 'minimal techno', 'peak time techno', 'hard techno'],
+  'minimal': ['minimal', 'minimal house', 'minimal techno', 'microhouse'],
+  'house': ['house', 'deep house', 'future house', 'funky house', 'vocal house', 'uk house', 'chicago house', 'slap house', 'stutter house'],
+  'progressive house': ['progressive house', 'progressive electro house', 'progressive trance'],
+  'bass house': ['bass house', 'uk bass', 'bass music', 'wobble bass'],
+  'big room': ['big room', 'big room edm', 'mainstage'],
+  'afro house': ['afro house', 'afro tech', 'afro deep'],
+  'afrobeats': ['afrobeats', 'afropop', 'afroswing', 'amapiano', 'nigerian pop'],
+  'hardstyle': ['hardstyle', 'rawstyle', 'euphoric hardstyle', 'hardcore', 'happy hardcore'],
+  'dubstep': ['dubstep', 'brostep', 'riddim dubstep', 'melodic dubstep', 'chillstep', 'deathstep', 'tearout'],
+  'trap': ['trap', 'trap edm', 'festival trap', 'hybrid trap', 'trap latino', 'southern trap'],
+  'melodic bass': ['melodic bass', 'melodic dubstep', 'future bass', 'color bass', 'wave'],
+  'trance': ['trance', 'uplifting trance', 'vocal trance', 'psytrance', 'progressive trance', 'acid trance'],
+  'dance': ['dance', 'dance pop', 'edm', 'electro house', 'electronic', 'electronica'],
+  'pop': ['pop', 'dance pop', 'synth-pop', 'electropop', 'alt pop', 'indie pop', 'dream pop', 'k-pop', 'j-pop', 'pop rap', 'power pop', 'bedroom pop'],
+  'indie': ['indie', 'indie rock', 'indie pop', 'indie folk', 'indie electronic', 'indietronica'],
+  'alternative': ['alternative', 'alternative rock', 'alternative metal', 'alt z', 'alternative hip hop', 'alternative r&b'],
+  'rock': ['rock', 'classic rock', 'hard rock', 'soft rock', 'progressive rock', 'psychedelic rock', 'garage rock', 'post-rock', 'arena rock'],
+  'hip-hop': ['hip hop', 'hip-hop', 'rap', 'conscious hip hop', 'gangsta rap', 'underground hip hop', 'trap', 'boom bap', 'southern hip hop', 'west coast rap', 'east coast hip hop'],
+  'r&b': ['r&b', 'rnb', 'neo soul', 'soul', 'new jack swing', 'contemporary r&b', 'alternative r&b', 'urban contemporary'],
+  'country': ['country', 'modern country', 'country pop', 'country rock', 'americana', 'outlaw country', 'country rap'],
+  'jazz': ['jazz', 'smooth jazz', 'jazz fusion', 'contemporary jazz', 'vocal jazz', 'nu jazz', 'acid jazz'],
+  'folk': ['folk', 'indie folk', 'folk rock', 'contemporary folk', 'singer-songwriter', 'acoustic'],
+  'metal': ['metal', 'heavy metal', 'death metal', 'black metal', 'thrash metal', 'progressive metal', 'metalcore', 'deathcore', 'nu metal', 'power metal'],
+  'classical': ['classical', 'modern classical', 'contemporary classical', 'neo-classical', 'orchestral', 'chamber music'],
+  'reggae': ['reggae', 'reggaeton', 'dancehall', 'dub', 'roots reggae'],
+  'latin': ['latin', 'latin pop', 'reggaeton', 'bachata', 'salsa', 'cumbia', 'latin hip hop', 'urbano latino'],
+  'brazilian': ['brazilian', 'brazilian bass', 'sertanejo', 'mpb', 'funk carioca', 'bossa nova'],
+  'blues': ['blues', 'blues rock', 'electric blues', 'modern blues', 'delta blues'],
+  'punk': ['punk', 'punk rock', 'pop punk', 'post-punk', 'skate punk', 'hardcore punk'],
+  'chill': ['chill', 'chillout', 'chillwave', 'lo-fi', 'lofi beats', 'chillhop', 'downtempo', 'chill r&b'],
+  'ambient': ['ambient', 'dark ambient', 'ambient electronic', 'drone', 'space ambient'],
+  'experimental': ['experimental', 'experimental electronic', 'avant-garde', 'noise', 'glitch', 'art pop']
+};
+
+// Function to map Spotify genres to our unified categories
+const mapSpotifyGenresToUnified = (spotifyGenres: string[]): string[] => {
+  const matchedCategories = new Set<string>();
+  
+  for (const spotifyGenre of spotifyGenres) {
+    const lowerGenre = spotifyGenre.toLowerCase();
+    
+    // First, check for exact matches in UNIFIED_GENRES
+    if (popularGenres.some(g => g.toLowerCase() === lowerGenre)) {
+      matchedCategories.add(spotifyGenre.toLowerCase());
+      continue;
+    }
+    
+    // Then check our mapping
+    for (const [category, keywords] of Object.entries(GENRE_MAPPING)) {
+      if (keywords.some(keyword => 
+        lowerGenre.includes(keyword) || keyword.includes(lowerGenre)
+      )) {
+        matchedCategories.add(category);
+        break;
+      }
+    }
+  }
+  
+  // Return matched categories, limited to 3
+  return Array.from(matchedCategories).slice(0, 3);
+};
+
 export default function CampaignConfiguration({ onNext, onBack, initialData }: CampaignBuilderProps) {
   const [selectedGenres, setSelectedGenres] = useState<string[]>(
     initialData?.sub_genre ? initialData.sub_genre.split(', ') : []
   );
+  const [spotifyGenres, setSpotifyGenres] = useState<string[]>([]); // Raw genres from Spotify API
+  const [genresAutoDetected, setGenresAutoDetected] = useState(false);
   const [trackName, setTrackName] = useState(initialData?.track_name || "");
   const [selectedClientId, setSelectedClientId] = useState(initialData?.client_id || "");
   const [clientName, setClientName] = useState("");
@@ -378,21 +447,37 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
             setValue("track_name", result.data.name);
             setValue("name", campaignName); // Auto-populate campaign name
             
-            toast({
-              title: "Track loaded!",
-              description: `${campaignName}`,
-            });
+            // Store raw Spotify genres for display
+            const rawGenres = result.data.genres || [];
+            setSpotifyGenres(rawGenres);
             
             // Auto-select genres from Spotify data if available
-            if (result.data.genres && result.data.genres.length > 0) {
-              const spotifyGenres = result.data.genres.filter((genre: string) => 
-                popularGenres.includes(genre)
-              ).slice(0, 3);
+            if (rawGenres.length > 0) {
+              const mappedGenres = mapSpotifyGenresToUnified(rawGenres);
               
-              if (spotifyGenres.length > 0) {
-                setSelectedGenres(spotifyGenres);
-                setValue("sub_genre", spotifyGenres.join(', '));
+              if (mappedGenres.length > 0) {
+                setSelectedGenres(mappedGenres);
+                setValue("sub_genre", mappedGenres.join(', '));
+                setGenresAutoDetected(true);
+                
+                toast({
+                  title: "Track loaded with genres!",
+                  description: `${campaignName} • Auto-selected: ${mappedGenres.join(', ')}`,
+                });
+              } else {
+                // No genre mapping found, show raw Spotify genres for reference
+                setGenresAutoDetected(false);
+                toast({
+                  title: "Track loaded!",
+                  description: `${campaignName} • Please select genres manually (Spotify: ${rawGenres.slice(0, 3).join(', ')})`,
+                });
               }
+            } else {
+              setGenresAutoDetected(false);
+              toast({
+                title: "Track loaded!",
+                description: `${campaignName} • No genre data - please select manually`,
+              });
             }
           }
         }
@@ -682,18 +767,43 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                 <CardTitle className="flex items-center space-x-2">
                   <Sparkles className="w-5 h-5 text-accent" />
                   <span>Genre Selection (1-3 genres)</span>
+                  {genresAutoDetected && (
+                    <Badge variant="secondary" className="ml-2 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                      <Zap className="w-3 h-3 mr-1" />
+                      Auto-detected
+                    </Badge>
+                  )}
                 </CardTitle>
                 <CardDescription>
-                  Choose up to 3 genres for AI playlist matching
+                  {spotifyGenres.length > 0 
+                    ? `Spotify detected: ${spotifyGenres.slice(0, 5).join(', ')}${spotifyGenres.length > 5 ? '...' : ''}`
+                    : 'Choose up to 3 genres for AI playlist matching'
+                  }
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Spotify raw genres indicator when no mapping found */}
+                {spotifyGenres.length > 0 && !genresAutoDetected && selectedGenres.length === 0 && (
+                  <div className="p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                      <strong>Spotify genres:</strong> {spotifyGenres.join(', ')}
+                    </p>
+                    <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
+                      These specific genres couldn't be auto-matched. Please select the closest categories below.
+                    </p>
+                  </div>
+                )}
+                
                 <div className="flex flex-wrap gap-2">
                   {popularGenres.map((genre) => (
                     <button
                       key={genre}
                       type="button"
-                      onClick={() => toggleGenre(genre)}
+                      onClick={() => {
+                        toggleGenre(genre);
+                        // Clear auto-detected flag when user manually changes selection
+                        if (genresAutoDetected) setGenresAutoDetected(false);
+                      }}
                       className={`px-3 py-1 rounded-full text-sm transition-all hover:scale-105 ${
                         selectedGenres.includes(genre)
                           ? 'bg-primary text-primary-foreground shadow-neon'
