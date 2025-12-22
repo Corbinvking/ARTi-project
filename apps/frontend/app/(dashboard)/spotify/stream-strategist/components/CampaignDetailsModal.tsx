@@ -40,7 +40,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle, Loader2, Sparkles, Zap } from 'lucide-react';
+import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle, Loader2, Sparkles, Zap, TrendingUp, Target } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import { PlaylistSelector } from './PlaylistSelector';
@@ -1755,127 +1756,190 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                 </Card>
                 )}
 
-                {/* Engagement Metrics Card - Always show */}
+                {/* Stream Performance Card - Shows real data */}
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Music className="h-5 w-5" />
-                    Engagement Metrics
+                    <TrendingUp className="h-5 w-5" />
+                    Stream Performance Tracking
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Save Rate */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Save Rate</span>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs">Percentage of listeners who saved the track to their library</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-primary">
-                          {overallPerformance?.save_rate?.toFixed(1) || '0.0'}%
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {overallPerformance?.total_saves?.toLocaleString() || '0'} saves
-                        </Badge>
-                      </div>
-                      <Progress 
-                        value={Math.min(overallPerformance?.save_rate || 0, 100)} 
-                        className="h-2"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Industry avg: 2-4%
-                      </p>
-                    </div>
-
-                    {/* Listener Rate */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Listener Rate</span>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs">Unique listeners vs total streams ratio</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-primary">
-                          {overallPerformance?.listener_rate?.toFixed(1) || '0.0'}%
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {overallPerformance?.total_listeners?.toLocaleString() || '0'} listeners
-                        </Badge>
-                      </div>
-                      <Progress 
-                        value={Math.min(overallPerformance?.listener_rate || 0, 100)} 
-                        className="h-2"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Industry avg: 60-80%
-                      </p>
-                    </div>
-
-                    {/* Playlist Add Rate */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-muted-foreground">Playlist Add Rate</span>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs">Listeners who added track to their personal playlists</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-primary">
-                          {overallPerformance?.playlist_add_rate?.toFixed(1) || '0.0'}%
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {overallPerformance?.total_playlist_adds?.toLocaleString() || '0'} adds
-                        </Badge>
-                      </div>
-                      <Progress 
-                        value={Math.min(overallPerformance?.playlist_add_rate || 0, 100)} 
-                        className="h-2"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Industry avg: 1-3%
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Additional Context */}
-                  <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <BarChart3 className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm font-medium">Engagement Analysis</p>
-                        <p className="text-xs text-muted-foreground">
-                          {overallPerformance?.save_rate > 4 
-                            ? "🎉 Above average save rate indicates strong listener engagement!" 
-                            : overallPerformance?.save_rate > 2
-                            ? "✓ Save rate is within industry standards"
-                            : "💡 Consider targeting more engaged audiences to improve save rate"
-                          }
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  
+                  {/* Calculate stream metrics from actual data */}
+                  {(() => {
+                    // Calculate total streams from all playlists
+                    const totalStreams28d = campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0) +
+                                           algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0);
+                    const totalStreams7d = campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0) +
+                                          algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0);
+                    const totalStreams24h = campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0) +
+                                           algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0);
+                    
+                    const streamGoal = campaignData?.stream_goal || 0;
+                    const dailyRate = totalStreams7d > 0 ? Math.round(totalStreams7d / 7) : totalStreams24h;
+                    const progressPercent = streamGoal > 0 ? Math.min((totalStreams28d / streamGoal) * 100, 100) : 0;
+                    const remainingStreams = Math.max(0, streamGoal - totalStreams28d);
+                    const daysToGoal = dailyRate > 0 ? Math.ceil(remainingStreams / dailyRate) : 999;
+                    
+                    // Calculate required daily rate to hit goal
+                    const daysRemaining = campaignData?.end_date 
+                      ? Math.max(1, Math.ceil((new Date(campaignData.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+                      : 30;
+                    const requiredDailyRate = remainingStreams > 0 ? Math.ceil(remainingStreams / daysRemaining) : 0;
+                    const isOnTrack = dailyRate >= requiredDailyRate;
+                    
+                    // Generate chart data - project forward from current rate
+                    const chartData = [];
+                    let cumulativeStreams = totalStreams28d;
+                    for (let i = 0; i <= 30; i++) {
+                      const date = new Date();
+                      date.setDate(date.getDate() + i);
+                      chartData.push({
+                        day: i === 0 ? 'Today' : `Day ${i}`,
+                        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                        current: i === 0 ? totalStreams28d : Math.round(totalStreams28d + dailyRate * i),
+                        goal: streamGoal,
+                        projected: Math.round(totalStreams28d + dailyRate * i),
+                      });
+                    }
+                    
+                    return (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                          {/* Current Streams */}
+                          <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-muted-foreground">Total Streams (28d)</span>
+                              <Target className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="text-3xl font-bold text-primary">
+                              {totalStreams28d.toLocaleString()}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Goal: {streamGoal.toLocaleString()}
+                            </p>
+                          </div>
+                          
+                          {/* Daily Rate */}
+                          <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-muted-foreground">Daily Rate</span>
+                              <TrendingUp className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div className="text-3xl font-bold text-blue-600">
+                              {dailyRate.toLocaleString()}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Need: {requiredDailyRate.toLocaleString()}/day
+                            </p>
+                          </div>
+                          
+                          {/* Progress */}
+                          <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-muted-foreground">Progress</span>
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div className="text-3xl font-bold text-green-600">
+                              {progressPercent.toFixed(1)}%
+                            </div>
+                            <Progress value={progressPercent} className="h-2 mt-2" />
+                          </div>
+                          
+                          {/* Status */}
+                          <div className={`p-4 rounded-lg border ${
+                            isOnTrack 
+                              ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
+                              : 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800'
+                          }`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-muted-foreground">Status</span>
+                              {isOnTrack ? (
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              ) : (
+                                <AlertCircle className="h-4 w-4 text-orange-600" />
+                              )}
+                            </div>
+                            <div className={`text-xl font-bold ${isOnTrack ? 'text-green-600' : 'text-orange-600'}`}>
+                              {isOnTrack ? 'On Track' : 'Behind'}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {daysToGoal < 999 ? `~${daysToGoal} days to goal` : 'Need more streams'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Stream Progress Chart */}
+                        <div className="mt-4">
+                          <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                            <BarChart3 className="h-4 w-4" />
+                            30-Day Projection
+                          </h4>
+                          <div className="h-[200px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={chartData}>
+                                <defs>
+                                  <linearGradient id="streamGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                  </linearGradient>
+                                </defs>
+                                <XAxis 
+                                  dataKey="date" 
+                                  tick={{ fontSize: 10 }}
+                                  interval={5}
+                                />
+                                <YAxis 
+                                  tick={{ fontSize: 10 }}
+                                  tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
+                                />
+                                <RechartsTooltip 
+                                  formatter={(value: number) => [value.toLocaleString(), 'Streams']}
+                                  labelFormatter={(label) => label}
+                                />
+                                <ReferenceLine 
+                                  y={streamGoal} 
+                                  stroke="#22c55e" 
+                                  strokeDasharray="5 5"
+                                  label={{ value: 'Goal', position: 'right', fill: '#22c55e', fontSize: 10 }}
+                                />
+                                <Area
+                                  type="monotone"
+                                  dataKey="projected"
+                                  stroke="#3b82f6"
+                                  fill="url(#streamGradient)"
+                                  strokeWidth={2}
+                                  name="Projected"
+                                />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="flex justify-center gap-4 mt-2 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <div className="w-3 h-0.5 bg-blue-500 rounded" /> Projected at current rate
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <div className="w-3 h-0.5 bg-green-500 rounded" style={{ borderStyle: 'dashed' }} /> Goal: {streamGoal.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Analysis */}
+                        <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <BarChart3 className="h-5 w-5 text-muted-foreground mt-0.5" />
+                            <div className="flex-1 space-y-1">
+                              <p className="text-sm font-medium">Performance Analysis</p>
+                              <p className="text-xs text-muted-foreground">
+                                {isOnTrack 
+                                  ? `🎉 You're on track! At ${dailyRate.toLocaleString()} streams/day, you'll reach your goal of ${streamGoal.toLocaleString()} in about ${daysToGoal} days.`
+                                  : `💡 Currently at ${dailyRate.toLocaleString()} streams/day. You need ${requiredDailyRate.toLocaleString()}/day to hit your goal of ${streamGoal.toLocaleString()} on time.`
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </Card>
 
                 {/* Vendor Performance Comparison - Only show when performance data exists */}
