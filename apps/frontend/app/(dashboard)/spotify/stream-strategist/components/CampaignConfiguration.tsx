@@ -425,8 +425,9 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
       try {
         const trackId = url.split('/track/')[1]?.split('?')[0];
         if (trackId) {
-          // Use the existing Spotify Web API route
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3002';
+          // Use the existing Spotify Web API route - prefer production URL
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.artistinfluence.com';
+          console.log('🎵 [Genre Debug] Fetching track from:', `${apiBaseUrl}/api/spotify-web-api/track/${trackId}`);
           const response = await fetch(`${apiBaseUrl}/api/spotify-web-api/track/${trackId}`);
           
           if (!response.ok) {
@@ -440,6 +441,8 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
           }
           
           const result = await response.json();
+          console.log('🎵 [Genre Debug] Full API response:', result);
+          console.log('🎵 [Genre Debug] Genres from API:', result.data?.genres);
           
           if (result.success && result.data?.name && result.data?.artists?.[0]?.name) {
             const campaignName = `${result.data.artists[0].name} - ${result.data.name}`;
@@ -449,11 +452,13 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
             
             // Store raw Spotify genres for display
             const rawGenres = result.data.genres || [];
+            console.log('🎵 [Genre Debug] Raw genres array:', rawGenres);
             setSpotifyGenres(rawGenres);
             
             // Auto-select genres from Spotify data if available
             if (rawGenres.length > 0) {
               const mappedGenres = mapSpotifyGenresToUnified(rawGenres);
+              console.log('🎵 [Genre Debug] Mapped genres:', mappedGenres);
               
               if (mappedGenres.length > 0) {
                 setSelectedGenres(mappedGenres);
@@ -466,6 +471,7 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                 });
               } else {
                 // No genre mapping found, show raw Spotify genres for reference
+                console.log('🎵 [Genre Debug] No mapping found for genres:', rawGenres);
                 setGenresAutoDetected(false);
                 toast({
                   title: "Track loaded!",
@@ -473,6 +479,7 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                 });
               }
             } else {
+              console.log('🎵 [Genre Debug] No genres returned from API');
               setGenresAutoDetected(false);
               toast({
                 title: "Track loaded!",
