@@ -481,9 +481,11 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
             } else {
               console.log('🎵 [Genre Debug] No genres returned from API');
               setGenresAutoDetected(false);
+              setSpotifyGenres([]); // Clear any previous genres
               toast({
-                title: "Track loaded!",
-                description: `${campaignName} • No genre data - please select manually`,
+                title: "Track loaded - No genre data",
+                description: `${campaignName} • Spotify has no genre tags for this artist. Please select genres manually below.`,
+                variant: "destructive",
               });
             }
           }
@@ -789,6 +791,18 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Visual indicator when track is loaded but no genres found */}
+                {trackName && spotifyGenres.length === 0 && selectedGenres.length === 0 && (
+                  <div className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg">
+                    <p className="text-sm text-orange-700 dark:text-orange-400 font-medium">
+                      ⚠️ No genre data available from Spotify
+                    </p>
+                    <p className="text-xs text-orange-600 dark:text-orange-500 mt-1">
+                      This artist doesn't have genre tags in Spotify's database. Please select the most appropriate genres below.
+                    </p>
+                  </div>
+                )}
+                
                 {/* Spotify raw genres indicator when no mapping found */}
                 {spotifyGenres.length > 0 && !genresAutoDetected && selectedGenres.length === 0 && (
                   <div className="p-3 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
