@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -8,6 +8,8 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { 
   Package, 
   Music, 
@@ -17,19 +19,98 @@ import {
   Search,
   CheckCircle2,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Sparkles,
+  Filter
 } from 'lucide-react';
 import { Vendor, Playlist } from '../types';
+import { UNIFIED_GENRES } from '../lib/constants';
+
+// Genre mapping from unified categories to Spotify-specific genres for matching
+const GENRE_MAPPING: Record<string, string[]> = {
+  'phonk': ['phonk', 'drift phonk', 'brazilian phonk', 'dark phonk'],
+  'tech house': ['tech house', 'melodic house', 'deep tech'],
+  'techno': ['techno', 'dark techno', 'industrial techno', 'minimal techno', 'peak time techno', 'hard techno'],
+  'minimal': ['minimal', 'minimal house', 'minimal techno', 'microhouse'],
+  'house': ['house', 'deep house', 'future house', 'funky house', 'vocal house', 'uk house', 'chicago house', 'slap house', 'stutter house'],
+  'progressive house': ['progressive house', 'progressive electro house', 'progressive trance'],
+  'bass house': ['bass house', 'uk bass', 'bass music', 'wobble bass'],
+  'big room': ['big room', 'big room edm', 'mainstage'],
+  'afro house': ['afro house', 'afro tech', 'afro deep'],
+  'afrobeats': ['afrobeats', 'afropop', 'afroswing', 'amapiano', 'nigerian pop'],
+  'hardstyle': ['hardstyle', 'rawstyle', 'euphoric hardstyle', 'hardcore', 'happy hardcore'],
+  'dubstep': ['dubstep', 'brostep', 'riddim dubstep', 'melodic dubstep', 'chillstep', 'deathstep', 'tearout'],
+  'trap': ['trap', 'trap edm', 'festival trap', 'hybrid trap', 'trap latino', 'southern trap'],
+  'melodic bass': ['melodic bass', 'melodic dubstep', 'future bass', 'color bass', 'wave'],
+  'trance': ['trance', 'uplifting trance', 'vocal trance', 'psytrance', 'progressive trance', 'acid trance'],
+  'dance': ['dance', 'dance pop', 'edm', 'electro house', 'electronic', 'electronica'],
+  'pop': ['pop', 'dance pop', 'synth-pop', 'electropop', 'alt pop', 'indie pop', 'dream pop', 'k-pop', 'j-pop', 'pop rap', 'power pop', 'bedroom pop'],
+  'indie': ['indie', 'indie rock', 'indie pop', 'indie folk', 'indie electronic', 'indietronica'],
+  'alternative': ['alternative', 'alt rock', 'alternative rock', 'grunge', 'post-grunge'],
+  'rock': ['rock', 'classic rock', 'hard rock', 'soft rock', 'progressive rock', 'psychedelic rock', 'garage rock', 'post-rock', 'arena rock'],
+  'hip-hop': ['hip hop', 'hip-hop', 'rap', 'conscious hip hop', 'gangsta rap', 'underground hip hop', 'trap', 'boom bap', 'southern hip hop', 'west coast rap', 'east coast hip hop'],
+  'r&b': ['r&b', 'rnb', 'neo soul', 'soul', 'new jack swing', 'contemporary r&b', 'alternative r&b', 'urban contemporary'],
+  'country': ['country', 'modern country', 'country pop', 'country rock', 'americana', 'outlaw country', 'country rap'],
+  'jazz': ['jazz', 'smooth jazz', 'jazz fusion', 'contemporary jazz', 'vocal jazz', 'nu jazz', 'acid jazz'],
+  'folk': ['folk', 'indie folk', 'folk rock', 'contemporary folk', 'singer-songwriter', 'acoustic'],
+  'metal': ['metal', 'heavy metal', 'death metal', 'black metal', 'thrash metal', 'progressive metal', 'metalcore', 'deathcore', 'nu metal', 'power metal'],
+  'classical': ['classical', 'modern classical', 'contemporary classical', 'neo-classical', 'orchestral', 'chamber music'],
+  'reggae': ['reggae', 'reggaeton', 'dancehall', 'dub', 'roots reggae'],
+  'latin': ['latin', 'latin pop', 'reggaeton', 'bachata', 'salsa', 'cumbia', 'latin hip hop', 'urbano latino'],
+  'brazilian': ['brazilian', 'brazilian bass', 'sertanejo', 'mpb', 'funk carioca', 'bossa nova'],
+  'blues': ['blues', 'blues rock', 'electric blues', 'modern blues', 'delta blues'],
+  'punk': ['punk', 'punk rock', 'pop punk', 'post-punk', 'skate punk', 'hardcore punk'],
+  'chill': ['chill', 'chillout', 'chillwave', 'lo-fi', 'lofi beats', 'chillhop', 'downtempo', 'chill r&b'],
+  'ambient': ['ambient', 'dark ambient', 'ambient electronic', 'drone', 'space ambient'],
+  'experimental': ['experimental', 'experimental electronic', 'avant-garde', 'noise', 'glitch', 'art pop']
+};
+
+// Calculate genre match score between campaign genres and playlist genres
+function calculateGenreMatchScore(campaignGenres: string[], playlistGenres: string[]): number {
+  if (!campaignGenres.length || !playlistGenres.length) return 0;
+  
+  let score = 0;
+  const normalizedPlaylistGenres = playlistGenres.map(g => g.toLowerCase().trim());
+  
+  for (const campaignGenre of campaignGenres) {
+    const normalizedCampaignGenre = campaignGenre.toLowerCase().trim();
+    
+    // Direct match
+    if (normalizedPlaylistGenres.includes(normalizedCampaignGenre)) {
+      score += 3; // Strong match
+      continue;
+    }
+    
+    // Check if playlist has any related genres
+    const relatedGenres = GENRE_MAPPING[normalizedCampaignGenre] || [normalizedCampaignGenre];
+    for (const related of relatedGenres) {
+      if (normalizedPlaylistGenres.some(pg => pg.includes(related) || related.includes(pg))) {
+        score += 2; // Related match
+        break;
+      }
+    }
+    
+    // Partial match (genre word appears in playlist genre)
+    if (normalizedPlaylistGenres.some(pg => pg.includes(normalizedCampaignGenre) || normalizedCampaignGenre.includes(pg))) {
+      score += 1; // Partial match
+    }
+  }
+  
+  return score;
+}
 
 interface VendorRosterSelectorProps {
   onNext: (selections: { playlistIds: string[] }) => void;
   onBack: () => void;
+  campaignGenres?: string[];
 }
 
-export function VendorRosterSelector({ onNext, onBack }: VendorRosterSelectorProps) {
+export function VendorRosterSelector({ onNext, onBack, campaignGenres = [] }: VendorRosterSelectorProps) {
   const [selectedPlaylists, setSelectedPlaylists] = useState<Set<string>>(new Set());
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
+  const [showOnlyMatching, setShowOnlyMatching] = useState(campaignGenres.length > 0);
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
 
   // Fetch all vendors (same query as vendor panel)
   const { data: vendors = [], isLoading: vendorsLoading } = useQuery({
@@ -65,21 +146,73 @@ export function VendorRosterSelector({ onNext, onBack }: VendorRosterSelectorPro
     },
   });
 
-  // Filter playlists by search term
+  // Add genre match scores to playlists
+  const playlistsWithScores = useMemo(() => {
+    return allPlaylists.map(playlist => ({
+      ...playlist,
+      genreMatchScore: calculateGenreMatchScore(campaignGenres, playlist.genres || [])
+    }));
+  }, [allPlaylists, campaignGenres]);
+
+  // Filter playlists by search term and optionally by genre match
   const filteredPlaylists = useMemo(() => {
-    if (!searchTerm) return allPlaylists;
+    let result = playlistsWithScores;
     
-    const term = searchTerm.toLowerCase();
-    return allPlaylists.filter(playlist => 
-      playlist.name?.toLowerCase().includes(term) ||
-      playlist.vendor?.name?.toLowerCase().includes(term) ||
-      playlist.genres?.some((g: string) => g.toLowerCase().includes(term))
-    );
-  }, [allPlaylists, searchTerm]);
+    // Filter by genre match if enabled and we have campaign genres
+    if (showOnlyMatching && campaignGenres.length > 0) {
+      result = result.filter(playlist => playlist.genreMatchScore > 0);
+    }
+    
+    // Filter by search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(playlist => 
+        playlist.name?.toLowerCase().includes(term) ||
+        playlist.vendor?.name?.toLowerCase().includes(term) ||
+        playlist.genres?.some((g: string) => g.toLowerCase().includes(term))
+      );
+    }
+    
+    // Sort by genre match score (highest first), then by avg_daily_streams
+    return result.sort((a, b) => {
+      if (b.genreMatchScore !== a.genreMatchScore) {
+        return b.genreMatchScore - a.genreMatchScore;
+      }
+      return (b.avg_daily_streams || 0) - (a.avg_daily_streams || 0);
+    });
+  }, [playlistsWithScores, searchTerm, showOnlyMatching, campaignGenres]);
+
+  // Count matching playlists
+  const matchingPlaylistsCount = useMemo(() => {
+    if (campaignGenres.length === 0) return 0;
+    return playlistsWithScores.filter(p => p.genreMatchScore > 0).length;
+  }, [playlistsWithScores, campaignGenres]);
+
+  // Auto-select playlists with good genre matches on first load
+  useEffect(() => {
+    if (!hasAutoSelected && campaignGenres.length > 0 && playlistsWithScores.length > 0) {
+      const autoSelectIds = playlistsWithScores
+        .filter(p => p.genreMatchScore >= 2) // Auto-select playlists with score >= 2
+        .slice(0, 10) // Limit to top 10
+        .map(p => p.id);
+      
+      if (autoSelectIds.length > 0) {
+        setSelectedPlaylists(new Set(autoSelectIds));
+        // Expand vendors that have auto-selected playlists
+        const vendorIds = new Set(
+          playlistsWithScores
+            .filter(p => autoSelectIds.includes(p.id))
+            .map(p => p.vendor_id)
+        );
+        setExpandedVendors(vendorIds);
+      }
+      setHasAutoSelected(true);
+    }
+  }, [hasAutoSelected, campaignGenres, playlistsWithScores]);
 
   // Group playlists by vendor
   const playlistsByVendor = useMemo(() => {
-    const grouped: Record<string, typeof allPlaylists> = {};
+    const grouped: Record<string, typeof filteredPlaylists> = {};
     
     filteredPlaylists.forEach(playlist => {
       const vendorId = playlist.vendor_id;
@@ -196,22 +329,57 @@ export function VendorRosterSelector({ onNext, onBack }: VendorRosterSelectorPro
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search vendors or playlists..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
+          {/* Campaign Genres Display */}
+          {campaignGenres.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Campaign Genres:</span>
+              {campaignGenres.map(genre => (
+                <Badge key={genre} variant="default" className="bg-primary/80">
+                  {genre}
+                </Badge>
+              ))}
+              {matchingPlaylistsCount > 0 && (
+                <span className="text-sm text-muted-foreground ml-2">
+                  ({matchingPlaylistsCount} matching playlists)
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Search and Filter */}
+          <div className="flex gap-4 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search vendors or playlists..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            
+            {/* Genre Filter Toggle */}
+            {campaignGenres.length > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="genre-filter" className="text-sm cursor-pointer">
+                  Show only matches
+                </Label>
+                <Switch
+                  id="genre-filter"
+                  checked={showOnlyMatching}
+                  onCheckedChange={setShowOnlyMatching}
+                />
+              </div>
+            )}
           </div>
 
           {/* Actions */}
           <div className="flex items-center justify-between">
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                Select All
+                Select All {showOnlyMatching && matchingPlaylistsCount > 0 ? `(${matchingPlaylistsCount})` : ''}
               </Button>
               <Button variant="outline" size="sm" onClick={handleDeselectAll}>
                 Deselect All
@@ -318,6 +486,8 @@ export function VendorRosterSelector({ onNext, onBack }: VendorRosterSelectorPro
                     <div className="space-y-2">
                       {vendorPlaylists.map(playlist => {
                         const isSelected = selectedPlaylists.has(playlist.id);
+                        const matchScore = playlist.genreMatchScore || 0;
+                        const hasMatch = matchScore > 0 && campaignGenres.length > 0;
                         
                         return (
                           <div
@@ -325,7 +495,9 @@ export function VendorRosterSelector({ onNext, onBack }: VendorRosterSelectorPro
                             className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
                               isSelected 
                                 ? 'bg-primary/5 border-primary/30' 
-                                : 'hover:bg-muted/50'
+                                : hasMatch
+                                  ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-950/50'
+                                  : 'hover:bg-muted/50'
                             }`}
                           >
                             <Checkbox
@@ -334,10 +506,27 @@ export function VendorRosterSelector({ onNext, onBack }: VendorRosterSelectorPro
                             />
                             <div className="flex-1 grid grid-cols-12 gap-2 items-center">
                               <div className="col-span-4">
-                                <div className="font-medium">{playlist.name}</div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{playlist.name}</span>
+                                  {hasMatch && (
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`text-xs ${
+                                        matchScore >= 3 
+                                          ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900 dark:text-green-300' 
+                                          : matchScore >= 2
+                                            ? 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900 dark:text-emerald-300'
+                                            : 'bg-lime-100 text-lime-700 border-lime-300 dark:bg-lime-900 dark:text-lime-300'
+                                      }`}
+                                    >
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      {matchScore >= 3 ? 'Strong' : matchScore >= 2 ? 'Good' : 'Partial'} Match
+                                    </Badge>
+                                  )}
+                                </div>
                                 {playlist.genres && playlist.genres.length > 0 && (
-                                  <div className="text-xs text-muted-foreground">
-                                    {playlist.genres.slice(0, 2).join(', ')}
+                                  <div className="text-xs text-muted-foreground mt-0.5">
+                                    {playlist.genres.slice(0, 3).join(', ')}
                                   </div>
                                 )}
                               </div>

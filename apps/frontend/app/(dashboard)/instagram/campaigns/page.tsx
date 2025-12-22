@@ -260,14 +260,14 @@ export default function InstagramCampaignsPage() {
   // Filter campaigns based on search and status
   const filteredCampaigns = campaigns
     .filter((campaign: any) => {
-      const matchesSearch = 
-        campaign.campaign?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        campaign.clients?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        campaign.salespeople?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === "all" || campaign.status?.toLowerCase() === statusFilter.toLowerCase();
-      
-      return matchesSearch && matchesStatus;
+    const matchesSearch = 
+      campaign.campaign?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      campaign.clients?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      campaign.salespeople?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || campaign.status?.toLowerCase() === statusFilter.toLowerCase();
+    
+    return matchesSearch && matchesStatus;
     })
     .sort((a: any, b: any) => {
       if (!sortConfig) return 0;
@@ -323,7 +323,7 @@ export default function InstagramCampaignsPage() {
       if (aVal < bVal) return direction === 'asc' ? -1 : 1;
       if (aVal > bVal) return direction === 'asc' ? 1 : -1;
       return 0;
-    });
+  });
 
   return (
     <div className="container mx-auto p-6">

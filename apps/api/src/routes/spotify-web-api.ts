@@ -100,6 +100,34 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
   });
 
   /**
+   * GET /spotify-web-api/playlist/:id/genres
+   * Fetch genres for a playlist by aggregating artist genres from tracks
+   */
+  server.get('/spotify-web-api/playlist/:id/genres', async (request, reply) => {
+    const { id } = request.params as { id: string };
+    
+    try {
+      logger.info({ playlistId: id }, 'Fetching playlist genres');
+      const genres = await spotifyWebApi.getPlaylistGenres(id);
+      
+      return {
+        success: true,
+        data: {
+          playlist_id: id,
+          genres: genres,
+          genre_count: genres.length,
+        },
+      };
+    } catch (error: any) {
+      logger.error({ playlistId: id, error: error.message }, 'Failed to fetch playlist genres');
+      return reply.status(500).send({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  /**
    * POST /spotify-web-api/enrich-playlists
    * Bulk enrich playlists with follower counts
    */

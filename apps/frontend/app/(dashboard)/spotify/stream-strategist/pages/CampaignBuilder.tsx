@@ -25,6 +25,7 @@ interface CampaignData {
   stream_goal: number;
   budget: number;
   sub_genre: string;
+  music_genres?: string[];
   start_date: string;
   duration_days: number;
 }
@@ -152,6 +153,7 @@ export default function CampaignBuilder() {
               <VendorRosterSelector
                 onNext={handleRecommendationsNext}
                 onBack={handleBack}
+                campaignGenres={campaignData.music_genres || (campaignData.sub_genre?.split(', ').filter(Boolean) || [])}
               />
             </div>
           )}

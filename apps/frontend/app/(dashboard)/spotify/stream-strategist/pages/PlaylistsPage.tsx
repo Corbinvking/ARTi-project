@@ -48,6 +48,7 @@ import AddPlaylistModal from "../components/AddPlaylistModal";
 import EditVendorModal from "../components/EditVendorModal";
 import AddPerformanceEntryModal from "../components/AddPerformanceEntryModal";
 import PerformanceHistoryModal from "../components/PerformanceHistoryModal";
+import { PlaylistGenreEditor } from "../components/PlaylistGenreEditor";
 
 interface PlaylistWithVendor extends Playlist {
   vendor: {
@@ -85,6 +86,10 @@ export default function PlaylistsPage() {
   const [performanceHistoryModalOpen, setPerformanceHistoryModalOpen] = useState(false);
   const [selectedPlaylistForPerformance, setSelectedPlaylistForPerformance] = useState<{ id: string; name: string } | null>(null);
   const [selectedPlaylists, setSelectedPlaylists] = useState<Set<string>>(new Set());
+  
+  // Genre editor modal
+  const [genreEditorOpen, setGenreEditorOpen] = useState(false);
+  const [editingPlaylistGenres, setEditingPlaylistGenres] = useState<{ id: string; name: string; url?: string; spotify_id?: string; genres?: string[] } | null>(null);
   const vendorFileInputRef = useRef<HTMLInputElement>(null);
   const playlistFileInputRef = useRef<HTMLInputElement>(null);
   
@@ -900,7 +905,7 @@ export default function PlaylistsPage() {
                           {playlist.name}
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-1 items-center group">
                             {(playlist.genres && Array.isArray(playlist.genres) && playlist.genres.length > 0) ? (
                               <>
                                 {playlist.genres.slice(0, 3).map((genre) => (
@@ -930,8 +935,25 @@ export default function PlaylistsPage() {
                                 )}
                               </>
                             ) : (
-                              <span className="text-xs text-muted-foreground">-</span>
+                              <span className="text-xs text-muted-foreground">No genres</span>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                              onClick={() => {
+                                setEditingPlaylistGenres({
+                                  id: playlist.id,
+                                  name: playlist.name,
+                                  url: playlist.url,
+                                  spotify_id: (playlist as any).spotify_id,
+                                  genres: playlist.genres
+                                });
+                                setGenreEditorOpen(true);
+                              }}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
                           </div>
                         </TableCell>
                         <TableCell className="font-mono">
@@ -1370,7 +1392,7 @@ export default function PlaylistsPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1 items-center group">
                               {(playlist.genres && Array.isArray(playlist.genres) && playlist.genres.length > 0) ? (
                                 <>
                                   {playlist.genres.slice(0, 2).map((genre) => (
@@ -1400,8 +1422,25 @@ export default function PlaylistsPage() {
                                   )}
                                 </>
                               ) : (
-                                <span className="text-xs text-muted-foreground">-</span>
+                                <span className="text-xs text-muted-foreground">No genres</span>
                               )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                                onClick={() => {
+                                  setEditingPlaylistGenres({
+                                    id: playlist.id,
+                                    name: playlist.name,
+                                    url: playlist.url,
+                                    spotify_id: (playlist as any).spotify_id,
+                                    genres: playlist.genres
+                                  });
+                                  setGenreEditorOpen(true);
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
                             </div>
                           </TableCell>
                           <TableCell className="font-mono">
@@ -1531,6 +1570,16 @@ export default function PlaylistsPage() {
             />
           </>
         )}
+        
+        {/* Genre Editor Modal */}
+        <PlaylistGenreEditor
+          playlist={editingPlaylistGenres}
+          isOpen={genreEditorOpen}
+          onClose={() => {
+            setGenreEditorOpen(false);
+            setEditingPlaylistGenres(null);
+          }}
+        />
       </div>
     </Layout>
   );

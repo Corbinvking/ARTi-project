@@ -16,6 +16,7 @@ interface CampaignData {
   stream_goal: number;
   budget: number;
   sub_genre: string;
+  music_genres?: string[];
   start_date: string;
   duration_days: number;
 }
@@ -159,6 +160,12 @@ export function useCampaignBuilder() {
       const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + (data.duration_days || 90));
       
+      // Parse genres - support both music_genres array and sub_genre string
+      const genresArray = data.music_genres?.length 
+        ? data.music_genres 
+        : (data.sub_genre?.split(', ').filter(Boolean) || []);
+      const primaryGenre = genresArray[0] || null;
+      
       // 1. Create campaign_group
       const campaignGroupPayload = {
         name: data.name,
@@ -170,7 +177,9 @@ export function useCampaignBuilder() {
         end_date: endDate.toISOString().split('T')[0], // Convert to YYYY-MM-DD format
         status: status === 'active' ? 'Active' : status === 'unreleased' ? 'Unreleased' : 'Draft',
         salesperson: (data as any).salesperson || null,
-        notes: null
+        notes: null,
+        primary_genre: primaryGenre,
+        all_genres: genresArray
       };
       
       console.log('Creating campaign_group:', campaignGroupPayload);
@@ -278,8 +287,10 @@ export function useCampaignBuilder() {
         status: 'Active',
         curator_status: 'Pending',
         playlists: allocationsData?.selectedPlaylists || [],
-        notes: `Created from campaign builder. ${data.sub_genre ? `Genre: ${data.sub_genre}` : ''}`,
-        sfa: (data as any).sfa_url || null
+        notes: `Created from campaign builder.`,
+        sfa: (data as any).sfa_url || null,
+        primary_genre: primaryGenre,
+        all_genres: genresArray
       };
       
       console.log('Creating spotify_campaign:', spotifyCampaignPayload);
