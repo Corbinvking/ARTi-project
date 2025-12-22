@@ -217,6 +217,17 @@ class SpotifyWebAPIClient {
         `/artists/${artistId}/related-artists`
       );
       
+      logger.info({ artistId, relatedArtistsCount: response.artists?.length || 0 }, 'Got related artists response');
+      
+      // Log first few related artists for debugging
+      if (response.artists && response.artists.length > 0) {
+        const sampleArtists = response.artists.slice(0, 3).map(a => ({
+          name: a.name,
+          genres: a.genres
+        }));
+        logger.info({ artistId, sampleArtists }, 'Sample related artists with genres');
+      }
+      
       // Aggregate genres from related artists
       const genreCounts = new Map<string, number>();
       response.artists.forEach(artist => {
@@ -236,7 +247,7 @@ class SpotifyWebAPIClient {
       logger.info({ artistId, genreCount: topGenres.length, genres: topGenres }, 'Extracted genres from related artists');
       return topGenres;
     } catch (error: any) {
-      logger.error({ artistId, error: error.message }, 'Failed to fetch related artists');
+      logger.error({ artistId, error: error.message, stack: error.stack }, 'Failed to fetch related artists');
       return [];
     }
   }
