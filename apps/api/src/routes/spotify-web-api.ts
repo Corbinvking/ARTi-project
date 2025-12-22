@@ -58,10 +58,11 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
       let allGenres = artists.flatMap(a => a.genres || []);
       
       // If no genres found, try to get genres from related artists
-      if (allGenres.length === 0 && artistIds.length > 0) {
-        logger.info({ artistId: artistIds[0] }, 'No genres found, checking related artists...');
+      const primaryArtistId = artistIds[0];
+      if (allGenres.length === 0 && primaryArtistId) {
+        logger.info({ artistId: primaryArtistId }, 'No genres found, checking related artists...');
         try {
-          const relatedGenres = await spotifyWebApi.getRelatedArtistGenres(artistIds[0]);
+          const relatedGenres = await spotifyWebApi.getRelatedArtistGenres(primaryArtistId);
           if (relatedGenres.length > 0) {
             logger.info({ relatedGenres }, 'Found genres from related artists');
             allGenres = relatedGenres;
