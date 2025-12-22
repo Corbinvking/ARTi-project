@@ -42,6 +42,7 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
   /**
    * GET /spotify-web-api/track/:id
    * Fetch track details including name, artist, and metadata
+   * Includes fallback to related artists for genre detection
    */
   server.get('/spotify-web-api/track/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
@@ -54,7 +55,22 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
       const { artists } = await spotifyWebApi.getArtists(artistIds);
       
       // Aggregate genres from all artists
-      const allGenres = artists.flatMap(a => a.genres || []);
+      let allGenres = artists.flatMap(a => a.genres || []);
+      
+      // If no genres found, try to get genres from related artists
+      if (allGenres.length === 0 && artistIds.length > 0) {
+        logger.info({ artistId: artistIds[0] }, 'No genres found, checking related artists...');
+        try {
+          const relatedGenres = await spotifyWebApi.getRelatedArtistGenres(artistIds[0]);
+          if (relatedGenres.length > 0) {
+            logger.info({ relatedGenres }, 'Found genres from related artists');
+            allGenres = relatedGenres;
+          }
+        } catch (relatedError: any) {
+          logger.warn({ error: relatedError.message }, 'Could not fetch related artists');
+        }
+      }
+      
       const uniqueGenres = [...new Set(allGenres)];
       
       return {

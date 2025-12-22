@@ -206,6 +206,42 @@ class SpotifyWebAPIClient {
   }
 
   /**
+   * Get genres from related artists (fallback when artist has no genres)
+   * Returns top 5 most common genres from related artists
+   */
+  async getRelatedArtistGenres(artistId: string): Promise<string[]> {
+    logger.info({ artistId }, 'Fetching genres from related artists');
+    
+    try {
+      const response = await this.makeRequest<{ artists: SpotifyArtistResponse[] }>(
+        `/artists/${artistId}/related-artists`
+      );
+      
+      // Aggregate genres from related artists
+      const genreCounts = new Map<string, number>();
+      response.artists.forEach(artist => {
+        if (artist?.genres) {
+          artist.genres.forEach(genre => {
+            genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1);
+          });
+        }
+      });
+      
+      // Sort by frequency and return top 5
+      const topGenres = Array.from(genreCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([genre]) => genre);
+      
+      logger.info({ artistId, genreCount: topGenres.length, genres: topGenres }, 'Extracted genres from related artists');
+      return topGenres;
+    } catch (error: any) {
+      logger.error({ artistId, error: error.message }, 'Failed to fetch related artists');
+      return [];
+    }
+  }
+
+  /**
    * Get playlist genres by analyzing tracks and their artists
    * Returns top 5 most common genres from the playlist's artists
    */
