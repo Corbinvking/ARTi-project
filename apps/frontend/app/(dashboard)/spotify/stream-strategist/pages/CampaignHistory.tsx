@@ -59,6 +59,8 @@ import {
   Play,
   Trash2,
   TrendingUp,
+  TrendingDown,
+  Minus,
   Calendar,
   DollarSign,
   Target,
@@ -144,8 +146,96 @@ interface Campaign {
   saves?: number;
 }
 
-type SortField = 'name' | 'client' | 'budget' | 'stream_goal' | 'daily_streams' | 'weekly_streams' | 'remaining_streams' | 'start_date' | 'progress' | 'status' | 'invoice_status' | 'performance_status';
+type SortField = 'name' | 'client' | 'budget' | 'stream_goal' | 'daily_streams' | 'weekly_streams' | 'remaining_streams' | 'start_date' | 'progress' | 'status' | 'invoice_status' | 'performance_status' | 'schedule_status';
 type SortDirection = 'asc' | 'desc';
+
+// Calculate schedule status based on start date, duration, and current progress
+function calculateScheduleStatus(campaign: Campaign): {
+  status: 'ahead' | 'on_track' | 'behind' | 'not_started' | 'completed';
+  expectedProgress: number;
+  actualProgress: number;
+  daysElapsed: number;
+  totalDays: number;
+  dailyRequired: number;
+  progressDiff: number;
+} {
+  const startDate = campaign.start_date ? new Date(campaign.start_date) : null;
+  const totalGoal = campaign.stream_goal || 0;
+  const currentProgress = campaign.progress_percentage || 0;
+  const totalRemaining = campaign.remaining_streams || totalGoal;
+  const durationDays = campaign.duration_days || 90;
+  
+  // If no start date, can't calculate
+  if (!startDate) {
+    return {
+      status: 'not_started',
+      expectedProgress: 0,
+      actualProgress: currentProgress,
+      daysElapsed: 0,
+      totalDays: durationDays,
+      dailyRequired: 0,
+      progressDiff: 0
+    };
+  }
+  
+  const now = new Date();
+  const daysElapsed = Math.max(0, Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+  
+  // If campaign hasn't started yet
+  if (daysElapsed <= 0) {
+    return {
+      status: 'not_started',
+      expectedProgress: 0,
+      actualProgress: currentProgress,
+      daysElapsed: 0,
+      totalDays: durationDays,
+      dailyRequired: totalGoal / durationDays,
+      progressDiff: 0
+    };
+  }
+  
+  // If campaign is complete
+  if (currentProgress >= 100 || totalRemaining <= 0) {
+    return {
+      status: 'completed',
+      expectedProgress: 100,
+      actualProgress: currentProgress,
+      daysElapsed,
+      totalDays: durationDays,
+      dailyRequired: 0,
+      progressDiff: 0
+    };
+  }
+  
+  // Calculate expected progress based on days elapsed
+  const expectedProgress = Math.min(100, (daysElapsed / durationDays) * 100);
+  
+  // Calculate remaining days and required daily streams
+  const remainingDays = Math.max(1, durationDays - daysElapsed);
+  const dailyRequired = totalRemaining / remainingDays;
+  
+  // Compare actual vs expected (with 5% tolerance for "on track")
+  const progressDiff = currentProgress - expectedProgress;
+  
+  let status: 'ahead' | 'on_track' | 'behind';
+  if (progressDiff > 5) {
+    status = 'ahead';
+  } else if (progressDiff < -5) {
+    status = 'behind';
+  } else {
+    status = 'on_track';
+  }
+  
+  return {
+    status,
+    expectedProgress: Math.round(expectedProgress),
+    actualProgress: currentProgress,
+    daysElapsed,
+    totalDays: durationDays,
+    dailyRequired: Math.round(dailyRequired),
+    progressDiff: Math.round(progressDiff)
+  };
+}
 
 export default function CampaignHistory() {
   const [searchParams] = useSearchParams();
@@ -442,6 +532,14 @@ export default function CampaignHistory() {
       } else if (sortField === 'remaining_streams') {
         aValue = a.remaining_streams || 0;
         bValue = b.remaining_streams || 0;
+      } else if (sortField === 'start_date') {
+        aValue = a.start_date ? new Date(a.start_date).getTime() : 0;
+        bValue = b.start_date ? new Date(b.start_date).getTime() : 0;
+      } else if (sortField === 'schedule_status') {
+        // Sort by behind first (worst), then on_track, then ahead (best)
+        const statusOrder = { 'behind': 0, 'on_track': 1, 'ahead': 2, 'not_started': 3, 'completed': 4 };
+        aValue = statusOrder[calculateScheduleStatus(a).status] || 0;
+        bValue = statusOrder[calculateScheduleStatus(b).status] || 0;
       }
 
       // Handle null/undefined values
@@ -1042,6 +1140,24 @@ export default function CampaignHistory() {
                       </TableHead>
                       <TableHead 
                         className="cursor-pointer select-none"
+                        onClick={() => handleSort('start_date')}
+                      >
+                        <div className="flex items-center">
+                          Start Date
+                          {getSortIcon('start_date')}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('schedule_status')}
+                      >
+                        <div className="flex items-center">
+                          Schedule
+                          {getSortIcon('schedule_status')}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
                         onClick={() => handleSort('invoice_status')}
                       >
                         <div className="flex items-center">
@@ -1049,7 +1165,6 @@ export default function CampaignHistory() {
                           {getSortIcon('invoice_status')}
                         </div>
                       </TableHead>
-                      <TableHead>Performance</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1153,12 +1268,7 @@ export default function CampaignHistory() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div>
-                              <div className="font-medium">{campaign.client_name || campaign.client}</div>
-                              <div className="text-xs text-muted-foreground">
-                                Started: {new Date(campaign.start_date).toLocaleDateString()}
-                              </div>
-                            </div>
+                            <div className="font-medium">{campaign.client_name || campaign.client}</div>
                           </TableCell>
                           <TableCell>
                             <InteractiveStatusBadge 
@@ -1227,10 +1337,98 @@ export default function CampaignHistory() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {getInvoiceStatusBadge(campaign.invoice_status || 'not_invoiced')}
+                            <div className="text-sm">
+                              {campaign.start_date ? (
+                                <div className="font-medium">
+                                  {new Date(campaign.start_date).toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    year: 'numeric' 
+                                  })}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">Not set</span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
-                            {getPerformanceStatusBadge(campaign)}
+                            {(() => {
+                              const scheduleInfo = calculateScheduleStatus(campaign);
+                              
+                              const getStatusConfig = () => {
+                                switch (scheduleInfo.status) {
+                                  case 'ahead':
+                                    return {
+                                      icon: <TrendingUp className="h-3.5 w-3.5" />,
+                                      label: 'Ahead',
+                                      badgeClass: 'bg-green-500/10 text-green-400 border-green-500/30',
+                                      description: `+${scheduleInfo.progressDiff}% ahead of schedule`
+                                    };
+                                  case 'on_track':
+                                    return {
+                                      icon: <Minus className="h-3.5 w-3.5" />,
+                                      label: 'On Track',
+                                      badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+                                      description: 'Campaign is progressing as expected'
+                                    };
+                                  case 'behind':
+                                    return {
+                                      icon: <TrendingDown className="h-3.5 w-3.5" />,
+                                      label: 'Behind',
+                                      badgeClass: 'bg-red-500/10 text-red-400 border-red-500/30',
+                                      description: `${Math.abs(scheduleInfo.progressDiff)}% behind schedule`
+                                    };
+                                  case 'completed':
+                                    return {
+                                      icon: <CheckCircle className="h-3.5 w-3.5" />,
+                                      label: 'Complete',
+                                      badgeClass: 'bg-gray-500/10 text-gray-400 border-gray-500/30',
+                                      description: 'Campaign goal reached'
+                                    };
+                                  default:
+                                    return {
+                                      icon: <Clock className="h-3.5 w-3.5" />,
+                                      label: 'Pending',
+                                      badgeClass: 'bg-gray-500/10 text-gray-500 border-gray-500/30',
+                                      description: 'Campaign has not started yet'
+                                    };
+                                }
+                              };
+                              
+                              const config = getStatusConfig();
+                              
+                              return (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge 
+                                        className={`cursor-help flex items-center gap-1 border ${config.badgeClass}`}
+                                      >
+                                        {config.icon}
+                                        {config.label}
+                                      </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="max-w-xs">
+                                      <div className="space-y-1">
+                                        <p className="font-medium">{config.description}</p>
+                                        {scheduleInfo.status !== 'not_started' && scheduleInfo.status !== 'completed' && (
+                                          <>
+                                            <p className="text-xs">Expected: {scheduleInfo.expectedProgress}% | Actual: {scheduleInfo.actualProgress}%</p>
+                                            <p className="text-xs">Day {scheduleInfo.daysElapsed} of {scheduleInfo.totalDays}</p>
+                                            {scheduleInfo.dailyRequired > 0 && (
+                                              <p className="text-xs">Need ~{scheduleInfo.dailyRequired.toLocaleString()} streams/day to stay on track</p>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              );
+                            })()}
+                          </TableCell>
+                          <TableCell>
+                            {getInvoiceStatusBadge(campaign.invoice_status || 'not_invoiced')}
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
