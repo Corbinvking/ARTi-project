@@ -4,6 +4,7 @@ import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
 import { logger } from '../lib/logger.js';
+import { supabase } from '../lib/supabase.js';
 
 const execAsync = promisify(exec);
 
@@ -155,6 +156,40 @@ export async function scraperControlRoutes(server: FastifyInstance) {
         }
       } catch (err) {
         logger.warn({ error: (err as Error).message }, '⚠️ Could not load status');
+      }
+
+      // ALSO check database for most recent scrape time (more reliable)
+      let lastScrapedFromDb = null;
+      try {
+        const { data, error } = await supabase
+          .from('spotify_campaigns')
+          .select('last_scraped_at')
+          .not('last_scraped_at', 'is', null)
+          .order('last_scraped_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (!error && data?.last_scraped_at) {
+          lastScrapedFromDb = {
+            timestamp: data.last_scraped_at,
+            status: 'success',
+            source: 'database'
+          };
+          logger.info({ lastScrapedFromDb }, '✅ Last scrape from database');
+        }
+      } catch (err) {
+        logger.warn({ error: (err as Error).message }, '⚠️ Could not query database for last scrape');
+      }
+
+      // Use the most recent of the two sources
+      if (lastScrapedFromDb && lastScrapedFromDb.timestamp) {
+        const dbTime = new Date(lastScrapedFromDb.timestamp).getTime();
+        const fileTime = lastRun?.timestamp ? new Date(lastRun.timestamp).getTime() : 0;
+        
+        if (dbTime > fileTime) {
+          logger.info('📊 Using database timestamp (more recent than status file)');
+          lastRun = lastScrapedFromDb;
+        }
       }
 
       // Check cron schedule
