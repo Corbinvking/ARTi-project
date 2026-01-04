@@ -245,37 +245,102 @@ async def login_to_spotify(page, force_fresh=False):
     await page.goto('https://artists.spotify.com', wait_until='domcontentloaded')
     await asyncio.sleep(3)
     
+    # Take screenshot for debugging
+    try:
+        await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_step1_landing.png')
+        logger.info("  Screenshot saved: login_step1_landing.png")
+    except Exception as e:
+        logger.warning(f"  Could not save screenshot: {e}")
+    
     # Click Login button
-    logger.info("  Clicking Login button...")
+    logger.info("  Looking for Login button...")
     login_btn = page.locator('button:has-text("Log in")')
-    if await login_btn.count() > 0:
-        await login_btn.click()
+    login_count = await login_btn.count()
+    logger.info(f"  Found {login_count} Login button(s)")
+    if login_count > 0:
+        await login_btn.first.click()
         await asyncio.sleep(3)
+    else:
+        # Try alternative selectors
+        alt_login = page.locator('a:has-text("Log in"), [data-testid="login-button"]')
+        if await alt_login.count() > 0:
+            await alt_login.first.click()
+            await asyncio.sleep(3)
     
-    # Enter email
-    logger.info("  Entering email...")
-    email_input = page.locator('input[type="text"]')
-    await email_input.fill(SPOTIFY_EMAIL)
-    await asyncio.sleep(1)
+    # Take screenshot after login button click
+    try:
+        await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_step2_email.png')
+        logger.info("  Screenshot saved: login_step2_email.png")
+    except Exception as e:
+        logger.warning(f"  Could not save screenshot: {e}")
     
-    # Click Continue
-    logger.info("  Clicking Continue...")
-    continue_btn = page.locator('button:has-text("Continue")')
-    await continue_btn.click()
-    await asyncio.sleep(5)
+    # Wait for and enter email
+    logger.info("  Waiting for email input...")
+    try:
+        email_input = page.locator('input[type="text"], input[id="login-username"], input[name="username"]')
+        await email_input.first.wait_for(timeout=10000)
+        logger.info("  Entering email...")
+        await email_input.first.fill(SPOTIFY_EMAIL)
+        await asyncio.sleep(1)
+    except Exception as e:
+        logger.error(f"  Failed to find email input: {e}")
+        await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_error_email.png')
+        return False
     
-    # Click "Log in with a password"
-    logger.info("  Clicking 'Log in with a password'...")
-    password_option = page.locator('button:has-text("Log in with a password")')
-    if await password_option.count() > 0:
-        await password_option.click()
-        await asyncio.sleep(3)
+    # Click Continue/Next button
+    logger.info("  Looking for Continue button...")
+    continue_btn = page.locator('button:has-text("Continue"), button:has-text("Next"), button[data-testid="login-button"]')
+    continue_count = await continue_btn.count()
+    logger.info(f"  Found {continue_count} Continue button(s)")
+    if continue_count > 0:
+        await continue_btn.first.click()
+        await asyncio.sleep(5)
     
-    # Enter password
-    logger.info("  Entering password...")
+    # Take screenshot after Continue
+    try:
+        await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_step3_method.png')
+        logger.info("  Screenshot saved: login_step3_method.png")
+    except Exception as e:
+        logger.warning(f"  Could not save screenshot: {e}")
+    
+    # Check if password input is already visible (some flows skip the method selection)
     password_input = page.locator('input[type="password"]')
-    await password_input.fill(SPOTIFY_PASSWORD)
-    await asyncio.sleep(1)
+    if await password_input.count() > 0:
+        logger.info("  Password input already visible - skipping method selection")
+    else:
+        # Click "Log in with a password" if present
+        logger.info("  Looking for 'Log in with a password' option...")
+        password_option = page.locator('button:has-text("Log in with a password"), button:has-text("Log in with password"), a:has-text("Log in with a password")')
+        password_option_count = await password_option.count()
+        logger.info(f"  Found {password_option_count} password option button(s)")
+        
+        if password_option_count > 0:
+            await password_option.first.click()
+            await asyncio.sleep(3)
+        else:
+            # Log the page content for debugging
+            logger.warning("  Could not find password option button!")
+            try:
+                await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_error_no_password_option.png')
+                logger.info("  Screenshot saved: login_error_no_password_option.png")
+                # Log visible buttons
+                buttons = await page.locator('button').all_text_contents()
+                logger.info(f"  Visible buttons on page: {buttons[:10]}")
+            except Exception as e:
+                logger.warning(f"  Could not log debug info: {e}")
+    
+    # Wait for password input and enter password
+    logger.info("  Waiting for password input...")
+    try:
+        password_input = page.locator('input[type="password"]')
+        await password_input.wait_for(timeout=15000)
+        logger.info("  Entering password...")
+        await password_input.fill(SPOTIFY_PASSWORD)
+        await asyncio.sleep(1)
+    except Exception as e:
+        logger.error(f"  Failed to find password input: {e}")
+        await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_error_password.png')
+        return False
     
     # Click final Log in button
     logger.info("  Clicking Log in button...")
