@@ -952,7 +952,11 @@ async def main(limit=None):
     logger.info("")
     
     # Use headless mode based on environment
-    headless = os.getenv('HEADLESS', 'false').lower() == 'true'
+    # Default to headless=true on servers without a display
+    display = os.getenv('DISPLAY')
+    default_headless = 'true' if not display else 'false'
+    headless = os.getenv('HEADLESS', default_headless).lower() == 'true'
+    logger.info(f"DISPLAY={display}, headless={headless}")
     
     # Browser data directory
     user_data_dir = os.getenv('USER_DATA_DIR', '/root/arti-marketing-ops/spotify_scraper/data/browser_data')
