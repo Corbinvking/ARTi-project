@@ -993,14 +993,76 @@ export default function CampaignImportModal({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">CSV Format Guidelines</CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2">
+            CSV Format Preview
+            <Badge variant="secondary" className="text-xs">Example Data</Badge>
+          </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm space-y-2">
-          <p><strong>Required columns:</strong> Campaign Name, Client, Goal</p>
-          <p><strong>Optional columns:</strong> Vendor, Remaining, Daily, Weekly, Track URL, SFA Link, Start Date, Status, Sale Price, Playlists, Notes</p>
-          <p><strong>Playlist format:</strong> Comma-separated or bullet points (•) to separate playlist names</p>
-          <div className="bg-muted p-2 rounded font-mono text-xs mt-2">
-            Coffee Music 2025, Restaurant Background, Chill Vibes Mix
+        <CardContent className="space-y-4">
+          {/* Column Requirements */}
+          <div className="text-sm space-y-1">
+            <p><Badge variant="default" className="mr-2">Required</Badge> Campaign Name, Client, Goal</p>
+            <p><Badge variant="outline" className="mr-2">Optional</Badge> Vendor, Remaining, Daily, Weekly, Track URL, SFA Link, Start Date, Status, Sale Price, Playlists, Notes</p>
+          </div>
+
+          {/* Sample CSV Table */}
+          <div className="rounded-lg border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Campaign Name</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Client</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Vendor</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Goal</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Remaining</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Daily</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Weekly</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Start Date</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Status</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Sale Price</TableHead>
+                  <TableHead className="text-xs font-semibold whitespace-nowrap">Playlists</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">Artist Name - Song Title</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">Artist Name</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">Club Restricted</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">50000</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">25000</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">500</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">3500</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">2025-01-01</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">Active</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">$1000</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap max-w-[150px] truncate">Coffee Music, Chill Vibes</TableCell>
+                </TableRow>
+                <TableRow className="bg-muted/30">
+                  <TableCell className="text-xs font-mono whitespace-nowrap">Another Artist - Track</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">Another Artist</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">Example Vendor</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">30000</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">30000</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">0</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">0</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">2025-01-15</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">Pending</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap">$500</TableCell>
+                  <TableCell className="text-xs font-mono whitespace-nowrap max-w-[150px] truncate"></TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Additional Notes */}
+          <div className="text-xs text-muted-foreground space-y-1 bg-muted/30 p-3 rounded-lg">
+            <p><strong>Tips:</strong></p>
+            <ul className="list-disc list-inside space-y-0.5 ml-2">
+              <li>Playlists can be comma-separated or use bullet points (•)</li>
+              <li>Status values: Active, Pending, Complete, Paused</li>
+              <li>Dates should be in YYYY-MM-DD format</li>
+              <li>Goal/Remaining/Daily/Weekly should be numbers only</li>
+            </ul>
           </div>
         </CardContent>
       </Card>
