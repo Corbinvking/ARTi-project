@@ -21,8 +21,18 @@ import {
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save, Trash2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface EditPlaylistVendorDialogProps {
   open: boolean;
@@ -40,6 +50,8 @@ export function EditPlaylistVendorDialog({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [vendorId, setVendorId] = useState<string>('');
   const [playlistCurator, setPlaylistCurator] = useState('');
   const [isAlgorithmic, setIsAlgorithmic] = useState(false);
@@ -142,12 +154,53 @@ export function EditPlaylistVendorDialog({
     }
   };
 
+  const handleDelete = async () => {
+    if (!playlist) return;
+
+    setDeleting(true);
+    
+    try {
+      // Delete the campaign_playlists record
+      const { error } = await supabase
+        .from('campaign_playlists')
+        .delete()
+        .eq('id', playlist.id);
+
+      if (error) throw error;
+
+      // Invalidate all queries that depend on this playlist
+      queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['playlists'] });
+      
+      toast({
+        title: "Playlist Removed",
+        description: `"${playlist.playlist_name}" has been removed from this campaign.`,
+      });
+      
+      setShowDeleteDialog(false);
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error('Failed to delete playlist:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove playlist from campaign",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Early return if no playlist
   if (!playlist) {
     return null;
   }
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
@@ -233,33 +286,78 @@ export function EditPlaylistVendorDialog({
           </div>
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-between gap-2">
           <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={saving}
+            variant="destructive"
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={saving || deleting}
           >
-            Cancel
+            <Trash2 className="mr-2 h-4 w-4" />
+            Remove Playlist
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saving || (!vendorId && !isAlgorithmic)}
-          >
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || (!vendorId && !isAlgorithmic)}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Delete Confirmation Dialog */}
+    <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remove Playlist from Campaign</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to remove "{playlist?.playlist_name}" from this campaign? 
+            This will delete the playlist association and any related stream data for this campaign.
+            This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDelete}
+            disabled={deleting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {deleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Removing...
+              </>
+            ) : (
+              <>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Remove Playlist
+              </>
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 }
 
