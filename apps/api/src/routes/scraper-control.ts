@@ -234,32 +234,54 @@ export async function scraperControlRoutes(server: FastifyInstance) {
   // Trigger manual scraper run
   server.post('/scraper/trigger', async (_request, reply) => {
     try {
+      logger.info({ scraperPath: SCRAPER_PATH }, '🚀 Trigger request received');
+      
       // Check if already running (check lock file)
+      const lockFile = path.join(SCRAPER_PATH, 'scraper.lock');
       try {
-        await fs.access(path.join(SCRAPER_PATH, 'scraper.lock'));
+        await fs.access(lockFile);
+        logger.warn('⚠️ Scraper already running (lock file exists)');
         reply.code(409);
         return { 
           error: 'Scraper is already running (lock file exists)',
           isRunning: true 
         };
-      } catch {}
+      } catch {
+        logger.info('✅ No lock file - scraper not running');
+      }
 
       // Create a trigger file that the host's cron/watchdog can pick up
       // This allows the API to trigger runs even from within Docker
       const triggerFile = path.join(SCRAPER_PATH, 'trigger_manual_run.flag');
-      await fs.writeFile(triggerFile, JSON.stringify({
+      const triggerData = JSON.stringify({
         triggered_at: new Date().toISOString(),
         triggered_by: 'admin_ui'
-      }));
+      });
+      
+      logger.info({ triggerFile }, '📝 Writing trigger file');
+      await fs.writeFile(triggerFile, triggerData);
+      
+      // Verify file was written
+      try {
+        const written = await fs.readFile(triggerFile, 'utf-8');
+        logger.info({ written }, '✅ Trigger file written and verified');
+      } catch (verifyError) {
+        logger.error({ error: verifyError }, '❌ Failed to verify trigger file');
+      }
       
       return { 
         success: true, 
-        message: 'Scraper trigger requested - will start shortly if watchdog is running',
+        message: 'Scraper trigger created - check_trigger.sh will pick it up within 1 minute',
+        triggerFile,
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
+      logger.error({ error: error.message, stack: error.stack }, '❌ Failed to trigger scraper');
       reply.code(500);
-      return { error: 'Failed to trigger scraper' };
+      return { 
+        error: 'Failed to trigger scraper',
+        details: error.message 
+      };
     }
   });
 
