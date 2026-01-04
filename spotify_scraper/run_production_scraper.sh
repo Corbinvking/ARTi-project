@@ -36,17 +36,30 @@ if [ -f .env ]; then
 fi
 
 # Set up display for GUI mode (Xvfb required for Playwright)
+# Spotify detects headless browsers and blocks login, so we MUST use Xvfb with headed mode
 export DISPLAY=:99
+export HEADLESS=false
 
 # Start Xvfb if not running (needed for Spotify login in GUI mode)
 if ! pgrep -x "Xvfb" > /dev/null; then
-    echo "Starting Xvfb for GUI mode..."
-    Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
-    sleep 2
+    echo "Starting Xvfb on display :99 for GUI mode..." >> logs/production.log
+    Xvfb :99 -screen 0 1920x1080x24 -ac > /dev/null 2>&1 &
+    XVFB_PID=$!
+    sleep 3
+    
+    # Verify Xvfb started
+    if ! pgrep -x "Xvfb" > /dev/null; then
+        echo "ERROR: Failed to start Xvfb!" >> logs/production.log
+        exit 1
+    fi
+    echo "Xvfb started successfully (PID: $XVFB_PID)" >> logs/production.log
+else
+    echo "Xvfb already running on display :99" >> logs/production.log
 fi
 
 # Log start time
 echo "=== Spotify Scraper Started at $(date) ===" >> logs/production.log
+echo "DISPLAY=$DISPLAY, HEADLESS=$HEADLESS" >> logs/production.log
 
 # Run the Python scraper
 python3 run_production_scraper.py >> logs/production.log 2>&1
