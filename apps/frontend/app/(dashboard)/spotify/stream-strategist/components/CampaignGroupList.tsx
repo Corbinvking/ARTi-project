@@ -30,10 +30,107 @@ import {
   ArrowDown,
   Download,
   Upload,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-type SortField = 'name' | 'client_name' | 'status' | 'total_daily' | 'total_weekly' | 'total_remaining' | 'progress_percentage' | 'invoice_status';
+type SortField = 'name' | 'client_name' | 'status' | 'total_daily' | 'total_weekly' | 'total_remaining' | 'progress_percentage' | 'invoice_status' | 'start_date' | 'schedule_status';
 type SortDirection = 'asc' | 'desc';
+
+// Calculate schedule status based on start date, duration, and current progress
+function calculateScheduleStatus(campaign: any): {
+  status: 'ahead' | 'on_track' | 'behind' | 'not_started' | 'completed';
+  expectedProgress: number;
+  actualProgress: number;
+  daysElapsed: number;
+  totalDays: number;
+  dailyRequired: number;
+} {
+  const startDate = campaign.start_date ? new Date(campaign.start_date) : null;
+  const endDate = campaign.end_date ? new Date(campaign.end_date) : null;
+  const totalGoal = campaign.total_goal || 0;
+  const currentProgress = campaign.progress_percentage || 0;
+  const totalRemaining = campaign.total_remaining || 0;
+  const currentStreams = totalGoal - totalRemaining;
+  
+  // If no start date, can't calculate
+  if (!startDate) {
+    return {
+      status: 'not_started',
+      expectedProgress: 0,
+      actualProgress: currentProgress,
+      daysElapsed: 0,
+      totalDays: 0,
+      dailyRequired: 0
+    };
+  }
+  
+  const now = new Date();
+  const daysElapsed = Math.max(0, Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+  
+  // Calculate total campaign days
+  let totalDays = 90; // Default to 90 days
+  if (endDate) {
+    totalDays = Math.max(1, Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+  }
+  
+  // If campaign hasn't started yet
+  if (daysElapsed === 0) {
+    return {
+      status: 'not_started',
+      expectedProgress: 0,
+      actualProgress: currentProgress,
+      daysElapsed: 0,
+      totalDays,
+      dailyRequired: totalGoal / totalDays
+    };
+  }
+  
+  // If campaign is complete
+  if (currentProgress >= 100 || totalRemaining <= 0) {
+    return {
+      status: 'completed',
+      expectedProgress: 100,
+      actualProgress: currentProgress,
+      daysElapsed,
+      totalDays,
+      dailyRequired: 0
+    };
+  }
+  
+  // Calculate expected progress based on days elapsed
+  const expectedProgress = Math.min(100, (daysElapsed / totalDays) * 100);
+  
+  // Calculate remaining days and required daily streams
+  const remainingDays = Math.max(1, totalDays - daysElapsed);
+  const dailyRequired = totalRemaining / remainingDays;
+  
+  // Compare actual vs expected (with 5% tolerance for "on track")
+  const progressDiff = currentProgress - expectedProgress;
+  
+  let status: 'ahead' | 'on_track' | 'behind';
+  if (progressDiff > 5) {
+    status = 'ahead';
+  } else if (progressDiff < -5) {
+    status = 'behind';
+  } else {
+    status = 'on_track';
+  }
+  
+  return {
+    status,
+    expectedProgress: Math.round(expectedProgress),
+    actualProgress: currentProgress,
+    daysElapsed,
+    totalDays,
+    dailyRequired: Math.round(dailyRequired)
+  };
+}
 
 export function CampaignGroupList() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -110,9 +207,19 @@ export function CampaignGroupList() {
           aValue = a.invoice_status || '';
           bValue = b.invoice_status || '';
           break;
+        case 'start_date':
+          aValue = a.start_date ? new Date(a.start_date).getTime() : 0;
+          bValue = b.start_date ? new Date(b.start_date).getTime() : 0;
+          break;
+        case 'schedule_status':
+          // Sort by behind first (worst), then on_track, then ahead (best)
+          const statusOrder = { 'behind': 0, 'on_track': 1, 'ahead': 2, 'not_started': 3, 'completed': 4 };
+          aValue = statusOrder[calculateScheduleStatus(a).status] || 0;
+          bValue = statusOrder[calculateScheduleStatus(b).status] || 0;
+          break;
         default:
-          aValue = a.start_date || '';
-          bValue = b.start_date || '';
+          aValue = a.start_date ? new Date(a.start_date).getTime() : 0;
+          bValue = b.start_date ? new Date(b.start_date).getTime() : 0;
       }
 
       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
@@ -307,6 +414,24 @@ export function CampaignGroupList() {
               </TableHead>
               <TableHead 
                 className="cursor-pointer select-none hover:bg-muted/50"
+                onClick={() => handleSort('start_date')}
+              >
+                <div className="flex items-center">
+                  Start Date
+                  {getSortIcon('start_date')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer select-none hover:bg-muted/50"
+                onClick={() => handleSort('schedule_status')}
+              >
+                <div className="flex items-center">
+                  Schedule
+                  {getSortIcon('schedule_status')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer select-none hover:bg-muted/50"
                 onClick={() => handleSort('invoice_status')}
               >
                 <div className="flex items-center">
@@ -314,7 +439,6 @@ export function CampaignGroupList() {
                   {getSortIcon('invoice_status')}
                 </div>
               </TableHead>
-              <TableHead>Performance</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -342,11 +466,6 @@ export function CampaignGroupList() {
                       <div className="text-xs text-muted-foreground mt-1">
                         Budget: ${campaign.total_budget?.toFixed(2) || '0.00'} | Goal: {campaign.total_goal?.toLocaleString() || '0'}
                       </div>
-                      {campaign.start_date && (
-                        <div className="text-xs text-muted-foreground">
-                          Started: {new Date(campaign.start_date).toLocaleDateString()}
-                        </div>
-                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -385,12 +504,111 @@ export function CampaignGroupList() {
                     </div>
                   </TableCell>
                   <TableCell>
+                    <div className="text-sm">
+                      {campaign.start_date ? (
+                        <div>
+                          <div className="font-medium">
+                            {new Date(campaign.start_date).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            })}
+                          </div>
+                          {campaign.end_date && (
+                            <div className="text-xs text-muted-foreground">
+                              to {new Date(campaign.end_date).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">Not set</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const scheduleInfo = calculateScheduleStatus(campaign);
+                      
+                      const getStatusConfig = () => {
+                        switch (scheduleInfo.status) {
+                          case 'ahead':
+                            return {
+                              icon: <TrendingUp className="h-4 w-4" />,
+                              label: 'Ahead',
+                              badgeClass: 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900 dark:text-green-300 dark:border-green-700',
+                              description: `+${(scheduleInfo.actualProgress - scheduleInfo.expectedProgress).toFixed(0)}% ahead of schedule`
+                            };
+                          case 'on_track':
+                            return {
+                              icon: <CheckCircle className="h-4 w-4" />,
+                              label: 'On Track',
+                              badgeClass: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-700',
+                              description: 'Campaign is progressing as expected'
+                            };
+                          case 'behind':
+                            return {
+                              icon: <TrendingDown className="h-4 w-4" />,
+                              label: 'Behind',
+                              badgeClass: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-900 dark:text-red-300 dark:border-red-700',
+                              description: `${(scheduleInfo.expectedProgress - scheduleInfo.actualProgress).toFixed(0)}% behind schedule`
+                            };
+                          case 'completed':
+                            return {
+                              icon: <CheckCircle className="h-4 w-4" />,
+                              label: 'Complete',
+                              badgeClass: 'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600',
+                              description: 'Campaign goal reached'
+                            };
+                          default:
+                            return {
+                              icon: <Clock className="h-4 w-4" />,
+                              label: 'Not Started',
+                              badgeClass: 'bg-gray-100 text-gray-500 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600',
+                              description: 'Campaign has not started yet'
+                            };
+                        }
+                      };
+                      
+                      const config = getStatusConfig();
+                      
+                      return (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge 
+                                variant="outline" 
+                                className={`cursor-help flex items-center gap-1 ${config.badgeClass}`}
+                              >
+                                {config.icon}
+                                {config.label}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <div className="space-y-1">
+                                <p className="font-medium">{config.description}</p>
+                                {scheduleInfo.status !== 'not_started' && scheduleInfo.status !== 'completed' && (
+                                  <>
+                                    <p className="text-xs">Expected: {scheduleInfo.expectedProgress}% | Actual: {scheduleInfo.actualProgress}%</p>
+                                    <p className="text-xs">Day {scheduleInfo.daysElapsed} of {scheduleInfo.totalDays}</p>
+                                    {scheduleInfo.dailyRequired > 0 && (
+                                      <p className="text-xs">Need ~{scheduleInfo.dailyRequired.toLocaleString()} streams/day to stay on track</p>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      );
+                    })()}
+                  </TableCell>
+                  <TableCell>
                     <Badge variant={getInvoiceStatusBadgeVariant(campaign.invoice_status || 'Not Invoiced')}>
                       {campaign.invoice_status || 'Not Invoiced'}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">N/A</Badge>
                   </TableCell>
                 </TableRow>
               );
