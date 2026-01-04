@@ -15,13 +15,17 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  captionLayout = 'label',
+  captionLayout = 'dropdown',
   buttonVariant = 'ghost',
   formatters,
   components,
+  fromYear = new Date().getFullYear() - 5,
+  toYear = new Date().getFullYear() + 5,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>['variant']
+  fromYear?: number
+  toYear?: number
 }) {
   const defaultClassNames = getDefaultClassNames()
 
@@ -29,15 +33,17 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        'bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
+        'bg-background group/calendar p-3 [--cell-size:--spacing(9)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className,
       )}
       captionLayout={captionLayout}
+      fromYear={fromYear}
+      toYear={toYear}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString('default', { month: 'short' }),
+          date.toLocaleString('default', { month: 'long' }),
         ...formatters,
       }}
       classNames={{
@@ -66,22 +72,22 @@ function Calendar({
           defaultClassNames.month_caption,
         ),
         dropdowns: cn(
-          'w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5',
+          'w-full flex items-center text-sm font-medium justify-center h-10 gap-2',
           defaultClassNames.dropdowns,
         ),
         dropdown_root: cn(
-          'relative has-focus:border-ring border border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md',
+          'relative has-focus:border-ring border border-input shadow-sm has-focus:ring-ring/50 has-focus:ring-[3px] rounded-md bg-background hover:bg-accent transition-colors cursor-pointer',
           defaultClassNames.dropdown_root,
         ),
         dropdown: cn(
-          'absolute bg-popover inset-0 opacity-0',
+          'absolute inset-0 opacity-0 cursor-pointer',
           defaultClassNames.dropdown,
         ),
         caption_label: cn(
           'select-none font-medium',
           captionLayout === 'label'
             ? 'text-sm'
-            : 'rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5',
+            : 'rounded-md pl-3 pr-2 flex items-center gap-1.5 text-sm h-9 min-w-[90px] justify-between [&>svg]:text-muted-foreground [&>svg]:size-4',
           defaultClassNames.caption_label,
         ),
         table: 'w-full border-collapse',
@@ -100,7 +106,7 @@ function Calendar({
           defaultClassNames.week_number,
         ),
         day: cn(
-          'relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none',
+          'relative w-full h-full p-0.5 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none',
           defaultClassNames.day,
         ),
         range_start: cn(

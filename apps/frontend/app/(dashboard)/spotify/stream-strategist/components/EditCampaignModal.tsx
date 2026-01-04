@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, X, CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { supabase } from '../integrations/supabase/client';
