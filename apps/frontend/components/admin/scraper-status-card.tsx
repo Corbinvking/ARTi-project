@@ -60,12 +60,18 @@ export function ScraperStatusCard() {
   }
 
   const handleTrigger = async () => {
+    console.log('🚀 Force Re-run button clicked!');
+    console.log('Current status:', status);
+    console.log('Is running:', status?.isRunning);
+    console.log('Is pending:', triggerScraper.isPending);
     try {
-      await triggerScraper.mutateAsync()
+      console.log('Calling triggerScraper.mutateAsync()...');
+      const result = await triggerScraper.mutateAsync();
+      console.log('✅ Trigger result:', result);
       // Refetch status after 2 seconds
       setTimeout(() => refetchStatus(), 2000)
     } catch (error: any) {
-      console.error('Failed to trigger scraper:', error)
+      console.error('❌ Failed to trigger scraper:', error)
     }
   }
 
