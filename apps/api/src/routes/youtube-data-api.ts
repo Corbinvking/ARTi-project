@@ -425,7 +425,7 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
       // Fetch campaign
       const { data: campaign, error: campaignError } = await supabase
         .from('youtube_campaigns')
-        .select('id, youtube_url, video_id, current_views, current_likes, current_comments, total_subscribers')
+        .select('id, youtube_url, video_id, current_views, current_likes, current_comments')
         .eq('id', campaignId)
         .single();
 
@@ -455,20 +455,7 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
       // Get today's date
       const today = new Date().toISOString().split('T')[0];
 
-      // Get previous stats for subscriber change calculation
-      const { data: previousStats } = await supabase
-        .from('campaign_stats_daily')
-        .select('total_subscribers')
-        .eq('campaign_id', campaignId)
-        .order('collected_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      const subscribersGained = previousStats 
-        ? (campaign.total_subscribers || 0) - (previousStats.total_subscribers || 0)
-        : 0;
-
-      // Insert or update daily stats
+      // Insert or update daily stats (subscriber tracking not implemented yet)
       const { data: insertedStats, error: insertError } = await supabase
         .from('campaign_stats_daily')
         .upsert({
@@ -478,8 +465,8 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
           views: stats.viewCount,
           likes: stats.likeCount,
           comments: stats.commentCount,
-          total_subscribers: campaign.total_subscribers || 0,
-          subscribers_gained: subscribersGained,
+          total_subscribers: 0,
+          subscribers_gained: 0,
           collected_at: new Date().toISOString()
         }, {
           onConflict: 'campaign_id,date,time_of_day'
