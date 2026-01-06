@@ -40,6 +40,8 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
   
   const [step, setStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     campaign_name: '',
@@ -765,28 +767,35 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
             {/* Start Date - moved to Step 1 for better UX */}
             <div className="space-y-2">
               <Label>Preferred Start Date</Label>
-              <Popover modal={true}>
+              <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                 <PopoverTrigger asChild>
                   <Button 
                     type="button"
                     variant="outline" 
                     className="w-full justify-start text-left font-normal"
+                    onClick={() => setStartDateOpen(true)}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-[9999] bg-popover border shadow-lg" align="start" sideOffset={5}>
+                <PopoverContent 
+                  className="w-auto p-0 bg-popover border shadow-lg" 
+                  align="start" 
+                  sideOffset={5}
+                  style={{ zIndex: 9999 }}
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                >
                   <CalendarComponent
                     mode="single"
                     selected={formData.start_date}
                     onSelect={(date) => {
                       if (date) {
                         handleInputChange('start_date', date);
+                        setStartDateOpen(false);
                       }
                     }}
-                    initialFocus
-                    className="bg-background"
+                    className="bg-background rounded-md"
                   />
                 </PopoverContent>
               </Popover>
@@ -827,28 +836,35 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>End Date</Label>
-                  <Popover modal={true}>
+                  <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                     <PopoverTrigger asChild>
                       <Button 
                         type="button"
                         variant="outline" 
                         className="w-full justify-start text-left font-normal"
+                        onClick={() => setEndDateOpen(true)}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-[9999] bg-popover border shadow-lg" align="start" sideOffset={5}>
+                    <PopoverContent 
+                      className="w-auto p-0 bg-popover border shadow-lg" 
+                      align="start" 
+                      sideOffset={5}
+                      style={{ zIndex: 9999 }}
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
                       <CalendarComponent
                         mode="single"
                         selected={formData.end_date}
                         onSelect={(date) => {
                           if (date) {
                             handleInputChange('end_date', date);
+                            setEndDateOpen(false);
                           }
                         }}
-                        initialFocus
-                        className="bg-background"
+                        className="bg-background rounded-md"
                       />
                     </PopoverContent>
                   </Popover>
