@@ -329,34 +329,10 @@ export default function InstagramCampaignBuilderPage() {
       const campaignId = await saveCampaign(campaign);
       console.log('✅ Campaign saved with ID:', campaignId);
       
-      // Now save the campaign_creators records so they appear in QA
-      const { supabase } = await import("../seedstorm-builder/integrations/supabase/client");
-      
-      // Insert campaign creators - use campaign_creators table (used by campaigns page)
-      const creatorRecords = campaignResults.selectedCreators.map(creator => ({
-        campaign_id: campaignId,
-        creator_id: creator.id,
-        instagram_handle: creator.instagram_handle,
-        rate: creator.selected_rate || 0,
-        posts_count: creator.posts_count || 1,
-        post_type: creator.selected_post_type || 'Reel',
-        payment_status: 'unpaid',
-        post_status: 'not_posted',
-        approval_status: 'pending',
-      }));
-
-      if (creatorRecords.length > 0) {
-        const { error: creatorsError } = await supabase
-          .from('campaign_creators')
-          .insert(creatorRecords);
-
-        if (creatorsError) {
-          console.error('⚠️ Error saving campaign creators:', creatorsError);
-          // Don't fail the whole save, just warn - table might not exist
-        } else {
-          console.log('✅ Campaign creators saved:', creatorRecords.length);
-        }
-      }
+      // Note: campaign_creators table uses UUID campaign_id (references stream_strategist_campaigns)
+      // but instagram_campaigns uses integer IDs, so they're incompatible.
+      // Creator data is stored in the campaign's report_notes JSON field instead.
+      console.log('ℹ️ Creator data stored in campaign report_notes (', campaignResults.selectedCreators.length, 'creators)');
       
       // Navigate and show success
       toast({
