@@ -115,30 +115,46 @@ const mapUIStatusToDb = (s: UICampaign['status']): string => {
 };
 
 const mapDbRowToUICampaign = (row: any): UICampaign => {
-  const totals: CampaignTotals = row?.totals || {
+  // Parse price to get budget number (handles "$5000" format)
+  const budgetNum = parseFloat(row?.price?.replace(/[^0-9.]/g, '') || '0') || 
+                    Number(row?.budget) || 0;
+  
+  // Try to parse stored JSON data from report_notes
+  let storedData: any = {};
+  if (row?.report_notes) {
+    try {
+      storedData = JSON.parse(row.report_notes);
+    } catch (e) {
+      // Not JSON, that's fine
+    }
+  }
+
+  const totals: CampaignTotals = storedData?.totals || row?.totals || {
     total_creators: row?.creator_count || 0,
-    total_cost: Number(row?.budget) || 0,
+    total_cost: budgetNum,
     total_followers: 0,
     total_median_views: 0,
     average_cpv: 0,
-    budget_remaining: Number(row?.budget) || 0,
+    budget_remaining: budgetNum,
   };
+
+  const formData = storedData?.form_data || {};
 
   return {
     id: row.id,
-    campaign_name: row.name || row.campaign_name || 'Untitled Campaign',
+    campaign_name: row.campaign || row.name || row.campaign_name || 'Untitled Campaign',
     date_created: row.created_at,
     status: mapDbStatusToUI(row.status),
     form_data: {
-      campaign_name: row.name || 'Untitled Campaign',
-      total_budget: Number(row.budget) || 0,
-      selected_genres: row.music_genres || [],
-      campaign_type: 'Audio Seeding',
-      post_type_preference: row.post_types || [],
-      territory_preferences: row.territory_preferences || [],
-      content_type_preferences: row.content_types || [],
+      campaign_name: row.campaign || row.name || 'Untitled Campaign',
+      total_budget: budgetNum,
+      selected_genres: formData.selected_genres || row.music_genres || [],
+      campaign_type: formData.campaign_type || 'Audio Seeding',
+      post_type_preference: formData.post_type_preference || row.post_types || [],
+      territory_preferences: formData.territory_preferences || row.territory_preferences || [],
+      content_type_preferences: formData.content_type_preferences || row.content_types || [],
     },
-    selected_creators: row.selected_creators || [],
+    selected_creators: storedData?.selected_creators || row.selected_creators || [],
     totals,
     actual_results: row.results
       ? {
@@ -192,29 +208,30 @@ export const updateCampaign = async (id: string, updates: Partial<UICampaign & {
   }
 };
 
-// Save campaign to instagram_campaigns table (correct schema)
+// Save campaign to instagram_campaigns table
+// Uses the ACTUAL production schema from migration 011 (Airtable import format)
 export const saveCampaign = async (campaign: UICampaign): Promise<string> => {
   verifyProjectIntegrity();
 
-  // Use instagram_campaigns table which has the correct schema
+  // Map UI data to actual production schema columns
   const payload: any = {
-    name: campaign.campaign_name || 'Untitled Campaign',
-    brand_name: campaign.campaign_name || 'Brand',
-    budget: campaign.form_data?.total_budget ?? campaign.totals?.total_cost ?? 0,
-    creator_count: campaign.selected_creators?.length ?? 0,
-    selected_creators: campaign.selected_creators ?? [],
-    totals: campaign.totals ?? {},
-    results: campaign.actual_results ?? {},
-    music_genres: campaign.form_data?.selected_genres ?? [],
-    content_types: campaign.form_data?.content_type_preferences ?? [],
-    territory_preferences: campaign.form_data?.territory_preferences ?? [],
-    post_types: campaign.form_data?.post_type_preference ?? [],
+    campaign: campaign.campaign_name || 'Untitled Campaign',
+    clients: campaign.campaign_name || 'Client', // Use campaign name as client name
+    price: `$${campaign.form_data?.total_budget ?? campaign.totals?.total_cost ?? 0}`,
+    spend: '$0',
+    remaining: `$${campaign.form_data?.total_budget ?? campaign.totals?.total_cost ?? 0}`,
     status: mapUIStatusToDb(campaign.status),
-    public_access_enabled: false,
-    // org_id is optional - will be null if not set
+    sound_url: '', // Audio URL if available
+    tracker: '', // Tracker URL
+    // Store JSON data in available text fields
+    report_notes: JSON.stringify({
+      selected_creators: campaign.selected_creators ?? [],
+      totals: campaign.totals ?? {},
+      form_data: campaign.form_data ?? {},
+    }),
   };
 
-  console.log('📝 Saving to instagram_campaigns:', payload.name);
+  console.log('📝 Saving to instagram_campaigns:', payload.campaign);
 
   const { data, error } = await supabase
     .from('instagram_campaigns')

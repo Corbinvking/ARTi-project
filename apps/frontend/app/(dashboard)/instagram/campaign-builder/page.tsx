@@ -329,28 +329,30 @@ export default function InstagramCampaignBuilderPage() {
       const campaignId = await saveCampaign(campaign);
       console.log('✅ Campaign saved with ID:', campaignId);
       
-      // Now save the instagram_campaign_creators records so they appear in QA
+      // Now save the campaign_creators records so they appear in QA
       const { supabase } = await import("../seedstorm-builder/integrations/supabase/client");
       
-      // Insert campaign creators - use instagram_campaign_creators table
+      // Insert campaign creators - use campaign_creators table (used by campaigns page)
       const creatorRecords = campaignResults.selectedCreators.map(creator => ({
         campaign_id: campaignId,
         creator_id: creator.id,
+        instagram_handle: creator.instagram_handle,
+        rate: creator.selected_rate || 0,
+        posts_count: creator.posts_count || 1,
+        post_type: creator.selected_post_type || 'Reel',
         payment_status: 'unpaid',
-        payment_amount: creator.selected_rate || 0,
         post_status: 'not_posted',
         approval_status: 'pending',
-        notes: `Post type: ${creator.selected_post_type || 'Reel'}, Posts: ${creator.posts_count || 1}`
       }));
 
       if (creatorRecords.length > 0) {
         const { error: creatorsError } = await supabase
-          .from('instagram_campaign_creators')
+          .from('campaign_creators')
           .insert(creatorRecords);
 
         if (creatorsError) {
           console.error('⚠️ Error saving campaign creators:', creatorsError);
-          // Don't fail the whole save, just warn
+          // Don't fail the whole save, just warn - table might not exist
         } else {
           console.log('✅ Campaign creators saved:', creatorRecords.length);
         }
