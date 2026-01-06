@@ -416,9 +416,13 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
         return reply.status(400).send({ error: 'campaignId is required' });
       }
 
-      // Determine time of day
-      const hour = new Date().getHours();
-      const detectedTimeOfDay = timeOfDay || (hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening');
+      // Determine time of day (must be one of: morning, afternoon, evening - DB constraint)
+      const hour = new Date().getUTCHours();
+      const validTimeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+      // Ignore invalid values like "manual" and use calculated value
+      const detectedTimeOfDay = ['morning', 'afternoon', 'evening'].includes(timeOfDay || '') 
+        ? timeOfDay! 
+        : validTimeOfDay;
 
       logger.info({ campaignId, timeOfDay: detectedTimeOfDay }, '📊 Collecting daily stats');
 
@@ -513,9 +517,13 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
     try {
       const { timeOfDay } = request.body as { timeOfDay?: string };
 
-      // Determine time of day
-      const hour = new Date().getHours();
-      const detectedTimeOfDay = timeOfDay || (hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening');
+      // Determine time of day (must be one of: morning, afternoon, evening - DB constraint)
+      const hour = new Date().getUTCHours();
+      const validTimeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+      // Ignore invalid values like "manual" and use calculated value
+      const detectedTimeOfDay = ['morning', 'afternoon', 'evening'].includes(timeOfDay || '') 
+        ? timeOfDay! 
+        : validTimeOfDay;
       const today = new Date().toISOString().split('T')[0];
 
       logger.info({ timeOfDay: detectedTimeOfDay }, '📊 Collecting daily stats for all active campaigns');
