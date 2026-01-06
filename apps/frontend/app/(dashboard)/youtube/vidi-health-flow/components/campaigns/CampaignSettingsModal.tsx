@@ -584,12 +584,13 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                           {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-[100]">
+                      <PopoverContent className="w-auto p-0 z-[9999] bg-popover border shadow-lg" sideOffset={5}>
                         <CalendarComponent
                           mode="single"
                           selected={formData.start_date}
                           onSelect={(date) => handleInputChange('start_date', date)}
                           initialFocus
+                          className="bg-background"
                         />
                       </PopoverContent>
                     </Popover>
@@ -603,12 +604,13 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                           {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-[100]">
+                      <PopoverContent className="w-auto p-0 z-[9999] bg-popover border shadow-lg" sideOffset={5}>
                         <CalendarComponent
                           mode="single"
                           selected={formData.end_date}
                           onSelect={(date) => handleInputChange('end_date', date)}
                           initialFocus
+                          className="bg-background"
                         />
                       </PopoverContent>
                     </Popover>

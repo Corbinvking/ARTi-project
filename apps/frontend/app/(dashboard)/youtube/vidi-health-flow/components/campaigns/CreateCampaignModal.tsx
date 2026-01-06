@@ -776,7 +776,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                     {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                <PopoverContent className="w-auto p-0 z-[9999] bg-popover border shadow-lg" align="start" sideOffset={5}>
                   <CalendarComponent
                     mode="single"
                     selected={formData.start_date}
@@ -786,6 +786,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                       }
                     }}
                     initialFocus
+                    className="bg-background"
                   />
                 </PopoverContent>
               </Popover>
@@ -837,7 +838,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                         {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                    <PopoverContent className="w-auto p-0 z-[9999] bg-popover border shadow-lg" align="start" sideOffset={5}>
                       <CalendarComponent
                         mode="single"
                         selected={formData.end_date}
@@ -847,6 +848,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                           }
                         }}
                         initialFocus
+                        className="bg-background"
                       />
                     </PopoverContent>
                   </Popover>
