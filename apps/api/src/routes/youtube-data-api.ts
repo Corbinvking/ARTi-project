@@ -528,8 +528,11 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
         .in('status', ['active', 'pending']);
 
       if (fetchError) {
+        logger.error({ error: fetchError.message, code: fetchError.code, details: fetchError.details }, '❌ Failed to fetch campaigns');
         return reply.status(500).send({ error: 'Failed to fetch campaigns', details: fetchError.message });
       }
+      
+      logger.info({ campaignCount: campaigns?.length || 0 }, '✅ Campaigns fetched successfully');
 
       if (!campaigns || campaigns.length === 0) {
         return { message: 'No campaigns to collect stats for', collected: 0 };
