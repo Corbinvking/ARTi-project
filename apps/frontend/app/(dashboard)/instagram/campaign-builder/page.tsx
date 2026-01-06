@@ -290,7 +290,23 @@ export default function InstagramCampaignBuilderPage() {
   };
 
   const saveCampaignDraft = async () => {
-    if (!campaignResults) return;
+    if (!campaignResults) {
+      toast({
+        title: "No Campaign Data",
+        description: "Please complete the campaign configuration first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (campaignResults.selectedCreators.length === 0) {
+      toast({
+        title: "No Creators Selected",
+        description: "Please select at least one creator for your campaign.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const campaign: Campaign = {
       id: generateUUID(),
@@ -309,20 +325,54 @@ export default function InstagramCampaignBuilderPage() {
     });
 
     try {
+      console.log('📝 Saving campaign:', campaign.campaign_name);
+      console.log('📊 With', campaignResults.selectedCreators.length, 'creators');
+      
       // Save to database first for immediate consistency
-      await saveCampaign(campaign);
+      const campaignId = await saveCampaign(campaign);
+      console.log('✅ Campaign saved with ID:', campaignId);
+      
+      // Now save the campaign_creators records so they appear in QA
+      const { supabase } = await import("../seedstorm-builder/integrations/supabase/client");
+      
+      // Insert campaign creators
+      const creatorRecords = campaignResults.selectedCreators.map(creator => ({
+        campaign_id: campaignId,
+        creator_id: creator.id,
+        instagram_handle: creator.instagram_handle,
+        rate: creator.selected_rate || 0,
+        posts_count: creator.posts_count || 1,
+        post_type: creator.selected_post_type || 'Reel',
+        payment_status: 'unpaid',
+        post_status: 'not_posted',
+        approval_status: 'pending'
+      }));
+
+      if (creatorRecords.length > 0) {
+        const { error: creatorsError } = await supabase
+          .from('campaign_creators')
+          .insert(creatorRecords);
+
+        if (creatorsError) {
+          console.error('⚠️ Error saving campaign creators:', creatorsError);
+          // Don't fail the whole save, just warn
+        } else {
+          console.log('✅ Campaign creators saved:', creatorRecords.length);
+        }
+      }
       
       // Navigate and show success
-      router.push('/instagram/campaigns');
       toast({
-        title: "Campaign Saved",
-        description: "Campaign has been saved successfully",
+        title: "Campaign Saved!",
+        description: `Campaign "${campaign.campaign_name}" saved with ${campaignResults.selectedCreators.length} creators.`,
       });
-    } catch (error) {
-      console.error('Error saving campaign:', error);
+      
+      router.push('/instagram/campaigns');
+    } catch (error: any) {
+      console.error('❌ Error saving campaign:', error);
       toast({
         title: "Save Failed",
-        description: "Failed to save campaign. Please try again.",
+        description: error?.message || "Failed to save campaign. Please try again.",
         variant: "destructive",
       });
     }
