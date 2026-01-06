@@ -329,25 +329,23 @@ export default function InstagramCampaignBuilderPage() {
       const campaignId = await saveCampaign(campaign);
       console.log('✅ Campaign saved with ID:', campaignId);
       
-      // Now save the campaign_creators records so they appear in QA
+      // Now save the instagram_campaign_creators records so they appear in QA
       const { supabase } = await import("../seedstorm-builder/integrations/supabase/client");
       
-      // Insert campaign creators
+      // Insert campaign creators - use instagram_campaign_creators table
       const creatorRecords = campaignResults.selectedCreators.map(creator => ({
         campaign_id: campaignId,
         creator_id: creator.id,
-        instagram_handle: creator.instagram_handle,
-        rate: creator.selected_rate || 0,
-        posts_count: creator.posts_count || 1,
-        post_type: creator.selected_post_type || 'Reel',
         payment_status: 'unpaid',
+        payment_amount: creator.selected_rate || 0,
         post_status: 'not_posted',
-        approval_status: 'pending'
+        approval_status: 'pending',
+        notes: `Post type: ${creator.selected_post_type || 'Reel'}, Posts: ${creator.posts_count || 1}`
       }));
 
       if (creatorRecords.length > 0) {
         const { error: creatorsError } = await supabase
-          .from('campaign_creators')
+          .from('instagram_campaign_creators')
           .insert(creatorRecords);
 
         if (creatorsError) {

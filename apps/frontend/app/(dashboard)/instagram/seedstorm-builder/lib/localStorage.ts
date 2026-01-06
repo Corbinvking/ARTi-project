@@ -155,7 +155,7 @@ const mapDbRowToUICampaign = (row: any): UICampaign => {
 export const getCampaigns = async (): Promise<UICampaign[]> => {
   verifyProjectIntegrity();
   const { data, error } = await supabase
-    .from('campaigns')
+    .from('instagram_campaigns')
     .select('*')
     .order('created_at', { ascending: false });
 
@@ -182,7 +182,7 @@ export const updateCampaign = async (id: string, updates: Partial<UICampaign & {
   dbUpdates.updated_at = new Date().toISOString();
 
   const { error } = await supabase
-    .from('campaigns')
+    .from('instagram_campaigns')
     .update(dbUpdates)
     .eq('id', id);
 
@@ -192,10 +192,11 @@ export const updateCampaign = async (id: string, updates: Partial<UICampaign & {
   }
 };
 
-// Optional: create campaign in Supabase from UI Campaign shape
+// Save campaign to instagram_campaigns table (correct schema)
 export const saveCampaign = async (campaign: UICampaign): Promise<string> => {
   verifyProjectIntegrity();
 
+  // Use instagram_campaigns table which has the correct schema
   const payload: any = {
     name: campaign.campaign_name || 'Untitled Campaign',
     brand_name: campaign.campaign_name || 'Brand',
@@ -208,15 +209,15 @@ export const saveCampaign = async (campaign: UICampaign): Promise<string> => {
     content_types: campaign.form_data?.content_type_preferences ?? [],
     territory_preferences: campaign.form_data?.territory_preferences ?? [],
     post_types: campaign.form_data?.post_type_preference ?? [],
-    campaign_type: 'instagram',
-    source: 'campaign_manager',
     status: mapUIStatusToDb(campaign.status),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    public_access_enabled: false,
+    // org_id is optional - will be null if not set
   };
 
+  console.log('📝 Saving to instagram_campaigns:', payload.name);
+
   const { data, error } = await supabase
-    .from('campaigns')
+    .from('instagram_campaigns')
     .insert(payload as any)
     .select('id')
     .single();
@@ -226,13 +227,14 @@ export const saveCampaign = async (campaign: UICampaign): Promise<string> => {
     throw error;
   }
 
+  console.log('✅ Saved campaign with ID:', data?.id);
   return data?.id as string;
 };
 
 export const deleteCampaign = async (id: string): Promise<void> => {
   verifyProjectIntegrity();
   const { error } = await supabase
-    .from('campaigns')
+    .from('instagram_campaigns')
     .delete()
     .eq('id', id);
 
