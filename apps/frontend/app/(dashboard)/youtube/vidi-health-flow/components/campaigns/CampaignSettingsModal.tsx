@@ -113,6 +113,7 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
       
       // Fetch daily stats when modal opens (data is collected by background cron job)
       if (isOpen) {
+        console.log('📊 Modal opened for campaign:', campaign.id, '- fetching daily stats');
         fetchDailyStats();
       }
       
@@ -147,8 +148,12 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
   }, [campaign, isOpen]);
 
   const fetchDailyStats = async () => {
-    if (!campaign) return;
+    if (!campaign) {
+      console.log('📊 fetchDailyStats: No campaign, skipping');
+      return;
+    }
     
+    console.log('📊 fetchDailyStats: Fetching for campaign', campaign.id);
     setLoadingStats(true);
     try {
       const { data, error } = await supabase
@@ -158,8 +163,12 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         .order('date', { ascending: true })
         .order('collected_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('📊 fetchDailyStats: Error', error);
+        throw error;
+      }
 
+      console.log('📊 fetchDailyStats: Got', data?.length || 0, 'records');
       setDailyStats(data || []);
     } catch (error) {
       console.error('Error fetching daily stats:', error);
