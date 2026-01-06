@@ -767,38 +767,32 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
             {/* Start Date - moved to Step 1 for better UX */}
             <div className="space-y-2">
               <Label>Preferred Start Date</Label>
-              <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    type="button"
-                    variant="outline" 
-                    className="w-full justify-start text-left font-normal"
-                    onClick={() => setStartDateOpen(true)}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent 
-                  className="w-auto p-0 bg-popover border shadow-lg" 
-                  align="start" 
-                  sideOffset={5}
-                  style={{ zIndex: 9999 }}
-                  onOpenAutoFocus={(e) => e.preventDefault()}
+              <div className="relative">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  className="w-full justify-start text-left font-normal"
+                  onClick={() => setStartDateOpen(!startDateOpen)}
                 >
-                  <CalendarComponent
-                    mode="single"
-                    selected={formData.start_date}
-                    onSelect={(date) => {
-                      if (date) {
-                        handleInputChange('start_date', date);
-                        setStartDateOpen(false);
-                      }
-                    }}
-                    className="bg-background rounded-md"
-                  />
-                </PopoverContent>
-              </Popover>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
+                </Button>
+                {startDateOpen && (
+                  <div className="absolute top-full left-0 mt-1 z-50 bg-background border rounded-md shadow-lg">
+                    <CalendarComponent
+                      mode="single"
+                      selected={formData.start_date}
+                      onSelect={(date) => {
+                        if (date) {
+                          handleInputChange('start_date', date);
+                          setStartDateOpen(false);
+                        }
+                      }}
+                      className="bg-background rounded-md"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             </div>
           )}
@@ -836,38 +830,32 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>End Date</Label>
-                  <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
-                    <PopoverTrigger asChild>
-                      <Button 
-                        type="button"
-                        variant="outline" 
-                        className="w-full justify-start text-left font-normal"
-                        onClick={() => setEndDateOpen(true)}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent 
-                      className="w-auto p-0 bg-popover border shadow-lg" 
-                      align="start" 
-                      sideOffset={5}
-                      style={{ zIndex: 9999 }}
-                      onOpenAutoFocus={(e) => e.preventDefault()}
+                  <div className="relative">
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      className="w-full justify-start text-left font-normal"
+                      onClick={() => setEndDateOpen(!endDateOpen)}
                     >
-                      <CalendarComponent
-                        mode="single"
-                        selected={formData.end_date}
-                        onSelect={(date) => {
-                          if (date) {
-                            handleInputChange('end_date', date);
-                            setEndDateOpen(false);
-                          }
-                        }}
-                        className="bg-background rounded-md"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
+                    </Button>
+                    {endDateOpen && (
+                      <div className="absolute top-full left-0 mt-1 z-50 bg-background border rounded-md shadow-lg">
+                        <CalendarComponent
+                          mode="single"
+                          selected={formData.end_date}
+                          onSelect={(date) => {
+                            if (date) {
+                              handleInputChange('end_date', date);
+                              setEndDateOpen(false);
+                            }
+                          }}
+                          className="bg-background rounded-md"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status">Campaign Status</Label>
