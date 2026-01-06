@@ -181,10 +181,10 @@ export default function InstagramCampaignBuilderPage() {
         const results = generateCampaign(formData, freshCreators);
         
         if (results.selectedCreators.length === 0 && results.eligible.length === 0) {
+          // Still proceed but warn the user - they can add creators manually
           toast({
-            title: "No Eligible Creators",
-            description: (results as any).message || "Try adjusting your campaign criteria or adding more creators to the database.",
-            variant: "destructive",
+            title: "No Matching Creators Found",
+            description: "You can add creators manually in the next step. " + ((results as any).message || ""),
           });
         } else {
           toast({
@@ -193,6 +193,7 @@ export default function InstagramCampaignBuilderPage() {
           });
         }
         
+        // Always proceed to step 2 - user can add creators manually
         setCampaignResults(results);
         setStep(2);
       } catch (error: any) {
@@ -299,13 +300,9 @@ export default function InstagramCampaignBuilderPage() {
       return;
     }
 
+    // Allow saving with 0 creators (as a draft that can be edited later)
     if (campaignResults.selectedCreators.length === 0) {
-      toast({
-        title: "No Creators Selected",
-        description: "Please select at least one creator for your campaign.",
-        variant: "destructive",
-      });
-      return;
+      console.log('⚠️ Saving campaign with 0 creators as draft');
     }
 
     const campaign: Campaign = {

@@ -148,17 +148,19 @@ function calculateTrueCPV(creator: any, postType: string, includePerformancePred
 
 // Enhanced content type filtering - Updated to match actual database content types
 function filterByContentType(creators: Creator[], campaignType: string): Creator[] {
-  // Updated to match actual content types in your database
+  // Updated to match actual content types in your database - now more flexible
   const audioSeedingTypes = [
     'Lyric Videos', 'Music Memes', 'Audio Visualizations', 'Song Covers', 'Music Videos', 'Dance Videos',
-    // Add actual content types from your database:
-    'DJ Footage', 'Festival Content', 'EDM Memes', 'EDM Carousels', 'EDM Influencer'
+    'DJ Footage', 'Festival Content', 'EDM Memes', 'EDM Carousels', 'EDM Influencer',
+    // More flexible matching - partial strings
+    'music', 'audio', 'lyric', 'song', 'dance', 'dj', 'festival', 'edm', 'beats', 'sound'
   ];
   
   const footageSeedingTypes = [
     'DJ Footage', 'Festival Content', 'Live Performances', 'Music Videos', 'Club Sets', 'Studio Sessions',
-    // Add actual content types from your database:
-    'EDM Memes', 'EDM Carousels', 'EDM Influencer'
+    'EDM Memes', 'EDM Carousels', 'EDM Influencer',
+    // More flexible matching
+    'footage', 'live', 'performance', 'video', 'club', 'studio', 'dj', 'festival'
   ];
   
   // Content types that should EXCLUDE creators from music campaigns
@@ -176,70 +178,73 @@ function filterByContentType(creators: Creator[], campaignType: string): Creator
     'Beauty Content',
     'Fashion Content',
     'Fitness Content',
-    'Pokemon'  // Add Pokemon specifically since it appeared in logs
+    'Pokemon'
   ];
   
   const prioritizedTypes = campaignType === 'Audio Seeding' ? audioSeedingTypes : footageSeedingTypes;
   
   return creators.filter(creator => {
-    const debug = creator.instagram_handle.toLowerCase().includes('lyrically');
-    
-    if (debug) {
-      console.log(`DEBUG @lyrically: Checking content filtering for ${creator.instagram_handle}`);
-      console.log(`- Content types:`, creator.content_types);
-      console.log(`- Music genres:`, creator.music_genres);
-    }
-    
+    // LENIENT: If creator has no content types, INCLUDE them (don't filter out)
     if (!creator.content_types || creator.content_types.length === 0) {
-      if (debug) console.log(`DEBUG @lyrically: No content types - EXCLUDED`);
-      return false;
+      console.log(`Including ${creator.instagram_handle} - no content types set (accepting by default)`);
+      return true;
     }
     
     // EXCLUDE creators who primarily do non-music content
-    const hasExcludedContent = creator.content_types.some(type => excludeTypes.includes(type));
+    const hasExcludedContent = creator.content_types.some(type => 
+      excludeTypes.some(excluded => type.toLowerCase().includes(excluded.toLowerCase()))
+    );
     if (hasExcludedContent) {
       console.log(`Excluding ${creator.instagram_handle} - has non-music content:`, creator.content_types);
-      if (debug) console.log(`DEBUG @lyrically: Has excluded content - EXCLUDED`);
       return false;
     }
     
-    // EXCLUDE creators with obviously non-music themed handles or content
+    // EXCLUDE creators with obviously non-music themed handles
     const handle = creator.instagram_handle.toLowerCase();
     const nonMusicKeywords = [
       'pokemon', 'gaming', 'fortnite', 'minecraft', 'anime', 'manga',
       'sports', 'fitness', 'food', 'travel', 'fashion', 'beauty',
-      'tech', 'review', 'comedy', 'meme', 'cat', 'dog', 'pet',
+      'tech', 'review', 'comedy', 'cat', 'dog', 'pet',
       'car', 'auto', 'news', 'politics', 'health', 'wellness'
     ];
     
     const hasNonMusicHandle = nonMusicKeywords.some(keyword => handle.includes(keyword));
     if (hasNonMusicHandle) {
       console.log(`Excluding ${creator.instagram_handle} - non-music themed handle`);
-      if (debug) console.log(`DEBUG @lyrically: Non-music handle - EXCLUDED`);
       return false;
     }
     
-    // REQUIRE at least one music-related content type
-    const hasMusicContent = creator.content_types.some(type => prioritizedTypes.includes(type));
+    // Check for music-related content (now with partial matching)
+    const hasMusicContent = creator.content_types.some(type => 
+      prioritizedTypes.some(musicType => 
+        type.toLowerCase().includes(musicType.toLowerCase()) || 
+        musicType.toLowerCase().includes(type.toLowerCase())
+      )
+    );
+    
+    // LENIENT: If no specific match found but no excluded content either, include them
     if (!hasMusicContent) {
-      console.log(`Excluding ${creator.instagram_handle} - no music content types:`, creator.content_types);
-      if (debug) console.log(`DEBUG @lyrically: No music content - EXCLUDED`);
-      return false;
-    }
-    
-    if (debug) {
-      console.log(`DEBUG @lyrically: PASSED content filtering - included in eligible list`);
+      console.log(`Including ${creator.instagram_handle} - content types don't match but not excluded:`, creator.content_types);
+      return true; // Changed from false to true - be lenient
     }
     
     return true;
   });
 }
 
-// ULTRA-STRICT genre matching with support for multiple campaign genres
+// LENIENT genre matching with support for multiple campaign genres
 function calculateGenreScore(creatorGenres: string[], campaignGenres: string[]): number {
-  console.log(`\n=== MULTI-GENRE SCORING DEBUG ===`);
-  console.log(`Campaign genres: [${campaignGenres.join(', ')}]`);
-  console.log(`Creator genres: [${creatorGenres.join(', ')}]`);
+  // If creator has no genres set, give them a default score (be lenient)
+  if (!creatorGenres || creatorGenres.length === 0) {
+    console.log(`✅ Creator has no genres - giving default score of 50`);
+    return 50; // Default score for creators without genres
+  }
+  
+  // If campaign has no genres set, all creators match
+  if (!campaignGenres || campaignGenres.length === 0) {
+    console.log(`✅ No campaign genres - all creators match with score 50`);
+    return 50;
+  }
   
   let maxScore = 0;
   let bestMatch = '';
@@ -248,11 +253,17 @@ function calculateGenreScore(creatorGenres: string[], campaignGenres: string[]):
   for (const campaignGenre of campaignGenres) {
     const campaignFamily = getGenreFamily(campaignGenre);
     if (!campaignFamily) {
-      console.log(`❌ Campaign genre "${campaignGenre}" not found in family system`);
+      // Genre not in family system - try partial string matching
+      const partialMatch = creatorGenres.some(cg => 
+        cg.toLowerCase().includes(campaignGenre.toLowerCase()) ||
+        campaignGenre.toLowerCase().includes(cg.toLowerCase())
+      );
+      if (partialMatch) {
+        console.log(`✅ Partial match for "${campaignGenre}"`);
+        maxScore = Math.max(maxScore, 70);
+      }
       continue;
     }
-    
-    console.log(`Checking campaign genre: ${campaignGenre} (${campaignFamily.name})`);
     
     // EXACT MATCH gets highest score
     if (creatorGenres.includes(campaignGenre)) {
@@ -268,32 +279,38 @@ function calculateGenreScore(creatorGenres: string[], campaignGenres: string[]):
       const creatorFamily = getGenreFamily(creatorGenre);
       
       if (!creatorFamily) {
-        console.log(`⚠️  Creator genre "${creatorGenre}" not in family system - skipping`);
+        // Try partial matching for genres not in family system
+        if (creatorGenre.toLowerCase().includes(campaignGenre.toLowerCase()) ||
+            campaignGenre.toLowerCase().includes(creatorGenre.toLowerCase())) {
+          console.log(`✅ Partial match: "${creatorGenre}" ~ "${campaignGenre}"`);
+          genreScore = Math.max(genreScore, 70);
+        }
         continue;
       }
       
-      // STRICT: Only same family genres are compatible
+      // Same family genres are compatible
       if (creatorFamily.name === campaignFamily.name) {
         console.log(`✅ FAMILY MATCH: "${creatorGenre}" matches "${campaignGenre}" family (${creatorFamily.name})`);
         genreScore = Math.max(genreScore, 85);
         if (genreScore > maxScore) {
           bestMatch = `${campaignGenre} via ${creatorGenre}`;
         }
-      } else {
-        console.log(`❌ FAMILY MISMATCH: "${creatorGenre}" (${creatorFamily.name}) vs "${campaignGenre}" (${campaignFamily.name})`);
       }
     }
     
     maxScore = Math.max(maxScore, genreScore);
   }
   
-  if (maxScore > 0) {
-    console.log(`✅ FINAL SCORE: ${maxScore} (best match: ${bestMatch})`);
-  } else {
-    console.log(`❌ FINAL SCORE: 0 (no compatible genres found)`);
+  // If no specific match found, give a small default score so creators aren't excluded
+  if (maxScore === 0) {
+    console.log(`⚠️ No genre match found, giving default score of 30`);
+    return 30; // Low but not zero - creator won't be excluded
   }
   
-  console.log(`=== END MULTI-GENRE SCORING ===\n`);
+  if (maxScore > 0) {
+    console.log(`✅ FINAL SCORE: ${maxScore} (best match: ${bestMatch})`);
+  }
+  
   return maxScore;
 }
 
@@ -433,39 +450,60 @@ export function generateCampaign(formData: CampaignForm, creators: Creator[]): C
   console.log('After content type filter:', eligible.length, 'creators remain');
   console.log('Filtered out creators:', creators.length - eligible.length);
   
-  // Step 1.5: STRICT GENRE FILTERING FIRST - Reject incompatible genres immediately
-  console.log('\n=== APPLYING STRICT MULTI-GENRE FILTER ===');
+  // Step 1.5: LENIENT GENRE FILTERING - Only filter if campaign has genres AND creators have genres
+  console.log('\n=== APPLYING LENIENT MULTI-GENRE FILTER ===');
   const beforeGenreFilter = eligible.length;
-  eligible = eligible.filter(creator => {
-    const genreScore = calculateGenreScore(creator.music_genres, formData.selected_genres);
-    const isCompatible = genreScore > 0;
-    
-    if (!isCompatible) {
-      console.log(`🚫 GENRE REJECTED: ${creator.instagram_handle} - genres [${creator.music_genres.join(', ')}] incompatible with campaign genres [${formData.selected_genres.join(', ')}]`);
-    }
-    
-    return isCompatible;
-  });
-  console.log(`After strict genre filter: ${eligible.length} creators remain (filtered out ${beforeGenreFilter - eligible.length})`);
   
-  // Step 2: Filter out creators without proper rates
+  // Only apply genre filtering if campaign has specific genre preferences
+  if (formData.selected_genres && formData.selected_genres.length > 0) {
+    eligible = eligible.filter(creator => {
+      // If creator has no genres set, INCLUDE them (don't filter out)
+      if (!creator.music_genres || creator.music_genres.length === 0) {
+        console.log(`✅ GENRE ACCEPTED: ${creator.instagram_handle} - no genres set (accepting by default)`);
+        return true;
+      }
+      
+      const genreScore = calculateGenreScore(creator.music_genres, formData.selected_genres);
+      const isCompatible = genreScore > 0;
+      
+      if (!isCompatible) {
+        console.log(`🚫 GENRE REJECTED: ${creator.instagram_handle} - genres [${creator.music_genres.join(', ')}] incompatible with campaign genres [${formData.selected_genres.join(', ')}]`);
+      }
+      
+      return isCompatible;
+    });
+  } else {
+    console.log('No campaign genres selected - skipping genre filter');
+  }
+  console.log(`After genre filter: ${eligible.length} creators remain (filtered out ${beforeGenreFilter - eligible.length})`);
+  
+  // Step 2: Add default rates for creators without proper rates (don't filter them out)
   const primaryPostType = formData.post_type_preference[0] || 'reel';
   console.log('Primary post type:', primaryPostType);
   
   const beforeRateFilter = eligible.length;
-  eligible = eligible.filter(creator => {
+  eligible = eligible.map(creator => {
     const rate = creator[primaryPostType.toLowerCase() + '_rate'] || creator.reel_rate;
     const hasValidRate = rate && rate > 0;
     const hasValidViews = creator.median_views_per_video && creator.median_views_per_video > 0;
     const hasValidFollowers = creator.followers && creator.followers > 0;
     
+    // If missing data, set defaults instead of filtering out
     if (!hasValidRate || !hasValidViews || !hasValidFollowers) {
-      console.log(`⚠️ Filtering out ${creator.instagram_handle}: rate=${rate || 'missing'}, views=${creator.median_views_per_video || 'missing'}, followers=${creator.followers || 'missing'}`);
+      console.log(`⚠️ Setting defaults for ${creator.instagram_handle}: rate=${rate || 'missing'}, views=${creator.median_views_per_video || 'missing'}, followers=${creator.followers || 'missing'}`);
+      return {
+        ...creator,
+        reel_rate: rate || 100, // Default rate of $100
+        story_rate: creator.story_rate || 50,
+        post_rate: creator.post_rate || 150,
+        median_views_per_video: creator.median_views_per_video || creator.followers * 0.1 || 1000, // 10% of followers or 1000
+        followers: creator.followers || 10000 // Default 10k followers
+      };
     }
     
-    return hasValidRate && hasValidViews && hasValidFollowers;
+    return creator;
   });
-  console.log('After filtering creators with valid rates and data:', eligible.length, 'creators remain');
+  console.log('After adding defaults for missing data:', eligible.length, 'creators remain');
   
   if (eligible.length === 0) {
     console.log('❌ NO CREATORS FOUND after strict content and genre filtering');
