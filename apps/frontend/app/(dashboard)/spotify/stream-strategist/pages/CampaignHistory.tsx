@@ -705,39 +705,71 @@ export default function CampaignHistory() {
     try {
       if (!campaigns || campaigns.length === 0) return;
       
-      const csvData = campaigns.map(campaign => ({
-        'Campaign Name': campaign.name,
-        'Artist': campaign.artist_name || '',
-        'Client': campaign.client_name || '',
-        'Status': campaign.status,
-        'Budget': campaign.budget,
-        'Stream Goal': campaign.stream_goal,
-        'Streams (24h)': campaign.streams_24h !== undefined ? campaign.streams_24h : campaign.daily_streams || 0,
-        '24h Trend': campaign.streams_24h_trend || 0,
-        'Streams (7d)': campaign.streams_7d !== undefined ? campaign.streams_7d : campaign.weekly_streams || 0,
-        '7d Trend': campaign.streams_7d_trend || 0,
-        'Streams (28d)': campaign.streams_28d || 0,
-        'Playlists (24h)': campaign.playlists_24h_count || 0,
-        'Playlists (7d)': campaign.playlists_7d_count || 0,
-        'Remaining Streams': campaign.remaining_streams || campaign.stream_goal,
-        'Progress': `${campaign.progress_percentage || 0}%`,
-        'SFA Status': campaign.sfa_status || 'unknown',
-        'Last Scraped': campaign.last_scraped_at ? new Date(campaign.last_scraped_at).toLocaleString() : 'Never',
-        'Invoice Status': campaign.invoice_status || 'not_invoiced',
-        'Performance': campaign.performance_status || 'pending',
-        'Start Date': campaign.start_date,
-        'Salesperson': campaign.salesperson || '',
-        'Playlists': campaign.playlists?.map(p => 
-          typeof p === 'string' ? p : p.name
-        ).join(', ') || ''
-      }));
+      // Export all songs/tracks from all campaigns (more detailed data)
+      const csvData: any[] = [];
+      
+      campaigns.forEach(campaign => {
+        const songs = (campaign as any).songs || [];
+        
+        if (songs.length === 0) {
+          // Campaign has no songs - export just the campaign group info
+          csvData.push({
+            'Campaign Name': campaign.name,
+            'Artist': campaign.artist_name || '',
+            'Track': '',
+            'Client': campaign.client_name || '',
+            'Status': campaign.status,
+            'Budget': campaign.budget || '',
+            'Sale Price': '',
+            'Stream Goal': campaign.stream_goal || '',
+            'Remaining': campaign.remaining_streams || '',
+            'Daily Streams': campaign.daily_streams || '',
+            'Weekly Streams': campaign.weekly_streams || '',
+            'SFA Link': '',
+            'Track URL': campaign.track_url || '',
+            'Vendor': '',
+            'Start Date': campaign.start_date || '',
+            'Invoice Status': campaign.invoice_status || 'not_invoiced',
+            'Salesperson': campaign.salesperson || '',
+            'Playlists': '',
+            'Notes': '',
+            'Last Scraped': campaign.last_scraped_at ? new Date(campaign.last_scraped_at).toLocaleString() : 'Never',
+          });
+        } else {
+          // Export each song with full detail
+          songs.forEach((song: any) => {
+            csvData.push({
+              'Campaign Name': song.campaign || campaign.name,
+              'Artist': campaign.artist_name || '',
+              'Track': song.track_name || '',
+              'Client': song.client || campaign.client_name || '',
+              'Status': song.status || campaign.status,
+              'Budget': campaign.budget || '',
+              'Sale Price': song.sale_price || '',
+              'Stream Goal': song.goal || campaign.stream_goal || '',
+              'Remaining': song.remaining || '',
+              'Daily Streams': song.daily || '',
+              'Weekly Streams': song.weekly || '',
+              'SFA Link': song.sfa || '',
+              'Track URL': song.url || '',
+              'Vendor': song.vendor || '',
+              'Start Date': song.start_date || campaign.start_date || '',
+              'Invoice Status': song.invoice || campaign.invoice_status || '',
+              'Salesperson': song.salesperson || campaign.salesperson || '',
+              'Playlists': song.playlists || '',
+              'Notes': song.notes || '',
+              'Last Scraped': song.last_scraped_at ? new Date(song.last_scraped_at).toLocaleString() : 'Never',
+            });
+          });
+        }
+      });
       
       const csv = Papa.unparse(csvData);
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `campaigns_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `spotify_campaigns_${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -745,7 +777,7 @@ export default function CampaignHistory() {
       
       toast({
         title: "Export Complete",
-        description: "Campaigns exported successfully",
+        description: `Exported ${csvData.length} campaign records`,
       });
     } catch (error) {
       console.error('Export failed:', error);
