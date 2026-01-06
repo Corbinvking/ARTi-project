@@ -523,7 +523,7 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
       // Fetch all active campaigns with API enabled
       const { data: campaigns, error: fetchError } = await supabase
         .from('youtube_campaigns')
-        .select('id, youtube_url, video_id, current_views, current_likes, current_comments, total_subscribers')
+        .select('id, youtube_url, video_id, current_views, current_likes, current_comments')
         .eq('youtube_api_enabled', true)
         .in('status', ['active', 'pending']);
 
@@ -592,7 +592,7 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
                 views: stats.viewCount,
                 likes: stats.likeCount,
                 comments: stats.commentCount,
-                total_subscribers: campaign.total_subscribers || 0,
+                total_subscribers: 0,
                 subscribers_gained: 0,
                 collected_at: new Date().toISOString()
               }, {
