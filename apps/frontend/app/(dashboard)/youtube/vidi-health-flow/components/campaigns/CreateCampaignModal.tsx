@@ -765,7 +765,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
             {/* Start Date - moved to Step 1 for better UX */}
             <div className="space-y-2">
               <Label>Preferred Start Date</Label>
-              <Popover>
+              <Popover modal={true}>
                 <PopoverTrigger asChild>
                   <Button 
                     type="button"
@@ -776,7 +776,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                     {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 z-[100]" align="start">
                   <CalendarComponent
                     mode="single"
                     selected={formData.start_date}
@@ -826,7 +826,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>End Date</Label>
-                  <Popover>
+                  <Popover modal={true}>
                     <PopoverTrigger asChild>
                       <Button 
                         type="button"
@@ -837,7 +837,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                         {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 z-[100]" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={formData.end_date}

@@ -577,14 +577,14 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Start Date</Label>
-                    <Popover>
+                    <Popover modal={true}>
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start text-left font-normal">
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0 z-[100]">
                         <CalendarComponent
                           mode="single"
                           selected={formData.start_date}
@@ -596,14 +596,14 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                   </div>
                   <div className="space-y-2">
                     <Label>End Date</Label>
-                    <Popover>
+                    <Popover modal={true}>
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-start text-left font-normal">
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
+                      <PopoverContent className="w-auto p-0 z-[100]">
                         <CalendarComponent
                           mode="single"
                           selected={formData.end_date}
