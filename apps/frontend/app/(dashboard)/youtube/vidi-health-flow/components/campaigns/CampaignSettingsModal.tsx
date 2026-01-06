@@ -114,6 +114,11 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
       // Fetch daily stats when campaign changes
       if (isOpen) {
         fetchDailyStats();
+        
+        // Auto-fetch fresh YouTube data if API is enabled
+        if (campaign.youtube_api_enabled) {
+          autoFetchYouTubeData();
+        }
       }
       
       setFormData({
@@ -165,6 +170,32 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
       console.error('Error fetching daily stats:', error);
     } finally {
       setLoadingStats(false);
+    }
+  };
+
+  // Auto-fetch fresh YouTube data on modal open (silent, no toast)
+  const autoFetchYouTubeData = async () => {
+    if (!campaign) return;
+    
+    setRefreshingYouTubeData(true);
+    try {
+      // Fetch fresh stats from YouTube API
+      await triggerYouTubeStatsFetch(campaign.id);
+      
+      // Collect daily stats for historical tracking
+      const apiUrl = getApiUrl();
+      await fetch(`${apiUrl}/api/youtube-data-api/collect-daily-stats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaignId: campaign.id })
+      });
+      
+      // Refresh the display with new data
+      await fetchDailyStats();
+    } catch (error) {
+      console.error('Auto-fetch YouTube data failed:', error);
+    } finally {
+      setRefreshingYouTubeData(false);
     }
   };
 
