@@ -159,9 +159,184 @@ async function syncSoundCloudMetrics(data: any) {
   // TODO: Implement SoundCloud metrics fetching
 }
 
-async function syncYouTubeMetrics(data: any) {
-  logger.info('Syncing YouTube metrics...', data)
-  // TODO: Implement YouTube metrics fetching
+async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
+  logger.info('🎬 Syncing YouTube metrics...', data)
+  
+  try {
+    const timeOfDay = data.timeOfDay || determineTimeOfDay()
+    
+    // Fetch all active campaigns with youtube_api_enabled
+    const { data: campaigns, error: fetchError } = await supabase
+      .from('youtube_campaigns')
+      .select('id, youtube_url, video_id, current_views, current_likes, current_comments, total_subscribers')
+      .eq('youtube_api_enabled', true)
+      .in('status', ['active', 'pending'])
+    
+    if (fetchError) {
+      logger.error('Error fetching YouTube campaigns:', fetchError)
+      throw fetchError
+    }
+    
+    if (!campaigns || campaigns.length === 0) {
+      logger.info('No YouTube campaigns to sync (none have youtube_api_enabled=true)')
+      return { collected: 0, message: 'No campaigns to sync' }
+    }
+    
+    logger.info(`📊 Found ${campaigns.length} YouTube campaigns to sync`)
+    
+    const today = new Date().toISOString().split('T')[0]
+    let successCount = 0
+    let errorCount = 0
+    
+    // Process each campaign
+    for (const campaign of campaigns) {
+      try {
+        const videoId = campaign.video_id || extractVideoIdFromUrl(campaign.youtube_url)
+        if (!videoId) {
+          logger.warn(`Campaign ${campaign.id} has no valid video ID`)
+          errorCount++
+          continue
+        }
+        
+        // Fetch fresh stats from YouTube API
+        const stats = await fetchYouTubeVideoStats(videoId)
+        if (!stats.success) {
+          logger.warn(`Failed to fetch stats for campaign ${campaign.id}: ${stats.error}`)
+          errorCount++
+          continue
+        }
+        
+        // Calculate subscribers gained from previous record
+        const { data: previousStats } = await supabase
+          .from('campaign_stats_daily')
+          .select('total_subscribers')
+          .eq('campaign_id', campaign.id)
+          .order('collected_at', { ascending: false })
+          .limit(1)
+          .single()
+        
+        const subscribersGained = previousStats 
+          ? Math.max(0, (campaign.total_subscribers || 0) - (previousStats.total_subscribers || 0))
+          : 0
+        
+        // Insert daily stats
+        const { error: insertError } = await supabase
+          .from('campaign_stats_daily')
+          .upsert({
+            campaign_id: campaign.id,
+            date: today,
+            time_of_day: timeOfDay,
+            views: stats.viewCount,
+            likes: stats.likeCount,
+            comments: stats.commentCount,
+            total_subscribers: campaign.total_subscribers || 0,
+            subscribers_gained: subscribersGained,
+            collected_at: new Date().toISOString()
+          }, {
+            onConflict: 'campaign_id,date,time_of_day'
+          })
+        
+        if (insertError) {
+          logger.error(`Error inserting stats for campaign ${campaign.id}:`, insertError)
+          errorCount++
+          continue
+        }
+        
+        // Also update campaign's current stats
+        await supabase
+          .from('youtube_campaigns')
+          .update({
+            current_views: stats.viewCount,
+            current_likes: stats.likeCount,
+            current_comments: stats.commentCount,
+            last_youtube_api_fetch: new Date().toISOString()
+          })
+          .eq('id', campaign.id)
+        
+        successCount++
+        
+      } catch (err) {
+        logger.error(`Error processing campaign ${campaign.id}:`, err)
+        errorCount++
+      }
+    }
+    
+    logger.info(`✅ YouTube metrics sync complete: ${successCount} success, ${errorCount} errors`)
+    return { collected: successCount, errors: errorCount, total: campaigns.length }
+    
+  } catch (error) {
+    logger.error('YouTube metrics sync failed:', error)
+    throw error
+  }
+}
+
+// Helper function to determine time of day based on current hour
+function determineTimeOfDay(): string {
+  const hour = new Date().getUTCHours()
+  if (hour < 12) return 'morning'
+  if (hour < 18) return 'afternoon'
+  return 'evening'
+}
+
+// Helper function to extract video ID from YouTube URL
+function extractVideoIdFromUrl(url: string): string | null {
+  if (!url) return null
+  
+  // Handle youtu.be short URLs
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/)
+  if (shortMatch && shortMatch[1]) return shortMatch[1]
+  
+  // Handle youtube.com URLs with v= parameter
+  const longMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/)
+  if (longMatch && longMatch[1]) return longMatch[1]
+  
+  // Handle youtube.com/embed/ URLs
+  const embedMatch = url.match(/\/embed\/([a-zA-Z0-9_-]{11})/)
+  if (embedMatch && embedMatch[1]) return embedMatch[1]
+  
+  // If it's already just a video ID (11 characters)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url
+  
+  return null
+}
+
+// Helper function to fetch video stats from YouTube API
+async function fetchYouTubeVideoStats(videoId: string): Promise<{
+  success: boolean
+  viewCount: number
+  likeCount: number
+  commentCount: number
+  error?: string
+}> {
+  try {
+    const apiKey = process.env.YOUTUBE_API_KEY
+    if (!apiKey) {
+      return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: 'YOUTUBE_API_KEY not configured' }
+    }
+    
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${apiKey}`
+    const response = await fetch(url)
+    
+    if (!response.ok) {
+      return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: `API returned ${response.status}` }
+    }
+    
+    const data = await response.json()
+    
+    if (!data.items || data.items.length === 0) {
+      return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: 'Video not found' }
+    }
+    
+    const stats = data.items[0].statistics
+    return {
+      success: true,
+      viewCount: parseInt(stats.viewCount || '0'),
+      likeCount: parseInt(stats.likeCount || '0'),
+      commentCount: parseInt(stats.commentCount || '0')
+    }
+  } catch (error: any) {
+    return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: error.message }
+  }
 }
 
 async function syncInstagramMetrics(data: any) {
@@ -238,7 +413,41 @@ async function setupCronSchedules() {
       }
     )
 
-    logger.info('✅ Cron schedules configured successfully')
+    // YouTube stats collection - 3x daily for historical tracking
+    // Morning collection at 8:00 AM UTC
+    await metricsQueue!.add(
+      'youtube-sync',
+      { timeOfDay: 'morning' },
+      {
+        repeat: { pattern: '0 8 * * *' }, // Daily at 8:00 AM UTC
+        removeOnComplete: 10,
+        removeOnFail: 5,
+      }
+    )
+
+    // Afternoon collection at 2:00 PM UTC
+    await metricsQueue!.add(
+      'youtube-sync',
+      { timeOfDay: 'afternoon' },
+      {
+        repeat: { pattern: '0 14 * * *' }, // Daily at 2:00 PM UTC
+        removeOnComplete: 10,
+        removeOnFail: 5,
+      }
+    )
+
+    // Evening collection at 8:00 PM UTC
+    await metricsQueue!.add(
+      'youtube-sync',
+      { timeOfDay: 'evening' },
+      {
+        repeat: { pattern: '0 20 * * *' }, // Daily at 8:00 PM UTC
+        removeOnComplete: 10,
+        removeOnFail: 5,
+      }
+    )
+
+    logger.info('✅ Cron schedules configured successfully (including 3x daily YouTube sync)')
 
   } catch (error) {
     logger.error('❌ Failed to setup cron schedules:', error)

@@ -18,6 +18,7 @@ import { useCampaigns } from "../../hooks/useCampaigns";
 import { supabase } from "../../integrations/supabase/client";
 import { RatioFixerContent } from "./RatioFixerContent";
 import { sanitizeYouTubeUrl } from "../../lib/youtube";
+import { getApiUrl } from "../../lib/getApiUrl";
 import { MultiServiceTypeSelector } from "./MultiServiceTypeSelector";
 import { SERVICE_TYPES, GENRE_OPTIONS, LIKE_SERVER_OPTIONS, COMMENT_SERVER_OPTIONS, SHEET_TIER_OPTIONS } from "../../lib/constants";
 import type { Database } from "../../integrations/supabase/types";
@@ -175,9 +176,21 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
       const { error } = await triggerYouTubeStatsFetch(campaign.id);
       if (error) throw error;
       
+      // Also collect daily stats for historical tracking
+      try {
+        const apiUrl = getApiUrl();
+        await fetch(`${apiUrl}/api/youtube-data-api/collect-daily-stats`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ campaignId: campaign.id })
+        });
+      } catch (collectError) {
+        console.warn('Failed to collect daily stats (non-critical):', collectError);
+      }
+      
       toast({
         title: "YouTube Data Updated",
-        description: "Fresh data has been fetched from YouTube API.",
+        description: "Fresh data has been fetched from YouTube API and stored for historical tracking.",
       });
       
       // Refresh the display after YouTube data is updated

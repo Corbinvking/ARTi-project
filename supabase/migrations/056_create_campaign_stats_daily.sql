@@ -51,6 +51,15 @@ TO authenticated
 USING (true)
 WITH CHECK (true);
 
+-- Allow service role full access (for API/worker operations)
+DROP POLICY IF EXISTS "Service role has full access" ON campaign_stats_daily;
+CREATE POLICY "Service role has full access"
+ON campaign_stats_daily
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
 -- Add comment
 COMMENT ON TABLE campaign_stats_daily IS 'Historical daily snapshots of YouTube campaign performance metrics (collected 3x daily)';
 COMMENT ON COLUMN campaign_stats_daily.time_of_day IS 'Time of day when stats were collected: morning (8AM), afternoon (2PM), evening (8PM)';
