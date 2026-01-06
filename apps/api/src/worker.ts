@@ -168,7 +168,7 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
     // Fetch all active campaigns with youtube_api_enabled
     const { data: campaigns, error: fetchError } = await supabase
       .from('youtube_campaigns')
-      .select('id, youtube_url, video_id, current_views, current_likes, current_comments, total_subscribers')
+      .select('id, youtube_url, video_id, current_views, current_likes, current_comments')
       .eq('youtube_api_enabled', true)
       .in('status', ['active', 'pending'])
     
@@ -206,20 +206,7 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
           continue
         }
         
-        // Calculate subscribers gained from previous record
-        const { data: previousStats } = await supabase
-          .from('campaign_stats_daily')
-          .select('total_subscribers')
-          .eq('campaign_id', campaign.id)
-          .order('collected_at', { ascending: false })
-          .limit(1)
-          .single()
-        
-        const subscribersGained = previousStats 
-          ? Math.max(0, (campaign.total_subscribers || 0) - (previousStats.total_subscribers || 0))
-          : 0
-        
-        // Insert daily stats
+        // Insert daily stats (subscriber tracking not implemented yet)
         const { error: insertError } = await supabase
           .from('campaign_stats_daily')
           .upsert({
@@ -229,8 +216,8 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
             views: stats.viewCount,
             likes: stats.likeCount,
             comments: stats.commentCount,
-            total_subscribers: campaign.total_subscribers || 0,
-            subscribers_gained: subscribersGained,
+            total_subscribers: 0,
+            subscribers_gained: 0,
             collected_at: new Date().toISOString()
           }, {
             onConflict: 'campaign_id,date,time_of_day'
