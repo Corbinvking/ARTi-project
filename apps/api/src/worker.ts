@@ -321,13 +321,13 @@ async function fetchYouTubeVideoStats(videoId: string): Promise<{
       return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: `API returned ${response.status}` }
     }
     
-    const data = await response.json()
+    const data = await response.json() as { items?: Array<{ statistics?: { viewCount?: string; likeCount?: string; commentCount?: string } }> }
     
     if (!data.items || data.items.length === 0) {
       return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: 'Video not found' }
     }
     
-    const stats = data.items[0].statistics
+    const stats = data.items[0]?.statistics
     return {
       success: true,
       viewCount: parseInt(stats.viewCount || '0'),
