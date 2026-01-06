@@ -954,11 +954,11 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                 {dailyStats.length === 0 ? (
                   <div className="h-80 flex items-center justify-center text-muted-foreground">
                     <div className="text-center">
-                      <div className="text-lg mb-2">No historical data available</div>
+                      <div className="text-lg mb-2">No historical data available yet</div>
                       <div className="text-sm">
-                        {campaign.youtube_api_enabled 
-                          ? "Data collection will begin automatically. Check back in 24 hours." 
-                          : "Enable YouTube API tracking in Basic Info to start collecting data."
+                        {campaign.video_id || campaign.youtube_url
+                          ? "Data collection runs 3x daily (8 AM, 2 PM, 8 PM UTC). Check back later." 
+                          : "Add a valid YouTube URL to enable automatic stats collection."
                         }
                       </div>
                     </div>

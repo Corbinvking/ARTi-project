@@ -627,7 +627,11 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
           await new Promise(resolve => setTimeout(resolve, 200));
 
         } catch (error: any) {
-          logger.error({ error: error.message }, 'Error processing batch');
+          logger.error({ 
+            error: error.message, 
+            videoIds: batch.map((c: any) => c.video_id || extractVideoId(c.youtube_url)).filter(Boolean),
+            stack: error.stack?.slice(0, 500)
+          }, 'Error processing batch');
           results.errors += batch.length;
         }
       }
