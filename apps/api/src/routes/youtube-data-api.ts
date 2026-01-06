@@ -520,11 +520,10 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
 
       logger.info({ timeOfDay: detectedTimeOfDay }, '📊 Collecting daily stats for all active campaigns');
 
-      // Fetch all active campaigns with API enabled
+      // Fetch all active campaigns (collect stats for all, not just API-enabled ones)
       const { data: campaigns, error: fetchError } = await supabase
         .from('youtube_campaigns')
         .select('id, youtube_url, video_id, current_views, current_likes, current_comments')
-        .eq('youtube_api_enabled', true)
         .in('status', ['active', 'pending']);
 
       if (fetchError) {

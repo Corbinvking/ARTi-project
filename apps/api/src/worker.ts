@@ -165,11 +165,10 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
   try {
     const timeOfDay = data.timeOfDay || determineTimeOfDay()
     
-    // Fetch all active campaigns with youtube_api_enabled
+    // Fetch all active campaigns (collect stats for all)
     const { data: campaigns, error: fetchError } = await supabase
       .from('youtube_campaigns')
       .select('id, youtube_url, video_id, current_views, current_likes, current_comments')
-      .eq('youtube_api_enabled', true)
       .in('status', ['active', 'pending'])
     
     if (fetchError) {
@@ -178,7 +177,7 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
     }
     
     if (!campaigns || campaigns.length === 0) {
-      logger.info('No YouTube campaigns to sync (none have youtube_api_enabled=true)')
+      logger.info('No YouTube campaigns to sync (no active/pending campaigns found)')
       return { collected: 0, message: 'No campaigns to sync' }
     }
     
