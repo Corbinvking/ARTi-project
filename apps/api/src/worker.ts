@@ -330,9 +330,9 @@ async function fetchYouTubeVideoStats(videoId: string): Promise<{
     const stats = data.items[0]?.statistics
     return {
       success: true,
-      viewCount: parseInt(stats.viewCount || '0'),
-      likeCount: parseInt(stats.likeCount || '0'),
-      commentCount: parseInt(stats.commentCount || '0')
+      viewCount: parseInt(stats?.viewCount || '0'),
+      likeCount: parseInt(stats?.likeCount || '0'),
+      commentCount: parseInt(stats?.commentCount || '0')
     }
   } catch (error: any) {
     return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: error.message }
