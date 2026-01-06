@@ -376,13 +376,38 @@ export const VendorPaymentsTable = () => {
     }
   };
 
-  // Don't auto-calculate on page load - let user trigger manually
-  // This prevents 420+ calculations from running immediately
-  // useEffect(() => {
-  //   if (campaigns.length > 0 && vendorPayments.size === 0) {
-  //     calculateAllPayments();
-  //   }
-  // }, [campaigns]);
+  // Auto-calculate payments when campaigns load
+  // Uses cached campaign data, no additional database calls
+  useEffect(() => {
+    const calculatePaymentsInBatches = async () => {
+      if (campaigns.length === 0) return;
+      
+      // Only calculate for campaigns we haven't calculated yet
+      const campaignsToCalculate = campaigns.filter(c => !vendorPayments.has(c.id));
+      if (campaignsToCalculate.length === 0) return;
+      
+      // Process in batches of 50 to avoid UI freezing
+      const batchSize = 50;
+      const newPayments = new Map(vendorPayments);
+      
+      for (let i = 0; i < campaignsToCalculate.length; i += batchSize) {
+        const batch = campaignsToCalculate.slice(i, i + batchSize);
+        
+        const results = await Promise.all(
+          batch.map(campaign => calculateVendorPayment(campaign.id, campaign))
+        );
+        
+        results.forEach((result, index) => {
+          newPayments.set(batch[index].id, result);
+        });
+        
+        // Update state after each batch for progressive loading
+        setVendorPayments(new Map(newPayments));
+      }
+    };
+    
+    calculatePaymentsInBatches();
+  }, [campaigns]);
 
   const filteredAndSortedCampaigns = useMemo(() => {
     let filtered = campaigns.filter(campaign => {

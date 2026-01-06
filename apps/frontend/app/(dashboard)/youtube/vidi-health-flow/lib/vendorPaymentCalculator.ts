@@ -204,10 +204,26 @@ export async function calculateVendorPayment(
 
     // Handle multi-service campaigns (service_types is JSONB array)
     if (serviceTypes && Array.isArray(serviceTypes) && serviceTypes.length > 0) {
+      // If there's only one service type, use campaign's current_views
+      // If there are multiple, try to use per-service views or distribute proportionally
+      const campaignTotalViews = campaign.current_views || 0;
+      const totalGoalViews = serviceTypes.reduce((sum, s) => sum + (s.goal_views || 0), 0);
+      
       for (const service of serviceTypes) {
         if (!service || !service.service_type) continue; // Skip invalid entries
         
-        const views = service.current_views || 0;
+        // Use service-level current_views if available
+        // Otherwise, distribute campaign's total views proportionally based on goal
+        let views = service.current_views || 0;
+        if (views === 0 && campaignTotalViews > 0 && totalGoalViews > 0) {
+          // Distribute views proportionally based on goal_views ratio
+          const goalRatio = (service.goal_views || 0) / totalGoalViews;
+          views = Math.round(campaignTotalViews * goalRatio);
+        } else if (views === 0 && campaignTotalViews > 0 && serviceTypes.length === 1) {
+          // Single service type - use all campaign views
+          views = campaignTotalViews;
+        }
+        
         const serviceType = service.service_type;
         
         // Use cached/optimized rate lookup
