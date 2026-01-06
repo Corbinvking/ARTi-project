@@ -418,14 +418,14 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
 
         <div className="space-y-6">
           {/* Validation Errors */}
-          {Object.keys(validationErrors).length > 0 && (
+          {Object.values(validationErrors).some(error => error && error.trim()) && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-md p-4">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-destructive mt-0.5" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-destructive">Validation Errors</p>
                   {Object.values(validationErrors).map((error, index) => 
-                    error && <p key={index} className="text-sm text-destructive">{error}</p>
+                    error && error.trim() && <p key={index} className="text-sm text-destructive">{error}</p>
                   )}
                 </div>
               </div>

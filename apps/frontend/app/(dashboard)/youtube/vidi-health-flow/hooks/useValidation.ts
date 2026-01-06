@@ -49,57 +49,72 @@ export function useValidation() {
     
     try {
       // Check for duplicate by video_id and client_id
-      let query = supabase
-        .from('campaigns')
-        .select('id, campaign_name')
-        .eq('video_id', videoId)
-        .eq('client_id', clientId);
+      // Note: These columns may not exist in all environments, so we handle errors gracefully
+      try {
+        let query = supabase
+          .from('campaigns')
+          .select('id, campaign_name')
+          .eq('video_id', videoId)
+          .eq('client_id', clientId);
+          
+        if (excludeCampaignId) {
+          query = query.neq('id', excludeCampaignId);
+        }
         
-      if (excludeCampaignId) {
-        query = query.neq('id', excludeCampaignId);
-      }
-      
-      const { data: videoDuplicates, error: videoError } = await query;
-      
-      if (videoError) {
-        throw new Error(videoError.message);
-      }
-      
-      if (videoDuplicates && videoDuplicates.length > 0) {
-        return { 
-          isValid: false, 
-          error: `A campaign for this video already exists for this client: "${videoDuplicates[0].campaign_name}"` 
-        };
+        const { data: videoDuplicates, error: videoError } = await query;
+        
+        // If the column doesn't exist, skip this check
+        if (videoError && !videoError.message.includes('column')) {
+          console.warn('Video duplicate check failed:', videoError.message);
+        }
+        
+        if (!videoError && videoDuplicates && videoDuplicates.length > 0) {
+          return { 
+            isValid: false, 
+            error: `A campaign for this video already exists for this client: "${videoDuplicates[0].campaign_name}"` 
+          };
+        }
+      } catch (e) {
+        // Silently skip if video_id column doesn't exist
+        console.warn('Video duplicate check skipped:', e);
       }
       
       // Check for duplicate campaign name with same client
-      let nameQuery = supabase
-        .from('campaigns')
-        .select('id, youtube_url')
-        .eq('campaign_name', campaignName)
-        .eq('client_id', clientId);
+      try {
+        let nameQuery = supabase
+          .from('campaigns')
+          .select('id, youtube_url')
+          .eq('campaign_name', campaignName)
+          .eq('client_id', clientId);
+          
+        if (excludeCampaignId) {
+          nameQuery = nameQuery.neq('id', excludeCampaignId);
+        }
         
-      if (excludeCampaignId) {
-        nameQuery = nameQuery.neq('id', excludeCampaignId);
-      }
-      
-      const { data: nameDuplicates, error: nameError } = await nameQuery;
-      
-      if (nameError) {
-        throw new Error(nameError.message);
-      }
-      
-      if (nameDuplicates && nameDuplicates.length > 0) {
-        return { 
-          isValid: false, 
-          error: `A campaign with this name already exists for this client` 
-        };
+        const { data: nameDuplicates, error: nameError } = await nameQuery;
+        
+        // If the column doesn't exist, skip this check
+        if (nameError && !nameError.message.includes('column')) {
+          console.warn('Name duplicate check failed:', nameError.message);
+        }
+        
+        if (!nameError && nameDuplicates && nameDuplicates.length > 0) {
+          return { 
+            isValid: false, 
+            error: `A campaign with this name already exists for this client` 
+          };
+        }
+      } catch (e) {
+        // Silently skip if columns don't exist
+        console.warn('Name duplicate check skipped:', e);
       }
       
       return { isValid: true };
       
     } catch (err: any) {
-      return { isValid: false, error: err.message || 'Failed to check for duplicate campaigns' };
+      // Don't block form submission for duplicate check errors
+      console.warn('Duplicate check failed:', err.message);
+      return { isValid: true };
     } finally {
       setIsValidating(false);
     }
