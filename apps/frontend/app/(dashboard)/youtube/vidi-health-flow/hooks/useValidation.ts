@@ -17,40 +17,22 @@ export function useValidation() {
       return { isValid: false, error: 'YouTube URL is required' };
     }
 
-    // Client-side validation first
+    // Client-side validation
     const videoId = extractYouTubeVideoId(url);
     if (!videoId) {
-      return { isValid: false, error: 'Invalid YouTube URL format' };
+      return { isValid: false, error: 'Invalid YouTube URL format. Please use a valid YouTube video URL.' };
     }
 
-    setIsValidating(true);
+    // Generate canonical URL
+    const canonicalUrl = sanitizeYouTubeUrl(url);
     
-    try {
-      // Server-side validation
-      const { data, error } = await supabase.rpc('validate_youtube_url', { url });
-      
-      if (error) {
-        throw new Error(error.message);
+    return { 
+      isValid: true, 
+      data: {
+        videoId,
+        canonicalUrl
       }
-      
-      const validationData = data as any;
-      if (!validationData.valid) {
-        return { isValid: false, error: validationData.error };
-      }
-      
-      return { 
-        isValid: true, 
-        data: {
-          videoId: validationData.video_id,
-          canonicalUrl: validationData.canonical_url
-        }
-      };
-      
-    } catch (err: any) {
-      return { isValid: false, error: err.message || 'Failed to validate YouTube URL' };
-    } finally {
-      setIsValidating(false);
-    }
+    };
   };
 
   const checkDuplicateCampaign = async (
