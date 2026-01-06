@@ -10,13 +10,70 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check, Instagram, Loader2, RefreshCw } from "lucide-react";
+import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check, Instagram, Loader2, RefreshCw, Users, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { supabase } from "@/lib/auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInstagramCampaignMutations } from "../seedstorm-builder/hooks/useInstagramCampaignMutations";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+// Creator status types
+type PaymentStatus = 'unpaid' | 'pending' | 'paid';
+type PostStatus = 'not_posted' | 'scheduled' | 'posted';
+type ApprovalStatus = 'pending' | 'approved' | 'revision_requested' | 'rejected';
+
+interface CampaignCreator {
+  id: string;
+  campaign_id: string;
+  instagram_handle: string;
+  rate: number;
+  posts_count: number;
+  post_type: string;
+  payment_status: PaymentStatus;
+  post_status: PostStatus;
+  approval_status: ApprovalStatus;
+  payment_notes?: string;
+  approval_notes?: string;
+}
+
+// Status Indicator Component
+const StatusIndicator = ({ type, status }: { type: 'payment' | 'post' | 'approval'; status: string }) => {
+  const getConfig = () => {
+    switch (type) {
+      case 'payment':
+        switch (status) {
+          case 'paid': return { color: 'bg-green-500', label: 'Paid' };
+          case 'pending': return { color: 'bg-yellow-500', label: 'Pending' };
+          default: return { color: 'bg-red-500', label: 'Unpaid' };
+        }
+      case 'post':
+        switch (status) {
+          case 'posted': return { color: 'bg-green-500', label: 'Posted' };
+          case 'scheduled': return { color: 'bg-blue-500', label: 'Scheduled' };
+          default: return { color: 'bg-gray-500', label: 'Not Posted' };
+        }
+      case 'approval':
+        switch (status) {
+          case 'approved': return { color: 'bg-green-500', label: 'Approved' };
+          case 'revision_requested': return { color: 'bg-orange-500', label: 'Revision' };
+          case 'rejected': return { color: 'bg-red-500', label: 'Rejected' };
+          default: return { color: 'bg-yellow-500', label: 'Pending' };
+        }
+    }
+  };
+  const config = getConfig();
+  return (
+    <div className="flex items-center gap-2">
+      <div className={`w-2 h-2 rounded-full ${config.color}`} />
+      <span className="text-xs">{config.label}</span>
+    </div>
+  );
+};
 
 export default function InstagramCampaignsPage() {
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
@@ -29,9 +86,123 @@ export default function InstagramCampaignsPage() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [isScrapingCampaign, setIsScrapingCampaign] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [modalTab, setModalTab] = useState("details");
+  const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { updateCampaign, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
+
+  // Fetch campaign creators when a campaign is selected
+  const { data: campaignCreators = [], isLoading: loadingCreators, refetch: refetchCreators } = useQuery({
+    queryKey: ['campaign-creators', selectedCampaign?.id],
+    queryFn: async () => {
+      if (!selectedCampaign?.id) return [];
+      const { data, error } = await supabase
+        .from('campaign_creators')
+        .select('*')
+        .eq('campaign_id', selectedCampaign.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as CampaignCreator[];
+    },
+    enabled: !!selectedCampaign?.id && isDetailsOpen
+  });
+
+  // Update creator status
+  const updateCreatorStatus = async (creatorId: string, updates: Partial<CampaignCreator>) => {
+    try {
+      const { error } = await supabase
+        .from('campaign_creators')
+        .update(updates)
+        .eq('id', creatorId);
+      if (error) throw error;
+      refetchCreators();
+      toast({ title: "Status Updated", description: "Creator status updated successfully" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update creator status", variant: "destructive" });
+    }
+  };
+
+  // Bulk update creators
+  const bulkUpdateCreators = async (creatorIds: string[], updates: Partial<CampaignCreator>) => {
+    try {
+      const { error } = await supabase
+        .from('campaign_creators')
+        .update(updates)
+        .in('id', creatorIds);
+      if (error) throw error;
+      refetchCreators();
+      setSelectedCreators([]);
+      toast({ title: "Bulk Update Complete", description: `Updated ${creatorIds.length} creators` });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to update creators", variant: "destructive" });
+    }
+  };
+
+  // State for adding post URLs
+  const [newPostUrl, setNewPostUrl] = useState("");
+  const [addingPost, setAddingPost] = useState(false);
+
+  // Fetch campaign posts
+  const { data: campaignPosts = [], isLoading: loadingPosts, refetch: refetchPosts } = useQuery({
+    queryKey: ['campaign-posts', selectedCampaign?.id],
+    queryFn: async () => {
+      if (!selectedCampaign?.id) return [];
+      const { data, error } = await supabase
+        .from('campaign_posts')
+        .select('*')
+        .eq('campaign_id', selectedCampaign.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!selectedCampaign?.id && isDetailsOpen
+  });
+
+  // Add a new post URL
+  const addPostUrl = async () => {
+    if (!newPostUrl.trim() || !selectedCampaign?.id) return;
+    setAddingPost(true);
+    try {
+      // Extract Instagram handle from URL if possible
+      const urlMatch = newPostUrl.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
+      const postType = newPostUrl.includes('/reel/') ? 'reel' : newPostUrl.includes('/p/') ? 'post' : 'other';
+      
+      const { error } = await supabase
+        .from('campaign_posts')
+        .insert({
+          campaign_id: selectedCampaign.id,
+          post_url: newPostUrl.trim(),
+          post_type: postType,
+          instagram_handle: 'pending',
+          status: 'live'
+        });
+      if (error) throw error;
+      setNewPostUrl("");
+      refetchPosts();
+      toast({ title: "Post Added", description: "Instagram post URL added successfully" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to add post URL", variant: "destructive" });
+    } finally {
+      setAddingPost(false);
+    }
+  };
+
+  // Delete a post
+  const deletePost = async (postId: string) => {
+    try {
+      const { error } = await supabase
+        .from('campaign_posts')
+        .delete()
+        .eq('id', postId);
+      if (error) throw error;
+      refetchPosts();
+      toast({ title: "Post Deleted", description: "Post removed from campaign" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to delete post", variant: "destructive" });
+    }
+  };
 
   // Fetch campaigns from Supabase with calculated spend from campaign_creators
   const { data: campaigns = [], isLoading } = useQuery({
@@ -720,8 +891,13 @@ export default function InstagramCampaignsPage() {
       )}
 
       {/* Campaign Details Modal */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <Dialog open={isDetailsOpen} onOpenChange={(open) => {
+        setIsDetailsOpen(open);
+        if (!open) {
+          setSelectedCreators([]);
+        }
+      }}>
+        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -1149,6 +1325,265 @@ export default function InstagramCampaignsPage() {
                     />
                     <span className="text-sm">Final Report Sent</span>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Creator Management Section */}
+              <Card className="border-purple-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="h-5 w-5 text-purple-500" />
+                    Creator Management
+                  </CardTitle>
+                  <CardDescription>
+                    Track payment, post, and approval status for campaign creators
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loadingCreators ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Loading creators...
+                    </div>
+                  ) : campaignCreators.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No creators assigned to this campaign yet.</p>
+                      <p className="text-sm mt-1">Build a campaign to auto-select creators.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Bulk Actions */}
+                      {selectedCreators.length > 0 && (
+                        <div className="flex items-center justify-between p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                          <span className="text-sm font-medium">{selectedCreators.length} selected</span>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => bulkUpdateCreators(selectedCreators, { payment_status: 'paid' })}
+                              className="text-green-600"
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Mark Paid
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => bulkUpdateCreators(selectedCreators, { post_status: 'posted' })}
+                              className="text-blue-600"
+                            >
+                              <Check className="h-3 w-3 mr-1" />
+                              Mark Posted
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setSelectedCreators([])}
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Creator Stats */}
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        <div className="text-center p-3 bg-muted/50 rounded-lg">
+                          <div className="text-2xl font-bold text-green-600">
+                            {campaignCreators.filter(c => c.payment_status === 'paid').length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Paid</div>
+                        </div>
+                        <div className="text-center p-3 bg-muted/50 rounded-lg">
+                          <div className="text-2xl font-bold text-blue-600">
+                            {campaignCreators.filter(c => c.post_status === 'posted').length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Posted</div>
+                        </div>
+                        <div className="text-center p-3 bg-muted/50 rounded-lg">
+                          <div className="text-2xl font-bold text-purple-600">
+                            {campaignCreators.filter(c => c.approval_status === 'approved').length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">Approved</div>
+                        </div>
+                      </div>
+
+                      {/* Creator Table */}
+                      <ScrollArea className="h-64">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-10">
+                                <Checkbox
+                                  checked={selectedCreators.length === campaignCreators.length}
+                                  onCheckedChange={(checked) => {
+                                    setSelectedCreators(checked ? campaignCreators.map(c => c.id) : []);
+                                  }}
+                                />
+                              </TableHead>
+                              <TableHead>Creator</TableHead>
+                              <TableHead className="text-right">Rate</TableHead>
+                              <TableHead>Payment</TableHead>
+                              <TableHead>Post</TableHead>
+                              <TableHead>Approval</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {campaignCreators.map((creator) => (
+                              <TableRow key={creator.id}>
+                                <TableCell>
+                                  <Checkbox
+                                    checked={selectedCreators.includes(creator.id)}
+                                    onCheckedChange={(checked) => {
+                                      setSelectedCreators(prev => 
+                                        checked 
+                                          ? [...prev, creator.id]
+                                          : prev.filter(id => id !== creator.id)
+                                      );
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <div>
+                                    <div className="font-medium text-sm">@{creator.instagram_handle}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {creator.posts_count} post{creator.posts_count > 1 ? 's' : ''} • {creator.post_type}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-right font-medium">
+                                  ${creator.rate?.toLocaleString() || 0}
+                                </TableCell>
+                                <TableCell>
+                                  <Select
+                                    value={creator.payment_status}
+                                    onValueChange={(value) => updateCreatorStatus(creator.id, { payment_status: value as PaymentStatus })}
+                                  >
+                                    <SelectTrigger className="w-24 h-8">
+                                      <StatusIndicator type="payment" status={creator.payment_status} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="unpaid"><StatusIndicator type="payment" status="unpaid" /></SelectItem>
+                                      <SelectItem value="pending"><StatusIndicator type="payment" status="pending" /></SelectItem>
+                                      <SelectItem value="paid"><StatusIndicator type="payment" status="paid" /></SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                                <TableCell>
+                                  <Select
+                                    value={creator.post_status}
+                                    onValueChange={(value) => updateCreatorStatus(creator.id, { post_status: value as PostStatus })}
+                                  >
+                                    <SelectTrigger className="w-28 h-8">
+                                      <StatusIndicator type="post" status={creator.post_status} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="not_posted"><StatusIndicator type="post" status="not_posted" /></SelectItem>
+                                      <SelectItem value="scheduled"><StatusIndicator type="post" status="scheduled" /></SelectItem>
+                                      <SelectItem value="posted"><StatusIndicator type="post" status="posted" /></SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                                <TableCell>
+                                  <Select
+                                    value={creator.approval_status}
+                                    onValueChange={(value) => updateCreatorStatus(creator.id, { approval_status: value as ApprovalStatus })}
+                                  >
+                                    <SelectTrigger className="w-28 h-8">
+                                      <StatusIndicator type="approval" status={creator.approval_status} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="pending"><StatusIndicator type="approval" status="pending" /></SelectItem>
+                                      <SelectItem value="approved"><StatusIndicator type="approval" status="approved" /></SelectItem>
+                                      <SelectItem value="revision_requested"><StatusIndicator type="approval" status="revision_requested" /></SelectItem>
+                                      <SelectItem value="rejected"><StatusIndicator type="approval" status="rejected" /></SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </ScrollArea>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Post URLs Management */}
+              <Card className="border-pink-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Instagram className="h-5 w-5 text-pink-500" />
+                    Campaign Posts
+                  </CardTitle>
+                  <CardDescription>
+                    Track Instagram post URLs for this campaign
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {/* Add Post URL Form */}
+                  <div className="flex gap-2 mb-4">
+                    <Input
+                      placeholder="Paste Instagram post URL (e.g., https://instagram.com/p/...)"
+                      value={newPostUrl}
+                      onChange={(e) => setNewPostUrl(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && addPostUrl()}
+                      className="flex-1"
+                    />
+                    <Button onClick={addPostUrl} disabled={addingPost || !newPostUrl.trim()}>
+                      {addingPost ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    </Button>
+                  </div>
+
+                  {loadingPosts ? (
+                    <div className="text-center py-4 text-muted-foreground">
+                      Loading posts...
+                    </div>
+                  ) : campaignPosts.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Instagram className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No post URLs added yet.</p>
+                      <p className="text-sm mt-1">Add Instagram post URLs to track campaign performance.</p>
+                    </div>
+                  ) : (
+                    <ScrollArea className="h-48">
+                      <div className="space-y-2">
+                        {campaignPosts.map((post: any) => (
+                          <div key={post.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <Badge variant="outline" className="shrink-0">
+                                {post.post_type || 'post'}
+                              </Badge>
+                              <a 
+                                href={post.post_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:underline truncate"
+                              >
+                                {post.post_url}
+                              </a>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {post.instagram_handle && post.instagram_handle !== 'pending' && (
+                                <span className="text-xs text-muted-foreground">
+                                  @{post.instagram_handle}
+                                </span>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deletePost(post.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
                 </CardContent>
               </Card>
             </div>
