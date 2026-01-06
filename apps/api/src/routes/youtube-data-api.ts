@@ -429,9 +429,17 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
         .eq('id', campaignId)
         .single();
 
-      if (campaignError || !campaign) {
+      if (campaignError) {
+        logger.error({ campaignId, error: campaignError.message, code: campaignError.code }, '❌ Error fetching campaign');
+        return reply.status(404).send({ error: 'Campaign not found', details: campaignError.message });
+      }
+      
+      if (!campaign) {
+        logger.warn({ campaignId }, '⚠️ Campaign not found in database');
         return reply.status(404).send({ error: 'Campaign not found' });
       }
+      
+      logger.info({ campaignId, videoId: campaign.video_id }, '✅ Campaign found');
 
       const videoId = campaign.video_id || extractVideoId(campaign.youtube_url);
       if (!videoId) {
