@@ -728,11 +728,8 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
                 'streams_7d': playlist_data['streams_7d'],
                 'streams_28d': playlist_data['streams_28d'],
                 'is_algorithmic': is_algo,  # FIX #2: Auto-detect and preserve algorithmic flag
+                'vendor_id': vendor_id,  # FIX #4: Always include vendor_id (None if not matched) for consistent keys
             }
-            
-            # FIX #3: Add vendor_id if matched from vendor_playlists
-            if vendor_id:
-                record['vendor_id'] = vendor_id
             
             playlist_records.append(record)
         
