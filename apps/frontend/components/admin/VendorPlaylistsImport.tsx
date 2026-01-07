@@ -398,13 +398,14 @@ export default function VendorPlaylistsImport() {
           }
         } else if (createNewPlaylists) {
           // Create new playlist if toggle is enabled
+          // Note: playlists table uses 'url' not 'spotify_url', and 'url' is NOT NULL
           const { error: insertError } = await supabase
             .from('playlists')
             .insert({
               name: vp.playlist_name,
-              genres: vp.genres,
+              genres: vp.genres || [],
               vendor_id: vp.vendor_id,
-              spotify_url: vp.spotify_url,
+              url: vp.spotify_url || `https://open.spotify.com/playlist/${vp.spotify_id || 'unknown'}`,
               spotify_id: vp.spotify_id,
             });
           
