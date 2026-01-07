@@ -399,5 +399,101 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
       type,
     };
   });
+
+  /**
+   * POST /spotify-web-api/bulk-playlist-info
+   * Fetch playlist info (name, followers, owner) for multiple playlist URLs
+   * Used during campaign import to resolve playlist names from URLs
+   */
+  server.post('/spotify-web-api/bulk-playlist-info', async (request, reply) => {
+    const { urls } = request.body as { urls: string[] };
+    
+    if (!urls || !Array.isArray(urls)) {
+      return reply.status(400).send({
+        success: false,
+        error: 'urls array is required',
+      });
+    }
+
+    logger.info({ count: urls.length }, 'Bulk playlist info request');
+
+    const results: Array<{
+      url: string;
+      spotify_id: string | null;
+      name: string | null;
+      followers: number | null;
+      owner: string | null;
+      error?: string;
+    }> = [];
+
+    // Process in parallel with rate limiting (5 at a time)
+    const batchSize = 5;
+    for (let i = 0; i < urls.length; i += batchSize) {
+      const batch = urls.slice(i, i + batchSize);
+      
+      const batchResults = await Promise.all(
+        batch.map(async (url) => {
+          try {
+            // Extract playlist ID from URL
+            const playlistId = SpotifyWebAPIClient.extractSpotifyId(url, 'playlist');
+            
+            if (!playlistId) {
+              return {
+                url,
+                spotify_id: null,
+                name: null,
+                followers: null,
+                owner: null,
+                error: 'Could not extract playlist ID from URL',
+              };
+            }
+
+            // Fetch playlist info
+            const playlistData = await spotifyWebApi.getPlaylist(playlistId);
+            
+            return {
+              url,
+              spotify_id: playlistId,
+              name: playlistData.name,
+              followers: playlistData.followers.total,
+              owner: playlistData.owner.display_name,
+            };
+          } catch (error: any) {
+            logger.warn({ url, error: error.message }, 'Failed to fetch playlist info');
+            // Try to extract ID even if fetch failed
+            const playlistId = SpotifyWebAPIClient.extractSpotifyId(url, 'playlist');
+            return {
+              url,
+              spotify_id: playlistId,
+              name: null,
+              followers: null,
+              owner: null,
+              error: error.message,
+            };
+          }
+        })
+      );
+      
+      results.push(...batchResults);
+      
+      // Small delay between batches to respect rate limits
+      if (i + batchSize < urls.length) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+    const successCount = results.filter(r => r.name !== null).length;
+    logger.info({ total: urls.length, success: successCount }, 'Bulk playlist info complete');
+
+    return {
+      success: true,
+      results,
+      summary: {
+        total: urls.length,
+        resolved: successCount,
+        failed: urls.length - successCount,
+      },
+    };
+  });
 }
 

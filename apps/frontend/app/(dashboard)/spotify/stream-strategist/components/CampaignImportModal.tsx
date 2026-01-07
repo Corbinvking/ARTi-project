@@ -94,7 +94,7 @@ export default function CampaignImportModal({
   const [csvData, setCsvData] = useState<ParsedCSVData | null>(null);
   const [columnMappings, setColumnMappings] = useState<Record<string, string>>({});
   const [playlistMatches, setPlaylistMatches] = useState<PlaylistMatch[]>([]);
-  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 4 });
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 5 });
   const [importStatus, setImportStatus] = useState<string>('');
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [defaultVendor, setDefaultVendor] = useState<string>('');
@@ -365,6 +365,61 @@ export default function CampaignImportModal({
       )
       .filter(name => name.length > 2) // Filter out very short names
       .slice(0, 20); // Limit to 20 playlists max
+  };
+
+  // Extract Spotify playlist URLs from text (handles various formats)
+  const extractSpotifyPlaylistUrls = (text: string): string[] => {
+    if (!text) return [];
+    
+    // Regex to match Spotify playlist URLs
+    const spotifyUrlRegex = /https?:\/\/open\.spotify\.com\/playlist\/[a-zA-Z0-9]+[^\s,\n]*/g;
+    const matches = text.match(spotifyUrlRegex) || [];
+    
+    // Clean up URLs (remove query params for deduplication, but keep original for storage)
+    return [...new Set(matches.map(url => url.split('?')[0]))];
+  };
+
+  // Fetch playlist names from Spotify API for given URLs
+  const fetchPlaylistInfoFromUrls = async (urls: string[]): Promise<Map<string, { name: string; spotify_id: string; owner: string }>> => {
+    if (urls.length === 0) return new Map();
+    
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com'}/api/spotify-web-api/bulk-playlist-info`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls }),
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch playlist info:', response.status);
+        return new Map();
+      }
+      
+      const data = await response.json();
+      const resultMap = new Map<string, { name: string; spotify_id: string; owner: string }>();
+      
+      for (const result of data.results || []) {
+        if (result.name && result.spotify_id) {
+          // Map both the original URL and the clean URL to the same info
+          const cleanUrl = result.url.split('?')[0];
+          resultMap.set(cleanUrl, {
+            name: result.name,
+            spotify_id: result.spotify_id,
+            owner: result.owner || '',
+          });
+          resultMap.set(result.url, {
+            name: result.name,
+            spotify_id: result.spotify_id,
+            owner: result.owner || '',
+          });
+        }
+      }
+      
+      return resultMap;
+    } catch (error) {
+      console.error('Error fetching playlist info:', error);
+      return new Map();
+    }
   };
 
   // Match playlists intelligently
@@ -673,7 +728,7 @@ export default function CampaignImportModal({
 
       // PHASE 0: Delete existing campaigns if in replace mode
       if (replaceMode) {
-        setImportProgress({ current: 0, total: 1, phase: 'Deleting existing campaigns...', phaseNum: 0, totalPhases: 4 });
+        setImportProgress({ current: 0, total: 1, phase: 'Deleting existing campaigns...', phaseNum: 0, totalPhases: 5 });
         setImportStatus('Preparing to delete existing campaigns...');
         const result = await deleteAllCampaigns();
         sfaMappings = result.sfaMappings;
@@ -681,8 +736,8 @@ export default function CampaignImportModal({
       }
 
       // PHASE 1: Batch create/update clients and vendors
-      setImportProgress({ current: 0, total: 1, phase: 'Creating clients & vendors...', phaseNum: 1, totalPhases: 4 });
-      setImportStatus('Phase 1/4: Creating clients and vendors...');
+      setImportProgress({ current: 0, total: 1, phase: 'Creating clients & vendors...', phaseNum: 1, totalPhases: 5 });
+      setImportStatus('Phase 1/5: Creating clients and vendors...');
       
       const clientMap: Record<string, string> = {};
       const vendorMap: Record<string, string> = {};
@@ -692,7 +747,7 @@ export default function CampaignImportModal({
       const uniqueVendors = [...new Set(csvData!.rows.map(row => row[columnMappings.vendor]).filter(Boolean))] as string[];
       
       // Batch fetch existing clients
-      setImportStatus(`Phase 1/4: Fetching ${uniqueClients.length} clients...`);
+      setImportStatus(`Phase 1/5: Fetching ${uniqueClients.length} clients...`);
       const { data: existingClients } = await supabase
         .from('clients')
         .select('id, name');
@@ -706,7 +761,7 @@ export default function CampaignImportModal({
       // Create missing clients in batch
       const newClientNames = uniqueClients.filter(name => !clientMap[name]);
       if (newClientNames.length > 0) {
-        setImportStatus(`Phase 1/4: Creating ${newClientNames.length} new clients...`);
+        setImportStatus(`Phase 1/5: Creating ${newClientNames.length} new clients...`);
         const { data: newClients, error: clientError } = await supabase
           .from('clients')
           .insert(newClientNames.map(name => ({ name })))
@@ -722,7 +777,7 @@ export default function CampaignImportModal({
       }
 
       // Batch fetch existing vendors
-      setImportStatus(`Phase 1/4: Fetching ${uniqueVendors.length} vendors...`);
+      setImportStatus(`Phase 1/5: Fetching ${uniqueVendors.length} vendors...`);
       const { data: existingVendors } = await supabase
         .from('vendors')
         .select('id, name');
@@ -736,7 +791,7 @@ export default function CampaignImportModal({
       // Create missing vendors in batch
       const newVendorNames = uniqueVendors.filter(name => !vendorMap[name]);
       if (newVendorNames.length > 0) {
-        setImportStatus(`Phase 1/4: Creating ${newVendorNames.length} new vendors...`);
+        setImportStatus(`Phase 1/5: Creating ${newVendorNames.length} new vendors...`);
         const { data: newVendors, error: vendorError } = await supabase
           .from('vendors')
           .insert(newVendorNames.map(name => ({ name, max_daily_streams: 10000 })))
@@ -751,9 +806,32 @@ export default function CampaignImportModal({
         }
       }
 
+      // PHASE 1.5: Extract and resolve Spotify playlist URLs to names
+      setImportProgress({ current: 0, total: 1, phase: 'Resolving playlist names from Spotify...', phaseNum: 1, totalPhases: 5 });
+      setImportStatus('Phase 1.5/5: Extracting Spotify playlist URLs...');
+      
+      // Collect all unique playlist URLs from the CSV
+      const allPlaylistUrls = new Set<string>();
+      for (const row of csvData!.rows) {
+        const playlistText = row[columnMappings.playlists] || '';
+        const playlistLinksText = row[columnMappings.playlist_links] || '';
+        
+        // Extract URLs from both columns
+        extractSpotifyPlaylistUrls(playlistText).forEach(url => allPlaylistUrls.add(url));
+        extractSpotifyPlaylistUrls(playlistLinksText).forEach(url => allPlaylistUrls.add(url));
+      }
+      
+      // Fetch playlist info from Spotify API
+      let playlistInfoMap = new Map<string, { name: string; spotify_id: string; owner: string }>();
+      if (allPlaylistUrls.size > 0) {
+        setImportStatus(`Phase 1.5/5: Fetching names for ${allPlaylistUrls.size} playlists from Spotify API...`);
+        playlistInfoMap = await fetchPlaylistInfoFromUrls([...allPlaylistUrls]);
+        setImportStatus(`Phase 1.5/5: Resolved ${playlistInfoMap.size / 2} playlist names from Spotify`);
+      }
+
       // PHASE 2: Batch insert spotify_campaigns
-      setImportProgress({ current: 0, total: totalRows, phase: 'Importing campaigns...', phaseNum: 2, totalPhases: 4 });
-      setImportStatus('Phase 2/4: Preparing campaign data...');
+      setImportProgress({ current: 0, total: totalRows, phase: 'Importing campaigns...', phaseNum: 2, totalPhases: 5 });
+      setImportStatus('Phase 2/5: Preparing campaign data...');
       
       // Prepare all campaign rows
       const campaignRows: any[] = [];
@@ -769,6 +847,32 @@ export default function CampaignImportModal({
         const daily = String(row[columnMappings.daily] || '0').replace(/[,\s$]/g, '');
         const weekly = String(row[columnMappings.weekly] || '0').replace(/[,\s$]/g, '');
 
+        // Process playlists - extract URLs and resolve to names
+        const rawPlaylistText = row[columnMappings.playlists] || '';
+        const playlistUrls = extractSpotifyPlaylistUrls(rawPlaylistText);
+        
+        // Build playlist names from resolved URLs
+        const resolvedPlaylistNames: string[] = [];
+        const allUrls: string[] = [...playlistUrls]; // Store all URLs for playlist_links
+        
+        for (const url of playlistUrls) {
+          const cleanUrl = url.split('?')[0];
+          const info = playlistInfoMap.get(cleanUrl);
+          if (info) {
+            resolvedPlaylistNames.push(info.name);
+          }
+        }
+        
+        // If no URLs found, use original text as playlist names (backward compatibility)
+        const playlistNamesText = resolvedPlaylistNames.length > 0 
+          ? resolvedPlaylistNames.join(', ')
+          : rawPlaylistText;
+        
+        // Store URLs in playlist_links (combine with any existing playlist_links)
+        const existingPlaylistLinks = row[columnMappings.playlist_links] || '';
+        const combinedUrls = [...new Set([...allUrls, ...extractSpotifyPlaylistUrls(existingPlaylistLinks)])];
+        const playlistLinksText = combinedUrls.join(', ') || existingPlaylistLinks;
+
         campaignRows.push({
           campaign: campaignName,
           client: clientName,
@@ -782,11 +886,11 @@ export default function CampaignImportModal({
           start_date: row[columnMappings.start_date] || '',
           status: row[columnMappings.status] || 'Active',
           sale_price: row[columnMappings.sale_price] || '',
-          playlists: row[columnMappings.playlists] || '',
+          playlists: playlistNamesText, // Resolved playlist names
           paid_vendor: row[columnMappings.paid_vendor] || '',
           curator_status: row[columnMappings.curator_status] || '',
           notes: row[columnMappings.notes] || '',
-          playlist_links: row[columnMappings.playlist_links] || '',
+          playlist_links: playlistLinksText, // Original URLs preserved
           client_id: clientMap[clientName] || null,
           vendor_id: vendorMap[vendorName] || null,
         });
@@ -807,9 +911,9 @@ export default function CampaignImportModal({
           total: campaignRows.length, 
           phase: `Importing campaigns (batch ${batchIdx + 1}/${totalBatches})...`, 
           phaseNum: 2, 
-          totalPhases: 4 
+          totalPhases: 5 
         });
-        setImportStatus(`Phase 2/4: Importing campaigns ${start + 1}-${end} of ${campaignRows.length}...`);
+        setImportStatus(`Phase 2/5: Importing campaigns ${start + 1}-${end} of ${campaignRows.length}...`);
 
         const { data: insertedCampaigns, error: batchError } = await supabase
           .from('spotify_campaigns')
@@ -829,8 +933,8 @@ export default function CampaignImportModal({
       }
 
       // PHASE 3: Batch create campaign_groups and link spotify_campaigns
-      setImportProgress({ current: 0, total: 1, phase: 'Creating campaign groups...', phaseNum: 3, totalPhases: 4 });
-      setImportStatus('Phase 3/4: Creating campaign groups...');
+      setImportProgress({ current: 0, total: 1, phase: 'Creating campaign groups...', phaseNum: 3, totalPhases: 5 });
+      setImportStatus('Phase 3/5: Creating campaign groups...');
       
       // Group by campaign name + client
       const campaignGroupsMap = new Map<string, typeof importedSpotifyCampaigns>();
@@ -877,7 +981,7 @@ export default function CampaignImportModal({
       // Batch insert campaign groups
       let groupsCreatedCount = 0;
       if (groupRows.length > 0) {
-        setImportStatus(`Phase 3/4: Creating ${groupRows.length} campaign groups...`);
+        setImportStatus(`Phase 3/5: Creating ${groupRows.length} campaign groups...`);
         
         const groupBatches = Math.ceil(groupRows.length / BATCH_SIZE);
         const insertedGroups: Array<{ id: string; name: string; artist_name: string }> = [];
@@ -892,7 +996,7 @@ export default function CampaignImportModal({
             total: groupRows.length, 
             phase: `Creating groups (batch ${batchIdx + 1}/${groupBatches})...`, 
             phaseNum: 3, 
-            totalPhases: 4 
+            totalPhases: 5 
           });
 
           const { data: newGroups, error: groupError } = await supabase
@@ -909,7 +1013,7 @@ export default function CampaignImportModal({
         }
 
         // Link spotify_campaigns to their groups - build update map first
-        setImportStatus('Phase 3/4: Linking campaigns to groups...');
+        setImportStatus('Phase 3/5: Linking campaigns to groups...');
         
         // Build campaign_id -> group_id mapping
         const campaignToGroupMap: Record<number, string> = {};
@@ -946,7 +1050,7 @@ export default function CampaignImportModal({
               total: groupIds.length, 
               phase: `Linking campaigns (${i}/${groupIds.length})...`, 
               phaseNum: 3, 
-              totalPhases: 4 
+              totalPhases: 5 
             });
           }
           
@@ -963,13 +1067,13 @@ export default function CampaignImportModal({
           }
         }
         
-        setImportStatus(`Phase 3/4: Linked ${linkedCount} campaigns to ${groupsCreatedCount} groups.`);
+        setImportStatus(`Phase 3/5: Linked ${linkedCount} campaigns to ${groupsCreatedCount} groups.`);
       }
 
       // PHASE 4: Re-link campaign_playlists using SFA (if replace mode)
       if (replaceMode && Object.keys(sfaMappings).length > 0) {
-        setImportProgress({ current: 0, total: importedSpotifyCampaigns.length, phase: 'Re-linking playlists...', phaseNum: 4, totalPhases: 4 });
-        setImportStatus('Phase 4/4: Re-linking campaign playlists...');
+        setImportProgress({ current: 0, total: importedSpotifyCampaigns.length, phase: 'Re-linking playlists...', phaseNum: 4, totalPhases: 5 });
+        setImportStatus('Phase 4/5: Re-linking campaign playlists...');
         
         let relinkCount = 0;
         for (const sc of importedSpotifyCampaigns) {
@@ -999,12 +1103,12 @@ export default function CampaignImportModal({
             total: importedSpotifyCampaigns.length, 
             phase: 'Re-linking playlists...', 
             phaseNum: 4, 
-            totalPhases: 4 
+            totalPhases: 5 
           });
         }
         
         if (relinkCount > 0) {
-          setImportStatus(`Phase 4/4: Re-linked ${relinkCount} playlist assignments.`);
+          setImportStatus(`Phase 4/5: Re-linked ${relinkCount} playlist assignments.`);
         }
       }
 
@@ -1014,7 +1118,7 @@ export default function CampaignImportModal({
       // Success summary
       const summary = `Import complete! ${spotifyCreatedCount} campaigns, ${groupsCreatedCount} groups created.${errors.length > 0 ? ` (${errors.length} warnings)` : ''}${replaceMode ? ' (replaced existing)' : ''}`;
       setImportStatus(summary);
-      setImportProgress({ current: 1, total: 1, phase: 'Complete!', phaseNum: 4, totalPhases: 4 });
+      setImportProgress({ current: 1, total: 1, phase: 'Complete!', phaseNum: 4, totalPhases: 5 });
       
       // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] });
@@ -1051,7 +1155,7 @@ export default function CampaignImportModal({
     setCsvData(null);
     setColumnMappings({});
     setPlaylistMatches([]);
-    setImportProgress({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 4 });
+    setImportProgress({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 5 });
     setImportStatus('');
     setImportErrors([]);
     setIsImporting(false);
