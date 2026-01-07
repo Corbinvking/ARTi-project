@@ -657,8 +657,21 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
         # Get vendor playlists cache for auto-matching
         vendor_cache = await get_vendor_playlists_cache()
         
+        # Helper function to normalize playlist names for deduplication
+        def normalize_playlist_name(name):
+            """Normalize playlist name for consistent deduplication"""
+            if not name:
+                return "unknown"
+            # Convert to lowercase, strip whitespace, normalize unicode
+            import unicodedata
+            normalized = unicodedata.normalize('NFKD', str(name).lower().strip())
+            # Remove extra whitespace
+            normalized = ' '.join(normalized.split())
+            return normalized
+        
         # Extract unique playlists across all time ranges
-        playlists_by_id = {}
+        # Use normalized name as key, but keep original name for display
+        playlists_by_normalized = {}
         
         for time_range, time_data in scrape_data.get('time_ranges', {}).items():
             stats = time_data.get('stats', {})
@@ -666,10 +679,12 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
             
             for playlist in playlists:
                 playlist_name = playlist.get('name', 'Unknown')
-                # Use name as key for now (could use Spotify ID if available)
-                if playlist_name not in playlists_by_id:
-                    playlists_by_id[playlist_name] = {
-                        'playlist_name': playlist_name,
+                normalized_key = normalize_playlist_name(playlist_name)
+                
+                # Use normalized name as key for deduplication
+                if normalized_key not in playlists_by_normalized:
+                    playlists_by_normalized[normalized_key] = {
+                        'playlist_name': playlist_name,  # Keep original name for display
                         'streams_24h': 0,
                         'streams_7d': 0,
                         'streams_28d': 0,
@@ -681,24 +696,29 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
                 streams = int(streams_str) if streams_str.isdigit() else 0
                 
                 if time_range == '24hour':
-                    playlists_by_id[playlist_name]['streams_24h'] = streams
+                    playlists_by_normalized[normalized_key]['streams_24h'] = streams
                 elif time_range == '7day':
-                    playlists_by_id[playlist_name]['streams_7d'] = streams
+                    playlists_by_normalized[normalized_key]['streams_7d'] = streams
                 elif time_range == '28day':
-                    playlists_by_id[playlist_name]['streams_28d'] = streams
+                    playlists_by_normalized[normalized_key]['streams_28d'] = streams
+        
+        # Convert back to list (playlists_by_id for compatibility with rest of code)
+        playlists_by_id = playlists_by_normalized
         
         if not playlists_by_id:
             logger.info(f"[{campaign_id}] No playlists to sync")
             return True
         
-        # First, delete existing campaign_playlists entries for this campaign
-        # This ensures we only show current data
+        # First, delete ALL existing campaign_playlists entries for this campaign
+        # This ensures we only show current data and prevents duplicates
         delete_url = f"{SUPABASE_URL}/rest/v1/campaign_playlists"
         delete_params = {'campaign_id': f'eq.{campaign_id}'}
         
         delete_response = requests.delete(delete_url, headers=headers, params=delete_params)
         if delete_response.status_code not in [200, 204]:
-            logger.warning(f"[{campaign_id}] Could not delete old playlists: {delete_response.status_code}")
+            logger.warning(f"[{campaign_id}] Could not delete old playlists: {delete_response.status_code} - {delete_response.text}")
+        else:
+            logger.debug(f"[{campaign_id}] Cleared existing playlist records before sync")
         
         # Insert new playlist data with auto-detected is_algorithmic flag and vendor_id
         playlist_records = []
