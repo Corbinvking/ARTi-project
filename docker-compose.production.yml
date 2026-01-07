@@ -217,6 +217,9 @@ services:
       - "3001:3001"
     env_file:
       - ./apps/api/.env
+    volumes:
+      # Mount host's scraper directory for trigger file communication
+      - /root/arti-marketing-ops/spotify_scraper:/app/scraper_data
     depends_on:
       - redis
       - kong
