@@ -294,7 +294,19 @@ export default function PlaylistsPage() {
     queryFn: async (): Promise<Playlist[]> => {
       if (!selectedVendor) return [];
       
-      // First try to get playlists that have vendor_id set
+      // STEP 1: Get authoritative playlist list from vendor_playlists (CSV import cache)
+      const { data: vendorPlaylistsCache, error: cacheError } = await supabase
+        .from('vendor_playlists')
+        .select('*')
+        .eq('vendor_id', selectedVendor);
+      
+      if (cacheError) {
+        console.error('❌ Error fetching vendor_playlists cache:', cacheError);
+      }
+      
+      console.log('📋 Vendor playlists cache:', vendorPlaylistsCache?.length || 0);
+      
+      // STEP 2: Also get playlists from old playlists table (for enriched data like follower counts)
       const { data: directPlaylists, error: directError } = await supabase
         .from('playlists')
         .select('*')
@@ -305,7 +317,7 @@ export default function PlaylistsPage() {
         console.error('❌ Error fetching direct playlists:', directError);
       }
       
-      // Also get playlists from campaign_playlists table (vendor assignments)
+      // STEP 3: Get playlists from campaign_playlists table (vendor assignments)
       const { data: campaignPlaylists, error: campaignError } = await supabase
         .from('campaign_playlists')
         .select('playlist_spotify_id')
@@ -340,16 +352,56 @@ export default function PlaylistsPage() {
         } else {
           enrichedPlaylists = enrichedData || [];
           console.log('✅ Fetched', enrichedPlaylists.length, 'enriched playlists');
-          console.log('📊 Sample enriched playlist:', enrichedPlaylists[0]);
         }
       }
       
-      // Combine and deduplicate
-      const allPlaylists = [...(directPlaylists || []), ...enrichedPlaylists];
+      // STEP 4: Create a map of vendor_playlists by normalized name for genre lookup
+      const genreMap = new Map<string, string[]>();
+      (vendorPlaylistsCache || []).forEach((vp: any) => {
+        if (vp.genres && vp.genres.length > 0) {
+          genreMap.set(vp.playlist_name_normalized, vp.genres);
+        }
+      });
+      
+      // STEP 5: Combine playlists from playlists table and enrich with genres from vendor_playlists
+      const allFromDb = [...(directPlaylists || []), ...enrichedPlaylists];
       const uniquePlaylistsMap = new Map();
-      allPlaylists.forEach(p => {
+      
+      allFromDb.forEach(p => {
         if (!uniquePlaylistsMap.has(p.id)) {
-          uniquePlaylistsMap.set(p.id, p);
+          // Try to get genres from vendor_playlists cache if missing
+          let genres = p.genres;
+          if ((!genres || genres.length === 0) && p.name) {
+            const normalizedName = p.name.toLowerCase().trim();
+            const cachedGenres = genreMap.get(normalizedName);
+            if (cachedGenres) {
+              genres = cachedGenres;
+            }
+          }
+          uniquePlaylistsMap.set(p.id, { ...p, genres });
+        }
+      });
+      
+      // STEP 6: Also add vendor_playlists that aren't in the playlists table yet
+      (vendorPlaylistsCache || []).forEach((vp: any) => {
+        // Check if we already have this playlist by name match
+        const alreadyExists = Array.from(uniquePlaylistsMap.values()).some(
+          (p: any) => p.name?.toLowerCase().trim() === vp.playlist_name_normalized
+        );
+        
+        if (!alreadyExists) {
+          // Add as a "virtual" playlist from vendor_playlists cache
+          uniquePlaylistsMap.set(`vp-${vp.id}`, {
+            id: vp.id,
+            name: vp.playlist_name,
+            genres: vp.genres,
+            spotify_id: vp.spotify_id,
+            spotify_url: vp.spotify_url,
+            vendor_id: vp.vendor_id,
+            follower_count: null,
+            avg_daily_streams: null,
+            source: 'vendor_playlists'
+          });
         }
       });
       
@@ -357,6 +409,7 @@ export default function PlaylistsPage() {
         .sort((a, b) => (b.avg_daily_streams || 0) - (a.avg_daily_streams || 0));
       
       console.log('🎵 Total unique playlists for vendor:', result.length);
+      console.log('🎵 Playlists with genres:', result.filter(p => p.genres && p.genres.length > 0).length);
       
       return result;
     },
