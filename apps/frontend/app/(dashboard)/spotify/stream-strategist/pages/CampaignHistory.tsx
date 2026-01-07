@@ -461,43 +461,62 @@ export default function CampaignHistory() {
   const bulkDeleteMutation = useMutation({
     mutationFn: async (campaignIds: string[]) => {
       console.log('🗑️ Attempting to delete campaigns:', campaignIds.length, 'campaigns');
-      console.log('Campaign IDs:', campaignIds.slice(0, 5), '...'); // Log first 5 IDs
       
-      // First, delete associated spotify_campaigns (songs) that reference these campaign_groups
-      const { error: songsError } = await supabase
-        .from('spotify_campaigns')
-        .delete()
-        .in('campaign_group_id', campaignIds);
+      // Process in batches of 50 to avoid URL length limits
+      const BATCH_SIZE = 50;
+      let totalDeleted = 0;
+      let totalErrors = 0;
       
-      if (songsError) {
-        console.error('❌ Error deleting spotify_campaigns:', songsError);
-        // Don't throw - continue to delete campaign_groups even if songs fail
-      } else {
-        console.log('✅ Deleted associated spotify_campaigns');
-      }
-      
-      // Now delete the campaign_groups
-      const { error } = await supabase
-        .from('campaign_groups')
-        .delete()
-        .in('id', campaignIds);
+      for (let i = 0; i < campaignIds.length; i += BATCH_SIZE) {
+        const batch = campaignIds.slice(i, i + BATCH_SIZE);
+        console.log(`📦 Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(campaignIds.length / BATCH_SIZE)} (${batch.length} items)`);
+        
+        // First, delete associated spotify_campaigns (songs) that reference these campaign_groups
+        const { error: songsError } = await supabase
+          .from('spotify_campaigns')
+          .delete()
+          .in('campaign_group_id', batch);
+        
+        if (songsError) {
+          console.error(`❌ Error deleting spotify_campaigns in batch ${i / BATCH_SIZE + 1}:`, songsError);
+          // Continue anyway
+        }
+        
+        // Now delete the campaign_groups
+        const { error } = await supabase
+          .from('campaign_groups')
+          .delete()
+          .in('id', batch);
 
-      if (error) {
-        console.error('❌ Error deleting campaign_groups:', error);
-        throw error;
+        if (error) {
+          console.error(`❌ Error deleting campaign_groups in batch ${i / BATCH_SIZE + 1}:`, error);
+          totalErrors += batch.length;
+        } else {
+          totalDeleted += batch.length;
+        }
+        
+        // Small delay between batches to avoid rate limiting
+        if (i + BATCH_SIZE < campaignIds.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       }
       
-      console.log('✅ Campaign groups deleted successfully');
-      return campaignIds.length;
+      console.log(`✅ Bulk delete complete: ${totalDeleted} deleted, ${totalErrors} errors`);
+      
+      if (totalErrors > 0 && totalDeleted === 0) {
+        throw new Error(`Failed to delete any campaigns (${totalErrors} errors)`);
+      }
+      
+      return { deleted: totalDeleted, errors: totalErrors };
     },
-    onSuccess: (count, campaignIds) => {
+    onSuccess: (result, campaignIds) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       setSelectedCampaigns(new Set());
       toast({
         title: "Campaigns Deleted",
-        description: `${campaignIds.length} campaigns have been successfully removed.`,
+        description: `${result.deleted} campaigns removed${result.errors > 0 ? ` (${result.errors} failed)` : ''}.`,
       });
     },
     onError: (error: any) => {
