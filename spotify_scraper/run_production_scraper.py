@@ -592,12 +592,10 @@ async def save_to_scraped_data_table(campaign, scrape_data):
         return False
 
 
-async def sync_to_campaign_playlists(campaign_id, scrape_data):
+async def fetch_vendor_playlists_cache():
     """
-    Bridge function: Sync scraped playlist data to campaign_playlists table
-    This keeps the UI working with existing queries while storing raw data in spotify_campaigns
-    
-    FIX #2: Now preserves is_algorithmic flags by auto-detecting algorithmic playlists
+    Fetch all vendor playlists from the vendor_playlists table for auto-matching.
+    Returns a dict mapping normalized playlist names to vendor_id.
     """
     headers = {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
@@ -606,6 +604,59 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
     }
     
     try:
+        url = f"{SUPABASE_URL}/rest/v1/vendor_playlists"
+        params = {'select': 'playlist_name_normalized,vendor_id'}
+        
+        response = requests.get(url, headers=headers, params=params)
+        
+        if response.status_code != 200:
+            logger.warning(f"Could not fetch vendor_playlists: {response.status_code}")
+            return {}
+        
+        data = response.json()
+        # Build dict: normalized_name -> vendor_id
+        vendor_map = {}
+        for row in data:
+            if row.get('playlist_name_normalized') and row.get('vendor_id'):
+                vendor_map[row['playlist_name_normalized']] = row['vendor_id']
+        
+        logger.info(f"Loaded {len(vendor_map)} vendor playlists for auto-matching")
+        return vendor_map
+        
+    except Exception as e:
+        logger.warning(f"Error fetching vendor_playlists: {e}")
+        return {}
+
+
+# Global cache for vendor playlists (loaded once per scraper run)
+_vendor_playlists_cache = None
+
+async def get_vendor_playlists_cache():
+    """Get or initialize the vendor playlists cache."""
+    global _vendor_playlists_cache
+    if _vendor_playlists_cache is None:
+        _vendor_playlists_cache = await fetch_vendor_playlists_cache()
+    return _vendor_playlists_cache
+
+
+async def sync_to_campaign_playlists(campaign_id, scrape_data):
+    """
+    Bridge function: Sync scraped playlist data to campaign_playlists table
+    This keeps the UI working with existing queries while storing raw data in spotify_campaigns
+    
+    FIX #2: Now preserves is_algorithmic flags by auto-detecting algorithmic playlists
+    FIX #3: Auto-assigns vendor_id from vendor_playlists cache
+    """
+    headers = {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
+        'Content-Type': 'application/json'
+    }
+    
+    try:
+        # Get vendor playlists cache for auto-matching
+        vendor_cache = await get_vendor_playlists_cache()
+        
         # Extract unique playlists across all time ranges
         playlists_by_id = {}
         
@@ -649,19 +700,26 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
         if delete_response.status_code not in [200, 204]:
             logger.warning(f"[{campaign_id}] Could not delete old playlists: {delete_response.status_code}")
         
-        # Insert new playlist data with auto-detected is_algorithmic flag
+        # Insert new playlist data with auto-detected is_algorithmic flag and vendor_id
         playlist_records = []
         algorithmic_count = 0
         vendor_count = 0
+        vendor_matched_count = 0
         
         for playlist_data in playlists_by_id.values():
             playlist_name = playlist_data['playlist_name']
             is_algo = is_algorithmic_playlist(playlist_name)
             
+            # Auto-match vendor from vendor_playlists cache
+            normalized_name = playlist_name.lower().strip()
+            vendor_id = vendor_cache.get(normalized_name)
+            
             if is_algo:
                 algorithmic_count += 1
             else:
                 vendor_count += 1
+                if vendor_id:
+                    vendor_matched_count += 1
             
             record = {
                 'campaign_id': campaign_id,
@@ -671,6 +729,11 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
                 'streams_28d': playlist_data['streams_28d'],
                 'is_algorithmic': is_algo,  # FIX #2: Auto-detect and preserve algorithmic flag
             }
+            
+            # FIX #3: Add vendor_id if matched from vendor_playlists
+            if vendor_id:
+                record['vendor_id'] = vendor_id
+            
             playlist_records.append(record)
         
         # Batch insert
@@ -681,7 +744,8 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
             logger.error(f"[{campaign_id}] Failed to sync playlists: {insert_response.status_code} - {insert_response.text}")
             return False
         
-        logger.info(f"[{campaign_id}] ✓ Synced {len(playlist_records)} playlists ({algorithmic_count} algorithmic, {vendor_count} vendor)")
+        vendor_match_info = f", {vendor_matched_count} vendor-matched" if vendor_matched_count > 0 else ""
+        logger.info(f"[{campaign_id}] ✓ Synced {len(playlist_records)} playlists ({algorithmic_count} algorithmic, {vendor_count} vendor{vendor_match_info})")
         return True
         
     except Exception as e:

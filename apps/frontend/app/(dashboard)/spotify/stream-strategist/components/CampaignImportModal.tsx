@@ -112,7 +112,36 @@ export default function CampaignImportModal({
   // Fetch vendors for playlist creation
   const { data: vendors } = useVendors();
 
-  // Fetch all playlists for matching
+  // Fetch vendor playlists (authoritative source) for matching
+  const { data: vendorPlaylists } = useQuery({
+    queryKey: ['vendor-playlists-for-import'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vendor_playlists')
+        .select(`
+          id,
+          playlist_name,
+          playlist_name_normalized,
+          vendor_id,
+          genres,
+          vendors(name)
+        `);
+      
+      if (error) throw error;
+      return data.map((p: any) => ({
+        id: p.id,
+        name: p.playlist_name,
+        name_normalized: p.playlist_name_normalized,
+        vendor_id: p.vendor_id,
+        vendor_name: p.vendors?.name || 'Unknown',
+        genres: p.genres || [],
+        source: 'vendor_playlists' as const
+      }));
+    },
+    enabled: open
+  });
+
+  // Fetch all playlists for fallback matching
   const { data: allPlaylists } = useQuery({
     queryKey: ['playlists-for-import'],
     queryFn: async () => {
@@ -129,7 +158,8 @@ export default function CampaignImportModal({
       return data.map(p => ({
         id: p.id,
         name: p.name,
-        vendor_name: p.vendors?.name || 'Unknown'
+        vendor_name: p.vendors?.name || 'Unknown',
+        source: 'playlists' as const
       }));
     },
     enabled: open
@@ -339,71 +369,95 @@ export default function CampaignImportModal({
 
   // Match playlists intelligently
   const matchPlaylists = (playlistNames: string[]): PlaylistMatch[] => {
-    if (!allPlaylists || playlistNames.length === 0) return [];
+    if (playlistNames.length === 0) return [];
 
     return playlistNames.map(originalName => {
       const cleanName = originalName.toLowerCase().trim();
       
-      // Find exact match first
-      let exactMatch = allPlaylists.find(p => 
-        p.name.toLowerCase().trim() === cleanName
-      );
-      
-      if (exactMatch) {
-        return {
-          originalName,
-          matchedPlaylist: exactMatch,
-          confidence: 'high',
-          suggestions: [],
-          action: 'match'
-        };
+      // FIRST: Check vendor_playlists (authoritative source)
+      if (vendorPlaylists && vendorPlaylists.length > 0) {
+        const vendorMatch = vendorPlaylists.find(p => 
+          p.name_normalized === cleanName || p.name.toLowerCase().trim() === cleanName
+        );
+        
+        if (vendorMatch) {
+          return {
+            originalName,
+            matchedPlaylist: {
+              id: vendorMatch.id,
+              name: vendorMatch.name,
+              vendor_name: vendorMatch.vendor_name
+            },
+            confidence: 'high' as const,
+            suggestions: [],
+            action: 'match' as const
+          };
+        }
       }
-
-      // Find fuzzy matches
-      const similarities = allPlaylists.map(playlist => ({
-        ...playlist,
-        similarity: calculateSimilarity(cleanName, playlist.name)
-      }));
-
-      // Sort by similarity and get top matches
-      const topMatches = similarities
-        .filter(s => s.similarity > 0.4)
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, 3);
-
-      const bestMatch = topMatches[0];
       
-      if (bestMatch && bestMatch.similarity > 0.8) {
-        return {
-          originalName,
-          matchedPlaylist: bestMatch,
-          confidence: 'high',
-          suggestions: topMatches.slice(1),
-          action: 'match'
-        };
-      } else if (bestMatch && bestMatch.similarity > 0.6) {
-        return {
-          originalName,
-          matchedPlaylist: bestMatch,
-          confidence: 'medium',
-          suggestions: topMatches.slice(1),
-          action: 'match'
-        };
-      } else if (bestMatch && bestMatch.similarity > 0.4) {
-        return {
-          originalName,
-          confidence: 'low',
-          suggestions: topMatches,
-          action: 'create'
-        };
-      } else {
-        return {
-          originalName,
-          confidence: 'none',
-          suggestions: [],
-          action: 'create'
-        };
+      // SECOND: Check regular playlists table
+      if (allPlaylists && allPlaylists.length > 0) {
+        let exactMatch = allPlaylists.find(p => 
+          p.name.toLowerCase().trim() === cleanName
+        );
+        
+        if (exactMatch) {
+          return {
+            originalName,
+            matchedPlaylist: exactMatch,
+            confidence: 'high' as const,
+            suggestions: [],
+            action: 'match' as const
+          };
+        }
+
+        // Find fuzzy matches
+        const similarities = allPlaylists.map(playlist => ({
+          ...playlist,
+          similarity: calculateSimilarity(cleanName, playlist.name)
+        }));
+
+        // Sort by similarity and get top matches
+        const topMatches = similarities
+          .filter(s => s.similarity > 0.4)
+          .sort((a, b) => b.similarity - a.similarity)
+          .slice(0, 3);
+
+        const bestMatch = topMatches[0];
+        
+        if (bestMatch && bestMatch.similarity > 0.8) {
+          return {
+            originalName,
+            matchedPlaylist: bestMatch,
+            confidence: 'high' as const,
+            suggestions: topMatches.slice(1),
+            action: 'match' as const
+          };
+        } else if (bestMatch && bestMatch.similarity > 0.6) {
+          return {
+            originalName,
+            matchedPlaylist: bestMatch,
+            confidence: 'medium' as const,
+            suggestions: topMatches.slice(1),
+            action: 'match' as const
+          };
+        } else if (bestMatch && bestMatch.similarity > 0.4) {
+          return {
+            originalName,
+            confidence: 'low' as const,
+            suggestions: topMatches,
+            action: 'create' as const
+          };
+        }
       }
+      
+      // No match found
+      return {
+        originalName,
+        confidence: 'none' as const,
+        suggestions: [],
+        action: 'create' as const
+      };
     });
   };
 

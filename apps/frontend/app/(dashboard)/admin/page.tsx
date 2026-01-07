@@ -3,6 +3,7 @@ import { SystemSettings } from "@/components/admin/system-settings"
 import { PlatformIntegrations } from "@/components/admin/platform-integrations"
 import { FinancialIntegration } from "@/components/admin/financial-integration"
 import { ScraperStatusCard } from "@/components/admin/scraper-status-card"
+import VendorPlaylistsImport from "@/components/admin/VendorPlaylistsImport"
 import { Shield } from "lucide-react"
 
 export default function AdminPage() {
@@ -21,6 +22,7 @@ export default function AdminPage() {
         <SystemSettings />
         <PlatformIntegrations />
         <ScraperStatusCard />
+        <VendorPlaylistsImport />
         <FinancialIntegration />
       </div>
     </div>
