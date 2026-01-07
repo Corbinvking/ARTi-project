@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/auth";
 import { Upload, Download, Check, AlertCircle, Loader2, Music, Users, RefreshCw, Trash2 } from "lucide-react";
 import Papa from "papaparse";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
