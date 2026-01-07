@@ -218,14 +218,27 @@ export default function VendorPlaylistsImport() {
           .eq('vendor_id', vendorId);
       }
 
-      // Step 2: Prepare all playlists for import
-      const allPlaylists = matchedVendors.flatMap(m => 
-        m.playlists.map(p => ({
-          vendor_id: m.matchedVendor!.id,
-          playlist_name: p.playlistName,
-          genres: p.genres
-        }))
-      );
+      // Step 2: Prepare all playlists for import (deduplicated by vendor + normalized name)
+      const playlistMap = new Map<string, { vendor_id: string; playlist_name: string; genres: string[] }>();
+      
+      for (const m of matchedVendors) {
+        for (const p of m.playlists) {
+          // Create unique key from vendor_id + normalized playlist name
+          const key = `${m.matchedVendor!.id}|${p.playlistName.toLowerCase().trim()}`;
+          
+          // Only keep first occurrence (skip duplicates)
+          if (!playlistMap.has(key)) {
+            playlistMap.set(key, {
+              vendor_id: m.matchedVendor!.id,
+              playlist_name: p.playlistName,
+              genres: p.genres
+            });
+          }
+        }
+      }
+      
+      const allPlaylists = Array.from(playlistMap.values());
+      console.log(`Deduplicated: ${playlistMap.size} unique playlists from ${matchedVendors.reduce((sum, m) => sum + m.playlists.length, 0)} total`);
 
       setImportProgress({ current: 0, total: allPlaylists.length });
       setImportStatus('Importing playlists...');
