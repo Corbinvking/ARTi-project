@@ -215,6 +215,9 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"
+    environment:
+      - DOCKER_ENV=true
+      - NODE_ENV=production
     env_file:
       - ./apps/api/.env
     volumes:
