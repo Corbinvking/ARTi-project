@@ -207,6 +207,18 @@ export default function VendorPlaylistsImport() {
     setImportProgress({ current: 0, total: 0 });
 
     try {
+      // Step 1: Delete existing playlists for vendors being imported
+      setImportStatus('Clearing existing vendor playlists...');
+      const vendorIds = matchedVendors.map(m => m.matchedVendor!.id);
+      
+      for (const vendorId of vendorIds) {
+        await supabase
+          .from('vendor_playlists')
+          .delete()
+          .eq('vendor_id', vendorId);
+      }
+
+      // Step 2: Prepare all playlists for import
       const allPlaylists = matchedVendors.flatMap(m => 
         m.playlists.map(p => ({
           vendor_id: m.matchedVendor!.id,
@@ -218,7 +230,7 @@ export default function VendorPlaylistsImport() {
       setImportProgress({ current: 0, total: allPlaylists.length });
       setImportStatus('Importing playlists...');
 
-      // Batch insert in chunks of 50
+      // Step 3: Batch insert in chunks of 50
       const BATCH_SIZE = 50;
       let importedCount = 0;
       let errorCount = 0;
@@ -229,7 +241,6 @@ export default function VendorPlaylistsImport() {
         setImportProgress({ current: i, total: allPlaylists.length });
         setImportStatus(`Importing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(allPlaylists.length / BATCH_SIZE)}...`);
 
-        // Use insert instead of upsert - duplicates will fail silently due to unique constraint
         const { error } = await supabase
           .from('vendor_playlists')
           .insert(batch);
