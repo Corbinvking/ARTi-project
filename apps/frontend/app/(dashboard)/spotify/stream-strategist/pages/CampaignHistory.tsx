@@ -460,20 +460,52 @@ export default function CampaignHistory() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async (campaignIds: string[]) => {
+      console.log('🗑️ Attempting to delete campaigns:', campaignIds.length, 'campaigns');
+      console.log('Campaign IDs:', campaignIds.slice(0, 5), '...'); // Log first 5 IDs
+      
+      // First, delete associated spotify_campaigns (songs) that reference these campaign_groups
+      const { error: songsError } = await supabase
+        .from('spotify_campaigns')
+        .delete()
+        .in('campaign_group_id', campaignIds);
+      
+      if (songsError) {
+        console.error('❌ Error deleting spotify_campaigns:', songsError);
+        // Don't throw - continue to delete campaign_groups even if songs fail
+      } else {
+        console.log('✅ Deleted associated spotify_campaigns');
+      }
+      
+      // Now delete the campaign_groups
       const { error } = await supabase
         .from('campaign_groups')
         .delete()
         .in('id', campaignIds);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error deleting campaign_groups:', error);
+        throw error;
+      }
+      
+      console.log('✅ Campaign groups deleted successfully');
+      return campaignIds.length;
     },
-    onSuccess: (_, campaignIds) => {
+    onSuccess: (count, campaignIds) => {
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       setSelectedCampaigns(new Set());
       toast({
         title: "Campaigns Deleted",
         description: `${campaignIds.length} campaigns have been successfully removed.`,
+      });
+    },
+    onError: (error: any) => {
+      console.error('❌ Bulk delete failed:', error);
+      toast({
+        title: "Delete Failed",
+        description: error?.message || "Failed to delete campaigns. Check console for details.",
+        variant: "destructive",
       });
     }
   });
@@ -824,10 +856,20 @@ export default function CampaignHistory() {
   };
 
   const handleBulkDelete = () => {
-    if (selectedCampaigns.size === 0) return;
+    if (selectedCampaigns.size === 0) {
+      console.log('⚠️ No campaigns selected for deletion');
+      return;
+    }
     
-    if (confirm(`Are you sure you want to delete ${selectedCampaigns.size} campaigns? This action cannot be undone.`)) {
+    console.log(`🗑️ Delete requested for ${selectedCampaigns.size} campaigns`);
+    
+    const confirmed = window.confirm(`Are you sure you want to delete ${selectedCampaigns.size} campaigns? This action cannot be undone.`);
+    
+    if (confirmed) {
+      console.log('✅ User confirmed deletion, starting...');
       bulkDeleteMutation.mutate(Array.from(selectedCampaigns));
+    } else {
+      console.log('❌ User cancelled deletion');
     }
   };
 
