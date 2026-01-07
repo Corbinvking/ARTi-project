@@ -104,6 +104,7 @@ export default function CampaignImportModal({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [existingCampaignCount, setExistingCampaignCount] = useState(0);
   const [isExportingBackup, setIsExportingBackup] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -607,6 +608,7 @@ export default function CampaignImportModal({
     }
 
     setStep('importing');
+    setIsImporting(true);
     setImportErrors([]);
     const errors: string[] = [];
     const BATCH_SIZE = 50;
@@ -852,26 +854,62 @@ export default function CampaignImportModal({
           }
         }
 
-        // Link spotify_campaigns to their groups in batches
+        // Link spotify_campaigns to their groups - build update map first
         setImportStatus('Phase 3/4: Linking campaigns to groups...');
         
+        // Build campaign_id -> group_id mapping
+        const campaignToGroupMap: Record<number, string> = {};
         for (const group of insertedGroups) {
           const groupKey = `${group.name}|${group.artist_name}`;
           const campaigns = campaignGroupsMap.get(groupKey);
-          
-          if (campaigns && campaigns.length > 0) {
-            const campaignIds = campaigns.map(c => c.id);
-            
-            // Batch update in chunks
-            for (let i = 0; i < campaignIds.length; i += BATCH_SIZE) {
-              const batchIds = campaignIds.slice(i, i + BATCH_SIZE);
-              await supabase
-                .from('spotify_campaigns')
-                .update({ campaign_group_id: group.id })
-                .in('id', batchIds);
+          if (campaigns) {
+            for (const campaign of campaigns) {
+              campaignToGroupMap[campaign.id] = group.id;
             }
           }
         }
+        
+        // Group by group_id for efficient batch updates
+        const groupIdToCampaignIds: Record<string, number[]> = {};
+        for (const [campaignId, groupId] of Object.entries(campaignToGroupMap)) {
+          if (!groupIdToCampaignIds[groupId]) {
+            groupIdToCampaignIds[groupId] = [];
+          }
+          groupIdToCampaignIds[groupId].push(parseInt(campaignId));
+        }
+        
+        // Batch update all campaigns for each group
+        const groupIds = Object.keys(groupIdToCampaignIds);
+        let linkedCount = 0;
+        for (let i = 0; i < groupIds.length; i++) {
+          const groupId = groupIds[i];
+          const campaignIds = groupIdToCampaignIds[groupId];
+          
+          // Update progress every 10 groups
+          if (i % 10 === 0) {
+            setImportProgress({ 
+              current: i, 
+              total: groupIds.length, 
+              phase: `Linking campaigns (${i}/${groupIds.length})...`, 
+              phaseNum: 3, 
+              totalPhases: 4 
+            });
+          }
+          
+          // Single update per group (campaigns are batched in the IN clause)
+          const { error: linkError } = await supabase
+            .from('spotify_campaigns')
+            .update({ campaign_group_id: groupId })
+            .in('id', campaignIds);
+          
+          if (!linkError) {
+            linkedCount += campaignIds.length;
+          } else {
+            errors.push(`Failed to link ${campaignIds.length} campaigns to group: ${linkError.message}`);
+          }
+        }
+        
+        setImportStatus(`Phase 3/4: Linked ${linkedCount} campaigns to ${groupsCreatedCount} groups.`);
       }
 
       // PHASE 4: Re-link campaign_playlists using SFA (if replace mode)
@@ -936,6 +974,7 @@ export default function CampaignImportModal({
         description: summary,
       });
 
+      setIsImporting(false);
       setTimeout(() => {
         onOpenChange(false);
         resetModal();
@@ -943,6 +982,7 @@ export default function CampaignImportModal({
 
     } catch (error) {
       console.error('Import error:', error);
+      setIsImporting(false);
       setImportErrors([...errors, error instanceof Error ? error.message : 'Unknown error']);
       toast({
         title: "Import Failed",
@@ -960,6 +1000,7 @@ export default function CampaignImportModal({
     setImportProgress({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 4 });
     setImportStatus('');
     setImportErrors([]);
+    setIsImporting(false);
     setReplaceMode(false);
     setShowDeleteConfirm(false);
   };
@@ -1375,8 +1416,36 @@ export default function CampaignImportModal({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <Dialog 
+        open={open} 
+        onOpenChange={(newOpen) => {
+          // Prevent closing during import
+          if (isImporting && !newOpen) {
+            toast({
+              title: "Import in Progress",
+              description: "Please wait for the import to complete before closing.",
+              variant: "destructive",
+            });
+            return;
+          }
+          onOpenChange(newOpen);
+        }}
+      >
+        <DialogContent 
+          className="max-w-6xl max-h-[90vh] overflow-y-auto"
+          onPointerDownOutside={(e) => {
+            // Prevent closing by clicking outside during import
+            if (isImporting) {
+              e.preventDefault();
+            }
+          }}
+          onEscapeKeyDown={(e) => {
+            // Prevent closing with Escape during import
+            if (isImporting) {
+              e.preventDefault();
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Import Campaigns</DialogTitle>
             <DialogDescription>
