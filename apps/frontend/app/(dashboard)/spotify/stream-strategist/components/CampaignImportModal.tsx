@@ -8,7 +8,6 @@ import { Label } from "./ui/label";
 import { useToast } from "../hooks/use-toast";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "../integrations/supabase/client";
-import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_TYPE } from "../lib/constants";
 import { Upload, Download, Check, X, AlertCircle, Loader2, ArrowRight, ArrowLeft, Plus, Trash2, RefreshCw } from "lucide-react";
 import Papa from "papaparse";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -95,8 +94,9 @@ export default function CampaignImportModal({
   const [csvData, setCsvData] = useState<ParsedCSVData | null>(null);
   const [columnMappings, setColumnMappings] = useState<Record<string, string>>({});
   const [playlistMatches, setPlaylistMatches] = useState<PlaylistMatch[]>([]);
-  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 4 });
   const [importStatus, setImportStatus] = useState<string>('');
+  const [importErrors, setImportErrors] = useState<string[]>([]);
   const [defaultVendor, setDefaultVendor] = useState<string>('');
   
   // Replace Mode state
@@ -607,134 +607,174 @@ export default function CampaignImportModal({
     }
 
     setStep('importing');
+    setImportErrors([]);
+    const errors: string[] = [];
+    const BATCH_SIZE = 50;
     
     try {
       let sfaMappings: Record<number, string> = {};
+      const totalRows = csvData!.rows.length;
 
-      // STEP 0: Delete existing campaigns if in replace mode
+      // PHASE 0: Delete existing campaigns if in replace mode
       if (replaceMode) {
+        setImportProgress({ current: 0, total: 1, phase: 'Deleting existing campaigns...', phaseNum: 0, totalPhases: 4 });
         setImportStatus('Preparing to delete existing campaigns...');
         const result = await deleteAllCampaigns();
         sfaMappings = result.sfaMappings;
-        setImportStatus(`Deleted existing campaigns. Preserved ${Object.keys(sfaMappings).length} SFA mappings for re-linking.`);
+        setImportStatus(`Deleted existing campaigns. Preserved ${Object.keys(sfaMappings).length} SFA mappings.`);
       }
 
-      // STEP 1: Create/update clients and vendors
-      setImportStatus('Creating clients and vendors...');
+      // PHASE 1: Batch create/update clients and vendors
+      setImportProgress({ current: 0, total: 1, phase: 'Creating clients & vendors...', phaseNum: 1, totalPhases: 4 });
+      setImportStatus('Phase 1/4: Creating clients and vendors...');
+      
       const clientMap: Record<string, string> = {};
       const vendorMap: Record<string, string> = {};
 
       // Get unique clients from CSV
-      const uniqueClients = [...new Set(csvData!.rows.map(row => row[columnMappings.client]).filter(Boolean))];
-      for (const clientName of uniqueClients) {
-        // Check if client exists
-        const { data: existingClient } = await supabase
+      const uniqueClients = [...new Set(csvData!.rows.map(row => row[columnMappings.client]).filter(Boolean))] as string[];
+      const uniqueVendors = [...new Set(csvData!.rows.map(row => row[columnMappings.vendor]).filter(Boolean))] as string[];
+      
+      // Batch fetch existing clients
+      setImportStatus(`Phase 1/4: Fetching ${uniqueClients.length} clients...`);
+      const { data: existingClients } = await supabase
+        .from('clients')
+        .select('id, name');
+      
+      if (existingClients) {
+        existingClients.forEach(c => {
+          clientMap[c.name] = c.id;
+        });
+      }
+      
+      // Create missing clients in batch
+      const newClientNames = uniqueClients.filter(name => !clientMap[name]);
+      if (newClientNames.length > 0) {
+        setImportStatus(`Phase 1/4: Creating ${newClientNames.length} new clients...`);
+        const { data: newClients, error: clientError } = await supabase
           .from('clients')
-          .select('id')
-          .eq('name', clientName)
-          .maybeSingle();
-
-        if (existingClient) {
-          clientMap[clientName] = existingClient.id;
-        } else {
-          // Create new client
-          const { data: newClient } = await supabase
-            .from('clients')
-            .insert({ name: clientName })
-            .select('id')
-            .single();
-          
-          if (newClient) {
-            clientMap[clientName] = newClient.id;
-          }
+          .insert(newClientNames.map(name => ({ name })))
+          .select('id, name');
+        
+        if (clientError) {
+          errors.push(`Failed to create clients: ${clientError.message}`);
+        } else if (newClients) {
+          newClients.forEach(c => {
+            clientMap[c.name] = c.id;
+          });
         }
       }
 
-      // Get unique vendors from CSV
-      const uniqueVendors = [...new Set(csvData!.rows.map(row => row[columnMappings.vendor]).filter(Boolean))];
-      for (const vendorName of uniqueVendors) {
-        const { data: existingVendor } = await supabase
+      // Batch fetch existing vendors
+      setImportStatus(`Phase 1/4: Fetching ${uniqueVendors.length} vendors...`);
+      const { data: existingVendors } = await supabase
+        .from('vendors')
+        .select('id, name');
+      
+      if (existingVendors) {
+        existingVendors.forEach(v => {
+          vendorMap[v.name] = v.id;
+        });
+      }
+      
+      // Create missing vendors in batch
+      const newVendorNames = uniqueVendors.filter(name => !vendorMap[name]);
+      if (newVendorNames.length > 0) {
+        setImportStatus(`Phase 1/4: Creating ${newVendorNames.length} new vendors...`);
+        const { data: newVendors, error: vendorError } = await supabase
           .from('vendors')
-          .select('id')
-          .eq('name', vendorName)
-          .maybeSingle();
-
-        if (existingVendor) {
-          vendorMap[vendorName] = existingVendor.id;
-        } else {
-          // Create new vendor
-          const { data: newVendor } = await supabase
-            .from('vendors')
-            .insert({ name: vendorName, max_daily_streams: 10000 })
-            .select('id')
-            .single();
-          
-          if (newVendor) {
-            vendorMap[vendorName] = newVendor.id;
-          }
+          .insert(newVendorNames.map(name => ({ name, max_daily_streams: 10000 })))
+          .select('id, name');
+        
+        if (vendorError) {
+          errors.push(`Failed to create vendors: ${vendorError.message}`);
+        } else if (newVendors) {
+          newVendors.forEach(v => {
+            vendorMap[v.name] = v.id;
+          });
         }
       }
 
-      // STEP 2: Process each row and insert into spotify_campaigns
-      setImportStatus('Importing campaigns to spotify_campaigns...');
-      let spotifyCreatedCount = 0;
-      const totalRows = csvData!.rows.length;
-      const importedSpotifyCampaigns: Array<{ id: number; sfa: string | null; campaign: string; client: string }> = [];
-
-      for (let i = 0; i < csvData!.rows.length; i++) {
-        const row = csvData!.rows[i];
-        setImportProgress({ current: i + 1, total: totalRows * 2 }); // *2 because we have two phases
-
+      // PHASE 2: Batch insert spotify_campaigns
+      setImportProgress({ current: 0, total: totalRows, phase: 'Importing campaigns...', phaseNum: 2, totalPhases: 4 });
+      setImportStatus('Phase 2/4: Preparing campaign data...');
+      
+      // Prepare all campaign rows
+      const campaignRows: any[] = [];
+      for (const row of csvData!.rows) {
         const campaignName = row[columnMappings.campaign] || '';
         const clientName = row[columnMappings.client] || '';
         const vendorName = row[columnMappings.vendor] || '';
 
         if (!campaignName || !clientName) continue;
 
-        // Parse numerical fields
         const goal = String(row[columnMappings.goal] || '0').replace(/[,\s$]/g, '');
         const remaining = String(row[columnMappings.remaining] || goal).replace(/[,\s$]/g, '');
         const daily = String(row[columnMappings.daily] || '0').replace(/[,\s$]/g, '');
         const weekly = String(row[columnMappings.weekly] || '0').replace(/[,\s$]/g, '');
-        const salePrice = row[columnMappings.sale_price] || '';
 
-        // Insert into spotify_campaigns
-        const { data: spotifyCampaign, error: spotifyError } = await supabase
-          .from('spotify_campaigns')
-          .insert({
-            campaign: campaignName,
-            client: clientName,
-            vendor: vendorName,
-            goal: goal,
-            remaining: remaining,
-            daily: daily,
-            weekly: weekly,
-            url: row[columnMappings.url] || '',
-            sfa: row[columnMappings.sfa] || '',
-            start_date: row[columnMappings.start_date] || '',
-            status: row[columnMappings.status] || 'Active',
-            sale_price: salePrice,
-            playlists: row[columnMappings.playlists] || '',
-            paid_vendor: row[columnMappings.paid_vendor] || '',
-            curator_status: row[columnMappings.curator_status] || '',
-            notes: row[columnMappings.notes] || '',
-            playlist_links: row[columnMappings.playlist_links] || '',
-            client_id: clientMap[clientName] || null,
-            vendor_id: vendorMap[vendorName] || null,
-          })
-          .select('id, sfa, campaign, client')
-          .single();
-
-        if (spotifyError) {
-          console.error('Error inserting spotify_campaign:', spotifyError);
-        } else if (spotifyCampaign) {
-          spotifyCreatedCount++;
-          importedSpotifyCampaigns.push(spotifyCampaign);
-        }
+        campaignRows.push({
+          campaign: campaignName,
+          client: clientName,
+          vendor: vendorName,
+          goal: goal,
+          remaining: remaining,
+          daily: daily,
+          weekly: weekly,
+          url: row[columnMappings.url] || '',
+          sfa: row[columnMappings.sfa] || '',
+          start_date: row[columnMappings.start_date] || '',
+          status: row[columnMappings.status] || 'Active',
+          sale_price: row[columnMappings.sale_price] || '',
+          playlists: row[columnMappings.playlists] || '',
+          paid_vendor: row[columnMappings.paid_vendor] || '',
+          curator_status: row[columnMappings.curator_status] || '',
+          notes: row[columnMappings.notes] || '',
+          playlist_links: row[columnMappings.playlist_links] || '',
+          client_id: clientMap[clientName] || null,
+          vendor_id: vendorMap[vendorName] || null,
+        });
       }
 
-      // STEP 3: Create campaign_groups and link spotify_campaigns
-      setImportStatus('Creating campaign groups...');
+      // Batch insert in chunks
+      let spotifyCreatedCount = 0;
+      const importedSpotifyCampaigns: Array<{ id: number; sfa: string | null; campaign: string; client: string }> = [];
+      const totalBatches = Math.ceil(campaignRows.length / BATCH_SIZE);
+
+      for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
+        const start = batchIdx * BATCH_SIZE;
+        const end = Math.min(start + BATCH_SIZE, campaignRows.length);
+        const batch = campaignRows.slice(start, end);
+        
+        setImportProgress({ 
+          current: end, 
+          total: campaignRows.length, 
+          phase: `Importing campaigns (batch ${batchIdx + 1}/${totalBatches})...`, 
+          phaseNum: 2, 
+          totalPhases: 4 
+        });
+        setImportStatus(`Phase 2/4: Importing campaigns ${start + 1}-${end} of ${campaignRows.length}...`);
+
+        const { data: insertedCampaigns, error: batchError } = await supabase
+          .from('spotify_campaigns')
+          .insert(batch)
+          .select('id, sfa, campaign, client');
+
+        if (batchError) {
+          errors.push(`Batch ${batchIdx + 1} failed: ${batchError.message}`);
+          console.error(`Batch ${batchIdx + 1} error:`, batchError);
+        } else if (insertedCampaigns) {
+          spotifyCreatedCount += insertedCampaigns.length;
+          importedSpotifyCampaigns.push(...insertedCampaigns);
+        }
+
+        // Small delay to prevent rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // PHASE 3: Batch create campaign_groups and link spotify_campaigns
+      setImportProgress({ current: 0, total: 1, phase: 'Creating campaign groups...', phaseNum: 3, totalPhases: 4 });
+      setImportStatus('Phase 3/4: Creating campaign groups...');
       
       // Group by campaign name + client
       const campaignGroupsMap = new Map<string, typeof importedSpotifyCampaigns>();
@@ -746,12 +786,16 @@ export default function CampaignImportModal({
         campaignGroupsMap.get(groupKey)!.push(sc);
       }
 
-      let groupsCreatedCount = 0;
-      for (const [groupKey, campaigns] of campaignGroupsMap) {
+      // Prepare group rows
+      const groupRows: any[] = [];
+      const groupKeyToIndex = new Map<string, number>();
+      
+      let groupIndex = 0;
+      for (const [groupKey] of campaignGroupsMap) {
         const [campaignName, clientName] = groupKey.split('|');
         const clientId = clientMap[clientName] || null;
 
-        // Calculate totals from the group
+        // Calculate totals
         let totalGoal = 0;
         for (const row of csvData!.rows) {
           if (row[columnMappings.campaign] === campaignName && row[columnMappings.client] === clientName) {
@@ -759,91 +803,85 @@ export default function CampaignImportModal({
           }
         }
 
-        // Create campaign_group
-        const { data: newGroup, error: groupError } = await supabase
-          .from('campaign_groups')
-          .insert({
-            name: campaignName,
-            artist_name: clientName,
-            client_id: clientId,
-            total_goal: totalGoal,
-            status: 'Active',
-            start_date: csvData!.rows.find(r => r[columnMappings.campaign] === campaignName)?.[columnMappings.start_date] || new Date().toISOString().split('T')[0],
-          })
-          .select('id')
-          .single();
+        const startDate = csvData!.rows.find(r => r[columnMappings.campaign] === campaignName)?.[columnMappings.start_date] || new Date().toISOString().split('T')[0];
 
-        if (groupError) {
-          console.error('Error creating campaign_group:', groupError);
-        } else if (newGroup) {
-          groupsCreatedCount++;
-
-          // Link spotify_campaigns to this group
-          const campaignIds = campaigns.map(c => c.id);
-          await supabase
-            .from('spotify_campaigns')
-            .update({ campaign_group_id: newGroup.id })
-            .in('id', campaignIds);
-        }
+        groupRows.push({
+          name: campaignName,
+          artist_name: clientName,
+          client_id: clientId,
+          total_goal: totalGoal,
+          status: 'Active',
+          start_date: startDate,
+        });
+        
+        groupKeyToIndex.set(groupKey, groupIndex);
+        groupIndex++;
       }
 
-      // STEP 4: Also import to campaigns table for frontend wizard compatibility
-      setImportStatus('Syncing to campaigns table...');
-      let campaignsCreatedCount = 0;
-
-      for (let i = 0; i < csvData!.rows.length; i++) {
-        const row = csvData!.rows[i];
-        setImportProgress({ current: totalRows + i + 1, total: totalRows * 2 });
-
-        const campaignName = row[columnMappings.campaign] || '';
-        const clientName = row[columnMappings.client] || '';
-
-        if (!campaignName || !clientName) continue;
-
-        const goal = parseInt(String(row[columnMappings.goal] || '0').replace(/[,\s$]/g, '')) || 0;
-        const remaining = parseInt(String(row[columnMappings.remaining] || goal).replace(/[,\s$]/g, '')) || goal;
-        const budget = parseInt(String(row[columnMappings.sale_price] || '0').replace(/[,\s$]/g, '')) || 0;
-
-        // Insert into campaigns table
-        const { error: campaignsError } = await supabase
-          .from('campaigns')
-          .insert({
-            name: campaignName,
-            client: clientName,
-            stream_goal: goal,
-            budget: budget,
-            track_url: row[columnMappings.url] || '',
-            start_date: row[columnMappings.start_date] || new Date().toISOString().split('T')[0],
-            status: (row[columnMappings.status] || 'active').toLowerCase(),
-            remaining_streams: remaining,
-            daily_streams: parseInt(String(row[columnMappings.daily] || '0').replace(/[,\s$]/g, '')) || 0,
-            weekly_streams: parseInt(String(row[columnMappings.weekly] || '0').replace(/[,\s$]/g, '')) || 0,
-            source: APP_CAMPAIGN_SOURCE,
-            campaign_type: APP_CAMPAIGN_TYPE,
-            duration_days: 90,
-            vendor_allocations: {},
-            totals: { projected_streams: 0 },
-            music_genres: [],
-            content_types: [],
-            territory_preferences: [],
-            post_types: [],
-            sub_genres: [],
-            selected_playlists: [],
+      // Batch insert campaign groups
+      let groupsCreatedCount = 0;
+      if (groupRows.length > 0) {
+        setImportStatus(`Phase 3/4: Creating ${groupRows.length} campaign groups...`);
+        
+        const groupBatches = Math.ceil(groupRows.length / BATCH_SIZE);
+        const insertedGroups: Array<{ id: string; name: string; artist_name: string }> = [];
+        
+        for (let batchIdx = 0; batchIdx < groupBatches; batchIdx++) {
+          const start = batchIdx * BATCH_SIZE;
+          const end = Math.min(start + BATCH_SIZE, groupRows.length);
+          const batch = groupRows.slice(start, end);
+          
+          setImportProgress({ 
+            current: end, 
+            total: groupRows.length, 
+            phase: `Creating groups (batch ${batchIdx + 1}/${groupBatches})...`, 
+            phaseNum: 3, 
+            totalPhases: 4 
           });
 
-        if (!campaignsError) {
-          campaignsCreatedCount++;
+          const { data: newGroups, error: groupError } = await supabase
+            .from('campaign_groups')
+            .insert(batch)
+            .select('id, name, artist_name');
+
+          if (groupError) {
+            errors.push(`Group batch ${batchIdx + 1} failed: ${groupError.message}`);
+          } else if (newGroups) {
+            groupsCreatedCount += newGroups.length;
+            insertedGroups.push(...newGroups);
+          }
+        }
+
+        // Link spotify_campaigns to their groups in batches
+        setImportStatus('Phase 3/4: Linking campaigns to groups...');
+        
+        for (const group of insertedGroups) {
+          const groupKey = `${group.name}|${group.artist_name}`;
+          const campaigns = campaignGroupsMap.get(groupKey);
+          
+          if (campaigns && campaigns.length > 0) {
+            const campaignIds = campaigns.map(c => c.id);
+            
+            // Batch update in chunks
+            for (let i = 0; i < campaignIds.length; i += BATCH_SIZE) {
+              const batchIds = campaignIds.slice(i, i + BATCH_SIZE);
+              await supabase
+                .from('spotify_campaigns')
+                .update({ campaign_group_id: group.id })
+                .in('id', batchIds);
+            }
+          }
         }
       }
 
-      // STEP 5: Re-link campaign_playlists using SFA
+      // PHASE 4: Re-link campaign_playlists using SFA (if replace mode)
       if (replaceMode && Object.keys(sfaMappings).length > 0) {
-        setImportStatus('Re-linking campaign playlists...');
+        setImportProgress({ current: 0, total: importedSpotifyCampaigns.length, phase: 'Re-linking playlists...', phaseNum: 4, totalPhases: 4 });
+        setImportStatus('Phase 4/4: Re-linking campaign playlists...');
         
-        // For each imported campaign with an SFA, update matching campaign_playlists
+        let relinkCount = 0;
         for (const sc of importedSpotifyCampaigns) {
           if (sc.sfa) {
-            // Find campaign_playlists that had this SFA (stored in playlist_curator)
             const { data: orphanedPlaylists } = await supabase
               .from('campaign_playlists')
               .select('id')
@@ -852,31 +890,39 @@ export default function CampaignImportModal({
             if (orphanedPlaylists && orphanedPlaylists.length > 0) {
               const ids = orphanedPlaylists.map(p => p.id);
               
-              // Restore the campaign_id link and clean up curator backup
-              for (const playlist of orphanedPlaylists) {
-                const originalCurator = await supabase
-                  .from('campaign_playlists')
-                  .select('playlist_curator')
-                  .eq('id', playlist.id)
-                  .single();
-
-                // Update with new campaign_id and restore original curator if possible
-                await supabase
-                  .from('campaign_playlists')
-                  .update({
-                    campaign_id: sc.id,
-                    playlist_curator: null // Will be set by scraper
-                  })
-                  .eq('id', playlist.id);
-              }
+              await supabase
+                .from('campaign_playlists')
+                .update({
+                  campaign_id: sc.id,
+                  playlist_curator: null
+                })
+                .in('id', ids);
+              
+              relinkCount += ids.length;
             }
           }
+          
+          setImportProgress({ 
+            current: importedSpotifyCampaigns.indexOf(sc) + 1, 
+            total: importedSpotifyCampaigns.length, 
+            phase: 'Re-linking playlists...', 
+            phaseNum: 4, 
+            totalPhases: 4 
+          });
+        }
+        
+        if (relinkCount > 0) {
+          setImportStatus(`Phase 4/4: Re-linked ${relinkCount} playlist assignments.`);
         }
       }
 
-      // Success
-      const summary = `Import complete! spotify_campaigns: ${spotifyCreatedCount}, campaign_groups: ${groupsCreatedCount}, campaigns: ${campaignsCreatedCount}${replaceMode ? ' (replaced existing)' : ''}`;
+      // Update error state
+      setImportErrors(errors);
+
+      // Success summary
+      const summary = `Import complete! ${spotifyCreatedCount} campaigns, ${groupsCreatedCount} groups created.${errors.length > 0 ? ` (${errors.length} warnings)` : ''}${replaceMode ? ' (replaced existing)' : ''}`;
       setImportStatus(summary);
+      setImportProgress({ current: 1, total: 1, phase: 'Complete!', phaseNum: 4, totalPhases: 4 });
       
       // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] });
@@ -897,6 +943,7 @@ export default function CampaignImportModal({
 
     } catch (error) {
       console.error('Import error:', error);
+      setImportErrors([...errors, error instanceof Error ? error.message : 'Unknown error']);
       toast({
         title: "Import Failed",
         description: error instanceof Error ? error.message : "An error occurred during import",
@@ -910,8 +957,9 @@ export default function CampaignImportModal({
     setCsvData(null);
     setColumnMappings({});
     setPlaylistMatches([]);
-    setImportProgress({ current: 0, total: 0 });
+    setImportProgress({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 4 });
     setImportStatus('');
+    setImportErrors([]);
     setReplaceMode(false);
     setShowDeleteConfirm(false);
   };
@@ -1252,30 +1300,76 @@ export default function CampaignImportModal({
   );
 
   const renderImportStep = () => (
-    <div className="space-y-6 text-center">
-      <div className="space-y-4">
-        <Loader2 className="w-12 h-12 mx-auto animate-spin" />
+    <div className="space-y-6">
+      <div className="space-y-4 text-center">
+        {importProgress.phase !== 'Complete!' ? (
+          <Loader2 className="w-12 h-12 mx-auto animate-spin text-primary" />
+        ) : (
+          <Check className="w-12 h-12 mx-auto text-green-500" />
+        )}
         <div>
-          <h3 className="font-medium">Importing Campaigns</h3>
+          <h3 className="font-medium text-lg">
+            {importProgress.phase || 'Importing Campaigns'}
+          </h3>
           <p className="text-sm text-muted-foreground mt-1">{importStatus}</p>
         </div>
         
-        {importProgress.total > 0 && (
-          <div className="space-y-2">
-            <div className="text-sm">
-              {importProgress.current} / {importProgress.total}
-            </div>
-            <div className="w-full bg-muted rounded-full h-2">
+        {/* Phase indicator */}
+        {importProgress.totalPhases > 0 && (
+          <div className="flex justify-center gap-2">
+            {[1, 2, 3, 4].map(phase => (
               <div 
-                className="bg-primary h-2 rounded-full transition-all"
+                key={phase}
+                className={`w-8 h-2 rounded-full transition-all ${
+                  phase < importProgress.phaseNum ? 'bg-green-500' :
+                  phase === importProgress.phaseNum ? 'bg-primary' :
+                  'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Progress within phase */}
+        {importProgress.total > 0 && (
+          <div className="space-y-2 max-w-md mx-auto">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Phase {importProgress.phaseNum}/{importProgress.totalPhases}</span>
+              <span>{importProgress.current} / {importProgress.total}</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-3">
+              <div 
+                className="bg-primary h-3 rounded-full transition-all duration-300"
                 style={{ 
-                  width: `${(importProgress.current / importProgress.total) * 100}%` 
+                  width: `${Math.min(100, (importProgress.current / importProgress.total) * 100)}%` 
                 }}
               />
             </div>
           </div>
         )}
       </div>
+
+      {/* Error display */}
+      {importErrors.length > 0 && (
+        <Card className="border-amber-500/50 bg-amber-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2 text-amber-600">
+              <AlertCircle className="w-4 h-4" />
+              Warnings ({importErrors.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="max-h-32 overflow-y-auto">
+            <ul className="text-xs space-y-1 text-amber-700">
+              {importErrors.slice(0, 10).map((error, idx) => (
+                <li key={idx} className="truncate">• {error}</li>
+              ))}
+              {importErrors.length > 10 && (
+                <li className="text-muted-foreground">...and {importErrors.length - 10} more</li>
+              )}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 
