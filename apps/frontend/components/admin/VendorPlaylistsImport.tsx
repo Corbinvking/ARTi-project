@@ -11,7 +11,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/auth";
-import { Upload, Download, Check, AlertCircle, Loader2, Music, Users, RefreshCw, Trash2 } from "lucide-react";
+import { Upload, Download, Check, AlertCircle, Loader2, Music, Users, RefreshCw, Trash2, ArrowRightLeft } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import Papa from "papaparse";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -82,9 +83,12 @@ function parsePlaylistsColumn(playlistsText: string, vendorName: string): Parsed
 export default function VendorPlaylistsImport() {
   const [isUploading, setIsUploading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [createNewPlaylists, setCreateNewPlaylists] = useState(false);
   const [vendorMatches, setVendorMatches] = useState<VendorMatch[]>([]);
   const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
   const [importStatus, setImportStatus] = useState('');
+  const [syncResult, setSyncResult] = useState<{ updated: number; created: number; unmatched: number } | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -329,6 +333,117 @@ export default function VendorPlaylistsImport() {
     }
   };
 
+  // Sync vendor_playlists cache to main playlists table
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setSyncResult(null);
+    setImportStatus('Starting sync...');
+    
+    try {
+      // Step 1: Fetch all vendor_playlists
+      const { data: vendorPlaylists, error: vpError } = await supabase
+        .from('vendor_playlists')
+        .select('*');
+      
+      if (vpError) throw vpError;
+      if (!vendorPlaylists || vendorPlaylists.length === 0) {
+        toast({
+          title: "Nothing to Sync",
+          description: "No vendor playlists in cache to sync.",
+          variant: "destructive",
+        });
+        setIsSyncing(false);
+        return;
+      }
+
+      setImportStatus(`Processing ${vendorPlaylists.length} cached playlists...`);
+      setImportProgress({ current: 0, total: vendorPlaylists.length });
+
+      let updatedCount = 0;
+      let createdCount = 0;
+      let unmatchedCount = 0;
+
+      // Step 2: Process each vendor_playlist
+      for (let i = 0; i < vendorPlaylists.length; i++) {
+        const vp = vendorPlaylists[i];
+        const normalizedName = vp.playlist_name_normalized;
+        
+        setImportProgress({ current: i + 1, total: vendorPlaylists.length });
+        
+        // Try to find matching playlist in main playlists table by normalized name
+        const { data: matchingPlaylists, error: matchError } = await supabase
+          .from('playlists')
+          .select('id, name')
+          .ilike('name', vp.playlist_name);
+        
+        if (matchError) {
+          console.error('Error matching playlist:', matchError);
+          continue;
+        }
+
+        if (matchingPlaylists && matchingPlaylists.length > 0) {
+          // Update the first matching playlist with genres and vendor_id
+          const { error: updateError } = await supabase
+            .from('playlists')
+            .update({
+              genres: vp.genres,
+              vendor_id: vp.vendor_id,
+            })
+            .eq('id', matchingPlaylists[0].id);
+          
+          if (updateError) {
+            console.error('Error updating playlist:', updateError);
+          } else {
+            updatedCount++;
+          }
+        } else if (createNewPlaylists) {
+          // Create new playlist if toggle is enabled
+          const { error: insertError } = await supabase
+            .from('playlists')
+            .insert({
+              name: vp.playlist_name,
+              genres: vp.genres,
+              vendor_id: vp.vendor_id,
+              spotify_url: vp.spotify_url,
+              spotify_id: vp.spotify_id,
+            });
+          
+          if (insertError) {
+            console.error('Error creating playlist:', insertError);
+          } else {
+            createdCount++;
+          }
+        } else {
+          unmatchedCount++;
+        }
+      }
+
+      setSyncResult({ updated: updatedCount, created: createdCount, unmatched: unmatchedCount });
+      setImportStatus(`Sync complete! Updated: ${updatedCount}, Created: ${createdCount}, Unmatched: ${unmatchedCount}`);
+
+      // Invalidate playlist queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['all-playlists'] });
+
+      toast({
+        title: "Sync Complete",
+        description: `Updated ${updatedCount} playlists${createdCount > 0 ? `, created ${createdCount} new` : ''}${unmatchedCount > 0 ? `, ${unmatchedCount} unmatched` : ''}`,
+      });
+
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast({
+        title: "Sync Failed",
+        description: error instanceof Error ? error.message : "An error occurred during sync",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+      setImportProgress({ current: 0, total: 0 });
+    }
+  };
+
   const totalParsedPlaylists = vendorMatches.reduce((sum, m) => sum + m.playlists.length, 0);
   const matchedVendorCount = vendorMatches.filter(m => m.matchedVendor).length;
   const unmatchedVendorCount = vendorMatches.filter(m => !m.matchedVendor && m.playlists.length > 0).length;
@@ -354,7 +469,7 @@ export default function VendorPlaylistsImport() {
             <div>
               <div className="font-medium">Cached Playlists</div>
               <div className="text-sm text-muted-foreground">
-                {existingCount !== undefined ? `${existingCount} playlists in database` : 'Loading...'}
+                {existingCount !== undefined ? `${existingCount} playlists in cache` : 'Loading...'}
               </div>
             </div>
           </div>
@@ -371,6 +486,77 @@ export default function VendorPlaylistsImport() {
             )}
           </div>
         </div>
+
+        {/* Sync to Playlists Table */}
+        {existingCount && existingCount > 0 && (
+          <div className="space-y-4 p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium flex items-center gap-2">
+                  <ArrowRightLeft className="h-4 w-4" />
+                  Sync to Main Playlists Table
+                </h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Update the main playlists table with genres and vendor assignments from the cache.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="create-new"
+                  checked={createNewPlaylists}
+                  onCheckedChange={setCreateNewPlaylists}
+                />
+                <Label htmlFor="create-new" className="text-sm cursor-pointer">
+                  Create new playlists for unmatched entries
+                </Label>
+              </div>
+              <Button 
+                onClick={handleSync} 
+                disabled={isSyncing || existingCount === 0}
+                variant="default"
+              >
+                {isSyncing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Sync {existingCount} Playlists
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Sync Progress */}
+            {isSyncing && importProgress.total > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>{importStatus}</span>
+                  <span>{importProgress.current} / {importProgress.total}</span>
+                </div>
+                <Progress value={(importProgress.current / importProgress.total) * 100} />
+              </div>
+            )}
+
+            {/* Sync Result */}
+            {syncResult && !isSyncing && (
+              <Alert>
+                <Check className="h-4 w-4" />
+                <AlertTitle>Sync Complete</AlertTitle>
+                <AlertDescription className="flex items-center gap-3 mt-2">
+                  <Badge variant="default">{syncResult.updated} updated</Badge>
+                  {syncResult.created > 0 && <Badge variant="secondary">{syncResult.created} created</Badge>}
+                  {syncResult.unmatched > 0 && <Badge variant="outline">{syncResult.unmatched} unmatched</Badge>}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
 
         {/* Upload Section */}
         <div className="space-y-4">
