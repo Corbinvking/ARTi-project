@@ -229,12 +229,10 @@ export default function VendorPlaylistsImport() {
         setImportProgress({ current: i, total: allPlaylists.length });
         setImportStatus(`Importing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(allPlaylists.length / BATCH_SIZE)}...`);
 
+        // Use insert instead of upsert - duplicates will fail silently due to unique constraint
         const { error } = await supabase
           .from('vendor_playlists')
-          .upsert(batch, { 
-            onConflict: 'vendor_id,playlist_name_normalized',
-            ignoreDuplicates: false 
-          });
+          .insert(batch);
 
         if (error) {
           console.error('Batch import error:', error);
