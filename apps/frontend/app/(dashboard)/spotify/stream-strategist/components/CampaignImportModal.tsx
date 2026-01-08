@@ -896,24 +896,74 @@ export default function CampaignImportModal({
         });
       }
 
-      // Batch insert in chunks
+      // DEDUPLICATION: Merge duplicate campaigns by name
+      // If CSV has multiple rows with same campaign name, merge playlists and keep first row's other data
+      const deduplicatedCampaigns = new Map<string, any>();
+      for (const row of campaignRows) {
+        const key = row.campaign.toLowerCase().trim();
+        if (deduplicatedCampaigns.has(key)) {
+          // Merge playlists and playlist_links from duplicate rows
+          const existing = deduplicatedCampaigns.get(key);
+          
+          // Merge playlist names (deduplicate)
+          const existingPlaylists = new Set((existing.playlists || '').split(',').map((s: string) => s.trim()).filter(Boolean));
+          const newPlaylists = (row.playlists || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+          newPlaylists.forEach(p => existingPlaylists.add(p));
+          existing.playlists = [...existingPlaylists].join(', ');
+          
+          // Merge playlist links (deduplicate)
+          const existingLinks = new Set((existing.playlist_links || '').split(',').map((s: string) => s.trim()).filter(Boolean));
+          const newLinks = (row.playlist_links || '').split(',').map((s: string) => s.trim()).filter(Boolean);
+          newLinks.forEach(l => existingLinks.add(l));
+          existing.playlist_links = [...existingLinks].join(', ');
+          
+          // Sum up goals and remaining if they differ
+          const existingGoal = parseInt(existing.goal) || 0;
+          const newGoal = parseInt(row.goal) || 0;
+          if (newGoal > 0 && newGoal !== existingGoal) {
+            existing.goal = String(existingGoal + newGoal);
+          }
+          
+          // Keep notes from both if different
+          if (row.notes && row.notes !== existing.notes) {
+            existing.notes = existing.notes ? `${existing.notes}; ${row.notes}` : row.notes;
+          }
+          
+          // Use vendor from first non-empty row
+          if (!existing.vendor && row.vendor) {
+            existing.vendor = row.vendor;
+            existing.vendor_id = row.vendor_id;
+          }
+        } else {
+          deduplicatedCampaigns.set(key, { ...row });
+        }
+      }
+      
+      const finalCampaignRows = [...deduplicatedCampaigns.values()];
+      const duplicatesRemoved = campaignRows.length - finalCampaignRows.length;
+      
+      if (duplicatesRemoved > 0) {
+        setImportStatus(`Phase 2/5: Merged ${duplicatesRemoved} duplicate campaigns. Preparing ${finalCampaignRows.length} unique campaigns...`);
+      }
+
+      // Batch insert in chunks (use deduplicated rows)
       let spotifyCreatedCount = 0;
       const importedSpotifyCampaigns: Array<{ id: number; sfa: string | null; campaign: string; client: string }> = [];
-      const totalBatches = Math.ceil(campaignRows.length / BATCH_SIZE);
+      const totalBatches = Math.ceil(finalCampaignRows.length / BATCH_SIZE);
 
       for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
         const start = batchIdx * BATCH_SIZE;
-        const end = Math.min(start + BATCH_SIZE, campaignRows.length);
-        const batch = campaignRows.slice(start, end);
+        const end = Math.min(start + BATCH_SIZE, finalCampaignRows.length);
+        const batch = finalCampaignRows.slice(start, end);
         
         setImportProgress({ 
           current: end, 
-          total: campaignRows.length, 
+          total: finalCampaignRows.length, 
           phase: `Importing campaigns (batch ${batchIdx + 1}/${totalBatches})...`, 
           phaseNum: 2, 
           totalPhases: 5 
         });
-        setImportStatus(`Phase 2/5: Importing campaigns ${start + 1}-${end} of ${campaignRows.length}...`);
+        setImportStatus(`Phase 2/5: Importing campaigns ${start + 1}-${end} of ${finalCampaignRows.length}...`);
 
         const { data: insertedCampaigns, error: batchError } = await supabase
           .from('spotify_campaigns')
