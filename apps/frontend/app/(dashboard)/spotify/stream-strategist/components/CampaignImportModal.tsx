@@ -94,7 +94,7 @@ export default function CampaignImportModal({
   const [csvData, setCsvData] = useState<ParsedCSVData | null>(null);
   const [columnMappings, setColumnMappings] = useState<Record<string, string>>({});
   const [playlistMatches, setPlaylistMatches] = useState<PlaylistMatch[]>([]);
-  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 5 });
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 6 });
   const [importStatus, setImportStatus] = useState<string>('');
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [defaultVendor, setDefaultVendor] = useState<string>('');
@@ -728,7 +728,7 @@ export default function CampaignImportModal({
 
       // PHASE 0: Delete existing campaigns if in replace mode
       if (replaceMode) {
-        setImportProgress({ current: 0, total: 1, phase: 'Deleting existing campaigns...', phaseNum: 0, totalPhases: 5 });
+        setImportProgress({ current: 0, total: 1, phase: 'Deleting existing campaigns...', phaseNum: 0, totalPhases: 6 });
         setImportStatus('Preparing to delete existing campaigns...');
         const result = await deleteAllCampaigns();
         sfaMappings = result.sfaMappings;
@@ -736,8 +736,8 @@ export default function CampaignImportModal({
       }
 
       // PHASE 1: Batch create/update clients and vendors
-      setImportProgress({ current: 0, total: 1, phase: 'Creating clients & vendors...', phaseNum: 1, totalPhases: 5 });
-      setImportStatus('Phase 1/5: Creating clients and vendors...');
+      setImportProgress({ current: 0, total: 1, phase: 'Creating clients & vendors...', phaseNum: 1, totalPhases: 6 });
+      setImportStatus('Phase 1/6: Creating clients and vendors...');
       
       const clientMap: Record<string, string> = {};
       const vendorMap: Record<string, string> = {};
@@ -747,7 +747,7 @@ export default function CampaignImportModal({
       const uniqueVendors = [...new Set(csvData!.rows.map(row => row[columnMappings.vendor]).filter(Boolean))] as string[];
       
       // Batch fetch existing clients
-      setImportStatus(`Phase 1/5: Fetching ${uniqueClients.length} clients...`);
+      setImportStatus(`Phase 1/6: Fetching ${uniqueClients.length} clients...`);
       const { data: existingClients } = await supabase
         .from('clients')
         .select('id, name');
@@ -761,7 +761,7 @@ export default function CampaignImportModal({
       // Create missing clients in batch
       const newClientNames = uniqueClients.filter(name => !clientMap[name]);
       if (newClientNames.length > 0) {
-        setImportStatus(`Phase 1/5: Creating ${newClientNames.length} new clients...`);
+        setImportStatus(`Phase 1/6: Creating ${newClientNames.length} new clients...`);
         const { data: newClients, error: clientError } = await supabase
           .from('clients')
           .insert(newClientNames.map(name => ({ name })))
@@ -777,7 +777,7 @@ export default function CampaignImportModal({
       }
 
       // Batch fetch existing vendors
-      setImportStatus(`Phase 1/5: Fetching ${uniqueVendors.length} vendors...`);
+      setImportStatus(`Phase 1/6: Fetching ${uniqueVendors.length} vendors...`);
       const { data: existingVendors } = await supabase
         .from('vendors')
         .select('id, name');
@@ -791,7 +791,7 @@ export default function CampaignImportModal({
       // Create missing vendors in batch
       const newVendorNames = uniqueVendors.filter(name => !vendorMap[name]);
       if (newVendorNames.length > 0) {
-        setImportStatus(`Phase 1/5: Creating ${newVendorNames.length} new vendors...`);
+        setImportStatus(`Phase 1/6: Creating ${newVendorNames.length} new vendors...`);
         const { data: newVendors, error: vendorError } = await supabase
           .from('vendors')
           .insert(newVendorNames.map(name => ({ name, max_daily_streams: 10000 })))
@@ -807,7 +807,7 @@ export default function CampaignImportModal({
       }
 
       // PHASE 1.5: Extract and resolve Spotify playlist URLs to names
-      setImportProgress({ current: 0, total: 1, phase: 'Resolving playlist names from Spotify...', phaseNum: 1, totalPhases: 5 });
+      setImportProgress({ current: 0, total: 1, phase: 'Resolving playlist names from Spotify...', phaseNum: 1, totalPhases: 6 });
       setImportStatus('Phase 1.5/5: Extracting Spotify playlist URLs...');
       
       // Collect all unique playlist URLs from the CSV
@@ -830,8 +830,8 @@ export default function CampaignImportModal({
       }
 
       // PHASE 2: Batch insert spotify_campaigns
-      setImportProgress({ current: 0, total: totalRows, phase: 'Importing campaigns...', phaseNum: 2, totalPhases: 5 });
-      setImportStatus('Phase 2/5: Preparing campaign data...');
+      setImportProgress({ current: 0, total: totalRows, phase: 'Importing campaigns...', phaseNum: 2, totalPhases: 6 });
+      setImportStatus('Phase 2/6: Preparing campaign data...');
       
       // Prepare all campaign rows
       const campaignRows: any[] = [];
@@ -908,13 +908,13 @@ export default function CampaignImportModal({
           // Merge playlist names (deduplicate)
           const existingPlaylists = new Set((existing.playlists || '').split(',').map((s: string) => s.trim()).filter(Boolean));
           const newPlaylists = (row.playlists || '').split(',').map((s: string) => s.trim()).filter(Boolean);
-          newPlaylists.forEach(p => existingPlaylists.add(p));
+          newPlaylists.forEach((p: string) => existingPlaylists.add(p));
           existing.playlists = [...existingPlaylists].join(', ');
           
           // Merge playlist links (deduplicate)
           const existingLinks = new Set((existing.playlist_links || '').split(',').map((s: string) => s.trim()).filter(Boolean));
           const newLinks = (row.playlist_links || '').split(',').map((s: string) => s.trim()).filter(Boolean);
-          newLinks.forEach(l => existingLinks.add(l));
+          newLinks.forEach((l: string) => existingLinks.add(l));
           existing.playlist_links = [...existingLinks].join(', ');
           
           // Sum up goals and remaining if they differ
@@ -943,7 +943,7 @@ export default function CampaignImportModal({
       const duplicatesRemoved = campaignRows.length - finalCampaignRows.length;
       
       if (duplicatesRemoved > 0) {
-        setImportStatus(`Phase 2/5: Merged ${duplicatesRemoved} duplicate campaigns. Preparing ${finalCampaignRows.length} unique campaigns...`);
+        setImportStatus(`Phase 2/6: Merged ${duplicatesRemoved} duplicate campaigns. Preparing ${finalCampaignRows.length} unique campaigns...`);
       }
 
       // Batch insert in chunks (use deduplicated rows)
@@ -961,9 +961,9 @@ export default function CampaignImportModal({
           total: finalCampaignRows.length, 
           phase: `Importing campaigns (batch ${batchIdx + 1}/${totalBatches})...`, 
           phaseNum: 2, 
-          totalPhases: 5 
+          totalPhases: 6 
         });
-        setImportStatus(`Phase 2/5: Importing campaigns ${start + 1}-${end} of ${finalCampaignRows.length}...`);
+        setImportStatus(`Phase 2/6: Importing campaigns ${start + 1}-${end} of ${finalCampaignRows.length}...`);
 
         const { data: insertedCampaigns, error: batchError } = await supabase
           .from('spotify_campaigns')
@@ -983,8 +983,8 @@ export default function CampaignImportModal({
       }
 
       // PHASE 3: Batch create campaign_groups and link spotify_campaigns
-      setImportProgress({ current: 0, total: 1, phase: 'Creating campaign groups...', phaseNum: 3, totalPhases: 5 });
-      setImportStatus('Phase 3/5: Creating campaign groups...');
+      setImportProgress({ current: 0, total: 1, phase: 'Creating campaign groups...', phaseNum: 3, totalPhases: 6 });
+      setImportStatus('Phase 3/6: Creating campaign groups...');
       
       // Group by campaign name + client
       const campaignGroupsMap = new Map<string, typeof importedSpotifyCampaigns>();
@@ -1031,7 +1031,7 @@ export default function CampaignImportModal({
       // Batch insert campaign groups
       let groupsCreatedCount = 0;
       if (groupRows.length > 0) {
-        setImportStatus(`Phase 3/5: Creating ${groupRows.length} campaign groups...`);
+        setImportStatus(`Phase 3/6: Creating ${groupRows.length} campaign groups...`);
         
         const groupBatches = Math.ceil(groupRows.length / BATCH_SIZE);
         const insertedGroups: Array<{ id: string; name: string; artist_name: string }> = [];
@@ -1046,7 +1046,7 @@ export default function CampaignImportModal({
             total: groupRows.length, 
             phase: `Creating groups (batch ${batchIdx + 1}/${groupBatches})...`, 
             phaseNum: 3, 
-            totalPhases: 5 
+            totalPhases: 6 
           });
 
           const { data: newGroups, error: groupError } = await supabase
@@ -1063,7 +1063,7 @@ export default function CampaignImportModal({
         }
 
         // Link spotify_campaigns to their groups - build update map first
-        setImportStatus('Phase 3/5: Linking campaigns to groups...');
+        setImportStatus('Phase 3/6: Linking campaigns to groups...');
         
         // Build campaign_id -> group_id mapping
         const campaignToGroupMap: Record<number, string> = {};
@@ -1100,7 +1100,7 @@ export default function CampaignImportModal({
               total: groupIds.length, 
               phase: `Linking campaigns (${i}/${groupIds.length})...`, 
               phaseNum: 3, 
-              totalPhases: 5 
+              totalPhases: 6 
             });
           }
           
@@ -1117,13 +1117,13 @@ export default function CampaignImportModal({
           }
         }
         
-        setImportStatus(`Phase 3/5: Linked ${linkedCount} campaigns to ${groupsCreatedCount} groups.`);
+        setImportStatus(`Phase 3/6: Linked ${linkedCount} campaigns to ${groupsCreatedCount} groups.`);
       }
 
       // PHASE 4: Re-link campaign_playlists using SFA (if replace mode)
       if (replaceMode && Object.keys(sfaMappings).length > 0) {
-        setImportProgress({ current: 0, total: importedSpotifyCampaigns.length, phase: 'Re-linking playlists...', phaseNum: 4, totalPhases: 5 });
-        setImportStatus('Phase 4/5: Re-linking campaign playlists...');
+        setImportProgress({ current: 0, total: importedSpotifyCampaigns.length, phase: 'Re-linking playlists...', phaseNum: 4, totalPhases: 6 });
+        setImportStatus('Phase 4/6: Re-linking campaign playlists...');
         
         let relinkCount = 0;
         for (const sc of importedSpotifyCampaigns) {
@@ -1153,22 +1153,56 @@ export default function CampaignImportModal({
             total: importedSpotifyCampaigns.length, 
             phase: 'Re-linking playlists...', 
             phaseNum: 4, 
-            totalPhases: 5 
+            totalPhases: 6 
           });
         }
         
         if (relinkCount > 0) {
-          setImportStatus(`Phase 4/5: Re-linked ${relinkCount} playlist assignments.`);
+          setImportStatus(`Phase 4/6: Re-linked ${relinkCount} playlist assignments.`);
         }
       }
 
       // Update error state
       setImportErrors(errors);
 
+      // PHASE 5: Cleanup orphaned clients (clients with no campaigns)
+      setImportProgress({ current: 0, total: 1, phase: 'Cleaning up orphaned clients...', phaseNum: 5, totalPhases: 6 });
+      setImportStatus('Phase 5/6: Cleaning up orphaned clients...');
+
+      // Find clients with no campaigns
+      const { data: allClients } = await supabase
+        .from('clients')
+        .select('id, name');
+
+      // Get all client_ids that have campaigns
+      const { data: clientsWithCampaigns } = await supabase
+        .from('spotify_campaigns')
+        .select('client_id')
+        .not('client_id', 'is', null);
+
+      const usedClientIds = new Set(clientsWithCampaigns?.map(c => c.client_id));
+      const orphanedClients = allClients?.filter(c => !usedClientIds.has(c.id)) || [];
+
+      let orphanedClientsRemoved = 0;
+      if (orphanedClients.length > 0) {
+        const { error: deleteClientsError } = await supabase
+          .from('clients')
+          .delete()
+          .in('id', orphanedClients.map(c => c.id));
+        
+        if (deleteClientsError) {
+          errors.push(`Failed to delete orphaned clients: ${deleteClientsError.message}`);
+        } else {
+          orphanedClientsRemoved = orphanedClients.length;
+        }
+      }
+
+      setImportProgress({ current: 1, total: 1, phase: 'Client cleanup complete!', phaseNum: 5, totalPhases: 6 });
+
       // Success summary
-      const summary = `Import complete! ${spotifyCreatedCount} campaigns, ${groupsCreatedCount} groups created.${errors.length > 0 ? ` (${errors.length} warnings)` : ''}${replaceMode ? ' (replaced existing)' : ''}`;
+      const summary = `Import complete! ${spotifyCreatedCount} campaigns, ${groupsCreatedCount} groups created.${orphanedClientsRemoved > 0 ? ` Removed ${orphanedClientsRemoved} orphaned clients.` : ''}${errors.length > 0 ? ` (${errors.length} warnings)` : ''}${replaceMode ? ' (replaced existing)' : ''}`;
       setImportStatus(summary);
-      setImportProgress({ current: 1, total: 1, phase: 'Complete!', phaseNum: 4, totalPhases: 5 });
+      setImportProgress({ current: 1, total: 1, phase: 'Complete!', phaseNum: 6, totalPhases: 6 });
       
       // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] });
@@ -1176,6 +1210,7 @@ export default function CampaignImportModal({
       queryClient.invalidateQueries({ queryKey: ['spotify-campaigns'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
       queryClient.invalidateQueries({ queryKey: ['existing-campaigns-count'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] }); // Refresh clients after orphan cleanup
       
       toast({
         title: "Import Successful",
@@ -1205,7 +1240,7 @@ export default function CampaignImportModal({
     setCsvData(null);
     setColumnMappings({});
     setPlaylistMatches([]);
-    setImportProgress({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 5 });
+    setImportProgress({ current: 0, total: 0, phase: '', phaseNum: 0, totalPhases: 6 });
     setImportStatus('');
     setImportErrors([]);
     setIsImporting(false);
