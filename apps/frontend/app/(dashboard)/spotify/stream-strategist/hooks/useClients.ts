@@ -72,6 +72,26 @@ export function useClient(clientId: string) {
 
       // Map campaigns to the expected format with metrics
       const campaignsWithMetrics = (campaigns || []).map((campaign: any) => {
+        // Parse the goal (could be "20K", "500K", "1,000K", etc.)
+        let goalNum = 0;
+        if (campaign.goal) {
+          const goalStr = String(campaign.goal).replace(/,/g, '').toUpperCase();
+          if (goalStr.includes('K')) {
+            goalNum = parseFloat(goalStr.replace('K', '')) * 1000;
+          } else if (goalStr.includes('M')) {
+            goalNum = parseFloat(goalStr.replace('M', '')) * 1000000;
+          } else {
+            goalNum = parseFloat(goalStr) || 0;
+          }
+        }
+        
+        // Parse sale_price (could be "$350.00", "$7,000.00", etc.)
+        let budgetNum = 0;
+        if (campaign.sale_price) {
+          const priceStr = String(campaign.sale_price).replace(/[$,]/g, '');
+          budgetNum = parseFloat(priceStr) || 0;
+        }
+        
         return {
           id: campaign.id,
           name: campaign.campaign,
@@ -82,7 +102,9 @@ export function useClient(clientId: string) {
           daily_streams: parseInt(campaign.daily) || 0,
           weekly_streams: parseInt(campaign.weekly) || 0,
           goal: campaign.goal,
+          total_goal: goalNum,
           sale_price: campaign.sale_price,
+          total_budget: budgetNum,
           vendor: campaign.vendor,
           playlists: campaign.playlists,
           url: campaign.url,
