@@ -121,9 +121,14 @@ export default function CampaignIntakePage() {
           const artistName = data.artists?.[0]?.name;
           const campaignName = artistName && trackName ? `${artistName} - ${trackName}` : trackName;
           
+          // Auto-generate SFA URL from track ID
+          const trackId = url.split('/track/')[1]?.split('?')[0];
+          const sfaUrl = trackId ? `https://artists.spotify.com/c/song/${trackId}` : '';
+          
           setFormData(prev => ({ 
             ...prev, 
-            campaign_name: campaignName || prev.campaign_name
+            campaign_name: campaignName || prev.campaign_name,
+            sfa_url: sfaUrl
           }));
           
           toast({
@@ -321,10 +326,10 @@ export default function CampaignIntakePage() {
     }));
   };
 
-  // Available territories
+  // Available territories (continents + US)
   const territories = [
-    'United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'France', 
-    'Spain', 'Italy', 'Netherlands', 'Sweden', 'Norway', 'Global'
+    'United States', 'North America', 'South America', 'Europe', 'Asia', 
+    'Africa', 'Oceania', 'Global'
   ];
 
   const renderTrackUrlField = () => (
@@ -620,7 +625,7 @@ export default function CampaignIntakePage() {
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Select preferred territories for playlist placement. Leave empty for global placement.
+                  Select preferred regions for playlist placement. Leave empty for global placement.
                 </p>
               </div>
 
@@ -631,6 +636,7 @@ export default function CampaignIntakePage() {
                   onChange={(assignments) => setFormData({...formData, vendor_assignments: assignments})}
                   totalStreamGoal={parseInt(formData.stream_goal) || 0}
                   totalBudget={parseFloat(formData.price_paid) || 0}
+                  campaignGenres={formData.music_genres}
                 />
               </div>
 

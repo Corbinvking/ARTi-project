@@ -219,7 +219,7 @@ services:
       - DOCKER_ENV=true
       - NODE_ENV=production
     env_file:
-      - ./apps/api/.env
+      - ./apps/api/production.env
     volumes:
       # Mount host's scraper directory for trigger file communication
       - /root/arti-marketing-ops/spotify_scraper:/app/scraper_data

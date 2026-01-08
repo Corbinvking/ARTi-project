@@ -40,7 +40,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle, Loader2, Sparkles, Zap, TrendingUp, Target } from 'lucide-react';
+import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle, Loader2, Sparkles, Zap, TrendingUp, Target, Leaf, Globe } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -57,6 +57,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useVendorPaymentData } from '../hooks/useVendorPayments';
 import { EditPlaylistVendorDialog } from './EditPlaylistVendorDialog';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { isAlgorithmicPlaylist } from '../lib/constants';
+
+// Helper to parse goal strings like "10K", "500K", "1M" to numbers
+const parseGoalString = (goal: string | number | null | undefined): number => {
+  if (goal === null || goal === undefined) return 0;
+  if (typeof goal === 'number') return goal;
+  
+  const str = String(goal).trim().toUpperCase();
+  
+  // Try to parse with K/M suffix
+  const match = str.match(/^([\d,.]+)\s*([KMB])?$/);
+  if (match) {
+    const num = parseFloat(match[1].replace(/,/g, ''));
+    const suffix = match[2];
+    if (suffix === 'K') return num * 1000;
+    if (suffix === 'M') return num * 1000000;
+    if (suffix === 'B') return num * 1000000000;
+    return num;
+  }
+  
+  // Try to parse as plain number
+  const parsed = parseFloat(str.replace(/,/g, ''));
+  return isNaN(parsed) ? 0 : parsed;
+};
 
 interface PlaylistWithStatus {
   id: string;
@@ -102,6 +126,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const [sfaUrlInput, setSfaUrlInput] = useState('');
   const [savingSfaUrl, setSavingSfaUrl] = useState(false);
   const [editingPlaylist, setEditingPlaylist] = useState<any>(null);
+  const [editingVendorCost, setEditingVendorCost] = useState<{ vendorId: string; vendorName: string; currentCost: number } | null>(null);
+  const [vendorCostInput, setVendorCostInput] = useState<string>('');
+  const [savingVendorCost, setSavingVendorCost] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -186,33 +213,36 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         return { vendor: [], algorithmic: [] };
       }
       
-      // Separate playlists into categories:
-      // 1. Algorithmic = is_algorithmic is true AND playlist_curator is 'Spotify' AND no vendor_id
-      const algorithmicPlaylists = (data || []).filter((p: any) => 
-        p.is_algorithmic === true && 
-        !p.vendor_id && 
-        (p.playlist_curator?.toLowerCase() === 'spotify' || !p.playlist_curator)
-      );
+      // Separate playlists into categories using the authoritative algorithmic pattern list:
+      // 1. Algorithmic = is_algorithmic flag is true OR playlist name matches algorithmic patterns
+      //    This ensures nothing slips through even if the scraper missed it
+      const algorithmicPlaylists = (data || []).filter((p: any) => {
+        const matchesPattern = isAlgorithmicPlaylist(p.playlist_name || '');
+        // Use database flag OR pattern matching as fallback
+        return (p.is_algorithmic === true || matchesPattern) && !p.vendor_id;
+      });
       
-      // 2. Vendor playlists = ALL non-algorithmic playlists (for display and payment tracking)
-      // These include both assigned (has vendor_id) and unassigned (no vendor_id)
-      const vendorPlaylists = (data || []).filter((p: any) => 
-        !p.is_algorithmic || 
-        p.vendor_id || 
-        (p.playlist_curator && p.playlist_curator.toLowerCase() !== 'spotify')
-      );
+      // 2. Vendor playlists = ALL playlists that are NOT algorithmic
+      //    A playlist is a vendor playlist if it doesn't match any algorithmic pattern
+      const vendorPlaylists = (data || []).filter((p: any) => {
+        const matchesPattern = isAlgorithmicPlaylist(p.playlist_name || '');
+        // Only include if NOT algorithmic (by flag or pattern)
+        return !p.is_algorithmic && !matchesPattern;
+      });
       
-      // 3. Unassigned playlists = subset of vendor playlists that need vendor assignment
-      const unassignedPlaylists = vendorPlaylists.filter((p: any) => !p.vendor_id);
+      // 3. Organic playlists = playlists marked as organic (user playlists, not from vendors or algorithmic)
+      const organicPlaylists = vendorPlaylists.filter((p: any) => p.is_organic === true);
       
-      console.log('✅ Found playlists - Vendor:', vendorPlaylists.length, 'Algorithmic:', algorithmicPlaylists.length, 'Unassigned:', unassignedPlaylists.length);
+      // 4. Unassigned playlists = subset of vendor playlists that need vendor assignment (excluding organic)
+      const unassignedPlaylists = vendorPlaylists.filter((p: any) => !p.vendor_id && !p.is_organic);
+      
+      console.log('✅ Found playlists - Vendor:', vendorPlaylists.length, 'Algorithmic:', algorithmicPlaylists.length, 'Organic:', organicPlaylists.length, 'Unassigned:', unassignedPlaylists.length);
       
       // Debug: Log unassigned playlists that need vendor assignment
       if (unassignedPlaylists.length > 0) {
         console.log('⚠️ Unassigned playlists (need vendor):', unassignedPlaylists.slice(0, 5).map((p: any) => ({
           id: p.id,
           name: p.playlist_name,
-          curator: p.playlist_curator,
           streams_28d: p.streams_28d
         })));
       }
@@ -220,6 +250,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       return {
         vendor: vendorPlaylists,
         algorithmic: algorithmicPlaylists,
+        organic: organicPlaylists,
         unassigned: unassignedPlaylists
       };
     },
@@ -229,6 +260,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   // Extract for easier access
   const campaignPlaylists = campaignPlaylistsData.vendor || [];
   const algorithmicPlaylists = campaignPlaylistsData.algorithmic || [];
+  const organicPlaylists = campaignPlaylistsData.organic || [];
   const unassignedPlaylists = campaignPlaylistsData.unassigned || [];
   
   // Fetch all vendor playlists for name matching
@@ -272,6 +304,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   
   // State for bulk assign loading
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
+  
+  // State for stream view mode toggle (total vs playlist-only)
+  const [streamViewMode, setStreamViewMode] = useState<'total' | 'playlists'>('total');
   
   // Auto-assign all matched playlists
   const handleAutoAssignAll = async () => {
@@ -489,8 +524,8 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         ...campaignGroup,
         client_name: campaignGroup.clients?.name || campaignGroup.client_id,
         budget: parseFloat(campaignGroup.total_budget) || 0,
-        stream_goal: campaignGroup.total_goal || 0,
-        remaining_streams: totalRemaining || campaignGroup.total_goal || 0,
+        stream_goal: parseGoalString(campaignGroup.total_goal),
+        remaining_streams: totalRemaining || parseGoalString(campaignGroup.total_goal),
         sub_genre: campaignGroup.notes || 'Not specified', // Genre stored in notes
         duration_days: durationDays,
         daily_streams: totalDaily,
@@ -815,6 +850,11 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       ? (playlist.vendors?.name || playlist.vendor_name || 'Unknown Vendor')
       : 'Unassigned';
     
+    // Get cost per 1k: use campaign-specific override if set, otherwise vendor default
+    const vendorDefaultCost = playlist.vendors?.cost_per_1k_streams || 0;
+    const effectiveCostPer1k = playlist.cost_per_1k_override ?? vendorDefaultCost;
+    const hasOverride = playlist.cost_per_1k_override !== null && playlist.cost_per_1k_override !== undefined;
+    
     if (!acc[vendorId]) {
       // Get vendor notes from vendorResponses
       const vendorResponse = vendorResponses.find(vr => 
@@ -830,7 +870,11 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         playlists: [],
         totalAllocated: 0,
         totalActual: 0,
+        totalStreams: 0, // Sum of actual streams from campaign_playlists
         vendorPerformance: vendorPerf,
+        costPer1k: effectiveCostPer1k, // Use the effective cost (override or default)
+        vendorDefaultCost: vendorDefaultCost,
+        hasOverride: hasOverride,
         totalPayment: 0, // Will be calculated after processing all playlists
         paymentStatus: 'Unpaid', // Default status - can be enhanced later
         hasNotes: Boolean(vendorResponse?.response_notes?.trim()),
@@ -841,15 +885,19 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     // Find performance data for this specific playlist
     const playlistPerf = acc[vendorId].vendorPerformance?.playlists?.find(p => p.id === playlist.id);
     
+    // Use 28d streams from the campaign_playlists data (actual scraped data)
+    const playlistStreams = playlist.streams_28d || playlist.streams_7d || playlist.streams_24h || 0;
+    
     acc[vendorId].playlists.push({
       ...playlist,
       idx,
-      allocated: playlistPerf?.allocated_streams || 0,
-      actual: playlistPerf?.actual_streams || 0
+      allocated: playlistPerf?.allocated_streams || playlistStreams,
+      actual: playlistPerf?.actual_streams || playlistStreams
     });
     
-    acc[vendorId].totalAllocated += playlistPerf?.allocated_streams || 0;
-    acc[vendorId].totalActual += playlistPerf?.actual_streams || 0;
+    acc[vendorId].totalAllocated += playlistPerf?.allocated_streams || playlistStreams;
+    acc[vendorId].totalActual += playlistPerf?.actual_streams || playlistStreams;
+    acc[vendorId].totalStreams += playlistStreams;
     
     return acc;
   }, {} as Record<string, any>);
@@ -858,15 +906,13 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   Object.keys(groupedPlaylists).forEach(vendorId => {
     const vendorGroup = groupedPlaylists[vendorId];
     
-    // Calculate total payment using campaign-specific cost per stream from performance data
-    vendorGroup.totalPayment = vendorGroup.vendorPerformance?.playlists?.reduce((total, playlistData) => {
-      const allocatedStreams = playlistData.allocated_streams || 0;
-      const costPerStream = playlistData.cost_per_stream || 0;
-      
-      console.log(`Payment calc for playlist ${playlistData.id}: ${allocatedStreams} streams × $${costPerStream} = $${allocatedStreams * costPerStream}`);
-      
-      return total + (allocatedStreams * costPerStream);
-    }, 0) || 0;
+    // Calculate total payment using the consistent cost per 1k rate
+    // Use actual streams from campaign_playlists and the effective cost per 1k
+    const totalStreams = vendorGroup.totalStreams || vendorGroup.totalActual || 0;
+    const costPer1k = vendorGroup.costPer1k || 0;
+    vendorGroup.totalPayment = (totalStreams / 1000) * costPer1k;
+    
+    console.log(`Payment calc for ${vendorGroup.vendorName}: ${totalStreams} streams × $${costPer1k}/1k = $${vendorGroup.totalPayment}`);
     
     // Determine payment status - check both performance data AND spotify_campaigns.paid_vendor
     const hasUnpaidAllocations = vendorGroup.vendorPerformance?.playlists?.some(p => 
@@ -1031,6 +1077,71 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       });
     } finally {
       setSavingSfaUrl(false);
+    }
+  };
+
+  // Save campaign-specific vendor cost override
+  const saveVendorCostOverride = async () => {
+    if (!editingVendorCost) return;
+    
+    const newCost = parseFloat(vendorCostInput);
+    if (isNaN(newCost) || newCost < 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid cost (0 or greater)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSavingVendorCost(true);
+    
+    try {
+      // Get the campaign's song IDs
+      let songIds: number[] = [];
+      
+      if (typeof campaign.id === 'number' || (typeof campaign.id === 'string' && !campaign.id.includes('-'))) {
+        songIds = [parseInt(campaign.id.toString())];
+      } else {
+        const { data: songs } = await supabase
+          .from('spotify_campaigns')
+          .select('id')
+          .eq('campaign_group_id', campaign.id);
+        songIds = songs?.map(s => s.id) || [];
+      }
+
+      if (songIds.length === 0) {
+        throw new Error('No campaign songs found');
+      }
+
+      // Update cost_per_1k_override for all playlists from this vendor in this campaign
+      const { error } = await supabase
+        .from('campaign_playlists')
+        .update({ cost_per_1k_override: newCost })
+        .in('campaign_id', songIds)
+        .eq('vendor_id', editingVendorCost.vendorId);
+
+      if (error) throw error;
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign.id] });
+      
+      toast({
+        title: "Success",
+        description: `Cost per 1k for ${editingVendorCost.vendorName} updated to $${newCost} for this campaign`,
+      });
+      
+      setEditingVendorCost(null);
+      setVendorCostInput('');
+    } catch (error) {
+      console.error('Failed to update vendor cost:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update vendor cost",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingVendorCost(false);
     }
   };
 
@@ -1478,7 +1589,6 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                         <TableRow>
                           <TableHead className="py-2">Playlist Name</TableHead>
                           <TableHead className="py-2">Vendor</TableHead>
-                          <TableHead className="py-2">Curator</TableHead>
                           <TableHead className="text-right py-2">24h</TableHead>
                           <TableHead className="text-right py-2">7d</TableHead>
                           <TableHead className="text-right py-2">28d</TableHead>
@@ -1503,9 +1613,6 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                               <Badge variant="outline" className="text-xs">
                                 {playlist.vendors?.name || (playlist.is_algorithmic ? 'Spotify' : 'Unknown')}
                               </Badge>
-                            </TableCell>
-                            <TableCell className="text-muted-foreground text-xs py-2">
-                              {playlist.playlist_curator || '—'}
                             </TableCell>
                             <TableCell className="text-right font-mono text-xs py-2">
                               {(playlist.streams_24h || 0).toLocaleString()}
@@ -1580,9 +1687,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                         <TableHeader>
                           <TableRow className="bg-orange-50 dark:bg-orange-950">
                             <TableHead>Playlist Name</TableHead>
-                            <TableHead>Curator</TableHead>
                             <TableHead className="text-right">Streams (28d)</TableHead>
                             <TableHead>Assign Vendor</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1611,9 +1718,6 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                                       {playlist.playlist_name}
                                     </div>
                                   </div>
-                                </TableCell>
-                                <TableCell className="text-muted-foreground text-sm py-2">
-                                  {playlist.playlist_curator || '—'}
                                 </TableCell>
                                 <TableCell className="text-right font-mono text-sm py-2">
                                   {(playlist.streams_28d || 0).toLocaleString()}
@@ -1736,9 +1840,229 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                                     </Select>
                                   )}
                                 </TableCell>
+                                <TableCell className="text-right py-2">
+                                  <div className="flex items-center justify-end gap-1">
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-100"
+                                            onClick={async () => {
+                                              try {
+                                                const { error } = await supabase
+                                                  .from('campaign_playlists')
+                                                  .update({ is_organic: true })
+                                                  .eq('id', playlist.id);
+                                                
+                                                if (error) throw error;
+                                                
+                                                queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
+                                                
+                                                toast({
+                                                  title: "Marked as Organic",
+                                                  description: `"${playlist.playlist_name}" marked as organic playlist.`,
+                                                });
+                                              } catch (error) {
+                                                console.error('Failed to mark as organic:', error);
+                                                toast({
+                                                  title: "Error",
+                                                  description: "Failed to mark playlist as organic.",
+                                                  variant: "destructive"
+                                                });
+                                              }
+                                            }}
+                                          >
+                                            <Leaf className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Mark as Organic (user playlist)</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-100"
+                                            onClick={async () => {
+                                              try {
+                                                const { error } = await supabase
+                                                  .from('campaign_playlists')
+                                                  .delete()
+                                                  .eq('id', playlist.id);
+                                                
+                                                if (error) throw error;
+                                                
+                                                queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
+                                                
+                                                toast({
+                                                  title: "Playlist Removed",
+                                                  description: `"${playlist.playlist_name}" has been removed from this campaign.`,
+                                                });
+                                              } catch (error) {
+                                                console.error('Failed to delete playlist:', error);
+                                                toast({
+                                                  title: "Error",
+                                                  description: "Failed to remove playlist.",
+                                                  variant: "destructive"
+                                                });
+                                              }
+                                            }}
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Delete from campaign</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </div>
+                                </TableCell>
                               </TableRow>
                             );
                           })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Organic Playlists Section */}
+                {organicPlaylists.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Leaf className="h-5 w-5 text-green-600" />
+                        Organic Playlists
+                        <Badge variant="outline" className="border-green-400 text-green-600">{organicPlaylists.length}</Badge>
+                      </h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      These playlists were added by users organically - not from vendors or Spotify's algorithmic recommendations.
+                    </p>
+                    <div className="border rounded-lg overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-green-50 dark:bg-green-950">
+                            <TableHead>Playlist Name</TableHead>
+                            <TableHead className="text-right">24h</TableHead>
+                            <TableHead className="text-right">7d</TableHead>
+                            <TableHead className="text-right">28d</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {organicPlaylists.map((playlist: any) => (
+                            <TableRow key={playlist.id}>
+                              <TableCell className="font-medium py-2">
+                                <div className="flex items-center gap-2">
+                                  <Globe className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                  <div className="truncate text-sm max-w-[200px]" title={playlist.playlist_name}>
+                                    {playlist.playlist_name}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right font-mono text-sm py-2">
+                                {(playlist.streams_24h || 0).toLocaleString()}
+                              </TableCell>
+                              <TableCell className="text-right font-mono text-sm py-2">
+                                {(playlist.streams_7d || 0).toLocaleString()}
+                              </TableCell>
+                              <TableCell className="text-right font-mono text-sm py-2">
+                                {(playlist.streams_28d || 0).toLocaleString()}
+                              </TableCell>
+                              <TableCell className="text-right py-2">
+                                <div className="flex items-center justify-end gap-1">
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-7 w-7 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-100"
+                                          onClick={async () => {
+                                            try {
+                                              const { error } = await supabase
+                                                .from('campaign_playlists')
+                                                .update({ is_organic: false })
+                                                .eq('id', playlist.id);
+                                              
+                                              if (error) throw error;
+                                              
+                                              queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
+                                              
+                                              toast({
+                                                title: "Moved to Unassigned",
+                                                description: `"${playlist.playlist_name}" moved back to unassigned playlists.`,
+                                              });
+                                            } catch (error) {
+                                              console.error('Failed to unmark organic:', error);
+                                              toast({
+                                                title: "Error",
+                                                description: "Failed to update playlist.",
+                                                variant: "destructive"
+                                              });
+                                            }
+                                          }}
+                                        >
+                                          <XCircle className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Move back to Unassigned</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-100"
+                                          onClick={async () => {
+                                            try {
+                                              const { error } = await supabase
+                                                .from('campaign_playlists')
+                                                .delete()
+                                                .eq('id', playlist.id);
+                                              
+                                              if (error) throw error;
+                                              
+                                              queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign?.id] });
+                                              
+                                              toast({
+                                                title: "Playlist Removed",
+                                                description: `"${playlist.playlist_name}" has been removed.`,
+                                              });
+                                            } catch (error) {
+                                              console.error('Failed to delete playlist:', error);
+                                              toast({
+                                                title: "Error",
+                                                description: "Failed to remove playlist.",
+                                                variant: "destructive"
+                                              });
+                                            }
+                                          }}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Delete from campaign</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
                         </TableBody>
                       </Table>
                     </div>
@@ -1754,13 +2078,21 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                   {Object.entries(
                     campaignPlaylists.reduce((acc: any, playlist: any) => {
                       const vendorName = playlist.vendors?.name || (playlist.is_algorithmic ? 'Spotify (Algorithmic)' : 'Unknown');
+                      const vendorId = playlist.vendors?.id || playlist.vendor_id;
+                      // Use cost override if set, otherwise use vendor default
+                      const effectiveCost = playlist.cost_per_1k_override ?? playlist.vendors?.cost_per_1k_streams ?? 0;
+                      const hasOverride = playlist.cost_per_1k_override !== null && playlist.cost_per_1k_override !== undefined;
+                      
                       if (!acc[vendorName]) {
                         acc[vendorName] = {
                           playlists: [],
                           totalStreams24h: 0,
                           totalStreams7d: 0,
                           totalStreams28d: 0,
-                          costPer1k: playlist.vendors?.cost_per_1k_streams || 0,
+                          costPer1k: effectiveCost,
+                          vendorDefaultCost: playlist.vendors?.cost_per_1k_streams || 0,
+                          hasOverride: hasOverride,
+                          vendorId: vendorId,
                           isAlgorithmic: playlist.is_algorithmic || false
                         };
                       }
@@ -1779,9 +2111,81 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                             {data.playlists.length} playlist{data.playlists.length !== 1 ? 's' : ''}
                           </p>
                         </div>
-                        <Badge variant="secondary" className="text-lg px-3 py-1">
-                          ${data.costPer1k}/1k
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          {editingVendorCost?.vendorId === data.vendorId ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={vendorCostInput}
+                                onChange={(e) => setVendorCostInput(e.target.value)}
+                                className="w-24 h-8 text-sm"
+                                placeholder="Cost"
+                              />
+                              <Button
+                                size="sm"
+                                onClick={saveVendorCostOverride}
+                                disabled={savingVendorCost}
+                              >
+                                {savingVendorCost ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingVendorCost(null);
+                                  setVendorCostInput('');
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <Badge 
+                                variant={data.hasOverride ? "default" : "secondary"} 
+                                className={`text-lg px-3 py-1 ${data.hasOverride ? 'bg-green-600' : ''}`}
+                              >
+                                ${data.costPer1k}/1k
+                                {data.hasOverride && (
+                                  <span className="ml-1 text-xs opacity-75">(custom)</span>
+                                )}
+                              </Badge>
+                              {data.vendorId && !data.isAlgorithmic && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0"
+                                        onClick={() => {
+                                          setEditingVendorCost({
+                                            vendorId: data.vendorId,
+                                            vendorName: vendorName,
+                                            currentCost: data.costPer1k
+                                          });
+                                          setVendorCostInput(data.costPer1k.toString());
+                                        }}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Set campaign-specific rate</p>
+                                      {data.hasOverride && (
+                                        <p className="text-xs text-muted-foreground">
+                                          Vendor default: ${data.vendorDefaultCost}/1k
+                                        </p>
+                                      )}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                       <div className="grid grid-cols-3 gap-4">
                         <div>
@@ -1857,33 +2261,83 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
 
                 {/* Stream Performance Card - Shows real data */}
                 <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Stream Performance Tracking
-                  </h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Stream Performance Tracking
+                    </h3>
+                    <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
+                      <Button
+                        variant={streamViewMode === 'total' ? 'default' : 'ghost'}
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => setStreamViewMode('total')}
+                      >
+                        <Globe className="h-3 w-3 mr-1" />
+                        Overall
+                      </Button>
+                      <Button
+                        variant={streamViewMode === 'playlists' ? 'default' : 'ghost'}
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => setStreamViewMode('playlists')}
+                      >
+                        <Music className="h-3 w-3 mr-1" />
+                        Our Playlists
+                      </Button>
+                    </div>
+                  </div>
                   
                   {/* Calculate stream metrics from actual data */}
                   {(() => {
-                    // Calculate total streams from all playlists
-                    const totalStreams28d = campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0) +
-                                           algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0);
-                    const totalStreams7d = campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0) +
-                                          algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0);
-                    const totalStreams24h = campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0) +
-                                           algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0);
+                    // Get TOTAL streams from spotify_campaigns (the actual song total from SFA)
+                    const songs = campaignData?.songs || [];
+                    const totalSongStreams28d = songs.reduce((sum: number, s: any) => sum + (s.streams_28d || 0), 0);
+                    const totalSongStreams7d = songs.reduce((sum: number, s: any) => sum + (s.streams_7d || 0), 0);
+                    const totalSongStreams24h = songs.reduce((sum: number, s: any) => sum + (s.streams_24h || 0), 0);
+                    
+                    // Get playlist-only streams (from campaign_playlists - excluding algorithmic)
+                    const playlistOnlyStreams28d = campaignPlaylists
+                      .filter((p: any) => !p.is_algorithmic && !p.is_organic)
+                      .reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0);
+                    const playlistOnlyStreams7d = campaignPlaylists
+                      .filter((p: any) => !p.is_algorithmic && !p.is_organic)
+                      .reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0);
+                    const playlistOnlyStreams24h = campaignPlaylists
+                      .filter((p: any) => !p.is_algorithmic && !p.is_organic)
+                      .reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0);
+                    
+                    // Use the appropriate streams based on view mode
+                    const totalStreams28d = streamViewMode === 'total' ? totalSongStreams28d : playlistOnlyStreams28d;
+                    const totalStreams7d = streamViewMode === 'total' ? totalSongStreams7d : playlistOnlyStreams7d;
+                    const totalStreams24h = streamViewMode === 'total' ? totalSongStreams24h : playlistOnlyStreams24h;
                     
                     const streamGoal = campaignData?.stream_goal || 0;
                     const dailyRate = totalStreams7d > 0 ? Math.round(totalStreams7d / 7) : totalStreams24h;
                     const progressPercent = streamGoal > 0 ? Math.min((totalStreams28d / streamGoal) * 100, 100) : 0;
                     const remainingStreams = Math.max(0, streamGoal - totalStreams28d);
-                    const daysToGoal = dailyRate > 0 ? Math.ceil(remainingStreams / dailyRate) : 999;
+                    const daysToGoal = dailyRate > 0 && remainingStreams > 0 ? Math.ceil(remainingStreams / dailyRate) : 0;
                     
-                    // Calculate required daily rate to hit goal
-                    const daysRemaining = campaignData?.end_date 
-                      ? Math.max(1, Math.ceil((new Date(campaignData.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+                    // Calculate campaign timeline
+                    const startDate = campaignData?.start_date ? new Date(campaignData.start_date) : null;
+                    const endDate = campaignData?.end_date ? new Date(campaignData.end_date) : null;
+                    const now = new Date();
+                    
+                    // Calculate days elapsed since campaign start
+                    const daysElapsed = startDate 
+                      ? Math.max(1, Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
+                      : 28; // Default to 28 days if no start date
+                    
+                    // Calculate days remaining until end (or default to 30 if no end date)
+                    const daysRemaining = endDate 
+                      ? Math.max(1, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
                       : 30;
+                    
+                    // Required daily rate to hit goal on time
                     const requiredDailyRate = remainingStreams > 0 ? Math.ceil(remainingStreams / daysRemaining) : 0;
-                    const isOnTrack = dailyRate >= requiredDailyRate;
+                    
+                    // Determine if on track: either already hit goal, or current rate will hit goal in time
+                    const isOnTrack = totalStreams28d >= streamGoal || (dailyRate >= requiredDailyRate && dailyRate > 0);
                     
                     // Generate chart data - project forward from current rate
                     const chartData = [];
@@ -1902,11 +2356,21 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     
                     return (
                       <>
+                        {/* View mode explanation */}
+                        <p className="text-xs text-muted-foreground mb-4">
+                          {streamViewMode === 'total' 
+                            ? '📊 Showing total song streams from Spotify for Artists (includes all sources)'
+                            : '🎵 Showing streams from vendor-placed playlists only (excludes algorithmic & organic)'
+                          }
+                        </p>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                           {/* Current Streams */}
                           <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-muted-foreground">Total Streams (28d)</span>
+                              <span className="text-sm font-medium text-muted-foreground">
+                                {streamViewMode === 'total' ? 'Total Streams (28d)' : 'Playlist Streams (28d)'}
+                              </span>
                               <Target className="h-4 w-4 text-primary" />
                             </div>
                             <div className="text-3xl font-bold text-primary">
@@ -2028,10 +2492,17 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                             <div className="flex-1 space-y-1">
                               <p className="text-sm font-medium">Performance Analysis</p>
                               <p className="text-xs text-muted-foreground">
-                                {isOnTrack 
-                                  ? `🎉 You're on track! At ${dailyRate.toLocaleString()} streams/day, you'll reach your goal of ${streamGoal.toLocaleString()} in about ${daysToGoal} days.`
-                                  : `💡 Currently at ${dailyRate.toLocaleString()} streams/day. You need ${requiredDailyRate.toLocaleString()}/day to hit your goal of ${streamGoal.toLocaleString()} on time.`
-                                }
+                                {streamGoal === 0 ? (
+                                  `📊 No goal set for this campaign. Current daily rate: ${dailyRate.toLocaleString()} streams/day.`
+                                ) : totalStreams28d >= streamGoal ? (
+                                  `🎉 Goal reached! You've hit ${totalStreams28d.toLocaleString()} streams (${((totalStreams28d / streamGoal) * 100).toFixed(0)}% of ${streamGoal.toLocaleString()} goal).`
+                                ) : dailyRate === 0 ? (
+                                  `⚠️ No streams recorded yet. Goal: ${streamGoal.toLocaleString()} streams. ${daysRemaining} days remaining.`
+                                ) : isOnTrack ? (
+                                  `🎉 On track! At ${dailyRate.toLocaleString()}/day, you'll reach ${streamGoal.toLocaleString()} in ~${daysToGoal} days (${daysRemaining} days remaining).`
+                                ) : (
+                                  `💡 At ${dailyRate.toLocaleString()}/day, need ${requiredDailyRate.toLocaleString()}/day to hit ${streamGoal.toLocaleString()} in ${daysRemaining} days.`
+                                )}
                               </p>
                             </div>
                           </div>
@@ -2104,9 +2575,8 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               {Object.entries(groupedPlaylists).length > 0 ? (
                 <div className="grid gap-4">
                   {Object.entries(groupedPlaylists).map(([vendorId, vendorData]) => {
-                    const ratePer1k = vendorData.vendorPerformance?.cost_per_stream 
-                      ? (vendorData.vendorPerformance.cost_per_stream * 1000).toFixed(2)
-                      : '0.00';
+                    // Use the consistent cost per 1k rate from campaign_playlists data
+                    const ratePer1k = (vendorData.costPer1k || 0).toFixed(2);
                     
                     return (
                       <Card key={vendorId} className="p-6">
@@ -2128,7 +2598,47 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                           <div className="space-y-1">
                             <Label className="text-sm text-muted-foreground">Rate per 1k streams</Label>
-                            <p className="text-lg font-semibold">${ratePer1k}</p>
+                            <div className="flex items-center gap-2">
+                              {editingVendorCost?.vendorId === vendorId ? (
+                                <div className="flex items-center gap-1">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={vendorCostInput}
+                                    onChange={(e) => setVendorCostInput(e.target.value)}
+                                    className="w-20 h-8 text-sm"
+                                  />
+                                  <Button size="sm" className="h-8 px-2" onClick={saveVendorCostOverride} disabled={savingVendorCost}>
+                                    {savingVendorCost ? <Loader2 className="h-3 w-3 animate-spin" /> : '✓'}
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => { setEditingVendorCost(null); setVendorCostInput(''); }}>
+                                    ✗
+                                  </Button>
+                                </div>
+                              ) : (
+                                <>
+                                  <p className="text-lg font-semibold">${ratePer1k}</p>
+                                  {vendorId !== 'unknown' && vendorId !== 'unassigned' && canEditCampaign && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => {
+                                        setEditingVendorCost({
+                                          vendorId: vendorId,
+                                          vendorName: vendorData.vendorName,
+                                          currentCost: parseFloat(ratePer1k)
+                                        });
+                                        setVendorCostInput(ratePer1k);
+                                      }}
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           </div>
                           <div className="space-y-1">
                             <Label className="text-sm text-muted-foreground">Allocated streams</Label>

@@ -26,7 +26,11 @@ export function QuickActions() {
   const { data: quickStats } = useQuery({
     queryKey: ['quick-stats'],
     queryFn: async () => {
-      const [campaignsRes, vendorsRes, clientsRes] = await Promise.all([
+      // Query spotify_campaigns as primary source (this is where real campaign data lives)
+      const [spotifyCampaignsRes, campaignGroupsRes, vendorsRes, clientsRes] = await Promise.all([
+        supabase
+          .from('spotify_campaigns')
+          .select('status, created_at'),
         supabase
           .from('campaign_groups')
           .select('status, created_at'),
@@ -38,17 +42,31 @@ export function QuickActions() {
           .select('id, created_at')
       ]);
 
-      const campaigns = campaignsRes.data || [];
+      // Combine both sources, preferring spotify_campaigns
+      const spotifyCampaigns = spotifyCampaignsRes.data || [];
+      const campaignGroups = campaignGroupsRes.data || [];
       const vendors = vendorsRes.data || [];
       const clients = clientsRes.data || [];
 
       const today = new Date();
       const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+      // Use spotify_campaigns as primary if it has data, otherwise fall back to campaign_groups
+      const campaigns = spotifyCampaigns.length > 0 ? spotifyCampaigns : campaignGroups;
+
+      // Case-insensitive status matching
+      const normalizeStatus = (status: string | null) => (status || '').toLowerCase().trim();
+      
+      const pendingStatuses = ['draft', 'pending', 'pending_approval'];
+      const activeStatuses = ['active', 'in_progress', 'running'];
+      const completedStatuses = ['completed', 'done', 'finished'];
+
       return {
-        pendingCampaigns: campaigns.filter(c => c.status === 'draft').length,
-        activeCampaigns: campaigns.filter(c => c.status === 'active').length,
+        pendingCampaigns: campaigns.filter(c => pendingStatuses.includes(normalizeStatus(c.status))).length,
+        activeCampaigns: campaigns.filter(c => activeStatuses.includes(normalizeStatus(c.status))).length,
+        completedCampaigns: campaigns.filter(c => completedStatuses.includes(normalizeStatus(c.status))).length,
         recentCampaigns: campaigns.filter(c => new Date(c.created_at) > weekAgo).length,
+        totalCampaigns: campaigns.length,
         activeVendors: vendors.filter(v => v.is_active).length,
         totalClients: clients.length,
         recentClients: clients.filter(c => new Date(c.created_at) > weekAgo).length
@@ -69,15 +87,19 @@ export function QuickActions() {
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Active</span>
-            <Badge variant="default">{quickStats?.activeCampaigns || 0}</Badge>
+            <Badge variant="default" className="bg-green-500">{quickStats?.activeCampaigns || 0}</Badge>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Pending</span>
-            <Badge variant="secondary">{quickStats?.pendingCampaigns || 0}</Badge>
+            <Badge variant="secondary" className="bg-yellow-500 text-white">{quickStats?.pendingCampaigns || 0}</Badge>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">This Week</span>
-            <Badge variant="outline">{quickStats?.recentCampaigns || 0}</Badge>
+            <span className="text-sm text-muted-foreground">Completed</span>
+            <Badge variant="outline">{quickStats?.completedCampaigns || 0}</Badge>
+          </div>
+          <div className="flex items-center justify-between text-xs pt-1 border-t">
+            <span className="text-muted-foreground">Total Campaigns</span>
+            <span className="font-medium">{quickStats?.totalCampaigns || 0}</span>
           </div>
           <Button size="sm" className="w-full" asChild>
             <Link href="/spotify/campaigns">View All</Link>

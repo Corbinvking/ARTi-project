@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import { Label } from './ui/label';
@@ -10,8 +10,60 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Badge } from './ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useVendors } from '../hooks/useVendors';
-import { AlertCircle, Plus, Trash2, DollarSign, TrendingUp, Music, ChevronDown, ChevronRight } from 'lucide-react';
+import { AlertCircle, Plus, Trash2, DollarSign, TrendingUp, Music, ChevronDown, ChevronRight, Sparkles, Wand2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+
+// Genre mapping for matching
+const GENRE_MAPPING: Record<string, string[]> = {
+  'phonk': ['phonk', 'drift phonk', 'brazilian phonk', 'dark phonk'],
+  'tech house': ['tech house', 'melodic house', 'deep tech'],
+  'techno': ['techno', 'dark techno', 'industrial techno', 'minimal techno', 'peak time techno', 'hard techno'],
+  'house': ['house', 'deep house', 'future house', 'funky house', 'vocal house', 'uk house', 'chicago house', 'slap house'],
+  'dubstep': ['dubstep', 'brostep', 'riddim dubstep', 'melodic dubstep', 'chillstep'],
+  'trap': ['trap', 'trap edm', 'festival trap', 'hybrid trap'],
+  'melodic bass': ['melodic bass', 'melodic dubstep', 'future bass', 'color bass', 'wave'],
+  'trance': ['trance', 'uplifting trance', 'vocal trance', 'psytrance', 'progressive trance'],
+  'dance': ['dance', 'dance pop', 'edm', 'electro house', 'electronic'],
+  'pop': ['pop', 'dance pop', 'synth-pop', 'electropop', 'indie pop'],
+  'hip-hop': ['hip hop', 'hip-hop', 'rap', 'trap', 'boom bap'],
+  'r&b': ['r&b', 'rnb', 'neo soul', 'soul'],
+  'rock': ['rock', 'classic rock', 'hard rock', 'indie rock'],
+  'chill': ['chill', 'chillout', 'chillwave', 'lo-fi', 'lofi beats', 'chillhop'],
+};
+
+// Calculate genre match score
+function calculateGenreMatchScore(campaignGenres: string[], playlistGenres: string[]): number {
+  if (!campaignGenres.length || !playlistGenres.length) return 0;
+  
+  let score = 0;
+  const normalizedPlaylistGenres = playlistGenres.map(g => g.toLowerCase().trim());
+  
+  for (const campaignGenre of campaignGenres) {
+    const normalizedCampaignGenre = campaignGenre.toLowerCase().trim();
+    
+    // Direct match
+    if (normalizedPlaylistGenres.includes(normalizedCampaignGenre)) {
+      score += 3;
+      continue;
+    }
+    
+    // Related genres
+    const relatedGenres = GENRE_MAPPING[normalizedCampaignGenre] || [normalizedCampaignGenre];
+    for (const related of relatedGenres) {
+      if (normalizedPlaylistGenres.some(pg => pg.includes(related) || related.includes(pg))) {
+        score += 2;
+        break;
+      }
+    }
+    
+    // Partial match
+    if (normalizedPlaylistGenres.some(pg => pg.includes(normalizedCampaignGenre) || normalizedCampaignGenre.includes(pg))) {
+      score += 1;
+    }
+  }
+  
+  return score;
+}
 
 interface VendorAssignment {
   vendor_id: string;
@@ -26,17 +78,20 @@ interface VendorAssignmentStepProps {
   onChange: (assignments: VendorAssignment[]) => void;
   totalStreamGoal: number;
   totalBudget: number;
+  campaignGenres?: string[]; // Added for auto-suggestions
 }
 
 export function VendorAssignmentStep({ 
   assignments, 
   onChange, 
   totalStreamGoal, 
-  totalBudget 
+  totalBudget,
+  campaignGenres = []
 }: VendorAssignmentStepProps) {
   const { data: vendors = [] } = useVendors();
   const [selectedVendorId, setSelectedVendorId] = useState<string>('');
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
+  const [hasAutoSuggested, setHasAutoSuggested] = useState(false);
   
   const activeVendors = vendors.filter(v => v.is_active);
 
@@ -56,6 +111,95 @@ export function VendorAssignmentStep({
       return data as any[];
     },
   });
+
+  // Calculate genre match scores for all playlists
+  const playlistsWithScores = useMemo(() => {
+    return allPlaylists.map(playlist => ({
+      ...playlist,
+      genreMatchScore: calculateGenreMatchScore(campaignGenres, playlist.genres || [])
+    }));
+  }, [allPlaylists, campaignGenres]);
+
+  // Get matching playlists grouped by vendor
+  const matchingPlaylistsByVendor = useMemo(() => {
+    const matching = playlistsWithScores.filter(p => p.genreMatchScore >= 2);
+    const grouped: Record<string, any[]> = {};
+    
+    matching.forEach(playlist => {
+      if (!playlist.vendor_id) return;
+      if (!grouped[playlist.vendor_id]) {
+        grouped[playlist.vendor_id] = [];
+      }
+      grouped[playlist.vendor_id].push(playlist);
+    });
+    
+    return grouped;
+  }, [playlistsWithScores]);
+
+  // Auto-suggest vendors based on genre matching
+  const handleAutoSuggest = () => {
+    if (campaignGenres.length === 0 || Object.keys(matchingPlaylistsByVendor).length === 0) {
+      return;
+    }
+
+    const newAssignments: VendorAssignment[] = [];
+    const totalMatchingPlaylists = Object.values(matchingPlaylistsByVendor).flat().length;
+    
+    // Calculate total estimated daily streams from matching playlists
+    const totalEstimatedStreams = Object.values(matchingPlaylistsByVendor)
+      .flat()
+      .reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
+
+    Object.entries(matchingPlaylistsByVendor).forEach(([vendorId, playlists]) => {
+      const vendor = activeVendors.find(v => v.id === vendorId);
+      if (!vendor) return;
+
+      // Calculate this vendor's share based on their playlists' daily streams
+      const vendorDailyStreams = playlists.reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
+      const streamShare = totalEstimatedStreams > 0 
+        ? vendorDailyStreams / totalEstimatedStreams 
+        : 1 / Object.keys(matchingPlaylistsByVendor).length;
+
+      const allocatedStreams = Math.floor(totalStreamGoal * streamShare);
+      const allocatedBudget = Math.floor(totalBudget * streamShare * 100) / 100;
+
+      newAssignments.push({
+        vendor_id: vendorId,
+        vendor_name: vendor.name,
+        allocated_streams: allocatedStreams,
+        allocated_budget: allocatedBudget,
+        playlist_ids: playlists.map(p => p.id)
+      });
+    });
+
+    // Sort by allocated streams (highest first) and limit to top 5
+    newAssignments.sort((a, b) => b.allocated_streams - a.allocated_streams);
+    const topAssignments = newAssignments.slice(0, 5);
+
+    // Adjust allocations to match totals exactly
+    if (topAssignments.length > 0) {
+      const totalAllocatedStreams = topAssignments.reduce((sum, a) => sum + a.allocated_streams, 0);
+      const totalAllocatedBudget = topAssignments.reduce((sum, a) => sum + a.allocated_budget, 0);
+      
+      // Add remainder to first vendor
+      if (totalAllocatedStreams < totalStreamGoal) {
+        topAssignments[0].allocated_streams += totalStreamGoal - totalAllocatedStreams;
+      }
+      if (totalAllocatedBudget < totalBudget) {
+        topAssignments[0].allocated_budget += Math.round((totalBudget - totalAllocatedBudget) * 100) / 100;
+      }
+    }
+
+    onChange(topAssignments);
+    setHasAutoSuggested(true);
+    
+    // Expand all assigned vendors
+    setExpandedVendors(new Set(topAssignments.map(a => a.vendor_id)));
+  };
+
+  // Count matching playlists
+  const matchingPlaylistsCount = Object.values(matchingPlaylistsByVendor).flat().length;
+  const matchingVendorsCount = Object.keys(matchingPlaylistsByVendor).length;
   
   // Calculate totals
   const totalAllocatedStreams = assignments.reduce((sum, a) => sum + (a.allocated_streams || 0), 0);
@@ -156,12 +300,66 @@ export function VendorAssignmentStep({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Vendor Assignment</h3>
-        <p className="text-sm text-muted-foreground">
-          Assign vendors to handle this campaign and allocate streams/budget to each.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Vendor Assignment</h3>
+          <p className="text-sm text-muted-foreground">
+            Assign vendors to handle this campaign and allocate streams/budget to each.
+          </p>
+        </div>
+        
+        {/* Auto-Suggest Button */}
+        {campaignGenres.length > 0 && matchingVendorsCount > 0 && (
+          <Button 
+            onClick={handleAutoSuggest}
+            variant="default"
+            size="sm"
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+          >
+            <Wand2 className="h-4 w-4" />
+            Auto-Suggest ({matchingVendorsCount} vendors, {matchingPlaylistsCount} playlists)
+          </Button>
+        )}
       </div>
+
+      {/* Auto-Suggestion Info */}
+      {campaignGenres.length > 0 && !hasAutoSuggested && matchingVendorsCount > 0 && assignments.length === 0 && (
+        <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-5 w-5 text-purple-500" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Genre-matched vendors available!</p>
+                <p className="text-xs text-muted-foreground">
+                  Found {matchingPlaylistsCount} playlists from {matchingVendorsCount} vendors matching your genres: {campaignGenres.join(', ')}
+                </p>
+              </div>
+              <Button 
+                onClick={handleAutoSuggest}
+                size="sm"
+                variant="outline"
+                className="border-purple-300 text-purple-700 hover:bg-purple-100"
+              >
+                <Wand2 className="h-4 w-4 mr-1" />
+                Apply Suggestions
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {campaignGenres.length === 0 && (
+        <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-500" />
+              <p className="text-sm text-muted-foreground">
+                Select genres above to enable automatic vendor suggestions based on playlist genre matching.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

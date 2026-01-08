@@ -30,12 +30,12 @@ export function SalespeopleManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim() || !formData.email.trim()) return;
 
     try {
       await createSalesperson.mutateAsync({
         name: formData.name,
-        email: formData.email || undefined,
+        email: formData.email,
         phone: formData.phone || undefined
       });
 
@@ -76,6 +76,13 @@ export function SalespeopleManager() {
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-md text-sm">
+                <p className="text-blue-700 dark:text-blue-300">
+                  This will create a user account with login access to the Spotify app. 
+                  A temporary password will be generated.
+                </p>
+              </div>
+              
               <div>
                 <Label>Name *</Label>
                 <Input
@@ -87,12 +94,13 @@ export function SalespeopleManager() {
               </div>
               
               <div>
-                <Label>Email</Label>
+                <Label>Email * (used for login)</Label>
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="email@example.com"
+                  required
                 />
               </div>
               
@@ -115,9 +123,9 @@ export function SalespeopleManager() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createSalesperson.isPending || !formData.name.trim()}
+                  disabled={createSalesperson.isPending || !formData.name.trim() || !formData.email.trim()}
                 >
-                  {createSalesperson.isPending ? 'Adding...' : 'Add Salesperson'}
+                  {createSalesperson.isPending ? 'Creating Account...' : 'Add Salesperson'}
                 </Button>
               </DialogFooter>
             </form>

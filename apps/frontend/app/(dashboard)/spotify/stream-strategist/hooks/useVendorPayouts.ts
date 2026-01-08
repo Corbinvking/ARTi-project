@@ -111,6 +111,35 @@ export const useVendorPayouts = () => {
       
       console.log('💰 [VendorPayouts] SpotifyCampaignPayments map size:', spotifyCampaignPayments.size);
 
+      // Fetch campaign_playlists for cost_per_1k_override (campaign-specific pricing)
+      const { data: campaignPlaylists, error: playlistsError } = await supabase
+        .from('campaign_playlists')
+        .select('campaign_id, vendor_id, cost_per_1k_override, streams_28d, streams_7d')
+        .not('vendor_id', 'is', null);
+      
+      console.log('💰 [VendorPayouts] CampaignPlaylists with overrides:', campaignPlaylists?.filter((p: any) => p.cost_per_1k_override)?.length || 0);
+
+      // Create a map for campaign-vendor cost overrides
+      const costOverrideMap = new Map<string, { override: number; streams: number }>();
+      (campaignPlaylists || []).forEach((cp: any) => {
+        const key = `${cp.campaign_id}-${cp.vendor_id}`;
+        const existing = costOverrideMap.get(key);
+        const streams = cp.streams_28d || cp.streams_7d || 0;
+        
+        if (existing) {
+          // Aggregate streams and prefer override if set
+          existing.streams += streams;
+          if (cp.cost_per_1k_override && (!existing.override || cp.cost_per_1k_override > existing.override)) {
+            existing.override = cp.cost_per_1k_override;
+          }
+        } else {
+          costOverrideMap.set(key, {
+            override: cp.cost_per_1k_override || 0,
+            streams: streams
+          });
+        }
+      });
+
       type RawAllocation = {
         campaign_id: string;
         vendor_id: string;
@@ -196,16 +225,36 @@ export const useVendorPayouts = () => {
         const vendor = vendorMap.get(allocation.vendor_id);
         if (!vendor) return;
 
-        const costPerStream = (allocation.actual_cost_per_stream ?? allocation.cost_per_stream ?? ((vendor.cost_per_1k_streams || 0) / 1000)) as number;
-        const actualStreams = typeof allocation.actual_streams === 'number' ? allocation.actual_streams : (allocation.allocated_streams || 0);
+        // Check for campaign-specific cost override first!
+        const overrideData = costOverrideMap.get(key);
+        let costPerStream: number;
+        
+        if (overrideData?.override && overrideData.override > 0) {
+          // Use campaign-specific override (convert from per 1k to per stream)
+          costPerStream = overrideData.override / 1000;
+          console.log(`💰 [VendorPayouts] Using override for ${key}: $${overrideData.override}/1k`);
+        } else {
+          // Fall back to allocation cost or vendor default
+          costPerStream = (allocation.actual_cost_per_stream ?? allocation.cost_per_stream ?? ((vendor.cost_per_1k_streams || 0) / 1000)) as number;
+        }
+        
+        // Use actual streams from campaign_playlists if available (more accurate), otherwise use allocation
+        let actualStreams = overrideData?.streams || 0;
+        if (actualStreams === 0) {
+          actualStreams = typeof allocation.actual_streams === 'number' ? allocation.actual_streams : (allocation.allocated_streams || 0);
+        }
 
         if (campaignVendorMap.has(key)) {
           // Aggregate with existing entry
           const existing = campaignVendorMap.get(key)!;
           existing.allocated_streams += allocation.allocated_streams || 0;
           existing.actual_streams += actualStreams || 0;
-          // Use the higher cost per stream (or keep existing if same)
-          existing.cost_per_stream = Math.max(existing.cost_per_stream, costPerStream);
+          // Use the higher cost per stream (prefer override)
+          if (overrideData?.override && overrideData.override > 0) {
+            existing.cost_per_stream = costPerStream; // Override takes precedence
+          } else {
+            existing.cost_per_stream = Math.max(existing.cost_per_stream, costPerStream);
+          }
         } else {
           // Create new aggregated entry
           campaignVendorMap.set(key, {

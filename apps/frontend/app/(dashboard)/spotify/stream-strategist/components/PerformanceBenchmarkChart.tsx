@@ -52,24 +52,28 @@ export const PerformanceBenchmarkChart = () => {
     );
   }
 
+  // Real, meaningful performance metrics based on actual data
   const benchmarkData = [
     {
-      metric: "ROI (%)",
-      ourPerformance: data.averageROI,
-      industryBenchmark: data.performanceBenchmarks.industryAvgROI,
-      difference: data.averageROI - data.performanceBenchmarks.industryAvgROI
+      metric: "Profit Margin",
+      value: data.averageROI,
+      format: 'percent',
+      description: "(Revenue - Vendor Costs) / Revenue",
+      isGood: data.averageROI >= 50
     },
     {
-      metric: "Cost per Stream ($)",
-      ourPerformance: data.averageCostPerStream,
-      industryBenchmark: data.performanceBenchmarks.industryAvgCostPerStream,
-      difference: data.performanceBenchmarks.industryAvgCostPerStream - data.averageCostPerStream
+      metric: "Goal Achievement",
+      value: data.campaignEfficiency,
+      format: 'percent',
+      description: "Actual streams vs campaign goals",
+      isGood: data.campaignEfficiency >= 80
     },
     {
-      metric: "Time Completion (%)",
-      ourPerformance: data.campaignEfficiency,
-      industryBenchmark: 75, // Mock industry average
-      difference: data.campaignEfficiency - 75
+      metric: "Active Campaigns",
+      value: data.activeCampaigns,
+      format: 'number',
+      description: `${data.activeCampaigns} of ${data.totalCampaigns} total`,
+      isGood: data.activeCampaigns > 0
     }
   ];
 
@@ -84,34 +88,38 @@ export const PerformanceBenchmarkChart = () => {
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Performance vs Industry Benchmarks</CardTitle>
+          <CardTitle>Campaign Status Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={benchmarkData}>
-                <XAxis 
-                  dataKey="metric" 
-                  tick={{ fontSize: 12 }}
-                  interval={0}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  dataKey="ourPerformance" 
-                  fill="var(--color-ourPerformance)"
-                  name="Our Performance"
-                  radius={[2, 2, 0, 0]}
-                />
-                <Bar 
-                  dataKey="industryBenchmark" 
-                  fill="var(--color-industryBenchmark)"
-                  name="Industry Benchmark"
-                  radius={[2, 2, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          <div className="grid gap-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <p className="font-medium">Total Revenue</p>
+                <p className="text-sm text-muted-foreground">Sum of all campaign budgets</p>
+              </div>
+              <div className="text-2xl font-bold text-green-600">
+                ${data.totalRevenue.toLocaleString()}
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <p className="font-medium">Streams Delivered (28d)</p>
+                <p className="text-sm text-muted-foreground">From vendor playlists only</p>
+              </div>
+              <div className="text-2xl font-bold text-blue-600">
+                {data.totalStreamsPast30Days.toLocaleString()}
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <p className="font-medium">Avg Cost per 1K Streams</p>
+                <p className="text-sm text-muted-foreground">Based on vendor rates</p>
+              </div>
+              <div className="text-2xl font-bold text-purple-600">
+                ${data.averageCostPer1kStreams.toFixed(2)}
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -157,21 +165,21 @@ export const PerformanceBenchmarkChart = () => {
       {/* Performance Insights */}
       <Card className="md:col-span-2">
         <CardHeader>
-          <CardTitle>Performance Insights</CardTitle>
+          <CardTitle>Key Performance Metrics</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             {benchmarkData.map((item) => (
-              <div key={item.metric} className="text-center p-4 border rounded-lg">
+              <div key={item.metric} className={`text-center p-4 border rounded-lg ${
+                item.isGood ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20' : 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/20'
+              }`}>
                 <h3 className="font-medium text-sm text-muted-foreground">{item.metric}</h3>
                 <div className="mt-2 space-y-1">
-                  <div className="text-lg font-bold">
-                    {item.metric.includes('$') ? '$' : ''}{item.ourPerformance.toFixed(item.metric.includes('$') ? 3 : 1)}
-                    {item.metric.includes('%') ? '%' : ''}
+                  <div className={`text-2xl font-bold ${item.isGood ? 'text-green-600' : 'text-orange-600'}`}>
+                    {item.format === 'percent' ? `${item.value.toFixed(1)}%` : item.value.toLocaleString()}
                   </div>
-                  <div className={`text-sm ${item.difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {item.difference >= 0 ? '+' : ''}{item.difference.toFixed(item.metric.includes('$') ? 3 : 1)}
-                    {item.metric.includes('%') ? 'pp' : ''} vs industry
+                  <div className="text-xs text-muted-foreground">
+                    {item.description}
                   </div>
                 </div>
               </div>

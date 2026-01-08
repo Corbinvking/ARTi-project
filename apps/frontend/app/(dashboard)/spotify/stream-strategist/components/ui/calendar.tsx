@@ -4,13 +4,6 @@ import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./select";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
   fromYear?: number;
@@ -21,15 +14,15 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  fromYear = new Date().getFullYear() - 10,
-  toYear = new Date().getFullYear() + 5,
+  fromYear = new Date().getFullYear() - 5,
+  toYear = new Date().getFullYear() + 2,
   ...props
 }: CalendarProps) {
-  const [month, setMonth] = React.useState(props.defaultMonth || new Date());
+  const [month, setMonth] = React.useState(props.defaultMonth || props.selected as Date || new Date());
 
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
 
   const years = React.useMemo(() => {
@@ -40,23 +33,19 @@ function Calendar({
     return yearList;
   }, [fromYear, toYear]);
 
-  const handleMonthChange = (newMonth: string) => {
-    const monthIndex = months.indexOf(newMonth);
-    const newDate = new Date(month);
-    newDate.setMonth(monthIndex);
-    setMonth(newDate);
-  };
-
-  const handleYearChange = (newYear: string) => {
-    const newDate = new Date(month);
-    newDate.setFullYear(parseInt(newYear));
-    setMonth(newDate);
+  const handleGoToToday = () => {
+    const today = new Date();
+    setMonth(today);
+    // If onSelect is provided (single mode), select today
+    if (props.mode === 'single' && props.onSelect) {
+      (props.onSelect as (date: Date | undefined) => void)(today);
+    }
   };
 
   return (
-    <div className={cn("p-4 pointer-events-auto bg-background/95 backdrop-blur-sm border border-border/50 rounded-xl shadow-xl z-50", className)}>
-      {/* Month/Year Navigation Header */}
-      <div className="flex items-center justify-between mb-4 gap-2">
+    <div className={cn("p-3 bg-popover border rounded-lg shadow-md", className)}>
+      {/* Compact Header */}
+      <div className="flex items-center justify-between mb-2">
         <button
           type="button"
           onClick={() => {
@@ -65,39 +54,49 @@ function Calendar({
             setMonth(newDate);
           }}
           className={cn(
-            buttonVariants({ variant: "outline", size: "icon" }),
-            "h-9 w-9 p-0 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+            buttonVariants({ variant: "ghost", size: "sm" }),
+            "h-7 w-7 p-0"
           )}
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
-        <div className="flex items-center gap-2 flex-1 justify-center">
-          <Select value={months[month.getMonth()]} onValueChange={handleMonthChange}>
-            <SelectTrigger className="w-[130px] h-9 text-sm font-medium">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-1">
+          <select
+            value={month.getMonth()}
+            onChange={(e) => {
+              const newDate = new Date(month);
+              newDate.setMonth(parseInt(e.target.value));
+              setMonth(newDate);
+            }}
+            className="text-sm font-medium bg-transparent border-none focus:outline-none focus:ring-0 cursor-pointer hover:text-primary"
+          >
+            {months.map((m, i) => (
+              <option key={m} value={i}>{m}</option>
+            ))}
+          </select>
 
-          <Select value={month.getFullYear().toString()} onValueChange={handleYearChange}>
-            <SelectTrigger className="w-[90px] h-9 text-sm font-medium">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="max-h-[200px]">
-              {years.map((y) => (
-                <SelectItem key={y} value={y.toString()}>
-                  {y}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={month.getFullYear()}
+            onChange={(e) => {
+              const newDate = new Date(month);
+              newDate.setFullYear(parseInt(e.target.value));
+              setMonth(newDate);
+            }}
+            className="text-sm font-medium bg-transparent border-none focus:outline-none focus:ring-0 cursor-pointer hover:text-primary"
+          >
+            {years.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={handleGoToToday}
+            className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+          >
+            Today
+          </button>
         </div>
 
         <button
@@ -108,22 +107,11 @@ function Calendar({
             setMonth(newDate);
           }}
           className={cn(
-            buttonVariants({ variant: "outline", size: "icon" }),
-            "h-9 w-9 p-0 hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+            buttonVariants({ variant: "ghost", size: "sm" }),
+            "h-7 w-7 p-0"
           )}
         >
           <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Quick Navigation - Today button */}
-      <div className="flex justify-center mb-3">
-        <button
-          type="button"
-          onClick={() => setMonth(new Date())}
-          className="text-xs text-muted-foreground hover:text-primary transition-colors underline-offset-2 hover:underline"
-        >
-          Go to Today
         </button>
       </div>
 
@@ -133,30 +121,26 @@ function Calendar({
         onMonthChange={setMonth}
         className="p-0"
         classNames={{
-          months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-          month: "space-y-3",
-          caption: "hidden", // Hide default caption since we have custom navigation
+          months: "flex flex-col",
+          month: "space-y-2",
+          caption: "hidden",
           caption_label: "sr-only",
-          nav: "hidden", // Hide default nav
+          nav: "hidden",
           table: "w-full border-collapse",
           head_row: "flex",
-          head_cell:
-            "text-muted-foreground rounded-md w-10 font-medium text-[0.75rem] uppercase tracking-wide text-center",
-          row: "flex w-full mt-1",
-          cell: "h-10 w-10 text-center text-sm p-0.5 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-primary/10 [&:has([aria-selected])]:bg-primary/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+          head_cell: "text-muted-foreground w-8 font-medium text-[0.7rem] text-center",
+          row: "flex w-full mt-0.5",
+          cell: "h-8 w-8 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
           day: cn(
             buttonVariants({ variant: "ghost" }),
-            "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10 hover:text-primary transition-all rounded-lg text-sm"
+            "h-8 w-8 p-0 font-normal hover:bg-muted transition-colors rounded-md text-sm"
           ),
           day_range_end: "day-range-end",
-          day_selected:
-            "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-lg font-medium shadow-sm",
-          day_today: "bg-accent text-accent-foreground font-semibold ring-2 ring-accent ring-offset-1 ring-offset-background rounded-lg",
-          day_outside:
-            "day-outside text-muted-foreground/40 opacity-50 aria-selected:bg-primary/10 aria-selected:text-muted-foreground aria-selected:opacity-40",
+          day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 font-medium",
+          day_today: "bg-accent text-accent-foreground font-semibold",
+          day_outside: "text-muted-foreground/40 opacity-50",
           day_disabled: "text-muted-foreground/30 opacity-30 cursor-not-allowed",
-          day_range_middle:
-            "aria-selected:bg-primary/10 aria-selected:text-accent-foreground",
+          day_range_middle: "aria-selected:bg-primary/10",
           day_hidden: "invisible",
           ...classNames,
         }}

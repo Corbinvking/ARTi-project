@@ -19,8 +19,9 @@ interface Salesperson {
 
 interface CreateSalespersonData {
   name: string;
-  email?: string;
+  email: string; // Email is now required for login
   phone?: string;
+  password?: string; // Optional - will generate if not provided
 }
 
 // Hook to fetch all salespeople
@@ -39,28 +40,68 @@ export function useSalespeople() {
   });
 }
 
-// Hook to create a new salesperson
+// Hook to create a new salesperson with login credentials
 export function useCreateSalesperson() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (salespersonData: CreateSalespersonData) => {
+      // Generate a temporary password if not provided
+      const password = salespersonData.password || generateTempPassword();
+      
+      // 1. Create user account via admin API
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.artistinfluence.com';
+      
+      const userResponse = await fetch(`${apiBaseUrl}/api/admin/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: salespersonData.email,
+          password: password,
+          name: salespersonData.name,
+          role: 'sales' // Use 'sales' role for salespeople
+        })
+      });
+      
+      if (!userResponse.ok) {
+        const errorData = await userResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create user account');
+      }
+      
+      const userData = await userResponse.json();
+      console.log('✅ User account created:', userData.user?.email);
+      
+      // 2. Also create entry in salespeople table for tracking
       const { data, error } = await supabase
         .from('salespeople')
-        .insert([salespersonData])
+        .insert([{
+          name: salespersonData.name,
+          email: salespersonData.email,
+          phone: salespersonData.phone
+        }])
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.warn('Could not create salespeople entry:', error);
+        // Don't throw - user account was created successfully
+      }
+      
+      return { 
+        salesperson: data, 
+        user: userData.user,
+        tempPassword: password 
+      };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       toast({
         title: "Salesperson Added",
-        description: "New salesperson has been added successfully.",
+        description: `${result.user?.email} can now log in. Temporary password: ${result.tempPassword}`,
+        duration: 10000, // Show longer so they can copy the password
       });
       queryClient.invalidateQueries({ queryKey: ['salespeople'] });
+      queryClient.invalidateQueries({ queryKey: ['users-with-roles-and-vendors'] });
     },
     onError: (error: any) => {
       toast({
@@ -70,6 +111,16 @@ export function useCreateSalesperson() {
       });
     },
   });
+}
+
+// Generate a temporary password
+function generateTempPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let password = '';
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
 }
 
 // Hook to update a salesperson

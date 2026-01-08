@@ -173,6 +173,43 @@ export default function PlaylistsPage() {
     }
   });
 
+  // Full enrichment mutation (Spotify data + scraped streams)
+  const enrichPlaylistsFullMutation = useMutation({
+    mutationFn: async (playlistIds?: string[]) => {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
+      const response = await fetch(`${API_BASE_URL}/api/spotify-web-api/enrich-playlists-full`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ playlist_ids: playlistIds || [] }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to enrich playlists');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['all-playlists'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-playlists'] });
+      toast({
+        title: "Full Enrichment Complete",
+        description: `Updated ${data.success_count} playlists. Spotify: ${data.spotify_enriched}, Streams: ${data.streams_calculated}`,
+        duration: 5000,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Enrichment Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Delete vendor mutation
   const deleteVendorMutation = useMutation({
     mutationFn: async (vendorId: string) => {
@@ -774,6 +811,33 @@ export default function PlaylistsPage() {
                       <p className="text-gray-300">Analyzes playlist tracks and artist genres</p>
                       <p className="text-gray-400 mt-1">• Fetches top 5 genres per playlist</p>
                       <p className="text-gray-400">• Updates database automatically</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Full Enrichment Button */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => {
+                        // Enrich all playlists
+                        enrichPlaylistsFullMutation.mutate(undefined);
+                      }}
+                      disabled={enrichPlaylistsFullMutation.isPending}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    >
+                      <Database className="w-4 h-4 mr-2" />
+                      {enrichPlaylistsFullMutation.isPending ? 'Enriching All Data...' : 'Enrich Followers & Streams'}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs max-w-xs">
+                      <p className="font-semibold mb-1">Full Playlist Enrichment</p>
+                      <p className="text-gray-300">Updates followers from Spotify + calculates avg daily streams from scraped data</p>
+                      <p className="text-gray-400 mt-1">• Fetches follower counts from Spotify API</p>
+                      <p className="text-gray-400">• Calculates avg daily streams from campaign data</p>
                     </div>
                   </TooltipContent>
                 </Tooltip>

@@ -105,23 +105,25 @@ export const ExecutiveDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {data.topPerformingVendors.map((vendor, index) => (
+            {data.topPerformingVendors.map((vendor: any, index) => (
               <div key={vendor.name} className="flex items-center justify-between p-3 rounded-lg border bg-card">
                 <div className="flex items-center space-x-3">
-                  <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
+                  <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center font-bold">
                     {index + 1}
                   </Badge>
                   <div>
                     <p className="font-medium">{vendor.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {vendor.totalCampaigns} campaigns
+                      {vendor.totalCampaigns} campaigns • {vendor.totalPlaylists || 0} playlists
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-green-600">{vendor.efficiency.toFixed(1)}% efficiency</p>
+                  <p className="font-bold text-green-600">
+                    {((vendor.totalStreams28d || 0) / 1000).toFixed(1)}K streams
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {vendor.avgPerformance.toFixed(1)}% avg performance
+                    {(vendor.avgStreamsPerPlaylist || 0).toLocaleString()}/playlist • ${(vendor.costPer1k || 0).toFixed(2)}/1K
                   </p>
                 </div>
               </div>
@@ -137,15 +139,27 @@ export const ExecutiveDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {data.campaignStatusDistribution.map((status) => (
-              <div key={status.status} className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold">{status.count}</div>
-                <div className="text-sm text-muted-foreground capitalize">{status.status}</div>
-                <div className="text-xs text-muted-foreground">
-                  {status.percentage.toFixed(1)}% of total
+            {data.campaignStatusDistribution.map((statusItem) => {
+              // Status color mapping
+              const statusColors: Record<string, string> = {
+                'Active': 'text-green-600 border-green-200 bg-green-50',
+                'Pending': 'text-yellow-600 border-yellow-200 bg-yellow-50',
+                'Draft': 'text-gray-600 border-gray-200 bg-gray-50',
+                'Paused': 'text-orange-600 border-orange-200 bg-orange-50',
+                'Completed': 'text-blue-600 border-blue-200 bg-blue-50',
+              };
+              const colorClass = statusColors[statusItem.status] || 'border-gray-200';
+              
+              return (
+                <div key={statusItem.status} className={`text-center p-4 border rounded-lg ${colorClass}`}>
+                  <div className="text-2xl font-bold">{statusItem.count}</div>
+                  <div className="text-sm font-medium">{statusItem.status}</div>
+                  <div className="text-xs opacity-70">
+                    {statusItem.percentage.toFixed(1)}% of total
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>

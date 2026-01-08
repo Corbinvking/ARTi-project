@@ -529,87 +529,7 @@ export default function CampaignHistory() {
     }
   });
 
-  // Sort and filter campaigns
-  const sortedAndFilteredCampaigns = (() => {
-    let filtered = campaigns?.filter(campaign => {
-      const matchesSearch = campaign.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           campaign.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           campaign.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           campaign.salesperson?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || 
-                           campaign.status?.toLowerCase() === statusFilter.toLowerCase();
-      
-      // SFA Status filtering
-      const matchesSFA = sfaFilter === "all" || getSFAStatus(campaign) === sfaFilter;
-      
-      // Playlist Status filtering
-      const matchesPlaylist = playlistFilter === "all" || getPlaylistStatus(campaign) === playlistFilter;
-      
-      // Enhanced Performance filtering
-      const matchesEnhancedPerformance = enhancedPerformanceFilter === "all" || 
-                                       getEnhancedPerformanceStatus(campaign) === enhancedPerformanceFilter;
-      
-      // Legacy Performance filtering (keeping for backward compatibility)
-      let matchesPerformance = true;
-      if (performanceFilter !== "all" && campaign.status === 'active') {
-        const startDate = new Date(campaign.start_date);
-        const today = new Date();
-        const daysElapsed = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const streamsCompleted = campaign.stream_goal - campaign.remaining_streams;
-        const progressPercent = (streamsCompleted / campaign.stream_goal) * 100;
-        const expectedProgressPercent = (daysElapsed / 90) * 100;
-        const performanceRatio = progressPercent / Math.max(expectedProgressPercent, 1);
-        
-        if (performanceFilter === 'high' && performanceRatio < 1.2) matchesPerformance = false;
-        if (performanceFilter === 'on-track' && (performanceRatio < 0.8 || performanceRatio >= 1.2)) matchesPerformance = false;
-        if (performanceFilter === 'under-performing' && performanceRatio >= 0.8) matchesPerformance = false;
-      } else if (performanceFilter !== "all" && campaign.status !== 'active') {
-        matchesPerformance = false; // Only active campaigns can have performance metrics
-      }
-      
-      return matchesSearch && matchesStatus && matchesSFA && matchesPlaylist && 
-             matchesEnhancedPerformance && matchesPerformance;
-    }) || [];
-
-    // Sort campaigns
-    return filtered.sort((a, b) => {
-      let aValue: any = a[sortField];
-      let bValue: any = b[sortField];
-
-      // Handle special cases
-      if (sortField === 'progress') {
-        aValue = a.progress_percentage || 0;
-        bValue = b.progress_percentage || 0;
-      } else if (sortField === 'remaining_streams') {
-        aValue = a.remaining_streams || 0;
-        bValue = b.remaining_streams || 0;
-      } else if (sortField === 'start_date') {
-        aValue = a.start_date ? new Date(a.start_date).getTime() : 0;
-        bValue = b.start_date ? new Date(b.start_date).getTime() : 0;
-      } else if (sortField === 'schedule_status') {
-        // Sort by behind first (worst), then on_track, then ahead (best)
-        const statusOrder = { 'behind': 0, 'on_track': 1, 'ahead': 2, 'not_started': 3, 'completed': 4 };
-        aValue = statusOrder[calculateScheduleStatus(a).status] || 0;
-        bValue = statusOrder[calculateScheduleStatus(b).status] || 0;
-      }
-
-      // Handle null/undefined values
-      if (aValue === null || aValue === undefined) aValue = 0;
-      if (bValue === null || bValue === undefined) bValue = 0;
-
-      // Convert to comparable types
-      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
-
-      if (sortDirection === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
-    });
-  })();
-
-  // Helper functions for status determination
+  // Helper functions for status determination (must be defined before sorting/filtering)
   const getSFAStatus = (campaign: Campaign): 'active' | 'stale' | 'no_url' | 'connected' | 'no_access' | 'pending' => {
     // NEW: Use actual scraper status if available
     if (campaign.sfa_status) {
@@ -667,6 +587,7 @@ export default function CampaignHistory() {
 
   const getEnhancedPerformanceStatus = (campaign: Campaign): 'underperforming' | 'on_track' | 'overperforming' | 'pending' => {
     if (campaign.status !== 'active') return 'pending';
+    if (!campaign.start_date) return 'pending';
     
     const startDate = new Date(campaign.start_date);
     const today = new Date();
@@ -674,9 +595,13 @@ export default function CampaignHistory() {
     
     if (daysElapsed <= 0) return 'pending';
     
-    const streamsCompleted = campaign.stream_goal - campaign.remaining_streams;
-    const progressPercent = (streamsCompleted / campaign.stream_goal) * 100;
-    const expectedProgressPercent = (daysElapsed / campaign.duration_days) * 100;
+    const streamGoal = campaign.stream_goal || 0;
+    const remainingStreams = campaign.remaining_streams || 0;
+    if (streamGoal === 0) return 'pending';
+    
+    const streamsCompleted = streamGoal - remainingStreams;
+    const progressPercent = (streamsCompleted / streamGoal) * 100;
+    const expectedProgressPercent = (daysElapsed / (campaign.duration_days || 90)) * 100;
     const performanceRatio = progressPercent / Math.max(expectedProgressPercent, 1);
     
     if (performanceRatio >= 1.2) return 'overperforming';
@@ -684,27 +609,148 @@ export default function CampaignHistory() {
     return 'underperforming';
   };
 
-  // Helper function for status counts
+  // Status aliases for filtering
+  const statusAliases: Record<string, string[]> = {
+    'active': ['active', 'in_progress', 'running'],
+    'draft': ['draft', 'pending', 'pending_approval'],
+    'paused': ['paused', 'on_hold'],
+    'completed': ['completed', 'done', 'finished']
+  };
+
+  // Sort and filter campaigns
+  const sortedAndFilteredCampaigns = (() => {
+    let filtered = campaigns?.filter(campaign => {
+      const matchesSearch = campaign.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           campaign.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           campaign.client?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           campaign.salesperson?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Status matching with aliases
+      let matchesStatus = false;
+      if (statusFilter === "all") {
+        matchesStatus = true;
+      } else {
+        const campaignStatus = (campaign.status || '').toLowerCase().trim();
+        const targetStatuses = statusAliases[statusFilter.toLowerCase()] || [statusFilter.toLowerCase()];
+        matchesStatus = targetStatuses.includes(campaignStatus);
+      }
+      
+      // SFA Status filtering
+      const matchesSFA = sfaFilter === "all" || getSFAStatus(campaign) === sfaFilter;
+      
+      // Playlist Status filtering
+      const matchesPlaylist = playlistFilter === "all" || getPlaylistStatus(campaign) === playlistFilter;
+      
+      // Enhanced Performance filtering
+      const matchesEnhancedPerformance = enhancedPerformanceFilter === "all" || 
+                                       getEnhancedPerformanceStatus(campaign) === enhancedPerformanceFilter;
+      
+      // Legacy Performance filtering (keeping for backward compatibility)
+      let matchesPerformance = true;
+      if (performanceFilter !== "all" && campaign.status === 'active') {
+        if (!campaign.start_date || !campaign.stream_goal) {
+          matchesPerformance = performanceFilter === 'all';
+        } else {
+          const startDate = new Date(campaign.start_date);
+          const today = new Date();
+          const daysElapsed = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+          const streamGoal = campaign.stream_goal || 1;
+          const remainingStreams = campaign.remaining_streams || 0;
+          const streamsCompleted = streamGoal - remainingStreams;
+          const progressPercent = (streamsCompleted / streamGoal) * 100;
+          const expectedProgressPercent = (daysElapsed / 90) * 100;
+          const performanceRatio = progressPercent / Math.max(expectedProgressPercent, 1);
+          
+          if (performanceFilter === 'high' && performanceRatio < 1.2) matchesPerformance = false;
+          if (performanceFilter === 'on-track' && (performanceRatio < 0.8 || performanceRatio >= 1.2)) matchesPerformance = false;
+          if (performanceFilter === 'under-performing' && performanceRatio >= 0.8) matchesPerformance = false;
+        }
+      } else if (performanceFilter !== "all" && campaign.status !== 'active') {
+        matchesPerformance = false; // Only active campaigns can have performance metrics
+      }
+      
+      return matchesSearch && matchesStatus && matchesSFA && matchesPlaylist && 
+             matchesEnhancedPerformance && matchesPerformance;
+    }) || [];
+
+    // Sort campaigns
+    return filtered.sort((a, b) => {
+      let aValue: any = a[sortField];
+      let bValue: any = b[sortField];
+
+      // Handle special cases
+      if (sortField === 'progress') {
+        aValue = a.progress_percentage || 0;
+        bValue = b.progress_percentage || 0;
+      } else if (sortField === 'remaining_streams') {
+        aValue = a.remaining_streams || 0;
+        bValue = b.remaining_streams || 0;
+      } else if (sortField === 'start_date') {
+        aValue = a.start_date ? new Date(a.start_date).getTime() : 0;
+        bValue = b.start_date ? new Date(b.start_date).getTime() : 0;
+      } else if (sortField === 'schedule_status') {
+        // Sort by behind first (worst), then on_track, then ahead (best)
+        const statusOrder = { 'behind': 0, 'on_track': 1, 'ahead': 2, 'not_started': 3, 'completed': 4 };
+        aValue = statusOrder[calculateScheduleStatus(a).status] || 0;
+        bValue = statusOrder[calculateScheduleStatus(b).status] || 0;
+      }
+
+      // Handle null/undefined values
+      if (aValue === null || aValue === undefined) aValue = 0;
+      if (bValue === null || bValue === undefined) bValue = 0;
+
+      // Convert to comparable types
+      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+      if (sortDirection === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+  })();
+
+  // Helper function for status counts (with null safety and case-insensitive matching)
   const getStatusCount = (status: string) => {
-    if (status === 'all') return campaigns?.length || 0;
-    return campaigns?.filter(c => 
-      c.status.toLowerCase() === status.toLowerCase()
-    ).length || 0;
+    if (!campaigns || !Array.isArray(campaigns)) return 0;
+    if (status === 'all') return campaigns.length;
+    
+    // Map common status variations to match database values
+    const statusAliases: Record<string, string[]> = {
+      'active': ['active', 'in_progress', 'running'],
+      'draft': ['draft', 'pending', 'pending_approval'],
+      'paused': ['paused', 'on_hold'],
+      'completed': ['completed', 'done', 'finished']
+    };
+    
+    const targetStatuses = statusAliases[status.toLowerCase()] || [status.toLowerCase()];
+    
+    return campaigns.filter(c => {
+      const campaignStatus = (c.status || '').toLowerCase().trim();
+      return targetStatuses.includes(campaignStatus);
+    }).length;
   };
 
   const getSFACount = (status: string) => {
-    if (status === 'all') return campaigns?.length || 0;
-    return campaigns?.filter(c => getSFAStatus(c) === status).length || 0;
+    if (!campaigns || !Array.isArray(campaigns)) return 0;
+    if (status === 'all') return campaigns.length;
+    return campaigns.filter(c => getSFAStatus(c) === status).length;
   };
 
   const getPlaylistCount = (status: string) => {
-    if (status === 'all') return campaigns?.length || 0;
-    return campaigns?.filter(c => getPlaylistStatus(c) === status).length || 0;
+    if (!campaigns || !Array.isArray(campaigns)) return 0;
+    if (status === 'all') return campaigns.length;
+    return campaigns.filter(c => getPlaylistStatus(c) === status).length;
   };
 
   const getEnhancedPerformanceCount = (status: string) => {
-    if (status === 'all') return campaigns?.filter(c => c.status === 'active').length || 0;
-    return campaigns?.filter(c => getEnhancedPerformanceStatus(c) === status).length || 0;
+    if (!campaigns || !Array.isArray(campaigns)) return 0;
+    // Case-insensitive check for active campaigns
+    if (status === 'all') return campaigns.filter(c => 
+      (c.status || '').toLowerCase() === 'active'
+    ).length;
+    return campaigns.filter(c => getEnhancedPerformanceStatus(c) === status).length;
   };
 
   const handleStatusChange = (campaignId: string, newStatus: Campaign['status']) => {
@@ -1017,98 +1063,158 @@ export default function CampaignHistory() {
             <div className="border border-border rounded-lg p-4 mb-6">
               <div className="flex flex-wrap items-center gap-4">
                 {/* Search */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-1 min-w-[200px] max-w-[400px]">
                   <Search className="h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search campaigns..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-64"
+                    className="w-full"
                   />
                 </div>
                 
-                {/* Status Filter */}
+                {/* Unified Filter Dropdown */}
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-muted-foreground" />
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All ({getStatusCount('all')})</SelectItem>
-                      <SelectItem value="active">Active ({getStatusCount('active')})</SelectItem>
-                      <SelectItem value="draft">Pending ({getStatusCount('draft')})</SelectItem>
-                      <SelectItem value="paused">Paused ({getStatusCount('paused')})</SelectItem>
-                      <SelectItem value="completed">Completed ({getStatusCount('completed')})</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* SFA Status Filter */}
-                <div className="flex items-center gap-2">
-                  <Music className="h-4 w-4 text-muted-foreground" />
-                  <Select value={sfaFilter} onValueChange={setSfaFilter}>
-                    <SelectTrigger className="w-44">
-                      <SelectValue placeholder="SFA Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All SFA ({getSFACount('all')})</SelectItem>
-                      <SelectItem value="active">✓ Active ({getSFACount('active')})</SelectItem>
-                      <SelectItem value="stale">⚠ Stale ({getSFACount('stale')})</SelectItem>
-                      <SelectItem value="no_url">✗ No URL ({getSFACount('no_url')})</SelectItem>
-                      <SelectItem value="connected">Connected ({getSFACount('connected')})</SelectItem>
-                      <SelectItem value="no_access">No Access ({getSFACount('no_access')})</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Playlist Status Filter */}
-                <div className="flex items-center gap-2">
-                  <List className="h-4 w-4 text-muted-foreground" />
-                  <Select value={playlistFilter} onValueChange={setPlaylistFilter}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Playlists" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All ({getPlaylistCount('all')})</SelectItem>
-                      <SelectItem value="has_playlists">Has Playlists ({getPlaylistCount('has_playlists')})</SelectItem>
-                      <SelectItem value="no_playlists">No Playlists ({getPlaylistCount('no_playlists')})</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Performance Filter */}
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  <Select value={enhancedPerformanceFilter} onValueChange={setEnhancedPerformanceFilter}>
-                    <SelectTrigger className="w-44">
-                      <SelectValue placeholder="Performance" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Active ({getEnhancedPerformanceCount('all')})</SelectItem>
-                      <SelectItem value="overperforming">Overperforming ({getEnhancedPerformanceCount('overperforming')})</SelectItem>
-                      <SelectItem value="on_track">On Track ({getEnhancedPerformanceCount('on_track')})</SelectItem>
-                      <SelectItem value="underperforming">Underperforming ({getEnhancedPerformanceCount('underperforming')})</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Clear Filters */}
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setStatusFilter('all');
-                    setSfaFilter('all');
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <Select value={`${statusFilter}|${sfaFilter}|${enhancedPerformanceFilter}`} onValueChange={(value) => {
+                    const [status, sfa, perf] = value.split('|');
+                    setStatusFilter(status);
+                    setSfaFilter(sfa);
                     setPlaylistFilter('all');
-                    setEnhancedPerformanceFilter('all');
-                    setSearchTerm('');
-                  }}
-                  className="ml-auto"
-                >
-                  <X className="h-4 w-4 mr-1" />
-                  Clear All
-                </Button>
+                    setEnhancedPerformanceFilter(perf);
+                  }}>
+                    <SelectTrigger className="w-56">
+                      <SelectValue placeholder="Filter campaigns..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {/* All */}
+                      <SelectItem value="all|all|all">
+                        All Campaigns ({getStatusCount('all')})
+                      </SelectItem>
+                      
+                      {/* By Status */}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Status</div>
+                      <SelectItem value="active|all|all">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-green-500" />
+                          Active ({getStatusCount('active')})
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="draft|all|all">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                          Pending ({getStatusCount('draft')})
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="paused|all|all">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-gray-400" />
+                          Paused ({getStatusCount('paused')})
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="completed|all|all">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-blue-500" />
+                          Completed ({getStatusCount('completed')})
+                        </span>
+                      </SelectItem>
+
+                      {/* By SFA Status */}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">SFA Link</div>
+                      <SelectItem value="all|active|all">
+                        <span className="flex items-center gap-2">
+                          <CheckCircle className="w-3 h-3 text-green-500" />
+                          Has SFA Link ({getSFACount('active') + getSFACount('stale') + getSFACount('connected')})
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="all|no_url|all">
+                        <span className="flex items-center gap-2">
+                          <AlertTriangle className="w-3 h-3 text-red-500" />
+                          No SFA Link ({getSFACount('no_url') + getSFACount('no_access')})
+                        </span>
+                      </SelectItem>
+
+                      {/* By Schedule/Performance */}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">Schedule</div>
+                      <SelectItem value="active|all|overperforming">
+                        <span className="flex items-center gap-2">
+                          <TrendingUp className="w-3 h-3 text-green-500" />
+                          Ahead of Schedule ({getEnhancedPerformanceCount('overperforming')})
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="active|all|on_track">
+                        <span className="flex items-center gap-2">
+                          <Activity className="w-3 h-3 text-blue-500" />
+                          On Track ({getEnhancedPerformanceCount('on_track')})
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="active|all|underperforming">
+                        <span className="flex items-center gap-2">
+                          <TrendingDown className="w-3 h-3 text-red-500" />
+                          Behind Schedule ({getEnhancedPerformanceCount('underperforming')})
+                        </span>
+                      </SelectItem>
+
+                      {/* By Invoice Status */}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">Invoice</div>
+                      <SelectItem value="all|all|all" disabled>
+                        <span className="flex items-center gap-2">
+                          <Receipt className="w-3 h-3 text-green-500" />
+                          Invoiced (coming soon)
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="all|all|all" disabled>
+                        <span className="flex items-center gap-2">
+                          <FileText className="w-3 h-3 text-orange-500" />
+                          Not Invoiced (coming soon)
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Quick Filter Badges */}
+                {(statusFilter !== 'all' || sfaFilter !== 'all' || enhancedPerformanceFilter !== 'all' || searchTerm) && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {statusFilter !== 'all' && (
+                      <Badge variant="secondary" className="gap-1">
+                        Status: {statusFilter}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => setStatusFilter('all')} />
+                      </Badge>
+                    )}
+                    {sfaFilter !== 'all' && (
+                      <Badge variant="secondary" className="gap-1">
+                        SFA: {sfaFilter}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => setSfaFilter('all')} />
+                      </Badge>
+                    )}
+                    {enhancedPerformanceFilter !== 'all' && (
+                      <Badge variant="secondary" className="gap-1">
+                        Schedule: {enhancedPerformanceFilter}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => setEnhancedPerformanceFilter('all')} />
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* Clear All */}
+                {(statusFilter !== 'all' || sfaFilter !== 'all' || enhancedPerformanceFilter !== 'all' || searchTerm) && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      setStatusFilter('all');
+                      setSfaFilter('all');
+                      setPlaylistFilter('all');
+                      setEnhancedPerformanceFilter('all');
+                      setSearchTerm('');
+                    }}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Clear
+                  </Button>
+                )}
               </div>
             </div>
 

@@ -272,6 +272,170 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
   });
 
   /**
+   * POST /spotify-web-api/enrich-playlists-full
+   * Comprehensive enrichment: Spotify data (followers, name) + scraped data (avg_daily_streams)
+   */
+  server.post('/spotify-web-api/enrich-playlists-full', async (request, reply) => {
+    const { playlist_ids } = request.body as { playlist_ids?: string[] };
+    
+    logger.info({ count: playlist_ids?.length || 'all' }, 'Starting full playlist enrichment');
+    
+    const results = {
+      success: 0,
+      failed: 0,
+      spotify_enriched: 0,
+      streams_calculated: 0,
+      details: [] as any[],
+    };
+
+    try {
+      // Step 1: Get playlists to enrich (either specific IDs or all with spotify_id)
+      let playlistsQuery = supabase
+        .from('playlists')
+        .select('id, name, url, spotify_id, follower_count, avg_daily_streams');
+      
+      if (playlist_ids && playlist_ids.length > 0) {
+        playlistsQuery = playlistsQuery.in('id', playlist_ids);
+      }
+      
+      const { data: playlists, error: fetchError } = await playlistsQuery;
+      
+      if (fetchError) {
+        logger.error({ error: fetchError }, 'Failed to fetch playlists');
+        return reply.status(500).send({ success: false, error: fetchError.message });
+      }
+      
+      logger.info({ count: playlists?.length }, 'Fetched playlists to enrich');
+
+      // Step 2: Calculate avg_daily_streams from campaign_playlists data
+      const { data: streamData, error: streamError } = await supabase
+        .from('campaign_playlists')
+        .select('playlist_name, streams_7d, streams_24h');
+      
+      if (streamError) {
+        logger.warn({ error: streamError }, 'Failed to fetch campaign_playlists for stream data');
+      }
+      
+      // Group streams by playlist name and calculate averages
+      const streamsByName = new Map<string, { total7d: number; total24h: number; count: number }>();
+      for (const row of streamData || []) {
+        const name = row.playlist_name?.toLowerCase()?.trim();
+        if (!name) continue;
+        
+        if (!streamsByName.has(name)) {
+          streamsByName.set(name, { total7d: 0, total24h: 0, count: 0 });
+        }
+        const entry = streamsByName.get(name)!;
+        entry.total7d += row.streams_7d || 0;
+        entry.total24h += row.streams_24h || 0;
+        entry.count++;
+      }
+
+      // Step 3: Process each playlist
+      for (const playlist of playlists || []) {
+        try {
+          const updates: any = { updated_at: new Date().toISOString() };
+          let enriched = false;
+
+          // Try to get Spotify data if we have a spotify_id or can extract from URL
+          let spotifyId = playlist.spotify_id;
+          if (!spotifyId && playlist.url) {
+            spotifyId = SpotifyWebAPIClient.extractSpotifyId(playlist.url, 'playlist');
+          }
+
+          if (spotifyId) {
+            try {
+              const spotifyData = await spotifyWebApi.getPlaylist(spotifyId);
+              if (spotifyData) {
+                updates.follower_count = spotifyData.followers?.total || 0;
+                updates.spotify_id = spotifyId; // Ensure spotify_id is set
+                results.spotify_enriched++;
+                enriched = true;
+                
+                logger.info({ 
+                  name: playlist.name, 
+                  followers: updates.follower_count 
+                }, 'Fetched Spotify data');
+              }
+            } catch (spotifyError: any) {
+              logger.warn({ playlistId: spotifyId, error: spotifyError.message }, 'Spotify API error');
+            }
+            
+            // Rate limit
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+
+          // Calculate avg_daily_streams from scraped data
+          const normalizedName = playlist.name?.toLowerCase()?.trim();
+          const streamEntry = streamsByName.get(normalizedName);
+          if (streamEntry && streamEntry.count > 0) {
+            // Prefer 7-day average, fallback to 24h
+            const avgDaily = streamEntry.total7d > 0 
+              ? Math.round(streamEntry.total7d / 7)
+              : streamEntry.total24h;
+            
+            if (avgDaily > 0) {
+              updates.avg_daily_streams = avgDaily;
+              results.streams_calculated++;
+              enriched = true;
+            }
+          }
+
+          // Update playlist if we have new data
+          if (enriched) {
+            const { error: updateError } = await supabase
+              .from('playlists')
+              .update(updates)
+              .eq('id', playlist.id);
+
+            if (updateError) {
+              logger.error({ id: playlist.id, error: updateError }, 'Failed to update playlist');
+              results.failed++;
+              results.details.push({ id: playlist.id, name: playlist.name, error: updateError.message });
+            } else {
+              results.success++;
+              results.details.push({ 
+                id: playlist.id, 
+                name: playlist.name,
+                followers: updates.follower_count,
+                avg_daily_streams: updates.avg_daily_streams
+              });
+            }
+          } else {
+            results.details.push({ 
+              id: playlist.id, 
+              name: playlist.name, 
+              skipped: true,
+              reason: 'No spotify_id and no stream data'
+            });
+          }
+          
+        } catch (error: any) {
+          logger.error({ id: playlist.id, error: error.message }, 'Failed to process playlist');
+          results.failed++;
+          results.details.push({ id: playlist.id, name: playlist.name, error: error.message });
+        }
+      }
+
+      logger.info(results, 'Full playlist enrichment completed');
+      
+      return {
+        status: 'completed',
+        success_count: results.success,
+        failed_count: results.failed,
+        spotify_enriched: results.spotify_enriched,
+        streams_calculated: results.streams_calculated,
+        total_processed: playlists?.length || 0,
+        details: results.details.slice(0, 50), // Limit response size
+      };
+      
+    } catch (error: any) {
+      logger.error({ error: error.message }, 'Full enrichment failed');
+      return reply.status(500).send({ success: false, error: error.message });
+    }
+  });
+
+  /**
    * POST /spotify-web-api/enrich-tracks
    * Bulk enrich tracks with metadata (name, artist, genres)
    */

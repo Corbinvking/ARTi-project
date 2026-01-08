@@ -450,6 +450,11 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
             setValue("track_name", result.data.name);
             setValue("name", campaignName); // Auto-populate campaign name
             
+            // Auto-generate Spotify for Artists URL
+            const sfaUrl = `https://artists.spotify.com/c/song/${trackId}`;
+            setValue("sfa_url", sfaUrl);
+            console.log('🔗 [SFA URL] Auto-generated:', sfaUrl);
+            
             // Store raw Spotify genres for display
             const rawGenres = result.data.genres || [];
             console.log('🎵 [Genre Debug] Raw genres array:', rawGenres);
@@ -595,18 +600,18 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                                Allocate Credits (Available: ${clientCreditBalance})
                              </Label>
                            </div>
-                           <Input
-                             type="number"
-                             min={0}
-                             max={clientCreditBalance}
-                             value={creditsToAllocate}
-                             onChange={(e) => {
-                               const value = parseFloat(e.target.value) || 0;
-                               setCreditsToAllocate(Math.min(value, clientCreditBalance));
-                             }}
-                             placeholder="Enter amount to use from credits"
-                             className="bg-white"
-                           />
+                          <Input
+                            type="number"
+                            min={0}
+                            max={clientCreditBalance}
+                            value={creditsToAllocate}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value) || 0;
+                              setCreditsToAllocate(Math.min(value, clientCreditBalance));
+                            }}
+                            placeholder="Enter amount to use from credits"
+                            className="bg-white text-green-900 border-green-300"
+                          />
                            {creditsToAllocate > 0 && (
                              <p className="text-xs text-green-700">
                                Campaign cost will be reduced by ${creditsToAllocate}

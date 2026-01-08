@@ -37,7 +37,7 @@ ssh root@164.90.129.146
 nano /root/arti-marketing-ops/apps/api/.env
 
 # Add your API key:
-ANTHROPIC_API_KEY=sk-ant-your-key-here
+ANTHROPIC_API_KEY=your-anthropic-api-key-here
 
 # Or for OpenAI:
 # OPENAI_API_KEY=sk-your-key-here

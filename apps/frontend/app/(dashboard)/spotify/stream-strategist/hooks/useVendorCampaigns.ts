@@ -184,19 +184,22 @@ export function useVendorCampaigns() {
 
         // Calculate total streams and estimate payment
         let totalStreams = 0;
+        let totalAmountOwed = 0;
         let paymentStatus: 'paid' | 'unpaid' | 'pending' = 'pending';
 
-        // Sum up streams from all vendor playlists in this campaign
-        for (const perf of campaignPlaylistPerf) {
-          totalStreams += (perf.streams_28d || 0);
-        }
-        
-        // Get vendor cost rate
+        // Get vendor default cost rate
         const vendorData = vendorUsers?.find(vu => vendorIds.includes(vu.vendor_id))?.vendors as any;
-        const costPer1kStreams = vendorData?.cost_per_1k_streams || 0;
-        
-        // Calculate amount owed based on streams
-        const totalAmountOwed = (totalStreams / 1000) * costPer1kStreams;
+        const vendorDefaultCost = vendorData?.cost_per_1k_streams || 0;
+
+        // Sum up streams and calculate payment per playlist (using campaign-specific rates if set)
+        for (const perf of campaignPlaylistPerf) {
+          const playlistStreams = perf.streams_28d || 0;
+          totalStreams += playlistStreams;
+          
+          // Use cost_per_1k_override if set, otherwise use vendor default
+          const effectiveCostPer1k = perf.cost_per_1k_override ?? vendorDefaultCost;
+          totalAmountOwed += (playlistStreams / 1000) * effectiveCostPer1k;
+        }
         
         // For now, mark as unpaid if there are streams, pending if no data
         if (totalStreams > 0) {
