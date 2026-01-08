@@ -37,16 +37,12 @@ function DropdownMenuContent({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
-    <DropdownMenuPrimitive.Portal container={typeof document !== 'undefined' ? document.body : undefined}>
+    <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
-        style={{ 
-          position: 'fixed',
-          zIndex: 99999,
-        }}
         className={cn(
-          'bg-zinc-900 text-zinc-100 border-2 border-zinc-600 shadow-2xl min-w-[160px] overflow-hidden rounded-lg p-1',
+          '!z-[99999] bg-zinc-900 text-zinc-100 border-2 border-zinc-600 shadow-2xl min-w-[160px] overflow-hidden rounded-lg p-1',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
           className,
         )}
@@ -234,12 +230,8 @@ function DropdownMenuSubContent({
   return (
     <DropdownMenuPrimitive.SubContent
       data-slot="dropdown-menu-sub-content"
-      style={{ 
-        position: 'fixed',
-        zIndex: 99999,
-      }}
       className={cn(
-        'bg-zinc-900 text-zinc-100 border-2 border-zinc-600 shadow-2xl min-w-[160px] overflow-hidden rounded-lg p-1',
+        '!z-[99999] bg-zinc-900 text-zinc-100 border-2 border-zinc-600 shadow-2xl min-w-[160px] overflow-hidden rounded-lg p-1',
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         className,
       )}
