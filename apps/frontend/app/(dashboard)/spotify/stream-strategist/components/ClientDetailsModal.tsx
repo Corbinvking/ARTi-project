@@ -39,13 +39,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Plus, X, Trash2, Calendar, DollarSign, RefreshCw } from 'lucide-react';
+import { Plus, X, Trash2, Calendar, DollarSign, RefreshCw, Eye } from 'lucide-react';
 import { useUpdateClient, useClientCredits, useAddClientCredit, useClient } from '../hooks/useClients';
 import { useAllCampaigns, useAssignCampaignToClient, useUnassignCampaignFromClient } from '../hooks/useCampaigns';
 import { clearBrowserCache } from '../utils/debugUtils';
 import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_TYPE } from '../lib/constants';
 import { Client } from '../types';
 import { format } from 'date-fns';
+import { CampaignDetailsModal } from './CampaignDetailsModal';
 
 interface ClientDetailsModalProps {
   client: Client | null;
@@ -66,6 +67,8 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
     campaignName: string;
     currentClientName: string;
   } | null>(null);
+  const [viewingCampaign, setViewingCampaign] = useState<any>(null);
+  const [isCampaignDetailsOpen, setIsCampaignDetailsOpen] = useState(false);
 
   const updateClient = useUpdateClient();
   const addCredit = useAddClientCredit();
@@ -554,15 +557,24 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                   </TableHeader>
                   <TableBody>
                     {clientCampaigns.map((campaign) => (
-                      <TableRow key={campaign.id}>
+                      <TableRow 
+                        key={campaign.id} 
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => {
+                          setViewingCampaign(campaign);
+                          setIsCampaignDetailsOpen(true);
+                        }}
+                      >
                         <TableCell className="font-medium">
-                          <div>
-                            <div>{campaign.name}</div>
-                            {campaign.song_count > 1 && (
-                              <div className="text-xs text-muted-foreground">
-                                {campaign.song_count} songs
-                              </div>
-                            )}
+                          <div className="flex items-center gap-2">
+                            <div>
+                              <div className="text-primary hover:underline">{campaign.name}</div>
+                              {campaign.song_count > 1 && (
+                                <div className="text-xs text-muted-foreground">
+                                  {campaign.song_count} songs
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -584,13 +596,26 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setViewingCampaign(campaign);
+                                setIsCampaignDetailsOpen(true);
+                              }}
+                              title="View campaign details"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Unassign Campaign</AlertDialogTitle>
@@ -607,6 +632,7 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -640,6 +666,16 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Campaign Details Modal */}
+      <CampaignDetailsModal
+        campaign={viewingCampaign}
+        open={isCampaignDetailsOpen}
+        onClose={() => {
+          setIsCampaignDetailsOpen(false);
+          setViewingCampaign(null);
+        }}
+      />
     </Dialog>
   );
 }
