@@ -302,32 +302,113 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const fetchCampaignDetails = async () => {
     if (!campaign?.id) return;
     
-    console.log('🔄 [v1.0.2] Fetching comprehensive campaign details');
+    console.log('🔄 [v1.0.3] Fetching comprehensive campaign details');
     setLoading(true);
     try {
-      // Fetch campaign group data
-      const { data: campaignGroup, error: groupError } = await supabase
-        .from('campaign_groups')
-        .select(`
-          *,
-          clients (
-            id,
-            name,
-            emails
-          )
-        `)
-        .eq('id', campaign.id)
-        .single();
-
-      if (groupError) throw groupError;
-
-      // Fetch all songs (spotify_campaigns) in this campaign group
-      const { data: songs, error: songsError } = await supabase
-        .from('spotify_campaigns')
-        .select('*')
-        .eq('campaign_group_id', campaign.id);
+      // Detect if this is a spotify_campaign (integer ID, has 'campaign' field) 
+      // or a campaign_group (UUID, has 'name' field)
+      const isSpotifyCampaign = typeof campaign.id === 'number' || 
+                                 (typeof campaign.id === 'string' && !campaign.id.includes('-')) ||
+                                 campaign.campaign !== undefined;
       
-      if (songsError) throw songsError;
+      console.log('🔍 [v1.0.3] Campaign type detection:', { 
+        id: campaign.id, 
+        isSpotifyCampaign,
+        hasCampaignField: campaign.campaign !== undefined,
+        hasNameField: campaign.name !== undefined
+      });
+
+      let campaignGroup: any = null;
+      let songs: any[] = [];
+
+      if (isSpotifyCampaign) {
+        // This is a direct spotify_campaign - fetch it and optionally its group
+        const { data: spotifyCampaign, error: scError } = await supabase
+          .from('spotify_campaigns')
+          .select('*')
+          .eq('id', campaign.id)
+          .single();
+        
+        if (scError) {
+          console.error('Error fetching spotify_campaign:', scError);
+          throw scError;
+        }
+        
+        songs = [spotifyCampaign];
+        
+        // Try to fetch the campaign group if it exists
+        if (spotifyCampaign.campaign_group_id) {
+          const { data: group } = await supabase
+            .from('campaign_groups')
+            .select(`
+              *,
+              clients (
+                id,
+                name,
+                emails
+              )
+            `)
+            .eq('id', spotifyCampaign.campaign_group_id)
+            .single();
+          
+          if (group) {
+            campaignGroup = group;
+          }
+        }
+        
+        // If no group found, construct a pseudo-group from the spotify_campaign data
+        if (!campaignGroup) {
+          // Fetch client info if we have client_id
+          let clientInfo = null;
+          if (spotifyCampaign.client_id) {
+            const { data: client } = await supabase
+              .from('clients')
+              .select('id, name, emails')
+              .eq('id', spotifyCampaign.client_id)
+              .single();
+            clientInfo = client;
+          }
+          
+          campaignGroup = {
+            id: spotifyCampaign.id,
+            name: spotifyCampaign.campaign,
+            artist_name: spotifyCampaign.client,
+            status: spotifyCampaign.status || 'Active',
+            start_date: spotifyCampaign.start_date,
+            total_budget: spotifyCampaign.sale_price,
+            total_goal: spotifyCampaign.goal,
+            notes: spotifyCampaign.notes,
+            clients: clientInfo,
+            client_id: spotifyCampaign.client_id,
+          };
+        }
+      } else {
+        // This is a campaign_group - use the original logic
+        const { data: group, error: groupError } = await supabase
+          .from('campaign_groups')
+          .select(`
+            *,
+            clients (
+              id,
+              name,
+              emails
+            )
+          `)
+          .eq('id', campaign.id)
+          .single();
+
+        if (groupError) throw groupError;
+        campaignGroup = group;
+
+        // Fetch all songs (spotify_campaigns) in this campaign group
+        const { data: groupSongs, error: songsError } = await supabase
+          .from('spotify_campaigns')
+          .select('*')
+          .eq('campaign_group_id', campaign.id);
+        
+        if (songsError) throw songsError;
+        songs = groupSongs || [];
+      }
 
       // Calculate totals from songs
       const totalDaily = songs?.reduce((sum, song) => sum + (parseInt(song.daily) || song.daily_streams || 0), 0) || 0;
