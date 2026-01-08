@@ -125,22 +125,40 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         return { vendor: [], algorithmic: [] };
       }
       
-      // First, get all spotify_campaigns (songs) in this campaign group
-      const { data: songs, error: songsError } = await supabase
-        .from('spotify_campaigns')
-        .select('id')
-        .eq('campaign_group_id', campaign.id);
+      // Detect if this is a spotify_campaign (integer ID) or campaign_group (UUID)
+      const isSpotifyCampaign = typeof campaign.id === 'number' || 
+                                 (typeof campaign.id === 'string' && !campaign.id.includes('-')) ||
+                                 campaign.campaign !== undefined;
       
-      if (songsError) {
-        console.error('Error fetching campaign songs:', songsError);
-        return { vendor: [], algorithmic: [] };
+      let songIds: number[] = [];
+      
+      if (isSpotifyCampaign) {
+        // Direct spotify_campaign - the ID itself is the song ID
+        songIds = [typeof campaign.id === 'number' ? campaign.id : parseInt(campaign.id)];
+        console.log('🔍 [Playlists] Using direct spotify_campaign ID:', songIds);
+      } else {
+        // Campaign group - fetch all songs in the group
+        const { data: songs, error: songsError } = await supabase
+          .from('spotify_campaigns')
+          .select('id')
+          .eq('campaign_group_id', campaign.id);
+        
+        if (songsError) {
+          console.error('Error fetching campaign songs:', songsError);
+          return { vendor: [], algorithmic: [] };
+        }
+        
+        if (!songs || songs.length === 0) {
+          return { vendor: [], algorithmic: [] };
+        }
+        
+        songIds = songs.map(s => s.id);
+        console.log('🔍 [Playlists] Using campaign_group song IDs:', songIds);
       }
       
-      if (!songs || songs.length === 0) {
+      if (songIds.length === 0) {
         return { vendor: [], algorithmic: [] };
       }
-      
-      const songIds = songs.map(s => s.id);
       
       // Fetch ALL playlists for all songs
       let query = supabase
