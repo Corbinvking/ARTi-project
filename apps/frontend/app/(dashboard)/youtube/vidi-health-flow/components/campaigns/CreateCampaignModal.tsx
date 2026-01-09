@@ -327,6 +327,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
         wait_time_seconds: formData.wait_time_seconds ? parseInt(formData.wait_time_seconds) : 0,
         desired_daily: formData.desired_daily ? parseInt(formData.desired_daily) : 0,
         status: formData.status,
+        youtube_api_enabled: formData.status === 'active', // Auto-enable for active campaigns
         technical_setup_complete: formData.status === 'active' // Mark as complete if creating as active
       };
 
