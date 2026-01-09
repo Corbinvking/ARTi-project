@@ -147,6 +147,24 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
     }
   }, [campaign, isOpen]);
 
+  // Auto-calculate desired_daily when goals or dates change
+  useEffect(() => {
+    if (formData.start_date && formData.end_date && serviceTypes.length > 0) {
+      const totalGoalViews = serviceTypes.reduce((sum, st) => sum + (st.goal_views || 0), 0);
+      const startDate = new Date(formData.start_date);
+      const endDate = new Date(formData.end_date);
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysDiff > 0 && totalGoalViews > 0) {
+        const calculatedDaily = Math.ceil(totalGoalViews / daysDiff);
+        setFormData(prev => ({
+          ...prev,
+          desired_daily: calculatedDaily.toString()
+        }));
+      }
+    }
+  }, [serviceTypes, formData.start_date, formData.end_date]);
+
   const fetchDailyStats = async () => {
     if (!campaign) {
       console.log('📊 fetchDailyStats: No campaign, skipping');
@@ -552,13 +570,21 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                 />
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="desired_daily">Desired Daily</Label>
+                    <Label htmlFor="desired_daily">Desired Daily (Auto-calculated)</Label>
                     <Input
                       id="desired_daily"
                       type="number"
                       value={formData.desired_daily}
-                      onChange={(e) => handleInputChange('desired_daily', e.target.value)}
+                      readOnly
+                      className="bg-muted"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      {formData.start_date && formData.end_date ? (
+                        <>Total goal views ÷ campaign days = {formData.desired_daily ? Number(formData.desired_daily).toLocaleString() : '—'}/day</>
+                      ) : (
+                        <>Set start & end dates to calculate</>
+                      )}
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="sale_price">Sale Price ($)</Label>
