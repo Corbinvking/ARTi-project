@@ -1,12 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
 import { logger } from '../lib/logger.js';
 import { supabase } from '../lib/supabase.js';
-
-const execAsync = promisify(exec);
 
 // Use different paths depending on environment
 // In Docker: /app/scraper_data (mounted volume)
