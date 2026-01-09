@@ -496,31 +496,62 @@ async def scrape_campaign(page, spotify_page, campaign):
 
 
 async def update_campaign_in_database(campaign_id, data):
-    """Update campaign data in spotify_campaigns table (raw data storage)"""
+    """Update campaign data in spotify_campaigns table (raw data storage)
+    
+    IMPORTANT: This function now includes safeguards against overwriting
+    valid data with zeros when the scraper fails to extract data.
+    """
     headers = {
         'apikey': SUPABASE_SERVICE_ROLE_KEY,
         'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
         'Content-Type': 'application/json'
     }
     
-    # First, fetch the previous values for trend calculation
+    # First, fetch the previous values for trend calculation AND zero-protection
     get_url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
     get_params = {'id': f'eq.{campaign_id}', 'select': 'streams_24h,streams_7d,streams_28d'}
+    previous_values = {'streams_24h': 0, 'streams_7d': 0, 'streams_28d': 0}
+    
     try:
         previous_response = requests.get(get_url, headers=headers, params=get_params)
         if previous_response.status_code == 200 and previous_response.json():
             prev_data = previous_response.json()[0]
             previous_values = {
-                'streams_24h': prev_data.get('streams_24h', 0),
-                'streams_7d': prev_data.get('streams_7d', 0),
-                'streams_28d': prev_data.get('streams_28d', 0)
+                'streams_24h': prev_data.get('streams_24h') or 0,
+                'streams_7d': prev_data.get('streams_7d') or 0,
+                'streams_28d': prev_data.get('streams_28d') or 0
             }
             # Add previous values to scrape_data for trend calculation
             if 'scrape_data' in data and isinstance(data['scrape_data'], dict):
                 data['scrape_data']['previous'] = previous_values
-                logger.info(f"[{campaign_id}] Stored previous values: 24h={previous_values['streams_24h']}, 7d={previous_values['streams_7d']}")
+                logger.info(f"[{campaign_id}] Stored previous values: 24h={previous_values['streams_24h']}, 7d={previous_values['streams_7d']}, 28d={previous_values['streams_28d']}")
     except Exception as e:
         logger.warning(f"[{campaign_id}] Could not fetch previous values: {e}")
+    
+    # SAFEGUARD: Don't overwrite non-zero values with zeros
+    # This prevents failed scrapes from erasing good data
+    data_protected = False
+    
+    # Check 24h streams
+    if data.get('streams_24h') == 0 and previous_values['streams_24h'] > 0:
+        logger.warning(f"[{campaign_id}] PROTECTED: Keeping previous 24h streams ({previous_values['streams_24h']}) instead of 0")
+        data['streams_24h'] = previous_values['streams_24h']
+        data_protected = True
+    
+    # Check 7d streams
+    if data.get('streams_7d') == 0 and previous_values['streams_7d'] > 0:
+        logger.warning(f"[{campaign_id}] PROTECTED: Keeping previous 7d streams ({previous_values['streams_7d']}) instead of 0")
+        data['streams_7d'] = previous_values['streams_7d']
+        data_protected = True
+    
+    # Check 28d streams
+    if data.get('streams_28d') == 0 and previous_values['streams_28d'] > 0:
+        logger.warning(f"[{campaign_id}] PROTECTED: Keeping previous 28d streams ({previous_values['streams_28d']}) instead of 0")
+        data['streams_28d'] = previous_values['streams_28d']
+        data_protected = True
+    
+    if data_protected:
+        logger.warning(f"[{campaign_id}] ⚠️  Zero-protection triggered - this indicates a potential scraping failure")
     
     url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
     params = {'id': f'eq.{campaign_id}'}
@@ -531,7 +562,7 @@ async def update_campaign_in_database(campaign_id, data):
         logger.error(f"[{campaign_id}] Database update failed: {response.status_code} - {response.text}")
         return False
     
-    logger.info(f"[{campaign_id}] ✓ Raw data updated in spotify_campaigns (with trend history)")
+    logger.info(f"[{campaign_id}] ✓ Raw data updated in spotify_campaigns (with trend history){' [PROTECTED]' if data_protected else ''}")
     return True
 
 
@@ -734,11 +765,37 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
         playlists_by_id = playlists_by_normalized
         
         if not playlists_by_id:
-            logger.info(f"[{campaign_id}] No playlists to sync")
+            # SAFEGUARD: Don't delete existing playlists if we didn't scrape any
+            # This indicates a scraping failure, not that the song has no playlists
+            logger.warning(f"[{campaign_id}] No playlists scraped - SKIPPING sync to preserve existing data")
             return True
         
-        # First, delete ALL existing campaign_playlists entries for this campaign
-        # This ensures we only show current data and prevents duplicates
+        # SAFEGUARD: Check if ALL playlists have 0 streams across ALL time ranges
+        # This indicates a scraping failure (e.g., page didn't load properly)
+        total_streams = sum(
+            p.get('streams_24h', 0) + p.get('streams_7d', 0) + p.get('streams_28d', 0)
+            for p in playlists_by_id.values()
+        )
+        
+        if total_streams == 0 and len(playlists_by_id) > 0:
+            # Check if we have existing data that we would be destroying
+            check_url = f"{SUPABASE_URL}/rest/v1/campaign_playlists"
+            check_params = {'campaign_id': f'eq.{campaign_id}', 'select': 'streams_24h,streams_7d,streams_28d'}
+            check_response = requests.get(check_url, headers=headers, params=check_params)
+            
+            if check_response.status_code == 200:
+                existing_playlists = check_response.json()
+                existing_total = sum(
+                    (p.get('streams_24h') or 0) + (p.get('streams_7d') or 0) + (p.get('streams_28d') or 0)
+                    for p in existing_playlists
+                )
+                
+                if existing_total > 0:
+                    logger.warning(f"[{campaign_id}] ⚠️  ZERO-PROTECTION: All scraped streams are 0 but existing data has {existing_total} streams - SKIPPING sync")
+                    return True
+        
+        # Delete existing campaign_playlists entries for this campaign
+        # Only do this if we have valid new data to replace it with
         delete_url = f"{SUPABASE_URL}/rest/v1/campaign_playlists"
         delete_params = {'campaign_id': f'eq.{campaign_id}'}
         

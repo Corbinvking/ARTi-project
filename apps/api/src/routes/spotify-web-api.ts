@@ -565,6 +565,171 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
   });
 
   /**
+   * GET /spotify-web-api/search-playlist
+   * Search for playlists by name
+   * Returns top matches with spotify_id and URL
+   */
+  server.get('/spotify-web-api/search-playlist', async (request, reply) => {
+    const { name, limit } = request.query as { name: string; limit?: string };
+    
+    if (!name) {
+      return reply.status(400).send({
+        success: false,
+        error: 'name parameter is required',
+      });
+    }
+
+    try {
+      const searchLimit = limit ? parseInt(limit, 10) : 10;
+      const results = await spotifyWebApi.searchPlaylist(name, searchLimit);
+      
+      return {
+        success: true,
+        query: name,
+        count: results.length,
+        results,
+      };
+    } catch (error: any) {
+      logger.error({ name, error: error.message }, 'Playlist search failed');
+      return reply.status(500).send({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  /**
+   * GET /spotify-web-api/find-playlist
+   * Find a playlist by exact name match (case-insensitive)
+   * Returns the best matching playlist with spotify_id and URL
+   */
+  server.get('/spotify-web-api/find-playlist', async (request, reply) => {
+    const { name } = request.query as { name: string };
+    
+    if (!name) {
+      return reply.status(400).send({
+        success: false,
+        error: 'name parameter is required',
+      });
+    }
+
+    try {
+      const result = await spotifyWebApi.findPlaylistByName(name);
+      
+      if (!result) {
+        return {
+          success: true,
+          found: false,
+          query: name,
+          playlist: null,
+        };
+      }
+      
+      return {
+        success: true,
+        found: true,
+        query: name,
+        playlist: result,
+      };
+    } catch (error: any) {
+      logger.error({ name, error: error.message }, 'Playlist find failed');
+      return reply.status(500).send({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  /**
+   * POST /spotify-web-api/bulk-find-playlists
+   * Find multiple playlists by name with rate limiting
+   * Used for vendor playlist import to get spotify_id and URLs
+   */
+  server.post('/spotify-web-api/bulk-find-playlists', async (request, reply) => {
+    const { names } = request.body as { names: string[] };
+    
+    if (!names || !Array.isArray(names)) {
+      return reply.status(400).send({
+        success: false,
+        error: 'names array is required',
+      });
+    }
+
+    logger.info({ count: names.length }, 'Bulk playlist find request');
+
+    const results: Array<{
+      name: string;
+      found: boolean;
+      spotify_id: string | null;
+      spotify_url: string | null;
+      matched_name: string | null;
+      owner: string | null;
+      followers: number | null;
+    }> = [];
+
+    // Process one at a time with 100ms delay to respect rate limits
+    for (let i = 0; i < names.length; i++) {
+      const name = names[i] as string;
+      if (!name) continue;
+      
+      try {
+        const result = await spotifyWebApi.findPlaylistByName(name);
+        
+        if (result) {
+          results.push({
+            name: name,
+            found: true,
+            spotify_id: result.id,
+            spotify_url: result.url,
+            matched_name: result.name,
+            owner: result.owner,
+            followers: result.followers,
+          });
+        } else {
+          results.push({
+            name: name,
+            found: false,
+            spotify_id: null,
+            spotify_url: null,
+            matched_name: null,
+            owner: null,
+            followers: null,
+          });
+        }
+      } catch (error: any) {
+        logger.warn({ name, error: error.message }, 'Failed to find playlist');
+        results.push({
+          name: name,
+          found: false,
+          spotify_id: null,
+          spotify_url: null,
+          matched_name: null,
+          owner: null,
+          followers: null,
+        });
+      }
+      
+      // Rate limiting: 100ms between requests
+      if (i < names.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    const foundCount = results.filter(r => r.found).length;
+    logger.info({ total: names.length, found: foundCount }, 'Bulk playlist find complete');
+
+    return {
+      success: true,
+      results,
+      summary: {
+        total: names.length,
+        found: foundCount,
+        not_found: names.length - foundCount,
+      },
+    };
+  });
+
+  /**
    * POST /spotify-web-api/bulk-playlist-info
    * Fetch playlist info (name, followers, owner) for multiple playlist URLs
    * Used during campaign import to resolve playlist names from URLs

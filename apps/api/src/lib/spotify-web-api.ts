@@ -51,6 +51,42 @@ interface SpotifyArtistResponse {
   popularity: number;
 }
 
+// Search API response types
+interface SpotifySearchPlaylistItem {
+  id: string;
+  name: string;
+  description: string;
+  owner: {
+    id: string;
+    display_name: string;
+  };
+  followers?: {
+    total: number;
+  };
+  tracks: {
+    total: number;
+  };
+  external_urls: {
+    spotify: string;
+  };
+}
+
+interface SpotifySearchResponse {
+  playlists: {
+    items: SpotifySearchPlaylistItem[];
+    total: number;
+  };
+}
+
+interface SpotifyPlaylistSearchResult {
+  id: string;
+  name: string;
+  owner: string;
+  followers: number;
+  trackCount: number;
+  url: string;
+}
+
 class SpotifyWebAPIClient {
   private clientId: string;
   private clientSecret: string;
@@ -302,6 +338,83 @@ class SpotifyWebAPIClient {
   }
 
   /**
+   * Search for playlists by name
+   * Returns top matches sorted by relevance
+   */
+  async searchPlaylist(query: string, limit = 10): Promise<SpotifyPlaylistSearchResult[]> {
+    logger.info({ query, limit }, 'Searching for playlists on Spotify');
+    
+    try {
+      const encoded = encodeURIComponent(query);
+      const response = await this.makeRequest<SpotifySearchResponse>(
+        `/search?q=${encoded}&type=playlist&limit=${limit}`
+      );
+      
+      const results = response.playlists.items
+        .filter(p => p !== null) // Filter out null items
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          owner: p.owner?.display_name || 'Unknown',
+          followers: p.followers?.total || 0,
+          trackCount: p.tracks?.total || 0,
+          url: p.external_urls?.spotify || `https://open.spotify.com/playlist/${p.id}`
+        }));
+      
+      logger.info({ query, resultCount: results.length }, 'Playlist search complete');
+      return results;
+    } catch (error: any) {
+      logger.error({ query, error: error.message }, 'Playlist search failed');
+      return [];
+    }
+  }
+
+  /**
+   * Search for a playlist by exact name match (case-insensitive)
+   * Falls back to best match if no exact match found
+   */
+  async findPlaylistByName(playlistName: string): Promise<SpotifyPlaylistSearchResult | null> {
+    const results = await this.searchPlaylist(playlistName, 20);
+    
+    if (results.length === 0) {
+      return null;
+    }
+    
+    // Normalize the search name for comparison
+    const normalizedSearch = playlistName.toLowerCase().trim();
+    
+    // Try to find exact match first
+    const exactMatch = results.find(
+      r => r.name.toLowerCase().trim() === normalizedSearch
+    );
+    
+    if (exactMatch) {
+      logger.info({ playlistName, matchedId: exactMatch.id }, 'Found exact playlist match');
+      return exactMatch;
+    }
+    
+    // If no exact match, check for close matches (contains the full search term)
+    const closeMatch = results.find(
+      r => r.name.toLowerCase().includes(normalizedSearch) ||
+           normalizedSearch.includes(r.name.toLowerCase())
+    );
+    
+    if (closeMatch) {
+      logger.info({ playlistName, matchedId: closeMatch.id, matchedName: closeMatch.name }, 'Found close playlist match');
+      return closeMatch;
+    }
+    
+    // Return first result as fallback (best relevance from Spotify)
+    const fallback = results[0];
+    if (fallback) {
+      logger.info({ playlistName, fallbackId: fallback.id, fallbackName: fallback.name }, 'Using fallback playlist match');
+      return fallback;
+    }
+    
+    return null;
+  }
+
+  /**
    * Extract Spotify ID from URL
    */
   static extractSpotifyId(url: string, type: 'track' | 'playlist' | 'artist'): string | null {
@@ -336,5 +449,6 @@ export type {
   SpotifyPlaylistResponse,
   SpotifyTrackResponse,
   SpotifyArtistResponse,
+  SpotifyPlaylistSearchResult,
 };
 
