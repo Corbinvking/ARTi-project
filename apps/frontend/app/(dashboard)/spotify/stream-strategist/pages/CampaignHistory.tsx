@@ -586,7 +586,9 @@ export default function CampaignHistory() {
   };
 
   const getEnhancedPerformanceStatus = (campaign: Campaign): 'underperforming' | 'on_track' | 'overperforming' | 'pending' => {
-    if (campaign.status !== 'active') return 'pending';
+    // Case-insensitive status check
+    const campaignStatus = (campaign.status || '').toLowerCase();
+    if (campaignStatus !== 'active') return 'pending';
     if (!campaign.start_date) return 'pending';
     
     const startDate = new Date(campaign.start_date);
@@ -647,7 +649,8 @@ export default function CampaignHistory() {
       
       // Legacy Performance filtering (keeping for backward compatibility)
       let matchesPerformance = true;
-      if (performanceFilter !== "all" && campaign.status === 'active') {
+      const legacyCampaignStatus = (campaign.status || '').toLowerCase();
+      if (performanceFilter !== "all" && legacyCampaignStatus === 'active') {
         if (!campaign.start_date || !campaign.stream_goal) {
           matchesPerformance = performanceFilter === 'all';
         } else {
@@ -665,7 +668,7 @@ export default function CampaignHistory() {
           if (performanceFilter === 'on-track' && (performanceRatio < 0.8 || performanceRatio >= 1.2)) matchesPerformance = false;
           if (performanceFilter === 'under-performing' && performanceRatio >= 0.8) matchesPerformance = false;
         }
-      } else if (performanceFilter !== "all" && campaign.status !== 'active') {
+      } else if (performanceFilter !== "all" && legacyCampaignStatus !== 'active') {
         matchesPerformance = false; // Only active campaigns can have performance metrics
       }
       
