@@ -770,6 +770,273 @@ export type Database = {
         }
         Relationships: []
       }
+      youtube_campaigns: {
+        Row: {
+          artist_tier: number | null
+          ask_for_access: boolean | null
+          calculated_vendor_payment: number | null
+          campaign_name: string
+          channel_id: string | null
+          client_id: string | null
+          comment_server: string | null
+          comments_7_days: number | null
+          comments_sheet_url: string | null
+          confirm_start_date: boolean | null
+          created_at: string
+          current_comments: number | null
+          current_likes: number | null
+          current_views: number | null
+          custom_service_type: string | null
+          desired_daily: number | null
+          end_date: string | null
+          genre: string | null
+          goal_views: number | null
+          id: string
+          impression_ctr: number | null
+          in_fixer: boolean | null
+          invoice_status: Database["public"]["Enums"]["invoice_status"] | null
+          last_stalling_check: string | null
+          last_weekly_update_sent: string | null
+          last_youtube_fetch: string | null
+          like_server: string | null
+          likes_7_days: number | null
+          manual_progress: number | null
+          minimum_engagement: number | null
+          needs_update: boolean | null
+          org_id: string | null
+          paid_reach: boolean | null
+          payment_calculation_date: string | null
+          sale_price: number | null
+          salesperson_id: string | null
+          service_type: Database["public"]["Enums"]["service_type"]
+          service_types: Json | null
+          sheet_tier: string | null
+          stalling_detected_at: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["campaign_status"] | null
+          subscribers_gained: number | null
+          subscribers_hidden: boolean | null
+          technical_setup_complete: boolean | null
+          total_subscribers: number | null
+          updated_at: string
+          vendor_paid: boolean | null
+          video_id: string | null
+          views_7_days: number | null
+          views_stalled: boolean | null
+          wait_time_seconds: number | null
+          watch_time: number | null
+          weekly_update_ready: boolean | null
+          weekly_updates_enabled: boolean | null
+          youtube_api_enabled: boolean | null
+          youtube_url: string
+        }
+        Insert: {
+          artist_tier?: number | null
+          ask_for_access?: boolean | null
+          calculated_vendor_payment?: number | null
+          campaign_name: string
+          channel_id?: string | null
+          client_id?: string | null
+          comment_server?: string | null
+          comments_7_days?: number | null
+          comments_sheet_url?: string | null
+          confirm_start_date?: boolean | null
+          created_at?: string
+          current_comments?: number | null
+          current_likes?: number | null
+          current_views?: number | null
+          custom_service_type?: string | null
+          desired_daily?: number | null
+          end_date?: string | null
+          genre?: string | null
+          goal_views?: number | null
+          id?: string
+          impression_ctr?: number | null
+          in_fixer?: boolean | null
+          invoice_status?: Database["public"]["Enums"]["invoice_status"] | null
+          last_stalling_check?: string | null
+          last_weekly_update_sent?: string | null
+          last_youtube_fetch?: string | null
+          like_server?: string | null
+          likes_7_days?: number | null
+          manual_progress?: number | null
+          minimum_engagement?: number | null
+          needs_update?: boolean | null
+          org_id?: string | null
+          paid_reach?: boolean | null
+          payment_calculation_date?: string | null
+          sale_price?: number | null
+          salesperson_id?: string | null
+          service_type: Database["public"]["Enums"]["service_type"]
+          service_types?: Json | null
+          sheet_tier?: string | null
+          stalling_detected_at?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["campaign_status"] | null
+          subscribers_gained?: number | null
+          subscribers_hidden?: boolean | null
+          technical_setup_complete?: boolean | null
+          total_subscribers?: number | null
+          updated_at?: string
+          vendor_paid?: boolean | null
+          video_id?: string | null
+          views_7_days?: number | null
+          views_stalled?: boolean | null
+          wait_time_seconds?: number | null
+          watch_time?: number | null
+          weekly_update_ready?: boolean | null
+          weekly_updates_enabled?: boolean | null
+          youtube_api_enabled?: boolean | null
+          youtube_url: string
+        }
+        Update: {
+          artist_tier?: number | null
+          ask_for_access?: boolean | null
+          calculated_vendor_payment?: number | null
+          campaign_name?: string
+          channel_id?: string | null
+          client_id?: string | null
+          comment_server?: string | null
+          comments_7_days?: number | null
+          comments_sheet_url?: string | null
+          confirm_start_date?: boolean | null
+          created_at?: string
+          current_comments?: number | null
+          current_likes?: number | null
+          current_views?: number | null
+          custom_service_type?: string | null
+          desired_daily?: number | null
+          end_date?: string | null
+          genre?: string | null
+          goal_views?: number | null
+          id?: string
+          impression_ctr?: number | null
+          in_fixer?: boolean | null
+          invoice_status?: Database["public"]["Enums"]["invoice_status"] | null
+          last_stalling_check?: string | null
+          last_weekly_update_sent?: string | null
+          last_youtube_fetch?: string | null
+          like_server?: string | null
+          likes_7_days?: number | null
+          manual_progress?: number | null
+          minimum_engagement?: number | null
+          needs_update?: boolean | null
+          org_id?: string | null
+          paid_reach?: boolean | null
+          payment_calculation_date?: string | null
+          sale_price?: number | null
+          salesperson_id?: string | null
+          service_type?: Database["public"]["Enums"]["service_type"]
+          service_types?: Json | null
+          sheet_tier?: string | null
+          stalling_detected_at?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["campaign_status"] | null
+          subscribers_gained?: number | null
+          subscribers_hidden?: boolean | null
+          technical_setup_complete?: boolean | null
+          total_subscribers?: number | null
+          updated_at?: string
+          vendor_paid?: boolean | null
+          video_id?: string | null
+          views_7_days?: number | null
+          views_stalled?: boolean | null
+          wait_time_seconds?: number | null
+          watch_time?: number | null
+          weekly_update_ready?: boolean | null
+          weekly_updates_enabled?: boolean | null
+          youtube_api_enabled?: boolean | null
+          youtube_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "youtube_campaigns_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "youtube_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "youtube_campaigns_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "youtube_salespersons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      youtube_clients: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string | null
+          email2: string | null
+          email3: string | null
+          id: string
+          name: string
+          org_id: string | null
+          updated_at: string
+          youtube_access_requested: boolean | null
+          youtube_access_requested_at: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          email2?: string | null
+          email3?: string | null
+          id?: string
+          name: string
+          org_id?: string | null
+          updated_at?: string
+          youtube_access_requested?: boolean | null
+          youtube_access_requested_at?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          email2?: string | null
+          email3?: string | null
+          id?: string
+          name?: string
+          org_id?: string | null
+          updated_at?: string
+          youtube_access_requested?: boolean | null
+          youtube_access_requested_at?: string | null
+        }
+        Relationships: []
+      }
+      youtube_salespersons: {
+        Row: {
+          commission_rate: number | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          org_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          org_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          org_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

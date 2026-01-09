@@ -142,11 +142,20 @@ export const useCampaigns = () => {
   //   };
   // }, [queryClient]);
 
+  // Default org ID used for all youtube tables
+  const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
+
   const createCampaign = async (campaignData: CampaignInsert) => {
     try {
+      // Ensure org_id is set for RLS policy compliance
+      const dataWithOrg = {
+        ...campaignData,
+        org_id: DEFAULT_ORG_ID
+      };
+      
       const { data, error } = await supabase
         .from('youtube_campaigns')
-        .insert(campaignData)
+        .insert(dataWithOrg)
         .select()
         .single();
 
@@ -249,9 +258,15 @@ export const useCampaigns = () => {
 
   const createClient = async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Ensure org_id is set for RLS policy compliance
+      const dataWithOrg = {
+        ...clientData,
+        org_id: DEFAULT_ORG_ID
+      };
+      
       const { data, error } = await supabase
         .from('youtube_clients')
-        .insert(clientData)
+        .insert(dataWithOrg)
         .select()
         .single();
 
@@ -316,9 +331,15 @@ export const useCampaigns = () => {
   // SALESPERSON CRUD OPERATIONS
   const createSalesperson = async (salespersonData: Omit<Salesperson, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Ensure org_id is set for RLS policy compliance
+      const dataWithOrg = {
+        ...salespersonData,
+        org_id: DEFAULT_ORG_ID
+      };
+      
       const { data, error } = await supabase
         .from('youtube_salespersons')
-        .insert(salespersonData)
+        .insert(dataWithOrg)
         .select()
         .single();
 
