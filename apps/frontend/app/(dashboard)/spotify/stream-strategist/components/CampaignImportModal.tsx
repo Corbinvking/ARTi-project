@@ -65,6 +65,33 @@ interface PlaylistMatch {
   createWithVendor?: string;
 }
 
+/**
+ * Parse a goal string like "10K", "1.5M", "10000" into a numeric value
+ * Handles K (thousand) and M (million) suffixes case-insensitively
+ */
+function parseGoalString(goalStr: string | number | null | undefined): number {
+  if (goalStr === null || goalStr === undefined) return 0;
+  
+  const str = String(goalStr).trim().replace(/[,\s$]/g, '');
+  if (!str) return 0;
+  
+  // Check for K (thousands) suffix
+  const kMatch = str.match(/^([\d.]+)[Kk]$/);
+  if (kMatch) {
+    return Math.round(parseFloat(kMatch[1]) * 1000);
+  }
+  
+  // Check for M (millions) suffix
+  const mMatch = str.match(/^([\d.]+)[Mm]$/);
+  if (mMatch) {
+    return Math.round(parseFloat(mMatch[1]) * 1000000);
+  }
+  
+  // Plain number
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : Math.round(num);
+}
+
 // Production CSV field mappings - matches spotify_campaigns table structure
 const REQUIRED_FIELDS = [
   { key: 'campaign', label: 'Campaign Name', required: true },
@@ -917,9 +944,9 @@ export default function CampaignImportModal({
           newLinks.forEach((l: string) => existingLinks.add(l));
           existing.playlist_links = [...existingLinks].join(', ');
           
-          // Sum up goals and remaining if they differ
-          const existingGoal = parseInt(existing.goal) || 0;
-          const newGoal = parseInt(row.goal) || 0;
+          // Sum up goals and remaining if they differ - use parseGoalString for K/M suffixes
+          const existingGoal = parseGoalString(existing.goal);
+          const newGoal = parseGoalString(row.goal);
           if (newGoal > 0 && newGoal !== existingGoal) {
             existing.goal = String(existingGoal + newGoal);
           }
@@ -1005,11 +1032,11 @@ export default function CampaignImportModal({
         const [campaignName, clientName] = groupKey.split('|');
         const clientId = clientMap[clientName] || null;
 
-        // Calculate totals
+        // Calculate totals - use parseGoalString to handle K/M suffixes
         let totalGoal = 0;
         for (const row of csvData!.rows) {
           if (row[columnMappings.campaign] === campaignName && row[columnMappings.client] === clientName) {
-            totalGoal += parseInt(String(row[columnMappings.goal] || '0').replace(/[,\s$]/g, '')) || 0;
+            totalGoal += parseGoalString(row[columnMappings.goal]);
           }
         }
 
