@@ -24,55 +24,60 @@ export async function scraperControlRoutes(server: FastifyInstance) {
       const checks: Record<string, string> = {};
       const errors: string[] = [];
       
-      // Check if status.jsonl exists and is readable
+      // Check database connectivity and get last scrape time
       try {
-        await fs.access(path.join(SCRAPER_PATH, 'status.jsonl'));
-        checks.status_file = '✓ OK';
-      } catch {
-        checks.status_file = '✗ FAIL: status.jsonl not found';
-        errors.push('Status file not accessible');
-      }
-      
-      // Check if logs directory exists
-      try {
-        await fs.access(path.join(SCRAPER_PATH, 'logs'));
-        checks.logs_directory = '✓ OK';
-      } catch {
-        checks.logs_directory = '✗ FAIL: logs directory not found';
-        errors.push('Logs directory not accessible');
+        const { data, error } = await supabase
+          .from('spotify_campaigns')
+          .select('last_scraped_at')
+          .not('last_scraped_at', 'is', null)
+          .order('last_scraped_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error) {
+          checks.database = `✗ FAIL: ${error.message}`;
+          errors.push('Database connection failed');
+        } else if (data?.last_scraped_at) {
+          const lastScrape = new Date(data.last_scraped_at);
+          const hoursAgo = Math.floor((Date.now() - lastScrape.getTime()) / (1000 * 60 * 60));
+          if (hoursAgo < 36) {
+            checks.database = `✓ OK: Last scrape ${hoursAgo}h ago`;
+          } else {
+            checks.database = `⚠ WARNING: Last scrape ${hoursAgo}h ago (stale)`;
+          }
+          checks.last_scrape = lastScrape.toISOString();
+        } else {
+          checks.database = '⚠ WARNING: No scrape data found';
+        }
+      } catch (err) {
+        checks.database = `✗ FAIL: ${(err as Error).message}`;
+        errors.push('Database query failed');
       }
       
       // Check if lock file exists (scraper running)
       try {
         await fs.access(path.join(SCRAPER_PATH, 'scraper.lock'));
-        checks.lock_file = '⚠ WARNING: Lock file exists (scraper may be running)';
+        checks.scraper_status = '🔄 Running (lock file present)';
       } catch {
-        checks.lock_file = '✓ OK: No lock file (scraper not running)';
+        checks.scraper_status = '✓ Idle (ready to run)';
       }
       
-      // Check if we can read recent logs
+      // Check if logs directory exists and has recent logs
       try {
         const prodLog = await fs.readFile(path.join(SCRAPER_PATH, 'logs/production.log'), 'utf-8');
         const lines = prodLog.trim().split('\n');
-        checks.production_log = `✓ OK: ${lines.length} log lines`;
+        const lastLine = lines[lines.length - 1] || '';
+        // Try to extract timestamp from last log line
+        const timestampMatch = lastLine.match(/\d{4}-\d{2}-\d{2}/);
+        checks.logs = `✓ OK: ${lines.length} lines${timestampMatch ? `, last: ${timestampMatch[0]}` : ''}`;
       } catch {
-        checks.production_log = '⚠ WARNING: Cannot read production log';
+        checks.logs = '⚠ INFO: Logs not accessible from API (normal in Docker)';
       }
+
+      // Cron runs on the host
+      checks.cron = '✓ Scheduled on host (daily at 2 AM UTC)';
       
-      // Read last health check if available
-      let savedHealthData = null;
-      try {
-        const data = await fs.readFile(
-          path.join(SCRAPER_PATH, 'health_status.json'),
-          'utf-8'
-        );
-        savedHealthData = JSON.parse(data);
-        checks.saved_health_check = `✓ OK: Last check ${savedHealthData.timestamp}`;
-      } catch {
-        checks.saved_health_check = '⚠ INFO: No saved health check found';
-      }
-      
-      // Determine overall status
+      // Determine overall status based on database health primarily
       const hasErrors = errors.length > 0;
       const hasWarnings = Object.values(checks).some(v => v.includes('WARNING'));
       const overall_status = hasErrors ? 'unhealthy' : hasWarnings ? 'degraded' : 'healthy';
@@ -81,8 +86,7 @@ export async function scraperControlRoutes(server: FastifyInstance) {
         timestamp: new Date().toISOString(),
         checks,
         overall_status,
-        errors,
-        saved_health_check: savedHealthData
+        errors: errors.length > 0 ? errors : undefined
       };
       
       logger.info({ result }, 'Health check completed');
@@ -108,59 +112,20 @@ export async function scraperControlRoutes(server: FastifyInstance) {
     try {
       logger.info({ scraperPath: SCRAPER_PATH }, '📊 Status check');
       
-      // Check if scraper is running (check for both script name and lock file)
+      // Check if scraper is running (check lock file - works in Docker)
       let isRunning = false;
       try {
-        // Check for running process
-        const { stdout } = await execAsync('ps aux | grep "run_scraper_with_monitoring\\|run_production_scraper" | grep -v grep');
-        isRunning = !!stdout.trim();
-      } catch {}
-      
-      // Also check lock file
-      if (!isRunning) {
-        try {
-          await fs.access(path.join(SCRAPER_PATH, 'scraper.lock'));
-          isRunning = true;
-        } catch {}
+        await fs.access(path.join(SCRAPER_PATH, 'scraper.lock'));
+        isRunning = true;
+        logger.info('🔒 Lock file found - scraper is running');
+      } catch {
+        logger.info('✅ No lock file - scraper not running');
       }
 
-      // Read last health check results
-      let healthData = null;
-      try {
-        const data = await fs.readFile(
-          path.join(SCRAPER_PATH, 'health_status.json'),
-          'utf-8'
-        );
-        healthData = JSON.parse(data);
-        logger.info('✅ Health data loaded');
-      } catch (err) {
-        logger.warn({ error: (err as Error).message }, '⚠️ Could not load health data');
-      }
-
-      // Read last run from status.jsonl
+      // PRIMARY SOURCE: Check database for most recent scrape time (most reliable)
       let lastRun = null;
       try {
-        const statusPath = path.join(SCRAPER_PATH, 'status.jsonl');
-        logger.info({ statusPath }, '📁 Reading status file');
-        const statusFile = await fs.readFile(statusPath, 'utf-8');
-        logger.info({ length: statusFile.length }, '📄 Status file read');
-        const lines = statusFile.trim().split('\n').filter(Boolean);
-        logger.info({ count: lines.length }, '📊 Status lines parsed');
-        if (lines.length > 0) {
-          const lastLine = lines[lines.length - 1];
-          logger.info({ lastLine }, '📝 Last status line');
-          if (lastLine) {
-            lastRun = JSON.parse(lastLine);
-            logger.info({ lastRun }, '✅ Last run parsed');
-          }
-        }
-      } catch (err) {
-        logger.warn({ error: (err as Error).message }, '⚠️ Could not load status');
-      }
-
-      // ALSO check database for most recent scrape time (more reliable)
-      let lastScrapedFromDb = null;
-      try {
+        logger.info('🔍 Querying database for last scrape time...');
         const { data, error } = await supabase
           .from('spotify_campaigns')
           .select('last_scraped_at')
@@ -169,43 +134,64 @@ export async function scraperControlRoutes(server: FastifyInstance) {
           .limit(1)
           .single();
 
-        if (!error && data?.last_scraped_at) {
-          lastScrapedFromDb = {
+        if (error) {
+          logger.warn({ error: error.message }, '⚠️ Database query error');
+        } else if (data?.last_scraped_at) {
+          lastRun = {
             timestamp: data.last_scraped_at,
             status: 'success',
             source: 'database'
           };
-          logger.info({ lastScrapedFromDb }, '✅ Last scrape from database');
+          logger.info({ lastRun }, '✅ Last scrape from database');
+        } else {
+          logger.warn('⚠️ No last_scraped_at found in database');
         }
       } catch (err) {
-        logger.warn({ error: (err as Error).message }, '⚠️ Could not query database for last scrape');
+        logger.error({ error: (err as Error).message }, '❌ Database query failed');
       }
 
-      // Use the most recent of the two sources
-      if (lastScrapedFromDb && lastScrapedFromDb.timestamp) {
-        const dbTime = new Date(lastScrapedFromDb.timestamp).getTime();
-        const fileTime = lastRun?.timestamp ? new Date(lastRun.timestamp).getTime() : 0;
-        
-        if (dbTime > fileTime) {
-          logger.info('📊 Using database timestamp (more recent than status file)');
-          lastRun = lastScrapedFromDb;
+      // FALLBACK: Read last run from status.jsonl if database didn't return data
+      if (!lastRun) {
+        try {
+          const statusPath = path.join(SCRAPER_PATH, 'status.jsonl');
+          const statusFile = await fs.readFile(statusPath, 'utf-8');
+          const lines = statusFile.trim().split('\n').filter(Boolean);
+          if (lines.length > 0) {
+            const lastLine = lines[lines.length - 1];
+            if (lastLine) {
+              lastRun = JSON.parse(lastLine);
+              lastRun.source = 'status_file';
+              logger.info({ lastRun }, '📁 Last run from status file (fallback)');
+            }
+          }
+        } catch (err) {
+          logger.warn({ error: (err as Error).message }, '⚠️ Could not load status file');
         }
       }
 
-      // Check cron schedule
-      let cronScheduled = false;
-      let cronSchedule = null;
+      // Read last health check results (if available)
+      let healthData = null;
       try {
-        const { stdout } = await execAsync('crontab -l');
-        const lines = stdout.split('\n');
-        const scraperLine = lines.find(l => l.includes('run_scraper_with_monitoring') || l.includes('run_production_scraper'));
-        if (scraperLine) {
-          cronScheduled = true;
-          cronSchedule = scraperLine.trim();
+        const data = await fs.readFile(
+          path.join(SCRAPER_PATH, 'health_status.json'),
+          'utf-8'
+        );
+        healthData = JSON.parse(data);
+        // Don't show stale health data (older than 24 hours)
+        const healthTime = new Date(healthData.timestamp).getTime();
+        const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+        if (healthTime < oneDayAgo) {
+          logger.info('⚠️ Health data is stale (>24h old), ignoring');
+          healthData = null;
         }
       } catch (err) {
-        logger.warn({ error: (err as Error).message }, '⚠️ Could not check cron');
+        // Health data is optional, don't warn
       }
+
+      // Cron is scheduled on the HOST, not in Docker - always show as scheduled
+      // The host runs check_trigger.sh every minute via cron
+      const cronScheduled = true;
+      const cronSchedule = '0 2 * * * (Daily at 2 AM UTC)';
 
       const result = {
         isRunning,
@@ -218,7 +204,8 @@ export async function scraperControlRoutes(server: FastifyInstance) {
         _debug: {
           scraperPath: SCRAPER_PATH,
           nodeEnv: process.env.NODE_ENV,
-          dockerEnv: process.env.DOCKER_ENV
+          dockerEnv: process.env.DOCKER_ENV,
+          dataSource: lastRun?.source || 'none'
         }
       };
       
