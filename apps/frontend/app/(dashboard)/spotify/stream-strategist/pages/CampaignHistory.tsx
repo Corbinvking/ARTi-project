@@ -1364,7 +1364,6 @@ export default function CampaignHistory() {
                           {getSortIcon('invoice_status')}
                         </div>
                       </TableHead>
-                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1628,53 +1627,6 @@ export default function CampaignHistory() {
                           </TableCell>
                           <TableCell>
                             {getInvoiceStatusBadge(campaign.invoice_status || 'not_invoiced')}
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <span className="sr-only">Open menu</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleViewDetails(campaign.id)}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEditCampaign(campaign.id)}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit Campaign
-                                </DropdownMenuItem>
-                                {campaign.status === 'active' && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleStatusChange(campaign.id, 'paused')}
-                                  >
-                                    <Pause className="mr-2 h-4 w-4" />
-                                    Pause Campaign
-                                  </DropdownMenuItem>
-                                )}
-                                {campaign.status === 'paused' && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleStatusChange(campaign.id, 'active')}
-                                  >
-                                    <Play className="mr-2 h-4 w-4" />
-                                    Resume Campaign
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem onClick={() => window.open(campaign.track_url, '_blank')}>
-                                  <ExternalLink className="mr-2 h-4 w-4" />
-                                  Open Track
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => handleDelete(campaign.id)}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete Campaign
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       );
