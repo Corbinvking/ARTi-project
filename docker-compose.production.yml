@@ -218,6 +218,8 @@ services:
     environment:
       - DOCKER_ENV=true
       - NODE_ENV=production
+      # Override Supabase URL to use the existing Supabase Kong container
+      - SUPABASE_URL=http://supabase_kong_arti-marketing-ops:8000
     env_file:
       - ./apps/api/production.env
     volumes:
@@ -228,6 +230,7 @@ services:
       - kong
     networks:
       - arti-network
+      - supabase_network_arti-marketing-ops
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/healthz"]
       interval: 30s
@@ -325,3 +328,6 @@ volumes:
 networks:
   arti-network:
     driver: bridge
+  # Connect to the existing Supabase network for API access
+  supabase_network_arti-marketing-ops:
+    external: true
