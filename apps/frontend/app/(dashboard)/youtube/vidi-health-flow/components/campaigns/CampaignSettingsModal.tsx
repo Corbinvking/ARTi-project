@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarIcon, Eye, Heart, MessageCircle, TrendingUp, TrendingDown, Minus, Users, AlertTriangle, Clock } from "lucide-react";
+import { CalendarIcon, Eye, Heart, MessageCircle, TrendingUp, TrendingDown, Minus, Users, AlertTriangle, Clock, CheckCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -260,7 +260,14 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
   };
 
   const handleInputChange = (field: string, value: string | Date | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    const newData = { ...formData, [field]: value };
+    
+    // Auto-enable YouTube API tracking when status changes to 'active'
+    if (field === 'status' && value === 'active') {
+      newData.youtube_api_enabled = true;
+    }
+    
+    setFormData(newData);
   };
 
   const isSetupComplete = () => {
@@ -324,7 +331,7 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         confirm_start_date: formData.confirm_start_date,
         views_stalled: formData.views_stalled,
         ask_for_access: formData.ask_for_access,
-        youtube_api_enabled: formData.youtube_api_enabled,
+        youtube_api_enabled: formData.status === 'active' ? true : formData.youtube_api_enabled,
         technical_setup_complete: Boolean(isSetupComplete()),
       };
 
@@ -385,7 +392,7 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         confirm_start_date: formData.confirm_start_date,
         views_stalled: formData.views_stalled,
         ask_for_access: formData.ask_for_access,
-        youtube_api_enabled: formData.youtube_api_enabled,
+        youtube_api_enabled: true, // Always enable for active campaigns
         technical_setup_complete: true,
         status: 'active' as CampaignStatus,
       };
@@ -464,18 +471,14 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                     onChange={(e) => handleInputChange('youtube_url', e.target.value)}
                   />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="youtube_api_enabled"
-                    checked={formData.youtube_api_enabled}
-                    onChange={(e) => handleInputChange('youtube_api_enabled', e.target.checked)}
-                    className="rounded"
-                  />
-                  <Label htmlFor="youtube_api_enabled" className="text-sm font-medium">
-                    Enable YouTube API Tracking (Daily automatic stats collection)
-                  </Label>
-                </div>
+                {campaign.status === 'active' && (
+                  <div className="flex items-center space-x-2 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    <Label className="text-sm font-medium text-primary">
+                      YouTube API Tracking Enabled (Automatic for active campaigns)
+                    </Label>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select value={formData.status} onValueChange={(value: CampaignStatus) => handleInputChange('status', value)}>
