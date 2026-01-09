@@ -541,13 +541,9 @@ export const VendorPaymentsTable = () => {
       )}
       
       {activeTab === 'history' && (
-        <PaymentHistoryTracker campaigns={campaigns} />
-      )}
-      
-      {activeTab === 'audit' && (
-        <PaymentAuditLog />
-      )}
-      <Card>
+        <>
+          <PaymentHistoryTracker campaigns={campaigns} />
+          <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -903,6 +899,12 @@ export const VendorPaymentsTable = () => {
           </Table>
         </CardContent>
       </Card>
+        </>
+      )}
+      
+      {activeTab === 'audit' && (
+        <PaymentAuditLog />
+      )}
     </div>
   );
 };
