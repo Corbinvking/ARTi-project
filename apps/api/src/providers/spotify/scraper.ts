@@ -136,7 +136,7 @@ export class SpotifyScraperService {
       songs: job.songUrls.map((url, index) => ({
         name: `Song ${index + 1} - Job ${job.id}`,
         url: url,
-        timeRanges: ['28day', '7day', '12months']
+        timeRanges: ['24hour', '7day', '12months']
       }))
     };
 

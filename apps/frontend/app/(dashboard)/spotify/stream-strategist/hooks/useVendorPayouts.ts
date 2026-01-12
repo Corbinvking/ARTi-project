@@ -114,7 +114,7 @@ export const useVendorPayouts = () => {
       // Fetch campaign_playlists for cost_per_1k_override and vendor_paid (per-vendor payment tracking)
       const { data: campaignPlaylists, error: playlistsError } = await supabase
         .from('campaign_playlists')
-        .select('campaign_id, vendor_id, cost_per_1k_override, streams_28d, streams_7d, vendor_paid, vendor_payment_date, vendor_payment_amount')
+        .select('campaign_id, vendor_id, cost_per_1k_override, streams_12m, streams_7d, vendor_paid, vendor_payment_date, vendor_payment_amount')
         .not('vendor_id', 'is', null);
       
       console.log('💰 [VendorPayouts] CampaignPlaylists with overrides:', campaignPlaylists?.filter((p: any) => p.cost_per_1k_override)?.length || 0);
@@ -125,7 +125,7 @@ export const useVendorPayouts = () => {
       (campaignPlaylists || []).forEach((cp: any) => {
         const key = `${cp.campaign_id}-${cp.vendor_id}`;
         const existing = costOverrideMap.get(key);
-        const streams = cp.streams_28d || cp.streams_7d || 0;
+        const streams = cp.streams_12m || cp.streams_7d || 0;
         
         if (existing) {
           // Aggregate streams and prefer override if set

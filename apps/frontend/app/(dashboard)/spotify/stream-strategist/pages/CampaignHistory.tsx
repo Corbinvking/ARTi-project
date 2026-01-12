@@ -130,7 +130,7 @@ interface Campaign {
   // Scraped real data fields (NEW from Spotify for Artists scraper)
   streams_24h?: number;
   streams_7d?: number;
-  streams_28d?: number;
+  streams_12m?: number;
   playlists_24h_count?: number;
   playlists_7d_count?: number;
   streams_24h_trend?: number;
@@ -324,7 +324,7 @@ export default function CampaignHistory() {
               // Calculate REAL metrics from scraped data (NEW: from our scraper)
               const real_streams_24h = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.streams_24h) || 0), 0);
               const real_streams_7d = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.streams_7d) || 0), 0);
-              const real_streams_28d = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.streams_28d) || 0), 0);
+              const real_streams_12m = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.streams_12m) || 0), 0);
               const total_playlists_24h = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.playlists_24h_count) || 0), 0);
               const total_playlists_7d = (songs || []).reduce((sum: number, song: any) => sum + (parseInt(song.playlists_7d_count) || 0), 0);
               
@@ -383,7 +383,7 @@ export default function CampaignHistory() {
                 // REAL metrics from our Spotify for Artists scraper (PRIORITY for display)
                 streams_24h: real_streams_24h,
                 streams_7d: real_streams_7d,
-                streams_28d: real_streams_28d,
+                streams_12m: real_streams_12m,
                 playlists_24h_count: total_playlists_24h,
                 playlists_7d_count: total_playlists_7d,
                 streams_24h_trend,

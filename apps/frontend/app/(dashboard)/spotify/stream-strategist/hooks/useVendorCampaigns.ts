@@ -193,7 +193,7 @@ export function useVendorCampaigns() {
 
         // Sum up streams and calculate payment per playlist (using campaign-specific rates if set)
         for (const perf of campaignPlaylistPerf) {
-          const playlistStreams = perf.streams_28d || 0;
+          const playlistStreams = perf.streams_12m || 0;
           totalStreams += playlistStreams;
           
           // Use cost_per_1k_override if set, otherwise use vendor default

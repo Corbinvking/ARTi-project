@@ -20,11 +20,11 @@ export interface ExecutiveDashboardData {
     name: string;
     totalCampaigns: number;
     totalPlaylists: number;
-    totalStreams28d: number;
+    totalStreams12m: number;
     avgStreamsPerPlaylist: number;
     costPer1k: number;
     efficiency: number; // Legacy: avgStreamsPerPlaylist / 1000
-    avgPerformance: number; // Legacy: totalStreams28d / 1000
+    avgPerformance: number; // Legacy: totalStreams12m / 1000
   }>;
   monthOverMonthGrowth: {
     campaigns: number;
@@ -116,7 +116,7 @@ export const useExecutiveDashboardData = () => {
           .filter(p => p.vendor_id && !p.is_algorithmic && !p.is_organic)
           .forEach(playlist => {
             const costPer1k = playlist.cost_per_1k_override || vendorCostMap.get(playlist.vendor_id) || 0;
-            const streams = playlist.streams_28d || 0;
+            const streams = playlist.streams_12m || 0;
             totalVendorCostsPaid += (streams / 1000) * costPer1k;
           });
       }
@@ -134,14 +134,14 @@ export const useExecutiveDashboardData = () => {
         
       // Calculate actual streams from campaign_playlists (ALL streams for overall metric)
       const totalActualStreams = Array.isArray(playlistData) 
-        ? playlistData.reduce((sum, playlist) => sum + (playlist.streams_28d || 0), 0) 
+        ? playlistData.reduce((sum, playlist) => sum + (playlist.streams_12m || 0), 0) 
         : 0;
       
       // Calculate streams ONLY from our vendor playlists (for cost calculations)
       const totalVendorPlaylistStreams = Array.isArray(playlistData) 
         ? playlistData
             .filter(p => p.vendor_id && !p.is_algorithmic && !p.is_organic)
-            .reduce((sum, playlist) => sum + (playlist.streams_28d || 0), 0) 
+            .reduce((sum, playlist) => sum + (playlist.streams_12m || 0), 0) 
         : 0;
 
       // Calculate campaign efficiency (goal achievement rate - how close are we to hitting goals?)
@@ -193,7 +193,7 @@ export const useExecutiveDashboardData = () => {
 
       // Calculate top performing vendors from playlist data
       // Metrics explained:
-      // - totalStreams28d: Total streams from this vendor's playlists in past 28 days
+      // - totalStreams12m: Total streams from this vendor's playlists in past 12 months
       // - avgStreamsPerPlaylist: Average streams per playlist (quality indicator)
       // - costPer1kActual: Actual cost per 1K streams based on their rate
       const topPerformingVendors = Array.isArray(vendors) 
@@ -203,8 +203,8 @@ export const useExecutiveDashboardData = () => {
               p.vendor_id === vendor.id && !p.is_algorithmic && !p.is_organic
             ) || [];
             
-            // Total streams from this vendor's playlists (28 days)
-            const totalStreams28d = vendorPlaylists.reduce((sum, p) => sum + (p.streams_28d || 0), 0);
+            // Total streams from this vendor's playlists (12 months)
+            const totalStreams12m = vendorPlaylists.reduce((sum, p) => sum + (p.streams_12m || 0), 0);
             
             // Number of unique campaigns this vendor has playlists in
             const totalCampaigns = new Set(vendorPlaylists.map(p => p.campaign_id)).size;
@@ -212,9 +212,9 @@ export const useExecutiveDashboardData = () => {
             // Number of playlists this vendor has
             const totalPlaylists = vendorPlaylists.length;
             
-            // Average streams per playlist (28d) - higher = better performing playlists
+            // Average streams per playlist (12m) - higher = better performing playlists
             const avgStreamsPerPlaylist = totalPlaylists > 0 
-              ? Math.round(totalStreams28d / totalPlaylists)
+              ? Math.round(totalStreams12m / totalPlaylists)
               : 0;
             
             // Cost per 1K streams for this vendor
@@ -228,17 +228,17 @@ export const useExecutiveDashboardData = () => {
               name: vendor.name,
               totalCampaigns,
               totalPlaylists,
-              totalStreams28d,
+              totalStreams12m,
               avgStreamsPerPlaylist,
               costPer1k: costEfficiency,
               // For display: efficiency = avg streams per playlist (thousands)
               efficiency: avgStreamsPerPlaylist / 1000,
               // For display: performance = total streams (thousands)  
-              avgPerformance: totalStreams28d / 1000
+              avgPerformance: totalStreams12m / 1000
             };
         })
         .filter(v => v.totalCampaigns > 0) // Only vendors with campaigns
-        .sort((a, b) => b.totalStreams28d - a.totalStreams28d) // Sort by total streams delivered
+        .sort((a, b) => b.totalStreams12m - a.totalStreams12m) // Sort by total streams delivered
         .slice(0, 5)
         : [];
 

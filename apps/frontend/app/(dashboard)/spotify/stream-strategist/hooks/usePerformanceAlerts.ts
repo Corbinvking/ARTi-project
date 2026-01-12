@@ -88,10 +88,10 @@ export const usePerformanceAlerts = () => {
         const songIds = songs.map(s => s.id);
         const performanceData = campaignPlaylists?.filter(cp => songIds.includes(cp.campaign_id)) || [];
         
-        const totalCurrentStreams = performanceData.reduce((sum, cp) => sum + (cp.streams_28d || 0), 0);
+        const totalCurrentStreams = performanceData.reduce((sum, cp) => sum + (cp.streams_12m || 0), 0);
         const algoStreams = performanceData
           .filter(cp => cp.is_algorithmic)
-          .reduce((sum, cp) => sum + (cp.streams_28d || 0), 0);
+          .reduce((sum, cp) => sum + (cp.streams_12m || 0), 0);
 
         const progress = totalGoal > 0 ? (totalCurrentStreams / totalGoal) : 0;
         const lastScraped = performanceData.length > 0 

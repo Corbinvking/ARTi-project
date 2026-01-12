@@ -40,7 +40,7 @@ def sync_campaign_playlists(campaign_id, scrape_data):
                         'playlist_name': playlist_name,
                         'streams_24h': 0,
                         'streams_7d': 0,
-                        'streams_28d': 0,
+                        'streams_12m': 0,
                     }
                 
                 # Remove commas and convert to int
@@ -51,8 +51,8 @@ def sync_campaign_playlists(campaign_id, scrape_data):
                     playlists_by_name[playlist_name]['streams_24h'] = streams
                 elif time_range == '7day':
                     playlists_by_name[playlist_name]['streams_7d'] = streams
-                elif time_range == '28day':
-                    playlists_by_name[playlist_name]['streams_28d'] = streams
+                elif time_range == '12months':
+                    playlists_by_name[playlist_name]['streams_12m'] = streams
         
         if not playlists_by_name:
             return 0
@@ -70,7 +70,7 @@ def sync_campaign_playlists(campaign_id, scrape_data):
                 'playlist_name': playlist_data['playlist_name'],
                 'streams_24h': playlist_data['streams_24h'],
                 'streams_7d': playlist_data['streams_7d'],
-                'streams_28d': playlist_data['streams_28d'],
+                'streams_12m': playlist_data['streams_12m'],
             }
             playlist_records.append(record)
         

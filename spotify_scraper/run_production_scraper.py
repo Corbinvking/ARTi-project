@@ -457,7 +457,7 @@ async def scrape_campaign(page, spotify_page, campaign):
         # Scrape all three time ranges
         song_data = {'time_ranges': {}}
         
-        for time_range in ['24hour', '7day', '28day']:
+        for time_range in ['24hour', '7day', '12months']:
             logger.info(f"  Extracting {time_range} data...")
             
             # Switch time range
@@ -475,15 +475,15 @@ async def scrape_campaign(page, spotify_page, campaign):
         # Extract data for database update
         stats_24h = song_data['time_ranges']['24hour']['stats']
         stats_7d = song_data['time_ranges']['7day']['stats']
-        stats_28d = song_data['time_ranges']['28day']['stats']
+        stats_12m = song_data['time_ranges']['12months']['stats']
         
         return {
             'streams_24h': stats_24h.get('streams', 0),
             'streams_7d': stats_7d.get('streams', 0),
-            'streams_28d': stats_28d.get('streams', 0),
+            'streams_12m': stats_12m.get('streams', 0),
             'playlists_24h_count': len(stats_24h.get('playlists', [])),
             'playlists_7d_count': len(stats_7d.get('playlists', [])),
-            'playlists_28d_count': len(stats_28d.get('playlists', [])),
+            'playlists_12m_count': len(stats_12m.get('playlists', [])),
             'last_scraped_at': datetime.now(timezone.utc).isoformat(),
             'scrape_data': song_data
         }
@@ -509,8 +509,8 @@ async def update_campaign_in_database(campaign_id, data):
     
     # First, fetch the previous values for trend calculation AND zero-protection
     get_url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
-    get_params = {'id': f'eq.{campaign_id}', 'select': 'streams_24h,streams_7d,streams_28d'}
-    previous_values = {'streams_24h': 0, 'streams_7d': 0, 'streams_28d': 0}
+    get_params = {'id': f'eq.{campaign_id}', 'select': 'streams_24h,streams_7d,streams_12m'}
+    previous_values = {'streams_24h': 0, 'streams_7d': 0, 'streams_12m': 0}
     
     try:
         previous_response = requests.get(get_url, headers=headers, params=get_params)
@@ -519,12 +519,12 @@ async def update_campaign_in_database(campaign_id, data):
             previous_values = {
                 'streams_24h': prev_data.get('streams_24h') or 0,
                 'streams_7d': prev_data.get('streams_7d') or 0,
-                'streams_28d': prev_data.get('streams_28d') or 0
+                'streams_12m': prev_data.get('streams_12m') or 0
             }
             # Add previous values to scrape_data for trend calculation
             if 'scrape_data' in data and isinstance(data['scrape_data'], dict):
                 data['scrape_data']['previous'] = previous_values
-                logger.info(f"[{campaign_id}] Stored previous values: 24h={previous_values['streams_24h']}, 7d={previous_values['streams_7d']}, 28d={previous_values['streams_28d']}")
+                logger.info(f"[{campaign_id}] Stored previous values: 24h={previous_values['streams_24h']}, 7d={previous_values['streams_7d']}, 12m={previous_values['streams_12m']}")
     except Exception as e:
         logger.warning(f"[{campaign_id}] Could not fetch previous values: {e}")
     
@@ -544,10 +544,10 @@ async def update_campaign_in_database(campaign_id, data):
         data['streams_7d'] = previous_values['streams_7d']
         data_protected = True
     
-    # Check 28d streams
-    if data.get('streams_28d') == 0 and previous_values['streams_28d'] > 0:
-        logger.warning(f"[{campaign_id}] PROTECTED: Keeping previous 28d streams ({previous_values['streams_28d']}) instead of 0")
-        data['streams_28d'] = previous_values['streams_28d']
+    # Check 12m streams
+    if data.get('streams_12m') == 0 and previous_values['streams_12m'] > 0:
+        logger.warning(f"[{campaign_id}] PROTECTED: Keeping previous 12m streams ({previous_values['streams_12m']}) instead of 0")
+        data['streams_12m'] = previous_values['streams_12m']
         data_protected = True
     
     if data_protected:
@@ -746,7 +746,7 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
                         'playlist_name': playlist_name,  # Keep original name for display
                         'streams_24h': 0,
                         'streams_7d': 0,
-                        'streams_28d': 0,
+                        'streams_12m': 0,
                     }
                 
                 # Map time range to field name
@@ -758,8 +758,8 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
                     playlists_by_normalized[normalized_key]['streams_24h'] = streams
                 elif time_range == '7day':
                     playlists_by_normalized[normalized_key]['streams_7d'] = streams
-                elif time_range == '28day':
-                    playlists_by_normalized[normalized_key]['streams_28d'] = streams
+                elif time_range == '12months':
+                    playlists_by_normalized[normalized_key]['streams_12m'] = streams
         
         # Convert back to list (playlists_by_id for compatibility with rest of code)
         playlists_by_id = playlists_by_normalized
@@ -773,20 +773,20 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
         # SAFEGUARD: Check if ALL playlists have 0 streams across ALL time ranges
         # This indicates a scraping failure (e.g., page didn't load properly)
         total_streams = sum(
-            p.get('streams_24h', 0) + p.get('streams_7d', 0) + p.get('streams_28d', 0)
+            p.get('streams_24h', 0) + p.get('streams_7d', 0) + p.get('streams_12m', 0)
             for p in playlists_by_id.values()
         )
         
         if total_streams == 0 and len(playlists_by_id) > 0:
             # Check if we have existing data that we would be destroying
             check_url = f"{SUPABASE_URL}/rest/v1/campaign_playlists"
-            check_params = {'campaign_id': f'eq.{campaign_id}', 'select': 'streams_24h,streams_7d,streams_28d'}
+            check_params = {'campaign_id': f'eq.{campaign_id}', 'select': 'streams_24h,streams_7d,streams_12m'}
             check_response = requests.get(check_url, headers=headers, params=check_params)
             
             if check_response.status_code == 200:
                 existing_playlists = check_response.json()
                 existing_total = sum(
-                    (p.get('streams_24h') or 0) + (p.get('streams_7d') or 0) + (p.get('streams_28d') or 0)
+                    (p.get('streams_24h') or 0) + (p.get('streams_7d') or 0) + (p.get('streams_12m') or 0)
                     for p in existing_playlists
                 )
                 
@@ -831,7 +831,7 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
                 'playlist_name': playlist_name,
                 'streams_24h': playlist_data['streams_24h'],
                 'streams_7d': playlist_data['streams_7d'],
-                'streams_28d': playlist_data['streams_28d'],
+                'streams_12m': playlist_data['streams_12m'],
                 'is_algorithmic': is_algo,  # FIX #2: Auto-detect and preserve algorithmic flag
                 'vendor_id': vendor_id,  # FIX #4: Always include vendor_id (None if not matched) for consistent keys
             }

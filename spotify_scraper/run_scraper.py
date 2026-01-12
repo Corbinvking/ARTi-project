@@ -18,7 +18,7 @@ async def main():
     
     if not test_song_url:
         # Use the URL from the screenshot if no env var is set
-        test_song_url = "https://artists.spotify.com/c/artist/0NgWGGk9p04ZLTeFbIdsVO/song/5cBGiXFf9S9RlAwQUv0g4g/playlists?time-filter=28day"
+        test_song_url = "https://artists.spotify.com/c/artist/0NgWGGk9p04ZLTeFbIdsVO/song/5cBGiXFf9S9RlAwQUv0g4g/playlists?time-filter=12months"
         print(f"Using default test song URL: {test_song_url}")
     # URL conversion to /playlists is now handled automatically in spotify_artists.py
     

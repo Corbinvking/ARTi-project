@@ -169,7 +169,7 @@ export const PredictiveAnalyticsPanel = () => {
                       <div className="text-xs text-muted-foreground">{campaign.artist_name}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-medium">{campaign.current_streams_28d.toLocaleString()}</div>
+                      <div className="text-sm font-medium">{campaign.current_streams_12m.toLocaleString()}</div>
                       <div className="text-xs text-muted-foreground">
                         {campaign.daily_rate.toLocaleString()}/day
                       </div>
@@ -183,8 +183,8 @@ export const PredictiveAnalyticsPanel = () => {
             {selectedCampaign && (
               <div className="grid grid-cols-4 gap-4 p-3 bg-muted rounded-lg">
                 <div>
-                  <div className="text-xs text-muted-foreground">Current (28d)</div>
-                  <div className="font-bold">{selectedCampaign.current_streams_28d.toLocaleString()}</div>
+                  <div className="text-xs text-muted-foreground">Current (12m)</div>
+                  <div className="font-bold">{selectedCampaign.current_streams_12m.toLocaleString()}</div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Daily Rate</div>

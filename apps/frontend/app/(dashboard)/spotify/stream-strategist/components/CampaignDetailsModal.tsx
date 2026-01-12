@@ -206,7 +206,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         query = query.in('campaign_id', songIds);
       }
       
-      const { data, error } = await query.order('streams_28d', { ascending: false });
+      const { data, error } = await query.order('streams_12m', { ascending: false });
       
       if (error) {
         console.error('Error fetching campaign playlists:', error);
@@ -243,7 +243,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         console.log('⚠️ Unassigned playlists (need vendor):', unassignedPlaylists.slice(0, 5).map((p: any) => ({
           id: p.id,
           name: p.playlist_name,
-          streams_28d: p.streams_28d
+          streams_12m: p.streams_12m
         })));
       }
       
@@ -477,7 +477,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       if (songIds.length > 0) {
         const { data: algorithmicPlaylists } = await supabase
           .from('campaign_playlists')
-          .select('playlist_name, playlist_curator, streams_28d, streams_7d, streams_12m')
+          .select('playlist_name, playlist_curator, streams_12m, streams_7d, streams_12m')
           .in('campaign_id', songIds)
           .eq('is_algorithmic', true);
         
@@ -493,16 +493,16 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                       name.includes('your dj')) && 
                      curator === 'spotify';
             })
-            .reduce((sum, p) => sum + (p.streams_28d || 0), 0);
+            .reduce((sum, p) => sum + (p.streams_12m || 0), 0);
           
           // Calculate Discover Weekly streams
           discoverWeeklyStreams = algorithmicPlaylists
             .filter(p => p.playlist_name?.toLowerCase().includes('discover weekly'))
-            .reduce((sum, p) => sum + (p.streams_28d || 0), 0);
+            .reduce((sum, p) => sum + (p.streams_12m || 0), 0);
           
           // Calculate total algorithmic streams (all Spotify algorithmic playlists)
           totalAlgorithmicStreams = algorithmicPlaylists
-            .reduce((sum, p) => sum + (p.streams_28d || 0), 0);
+            .reduce((sum, p) => sum + (p.streams_12m || 0), 0);
         }
       }
 
@@ -752,7 +752,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         vendor_id: playlist.vendor_id,
         playlist_curator: playlist.vendor_name || null,
         is_algorithmic: false,
-        streams_28d: 0,
+        streams_12m: 0,
         streams_7d: 0,
         streams_12m: 0,
         org_id: '00000000-0000-0000-0000-000000000001'
@@ -897,8 +897,8 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     // Find performance data for this specific playlist
     const playlistPerf = acc[vendorId].vendorPerformance?.playlists?.find(p => p.id === playlist.id);
     
-    // Use 28d streams from the campaign_playlists data (actual scraped data)
-    const playlistStreams = playlist.streams_28d || playlist.streams_7d || playlist.streams_24h || 0;
+    // Use 12m streams from the campaign_playlists data (actual scraped data)
+    const playlistStreams = playlist.streams_12m || playlist.streams_7d || playlist.streams_24h || 0;
     
     acc[vendorId].playlists.push({
       ...playlist,
@@ -1412,9 +1412,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               </div>
               <div className="text-center p-3 bg-muted/50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
-                  {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()}
+                  {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0).toLocaleString()}
                 </div>
-                <div className="text-sm text-muted-foreground">Last 28 Days</div>
+                <div className="text-sm text-muted-foreground">Last 12 Months</div>
               </div>
             </div>
 
@@ -1438,14 +1438,14 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               ];
               
               // Create a map of existing data by playlist name (case insensitive)
-              const algoDataMap = new Map<string, { streams_24h: number; streams_7d: number; streams_28d: number }>();
+              const algoDataMap = new Map<string, { streams_24h: number; streams_7d: number; streams_12m: number }>();
               algorithmicPlaylists.forEach((p: any) => {
                 const name = (p.playlist_name || '').toLowerCase().trim();
-                const existing = algoDataMap.get(name) || { streams_24h: 0, streams_7d: 0, streams_28d: 0 };
+                const existing = algoDataMap.get(name) || { streams_24h: 0, streams_7d: 0, streams_12m: 0 };
                 algoDataMap.set(name, {
                   streams_24h: existing.streams_24h + (p.streams_24h || 0),
                   streams_7d: existing.streams_7d + (p.streams_7d || 0),
-                  streams_28d: existing.streams_28d + (p.streams_28d || 0),
+                  streams_12m: existing.streams_12m + (p.streams_12m || 0),
                 });
               });
               
@@ -1457,14 +1457,14 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                         <TableHead className="py-2">Playlist Type</TableHead>
                         <TableHead className="py-2 text-right">24h</TableHead>
                         <TableHead className="py-2 text-right">7d</TableHead>
-                        <TableHead className="py-2 text-right">28d</TableHead>
+                        <TableHead className="py-2 text-right">12m</TableHead>
                         <TableHead className="py-2 text-center w-20">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {ALL_ALGO_TYPES.map((typeName) => {
                         const data = algoDataMap.get(typeName.toLowerCase().trim());
-                        const hasData = data && (data.streams_24h > 0 || data.streams_7d > 0 || data.streams_28d > 0);
+                        const hasData = data && (data.streams_24h > 0 || data.streams_7d > 0 || data.streams_12m > 0);
                         
                         return (
                           <TableRow 
@@ -1484,7 +1484,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                               {hasData ? (data?.streams_7d || 0).toLocaleString() : '-'}
                             </TableCell>
                             <TableCell className="py-2 text-right font-mono">
-                              {hasData ? (data?.streams_28d || 0).toLocaleString() : '-'}
+                              {hasData ? (data?.streams_12m || 0).toLocaleString() : '-'}
                             </TableCell>
                             <TableCell className="py-2 text-center">
                               {hasData ? (
@@ -1635,7 +1635,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     <div className="text-sm text-blue-800 dark:text-blue-200">
                       <strong>Spotify Algorithmic Playlists:</strong>{' '}
                       This campaign has {algorithmicPlaylists.length} algorithmic playlist{algorithmicPlaylists.length !== 1 ? 's' : ''} with{' '}
-                      {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()} streams (28d).
+                      {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0).toLocaleString()} streams (12m).
                       View them in the <strong>Campaign Details</strong> tab under "External Streaming Sources".
                     </div>
                   </div>
@@ -1663,9 +1663,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     </div>
                   </Card>
                   <Card className="p-4">
-                    <div className="text-sm text-muted-foreground mb-1">Streams (28d)</div>
+                    <div className="text-sm text-muted-foreground mb-1">Streams (12m)</div>
                     <div className="text-2xl font-bold">
-                      {campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()}
+                      {campaignPlaylists.reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0).toLocaleString()}
                     </div>
                   </Card>
                   <Card className="p-4">
@@ -1686,7 +1686,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           <TableHead className="py-2">Vendor</TableHead>
                           <TableHead className="text-right py-2">24h</TableHead>
                           <TableHead className="text-right py-2">7d</TableHead>
-                          <TableHead className="text-right py-2">28d</TableHead>
+                          <TableHead className="text-right py-2">12m</TableHead>
                           <TableHead className="w-16 py-2">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -1716,7 +1716,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                               {(playlist.streams_7d || 0).toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right font-mono font-medium text-xs py-2">
-                              {(playlist.streams_28d || 0).toLocaleString()}
+                              {(playlist.streams_12m || 0).toLocaleString()}
                             </TableCell>
                             <TableCell className="py-2">
                               <Button
@@ -1782,7 +1782,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                         <TableHeader>
                           <TableRow className="bg-orange-50 dark:bg-orange-950">
                             <TableHead>Playlist Name</TableHead>
-                            <TableHead className="text-right">Streams (28d)</TableHead>
+                            <TableHead className="text-right">Streams (12m)</TableHead>
                             <TableHead>Assign Vendor</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
@@ -1815,7 +1815,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                                   </div>
                                 </TableCell>
                                 <TableCell className="text-right font-mono text-sm py-2">
-                                  {(playlist.streams_28d || 0).toLocaleString()}
+                                  {(playlist.streams_12m || 0).toLocaleString()}
                                 </TableCell>
                                 <TableCell className="py-2">
                                   {hasMatch ? (
@@ -2048,7 +2048,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                             <TableHead>Playlist Name</TableHead>
                             <TableHead className="text-right">24h</TableHead>
                             <TableHead className="text-right">7d</TableHead>
-                            <TableHead className="text-right">28d</TableHead>
+                            <TableHead className="text-right">12m</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -2070,7 +2070,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                                 {(playlist.streams_7d || 0).toLocaleString()}
                               </TableCell>
                               <TableCell className="text-right font-mono text-sm py-2">
-                                {(playlist.streams_28d || 0).toLocaleString()}
+                                {(playlist.streams_12m || 0).toLocaleString()}
                               </TableCell>
                               <TableCell className="text-right py-2">
                                 <div className="flex items-center justify-end gap-1">
@@ -2183,7 +2183,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           playlists: [],
                           totalStreams24h: 0,
                           totalStreams7d: 0,
-                          totalStreams28d: 0,
+                          totalStreams12m: 0,
                           costPer1k: effectiveCost,
                           vendorDefaultCost: playlist.vendors?.cost_per_1k_streams || 0,
                           hasOverride: hasOverride,
@@ -2194,7 +2194,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                       acc[vendorName].playlists.push(playlist);
                       acc[vendorName].totalStreams24h += playlist.streams_24h || 0;
                       acc[vendorName].totalStreams7d += playlist.streams_7d || 0;
-                      acc[vendorName].totalStreams28d += playlist.streams_28d || 0;
+                      acc[vendorName].totalStreams12m += playlist.streams_12m || 0;
                       return acc;
                     }, {})
                   ).map(([vendorName, data]: [string, any]) => (
@@ -2298,10 +2298,10 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           </div>
                         </div>
                         <div>
-                          <div className="text-sm text-muted-foreground">Last 28 Days</div>
-                          <div className="text-xl font-bold">{data.totalStreams28d.toLocaleString()}</div>
+                          <div className="text-sm text-muted-foreground">Last 12 Months</div>
+                          <div className="text-xl font-bold">{data.totalStreams12m.toLocaleString()}</div>
                           <div className="text-xs text-muted-foreground">
-                            {Math.round(data.totalStreams28d / 28).toLocaleString()}/day
+                            {Math.round(data.totalStreams12m / 365).toLocaleString()}/day
                           </div>
                         </div>
                       </div>
@@ -2387,15 +2387,15 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                   {(() => {
                     // Get TOTAL streams from spotify_campaigns (the actual song total from SFA)
                     const songs = campaignData?.songs || [];
-                    const totalSongStreams28d = songs.reduce((sum: number, s: any) => sum + (s.streams_28d || 0), 0);
+                    const totalSongStreams12m = songs.reduce((sum: number, s: any) => sum + (s.streams_12m || 0), 0);
                     const totalSongStreams7d = songs.reduce((sum: number, s: any) => sum + (s.streams_7d || 0), 0);
                     const totalSongStreams24h = songs.reduce((sum: number, s: any) => sum + (s.streams_24h || 0), 0);
                     
                     // Get playlist-only streams (from campaign_playlists - excluding algorithmic and organic)
                     const vendorPlaylists = campaignPlaylists
                       .filter((p: any) => !p.is_algorithmic && !p.is_organic);
-                    const playlistOnlyStreams28d = vendorPlaylists
-                      .reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0);
+                    const playlistOnlyStreams12m = vendorPlaylists
+                      .reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0);
                     const playlistOnlyStreams7d = vendorPlaylists
                       .reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0);
                     const playlistOnlyStreams24h = vendorPlaylists
@@ -2409,7 +2409,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     const projectedTotalStreams = projectedDailyFromPlaylists * campaignDuration;
                     
                     // Use the appropriate streams based on view mode (for display)
-                    const totalStreams28d = streamViewMode === 'total' ? totalSongStreams28d : playlistOnlyStreams28d;
+                    const totalStreams12m = streamViewMode === 'total' ? totalSongStreams12m : playlistOnlyStreams12m;
                     const totalStreams7d = streamViewMode === 'total' ? totalSongStreams7d : playlistOnlyStreams7d;
                     const totalStreams24h = streamViewMode === 'total' ? totalSongStreams24h : playlistOnlyStreams24h;
                     
@@ -2426,7 +2426,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     
                     // GOAL PROGRESS: Always calculated from VENDOR playlists only
                     // Organic and algorithmic playlists do NOT count towards campaign goal
-                    const streamsTowardsGoal = playlistOnlyStreams28d;
+                    const streamsTowardsGoal = playlistOnlyStreams12m;
                     const progressPercent = streamGoal > 0 ? Math.min((streamsTowardsGoal / streamGoal) * 100, 100) : 0;
                     const remainingStreams = Math.max(0, streamGoal - streamsTowardsGoal);
                     // Days to goal: use playlist daily rate since only vendor playlists count towards goal
@@ -2462,9 +2462,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                       chartData.push({
                         day: i === 0 ? 'Today' : `Day ${i}`,
                         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                        current: i === 0 ? totalStreams28d : Math.round(totalStreams28d + dailyRate * i),
+                        current: i === 0 ? totalStreams12m : Math.round(totalStreams12m + dailyRate * i),
                         goal: streamGoal,
-                        projected: Math.round(totalStreams28d + dailyRate * i),
+                        projected: Math.round(totalStreams12m + dailyRate * i),
                       });
                     }
                     
@@ -2528,12 +2528,12 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-muted-foreground">
-                                {streamViewMode === 'total' ? 'Total Streams (28d)' : 'Playlist Streams (28d)'}
+                                {streamViewMode === 'total' ? 'Total Streams (12m)' : 'Playlist Streams (12m)'}
                               </span>
                               <Target className="h-4 w-4 text-primary" />
                             </div>
                             <div className="text-3xl font-bold text-primary">
-                              {totalStreams28d.toLocaleString()}
+                              {totalStreams12m.toLocaleString()}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
                               Goal: {streamGoal.toLocaleString()}
@@ -2658,8 +2658,8 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                               <p className="text-xs text-muted-foreground">
                                 {streamGoal === 0 ? (
                                   `📊 No goal set for this campaign. Current daily rate: ${dailyRate.toLocaleString()} streams/day.`
-                                ) : totalStreams28d >= streamGoal ? (
-                                  `🎉 Goal reached! You've hit ${totalStreams28d.toLocaleString()} streams (${((totalStreams28d / streamGoal) * 100).toFixed(0)}% of ${streamGoal.toLocaleString()} goal).`
+                                ) : totalStreams12m >= streamGoal ? (
+                                  `🎉 Goal reached! You've hit ${totalStreams12m.toLocaleString()} streams (${((totalStreams12m / streamGoal) * 100).toFixed(0)}% of ${streamGoal.toLocaleString()} goal).`
                                 ) : dailyRate === 0 ? (
                                   `⚠️ No streams recorded yet. Goal: ${streamGoal.toLocaleString()} streams. ${daysRemaining} days remaining.`
                                 ) : isOnTrack ? (

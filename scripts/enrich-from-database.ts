@@ -253,7 +253,7 @@ async function main() {
               playlist_follower_count: spotifyData.followers?.total || 0,
               vendor_id: campaign.vendor_id,
               streams_7d: 0,
-              streams_28d: 0,
+              streams_12m: 0,
               streams_12m: 0,
             });
 

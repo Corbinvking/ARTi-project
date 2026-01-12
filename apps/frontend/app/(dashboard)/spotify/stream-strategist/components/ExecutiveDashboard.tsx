@@ -120,7 +120,7 @@ export const ExecutiveDashboard = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-green-600">
-                    {((vendor.totalStreams28d || 0) / 1000).toFixed(1)}K streams
+                    {((vendor.totalStreams12m || 0) / 1000).toFixed(1)}K streams
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {(vendor.avgStreamsPerPlaylist || 0).toLocaleString()}/playlist • ${(vendor.costPer1k || 0).toFixed(2)}/1K

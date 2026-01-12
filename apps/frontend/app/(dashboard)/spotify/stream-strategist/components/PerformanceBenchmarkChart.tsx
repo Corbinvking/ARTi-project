@@ -103,7 +103,7 @@ export const PerformanceBenchmarkChart = () => {
             </div>
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
-                <p className="font-medium">Streams Delivered (28d)</p>
+                <p className="font-medium">Streams Delivered (12m)</p>
                 <p className="text-sm text-muted-foreground">From vendor playlists only</p>
               </div>
               <div className="text-2xl font-bold text-blue-600">

@@ -99,7 +99,7 @@ def generate_sql_from_scraped_data():
         if 'time_ranges' in data:
             all_playlists = {}  # playlist_name|curator -> playlist data
             
-            for time_range in ['28day', '7day', '12months']:
+            for time_range in ['24hour', '7day', '12months']:
                 if (time_range in data['time_ranges'] and 
                     'stats' in data['time_ranges'][time_range] and 
                     'playlists' in data['time_ranges'][time_range]['stats']):
@@ -133,23 +133,23 @@ def generate_sql_from_scraped_data():
                 sql_statements.append(f"    -- Insert/Update {len(all_playlists)} playlists")
                 
                 for playlist_data in all_playlists.values():
-                    streams_28d = playlist_data['streams'].get('28day', 0)
+                    streams_24h = playlist_data['streams'].get('24hour', 0)
                     streams_7d = playlist_data['streams'].get('7day', 0)
                     streams_12m = playlist_data['streams'].get('12months', 0)
                     
                     sql_statements.append(f"    INSERT INTO campaign_playlists (")
                     sql_statements.append(f"      campaign_id, playlist_name, playlist_curator,")
-                    sql_statements.append(f"      streams_28d, streams_7d, streams_12m,")
+                    sql_statements.append(f"      streams_24h, streams_7d, streams_12m,")
                     sql_statements.append(f"      date_added, last_scraped")
                     sql_statements.append(f"    ) VALUES (")
                     sql_statements.append(f"      v_campaign_id,")
                     sql_statements.append(f"      '{playlist_data['name']}',")
                     sql_statements.append(f"      '{playlist_data['curator']}',")
-                    sql_statements.append(f"      {streams_28d}, {streams_7d}, {streams_12m},")
+                    sql_statements.append(f"      {streams_24h}, {streams_7d}, {streams_12m},")
                     sql_statements.append(f"      '{playlist_data['date_added']}', NOW()")
                     sql_statements.append(f"    ) ON CONFLICT (campaign_id, playlist_name, playlist_curator)")
                     sql_statements.append(f"    DO UPDATE SET")
-                    sql_statements.append(f"      streams_28d = EXCLUDED.streams_28d,")
+                    sql_statements.append(f"      streams_24h = EXCLUDED.streams_24h,")
                     sql_statements.append(f"      streams_7d = EXCLUDED.streams_7d,")
                     sql_statements.append(f"      streams_12m = EXCLUDED.streams_12m,")
                     sql_statements.append(f"      last_scraped = EXCLUDED.last_scraped,")

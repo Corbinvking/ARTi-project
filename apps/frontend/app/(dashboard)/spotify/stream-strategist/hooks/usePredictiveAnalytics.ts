@@ -8,7 +8,7 @@ export interface CampaignForecast {
   campaign_id: number;
   campaign_name: string;
   artist_name: string;
-  current_streams_28d: number;
+  current_streams_12m: number;
   daily_rate: number;
   stream_goal: number;
   progress_percent: number;
@@ -64,9 +64,9 @@ export const usePredictiveAnalytics = () => {
       // Get spotify campaigns with actual stream data
       const { data: spotifyCampaigns, error: spotifyError } = await supabase
         .from("spotify_campaigns")
-        .select("id, campaign, track_name, artist_name, streams_28d, streams_7d, streams_24h, stream_goal, status")
-        .not("streams_28d", "is", null)
-        .order("streams_28d", { ascending: false });
+        .select("id, campaign, track_name, artist_name, streams_12m, streams_7d, streams_24h, stream_goal, status")
+        .not("streams_12m", "is", null)
+        .order("streams_12m", { ascending: false });
 
       if (spotifyError) {
         console.error("Error fetching spotify_campaigns:", spotifyError);
@@ -101,23 +101,23 @@ export const usePredictiveAnalytics = () => {
 
       // Generate per-campaign forecasts based on actual data
       const campaignForecasts: CampaignForecast[] = (spotifyCampaigns || [])
-        .filter(sc => sc.streams_28d > 0)
+        .filter(sc => sc.streams_12m > 0)
         .map(sc => {
-          const streams28d = sc.streams_28d || 0;
+          const streams12m = sc.streams_12m || 0;
           const streams7d = sc.streams_7d || 0;
-          const dailyRate = streams7d > 0 ? streams7d / 7 : streams28d / 28;
-          const streamGoal = sc.stream_goal || streams28d * 2; // Default goal if not set
-          const progressPercent = streamGoal > 0 ? (streams28d / streamGoal) * 100 : 0;
-          const remainingStreams = Math.max(0, streamGoal - streams28d);
+          const dailyRate = streams7d > 0 ? streams7d / 7 : streams12m / 365;
+          const streamGoal = sc.stream_goal || streams12m * 2; // Default goal if not set
+          const progressPercent = streamGoal > 0 ? (streams12m / streamGoal) * 100 : 0;
+          const remainingStreams = Math.max(0, streamGoal - streams12m);
           const daysToGoal = dailyRate > 0 ? Math.ceil(remainingStreams / dailyRate) : 999;
 
           // Generate 30-day forecast for this campaign
           const forecast = Array.from({ length: 30 }, (_, i) => {
             const date = addDays(new Date(), i + 1);
             // Predict with some variance based on recent performance
-            const weeklyGrowth = streams7d > 0 ? (streams7d / (streams28d / 4)) : 1;
+            const weeklyGrowth = streams7d > 0 ? (streams7d / (streams12m / 52)) : 1;
             const predictedDaily = dailyRate * Math.pow(weeklyGrowth, i / 7);
-            const cumulativeStreams = streams28d + (predictedDaily * (i + 1));
+            const cumulativeStreams = streams12m + (predictedDaily * (i + 1));
             
             return {
               date: format(date, 'MMM dd'),
@@ -130,7 +130,7 @@ export const usePredictiveAnalytics = () => {
             campaign_id: sc.id,
             campaign_name: sc.track_name || sc.campaign || 'Unknown',
             artist_name: sc.artist_name || 'Unknown',
-            current_streams_28d: streams28d,
+            current_streams_12m: streams12m,
             daily_rate: Math.round(dailyRate),
             stream_goal: streamGoal,
             progress_percent: Math.round(progressPercent),

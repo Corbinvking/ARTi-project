@@ -78,8 +78,8 @@ export async function s4aIngestRoutes(server: FastifyInstance) {
     for (const [timeRange, data] of Object.entries(scraped_data.time_ranges)) {
       const stats = data.stats;
 
-      // Update campaign stats (use 28day as primary)
-      if (timeRange === '28day') {
+      // Update campaign stats (use 12months as primary)
+      if (timeRange === '12months') {
         const { error: campaignError } = await supabase
           .from('spotify_campaigns')
           .update({
@@ -122,9 +122,8 @@ export async function s4aIngestRoutes(server: FastifyInstance) {
             campaign_id,
             playlist_name: playlist.name,
             playlist_curator: playlist.made_by || null,
-            streams_28d: timeRange === '28day' ? streamsNum : undefined,
-            streams_7d: timeRange === '7day' ? streamsNum : undefined,
             streams_12m: timeRange === '12months' ? streamsNum : undefined,
+            streams_7d: timeRange === '7day' ? streamsNum : undefined,
             date_added: playlist.date_added || null,
             last_scraped: new Date().toISOString()
           };

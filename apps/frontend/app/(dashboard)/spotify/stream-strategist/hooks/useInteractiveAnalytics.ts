@@ -89,7 +89,7 @@ export const useInteractiveAnalytics = () => {
         const campaignPlaylistData = spotifyCampaign 
           ? campaignPlaylists?.filter(p => p.campaign_id === spotifyCampaign.id) || []
           : [];
-        const totalStreams = campaignPlaylistData.reduce((sum, p) => sum + (p.streams_28d || 0), 0);
+        const totalStreams = campaignPlaylistData.reduce((sum, p) => sum + (p.streams_12m || 0), 0);
         
         // Get cost from spotify_campaigns
         const costStr = spotifyCampaign?.sale_price || '$0';
@@ -138,13 +138,13 @@ export const useInteractiveAnalytics = () => {
         const vendorCampaignGroupIds = [...new Set(vendorSpotifyCampaigns.map(sc => sc.campaign_group_id))];
         const vendorCampaigns = campaigns?.filter(c => vendorCampaignGroupIds.includes(c.id)) || [];
 
-        const totalStreams = vendorPlaylists.reduce((sum, p) => sum + (p.streams_28d || 0), 0);
+        const totalStreams = vendorPlaylists.reduce((sum, p) => sum + (p.streams_12m || 0), 0);
         
         // Calculate average performance based on actual vs expected baseline
         const avgPerformance = vendorPlaylists.length > 0 ? 
           vendorPlaylists.reduce((sum, p) => {
             const baseline = 1000; // Expected baseline per playlist
-            const actual = (p.streams_28d || 0);
+            const actual = (p.streams_12m || 0);
             return sum + (actual / baseline) * 100;
           }, 0) / vendorPlaylists.length
           : 0;
@@ -167,7 +167,7 @@ export const useInteractiveAnalytics = () => {
           
           const existing = timelineMap.get(dateKey) || { streams: 0, count: 0 };
           timelineMap.set(dateKey, {
-            streams: existing.streams + (playlist.streams_28d || 0),
+            streams: existing.streams + (playlist.streams_12m || 0),
             count: existing.count + 1
           });
         }
@@ -200,7 +200,7 @@ export const useInteractiveAnalytics = () => {
       const spotifyCampaignAlgoStreams = new Map<number, number>();
       algoPlaylists.forEach(playlist => {
         const existing = spotifyCampaignAlgoStreams.get(playlist.campaign_id) || 0;
-        spotifyCampaignAlgoStreams.set(playlist.campaign_id, existing + (playlist.streams_28d || 0));
+        spotifyCampaignAlgoStreams.set(playlist.campaign_id, existing + (playlist.streams_12m || 0));
       });
       
       // Map to campaign_groups with details (count unique campaign_groups)
@@ -235,7 +235,7 @@ export const useInteractiveAnalytics = () => {
       const songsWithAlgo20k = songs20k.length;
 
       // Calculate total streams and costs
-      const totalStreams = campaignPlaylists?.reduce((sum, p) => sum + (p.streams_28d || 0), 0) || 0;
+      const totalStreams = campaignPlaylists?.reduce((sum, p) => sum + (p.streams_12m || 0), 0) || 0;
       const totalCost = spotifyCampaigns?.reduce((sum, sc) => {
         const costStr = sc.sale_price || '$0';
         return sum + (parseFloat(costStr.replace(/[$,]/g, '')) || 0);
