@@ -154,6 +154,8 @@ export default function CampaignBuilder() {
                 onNext={handleRecommendationsNext}
                 onBack={handleBack}
                 campaignGenres={campaignData.music_genres || (campaignData.sub_genre?.split(', ').filter(Boolean) || [])}
+                streamGoal={campaignData.stream_goal || 0}
+                campaignDuration={campaignData.duration_days || 90}
               />
             </div>
           )}

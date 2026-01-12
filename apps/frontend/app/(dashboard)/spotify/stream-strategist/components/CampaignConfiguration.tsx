@@ -371,6 +371,7 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
       const finalData = { 
         ...data, 
         client_id: selectedClientId,
+        client: clientName, // Include client name for display in review
         sub_genre: selectedGenres.join(', '), 
         track_name: trackName,
         credits_allocated: creditsToAllocate,

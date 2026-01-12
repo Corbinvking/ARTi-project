@@ -133,7 +133,8 @@ export default function CampaignReview({
 
   // Safely get allocation data with fallbacks
   const totalProjectedStreams = allocationsData.totalProjectedStreams || 0;
-  const totalCost = allocationsData.totalCost || (totalProjectedStreams * 0.001) || 0;
+  // Fix: Remove incorrect fallback that was using arbitrary multiplier
+  const totalCost = allocationsData.totalCost || 0;
 
   // Calculate metrics
   const calculateCPSt = () => {
@@ -239,6 +240,18 @@ export default function CampaignReview({
                   <p className="text-2xl font-bold">{totalProjectedStreams.toLocaleString()}</p>
                 </div>
               </div>
+              
+              {/* Show selected vendors */}
+              {allocationsData.selectedVendors && allocationsData.selectedVendors.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <span className="text-sm text-muted-foreground">Vendors:</span>
+                  {allocationsData.selectedVendors.map((vendor: any) => (
+                    <Badge key={vendor.id} variant="secondary">
+                      {vendor.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
               
               {/* Direct Vendor Allocations */}
               {allocationsData.vendorAllocations && allocationsData.vendorAllocations.length > 0 && (
@@ -365,14 +378,10 @@ export default function CampaignReview({
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+              <div className="grid grid-cols-1 gap-4 pt-4 border-t">
                 <div>
                   <p className="text-sm text-muted-foreground">Expected Daily Streams</p>
                   <p className="font-medium">{Math.round(totalProjectedStreams / campaignData.duration_days).toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Daily Budget</p>
-                  <p className="font-medium">${(totalCost / campaignData.duration_days).toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>

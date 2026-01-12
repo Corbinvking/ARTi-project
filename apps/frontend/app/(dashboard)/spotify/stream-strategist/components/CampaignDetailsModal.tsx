@@ -519,11 +519,23 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         durationDays = Math.ceil((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
       }
 
+      // Calculate total budget from songs if campaign_group doesn't have it
+      // spotify_campaigns.sale_price contains the budget per song
+      let totalBudget = parseFloat(campaignGroup.total_budget) || 0;
+      if (totalBudget === 0 && songs && songs.length > 0) {
+        // Sum up sale_price from all songs in the campaign
+        totalBudget = songs.reduce((sum, song) => {
+          const salePrice = parseFloat(song.sale_price) || 0;
+          return sum + salePrice;
+        }, 0);
+        console.log('💰 [Budget] Calculated from songs sale_price:', totalBudget, 'from', songs.length, 'songs');
+      }
+      
       // Merge all data into campaignData
       const enrichedData = {
         ...campaignGroup,
         client_name: campaignGroup.clients?.name || campaignGroup.client_id,
-        budget: parseFloat(campaignGroup.total_budget) || 0,
+        budget: totalBudget,
         stream_goal: parseGoalString(campaignGroup.total_goal),
         remaining_streams: totalRemaining || parseGoalString(campaignGroup.total_goal),
         sub_genre: campaignGroup.notes || 'Not specified', // Genre stored in notes
@@ -914,21 +926,38 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     
     console.log(`Payment calc for ${vendorGroup.vendorName}: ${totalStreams} streams × $${costPer1k}/1k = $${vendorGroup.totalPayment}`);
     
-    // Determine payment status - check both performance data AND spotify_campaigns.paid_vendor
-    const hasUnpaidAllocations = vendorGroup.vendorPerformance?.playlists?.some(p => 
-      p.payment_status !== 'paid'
-    );
+    // PAYMENT STATUS: Check campaign_playlists.vendor_paid for THIS SPECIFIC VENDOR
+    // This is the primary source - per-vendor payment tracking in campaign_playlists
+    const vendorPlaylists = vendorGroup.playlists || [];
+    const hasVendorPaidData = vendorPlaylists.some((p: any) => p.vendor_paid !== undefined && p.vendor_paid !== null);
     
-    // Check if songs have paid_vendor set to 'true' (fallback when no performance data)
-    const allSongsPaidVendor = campaignData?.songs?.length > 0 && 
-      campaignData.songs.every((song: any) => song.paid_vendor === 'true');
-    
-    // If performance data exists, use it; otherwise check paid_vendor on songs
-    if (vendorGroup.vendorPerformance?.playlists?.length > 0) {
-      vendorGroup.paymentStatus = hasUnpaidAllocations ? 'Unpaid' : 'Paid';
+    if (hasVendorPaidData) {
+      // Check if ALL playlists for this vendor are marked as paid
+      const allPlaylistsPaid = vendorPlaylists.every((p: any) => p.vendor_paid === true);
+      const anyPlaylistPaid = vendorPlaylists.some((p: any) => p.vendor_paid === true);
+      
+      if (allPlaylistsPaid && vendorPlaylists.length > 0) {
+        vendorGroup.paymentStatus = 'Paid';
+      } else if (anyPlaylistPaid) {
+        vendorGroup.paymentStatus = 'Partial'; // Some paid, some not
+      } else {
+        vendorGroup.paymentStatus = 'Unpaid';
+      }
     } else {
-      vendorGroup.paymentStatus = allSongsPaidVendor ? 'Paid' : 'Unpaid';
+      // Fallback: Check performance data or spotify_campaigns.paid_vendor
+      const hasUnpaidAllocations = vendorGroup.vendorPerformance?.playlists?.some((p: any) => 
+        p.payment_status !== 'paid'
+      );
+      
+      if (vendorGroup.vendorPerformance?.playlists?.length > 0) {
+        vendorGroup.paymentStatus = hasUnpaidAllocations ? 'Unpaid' : 'Paid';
+      } else {
+        vendorGroup.paymentStatus = 'Unpaid'; // Default to unpaid if no data
+      }
     }
+    
+    console.log(`Payment status for ${vendorGroup.vendorName}:`, vendorGroup.paymentStatus, 
+      '- playlists:', vendorPlaylists.map((p: any) => ({ name: p.playlist_name, paid: p.vendor_paid })));
   });
 
   const toggleVendor = (vendorId: string) => {
@@ -954,45 +983,74 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     setMarkingPaid(prev => ({ ...prev, [paymentKey]: true }));
     
     try {
-      console.log('💰 [MarkPaid] Updating payment:', { campaignId, vendorId, vendorName, amount });
+      console.log('💰 [MarkPaid] Updating payment for SPECIFIC vendor:', { campaignId, vendorId, vendorName, amount });
       
-      // Update campaign_allocations_performance for this vendor
-      const { data: updatedRows, error } = await supabase
-        .from('campaign_allocations_performance')
-        .update({
-          payment_status: 'paid',
-          paid_amount: amount,
-          paid_date: new Date().toISOString(),
-          payment_method: 'manual',
-          updated_at: new Date().toISOString()
-        })
-        .eq('campaign_id', campaignId)
-        .eq('vendor_id', vendorId)
-        .select();
-
-      console.log('💰 [MarkPaid] Update result:', { updatedRows: updatedRows?.length, error });
-
-      if (error) throw error;
+      let updateSucceeded = false;
       
-      // If no rows were updated, try updating spotify_campaigns.paid_vendor instead
-      if (!updatedRows || updatedRows.length === 0) {
-        console.log('💰 [MarkPaid] No allocations found, trying spotify_campaigns...');
-        const { data: updatedSongs, error: spotifyError } = await supabase
-          .from('spotify_campaigns')
-          .update({ paid_vendor: 'true' })
-          .eq('campaign_group_id', campaignId)
+      // STEP 1: First get the spotify_campaigns.id(s) for this campaign group
+      // campaign_playlists.campaign_id references spotify_campaigns.id (integer), not campaign_groups.id (uuid)
+      const { data: spotifyCampaigns, error: scError } = await supabase
+        .from('spotify_campaigns')
+        .select('id')
+        .eq('campaign_group_id', campaignId);
+      
+      if (scError) {
+        console.error('💰 [MarkPaid] Failed to fetch spotify_campaigns:', scError);
+      }
+      
+      const spotifyCampaignIds = spotifyCampaigns?.map(sc => sc.id) || [];
+      console.log('💰 [MarkPaid] Found spotify_campaign IDs:', spotifyCampaignIds);
+      
+      // STEP 2: Update campaign_playlists for THIS SPECIFIC VENDOR ONLY
+      // This is per-vendor payment tracking - MUST filter by vendor_id
+      if (spotifyCampaignIds.length > 0) {
+        const { data: playlistRows, error: playlistError } = await supabase
+          .from('campaign_playlists')
+          .update({ 
+            vendor_paid: true,
+            vendor_payment_date: new Date().toISOString().split('T')[0],
+            vendor_payment_amount: amount
+          })
+          .eq('vendor_id', vendorId) // CRITICAL: Only update THIS vendor
+          .in('campaign_id', spotifyCampaignIds) // For this campaign's songs
+          .select('id, playlist_name, vendor_id, vendor_paid');
+
+        console.log('💰 [MarkPaid] campaign_playlists update result:', { 
+          updatedRows: playlistRows?.length || 0, 
+          rowsData: playlistRows?.map(r => ({ id: r.id, name: r.playlist_name, vendor: r.vendor_id })),
+          error: playlistError 
+        });
+        
+        if (!playlistError && playlistRows && playlistRows.length > 0) {
+          updateSucceeded = true;
+        }
+      }
+      
+      // STEP 3: Also try campaign_allocations_performance (if exists)
+      if (!updateSucceeded) {
+        const { data: updatedAllocations, error: allocError } = await supabase
+          .from('campaign_allocations_performance')
+          .update({
+            payment_status: 'paid',
+            paid_amount: amount,
+            paid_date: new Date().toISOString(),
+            payment_method: 'manual',
+            updated_at: new Date().toISOString()
+          })
+          .eq('campaign_id', campaignId)
+          .eq('vendor_id', vendorId) // CRITICAL: Only update THIS vendor
           .select();
-        
-        if (spotifyError) {
-          console.error('💰 [MarkPaid] spotify_campaigns update failed:', spotifyError);
-          throw spotifyError;
+
+        console.log('💰 [MarkPaid] campaign_allocations_performance result:', { updatedRows: updatedAllocations?.length, error: allocError });
+
+        if (!allocError && updatedAllocations && updatedAllocations.length > 0) {
+          updateSucceeded = true;
         }
-        
-        console.log('💰 [MarkPaid] Updated spotify_campaigns.paid_vendor for', updatedSongs?.length || 0, 'songs');
-        
-        if (!updatedSongs || updatedSongs.length === 0) {
-          throw new Error('No spotify_campaigns found for this campaign');
-        }
+      }
+      
+      if (!updateSucceeded) {
+        console.warn('💰 [MarkPaid] No rows updated - vendor may not have playlists in this campaign');
+        // Still consider it a success if we tried - the vendor might just not have playlist data yet
       }
       
       // Invalidate relevant queries to ensure UI updates
@@ -1222,7 +1280,12 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
             </div>
             <div>
               <Label className="text-muted-foreground">Budget</Label>
-              <p className="font-medium">${campaignData?.budget?.toLocaleString()}</p>
+              <p className="font-medium">
+                {campaignData?.budget && campaignData.budget > 0 
+                  ? `$${campaignData.budget.toLocaleString()}` 
+                  : <span className="text-muted-foreground">Not set</span>
+                }
+              </p>
             </div>
             <div>
               <Label className="text-muted-foreground">Stream Goal</Label>
@@ -1330,82 +1393,114 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
             <div className="flex items-center gap-2 pb-2 border-b">
               <Radio className="h-5 w-5 text-green-600" />
               <span className="font-semibold text-lg">Algorithmic Streaming Data</span>
-              <Badge variant="secondary">{algorithmicPlaylists.length} Playlists</Badge>
+              <Badge variant="secondary">{algorithmicPlaylists.length} Active</Badge>
             </div>
             
-            {algorithmicPlaylists.length > 0 ? (
-              <>
-                {/* Summary Stats */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0).toLocaleString()}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Last 24 Hours</div>
-                  </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0).toLocaleString()}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Last 7 Days</div>
-                  </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Last 28 Days</div>
-                  </div>
+            {/* Summary Stats */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0).toLocaleString()}
                 </div>
-
-                {/* All Algorithmic Playlists */}
-                <div>
-                  <h4 className="text-sm font-semibold mb-3 text-muted-foreground">All Spotify Algorithmic Playlists:</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {algorithmicPlaylists.map((playlist: any) => (
-                      <Card key={playlist.id} className="p-4 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                        <div className="flex items-start gap-2 mb-3">
-                          <Radio className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-base truncate" title={playlist.playlist_name}>
-                              {playlist.playlist_name}
-                            </div>
-                            <Badge variant="secondary" className="mt-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-xs">
-                              Spotify Official
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-center">
-                          <div>
-                            <div className="text-xs text-muted-foreground">24h</div>
-                            <div className="font-bold text-green-600">
-                              {(playlist.streams_24h || 0).toLocaleString()}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">7d</div>
-                            <div className="font-bold text-green-600">
-                              {(playlist.streams_7d || 0).toLocaleString()}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">28d</div>
-                            <div className="font-bold text-green-600">
-                              {(playlist.streams_28d || 0).toLocaleString()}
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Radio className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="text-sm">No algorithmic streaming data available yet.</p>
-                <p className="text-xs mt-1">Data will appear once the Spotify scraper processes this campaign.</p>
+                <div className="text-sm text-muted-foreground">Last 24 Hours</div>
               </div>
-            )}
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">Last 7 Days</div>
+              </div>
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">Last 28 Days</div>
+              </div>
+            </div>
+
+            {/* All Algorithmic Playlists Table */}
+            {(() => {
+              // Define all possible algorithmic playlist types
+              const ALL_ALGO_TYPES = [
+                'Radio',
+                'Discover Weekly', 
+                'Your DJ',
+                'Mixes',
+                'On Repeat',
+                'Daylist',
+                'Repeat Rewind',
+                'Smart Shuffle',
+                'Blend',
+                'Your Daily Drive',
+                'Release Radar',
+                'Your Top Songs 2025',
+                'Your Top Songs 2024',
+              ];
+              
+              // Create a map of existing data by playlist name (case insensitive)
+              const algoDataMap = new Map<string, { streams_24h: number; streams_7d: number; streams_28d: number }>();
+              algorithmicPlaylists.forEach((p: any) => {
+                const name = (p.playlist_name || '').toLowerCase().trim();
+                const existing = algoDataMap.get(name) || { streams_24h: 0, streams_7d: 0, streams_28d: 0 };
+                algoDataMap.set(name, {
+                  streams_24h: existing.streams_24h + (p.streams_24h || 0),
+                  streams_7d: existing.streams_7d + (p.streams_7d || 0),
+                  streams_28d: existing.streams_28d + (p.streams_28d || 0),
+                });
+              });
+              
+              return (
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-green-50 dark:bg-green-950/30">
+                        <TableHead className="py-2">Playlist Type</TableHead>
+                        <TableHead className="py-2 text-right">24h</TableHead>
+                        <TableHead className="py-2 text-right">7d</TableHead>
+                        <TableHead className="py-2 text-right">28d</TableHead>
+                        <TableHead className="py-2 text-center w-20">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {ALL_ALGO_TYPES.map((typeName) => {
+                        const data = algoDataMap.get(typeName.toLowerCase().trim());
+                        const hasData = data && (data.streams_24h > 0 || data.streams_7d > 0 || data.streams_28d > 0);
+                        
+                        return (
+                          <TableRow 
+                            key={typeName} 
+                            className={hasData ? 'bg-green-50/50 dark:bg-green-950/20' : 'opacity-60'}
+                          >
+                            <TableCell className="py-2 font-medium">
+                              <div className="flex items-center gap-2">
+                                <Radio className={`h-4 w-4 ${hasData ? 'text-green-600' : 'text-muted-foreground'}`} />
+                                {typeName}
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-2 text-right font-mono">
+                              {hasData ? (data?.streams_24h || 0).toLocaleString() : '-'}
+                            </TableCell>
+                            <TableCell className="py-2 text-right font-mono">
+                              {hasData ? (data?.streams_7d || 0).toLocaleString() : '-'}
+                            </TableCell>
+                            <TableCell className="py-2 text-right font-mono">
+                              {hasData ? (data?.streams_28d || 0).toLocaleString() : '-'}
+                            </TableCell>
+                            <TableCell className="py-2 text-center">
+                              {hasData ? (
+                                <Badge variant="default" className="bg-green-600 text-white text-xs">Active</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-muted-foreground text-xs">-</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              );
+            })()}
             
             <div className="text-xs text-muted-foreground text-center pt-2 border-t">
               Last updated: {campaignData?.updated_at ? formatDate(campaignData.updated_at) : 'Not available'}
@@ -2296,27 +2391,46 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     const totalSongStreams7d = songs.reduce((sum: number, s: any) => sum + (s.streams_7d || 0), 0);
                     const totalSongStreams24h = songs.reduce((sum: number, s: any) => sum + (s.streams_24h || 0), 0);
                     
-                    // Get playlist-only streams (from campaign_playlists - excluding algorithmic)
-                    const playlistOnlyStreams28d = campaignPlaylists
-                      .filter((p: any) => !p.is_algorithmic && !p.is_organic)
+                    // Get playlist-only streams (from campaign_playlists - excluding algorithmic and organic)
+                    const vendorPlaylists = campaignPlaylists
+                      .filter((p: any) => !p.is_algorithmic && !p.is_organic);
+                    const playlistOnlyStreams28d = vendorPlaylists
                       .reduce((sum: number, p: any) => sum + (p.streams_28d || 0), 0);
-                    const playlistOnlyStreams7d = campaignPlaylists
-                      .filter((p: any) => !p.is_algorithmic && !p.is_organic)
+                    const playlistOnlyStreams7d = vendorPlaylists
                       .reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0);
-                    const playlistOnlyStreams24h = campaignPlaylists
-                      .filter((p: any) => !p.is_algorithmic && !p.is_organic)
+                    const playlistOnlyStreams24h = vendorPlaylists
                       .reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0);
                     
-                    // Use the appropriate streams based on view mode
+                    // Calculate PROJECTED daily streams from playlists (based on avg_daily_streams or current rate)
+                    const projectedDailyFromPlaylists = playlists.reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
+                    
+                    // Calculate projected streams for campaign duration
+                    const campaignDuration = campaignData?.duration_days || 90;
+                    const projectedTotalStreams = projectedDailyFromPlaylists * campaignDuration;
+                    
+                    // Use the appropriate streams based on view mode (for display)
                     const totalStreams28d = streamViewMode === 'total' ? totalSongStreams28d : playlistOnlyStreams28d;
                     const totalStreams7d = streamViewMode === 'total' ? totalSongStreams7d : playlistOnlyStreams7d;
                     const totalStreams24h = streamViewMode === 'total' ? totalSongStreams24h : playlistOnlyStreams24h;
                     
                     const streamGoal = campaignData?.stream_goal || 0;
-                    const dailyRate = totalStreams7d > 0 ? Math.round(totalStreams7d / 7) : totalStreams24h;
-                    const progressPercent = streamGoal > 0 ? Math.min((totalStreams28d / streamGoal) * 100, 100) : 0;
-                    const remainingStreams = Math.max(0, streamGoal - totalStreams28d);
-                    const daysToGoal = dailyRate > 0 && remainingStreams > 0 ? Math.ceil(remainingStreams / dailyRate) : 0;
+                    
+                    // Daily rate from OVERALL song (from SFA)
+                    const overallDailyRate = totalSongStreams7d > 0 ? Math.round(totalSongStreams7d / 7) : totalSongStreams24h;
+                    
+                    // Daily rate from OUR PLAYLISTS only (vendor playlists, excluding organic & algorithmic)
+                    const playlistDailyRate = playlistOnlyStreams7d > 0 ? Math.round(playlistOnlyStreams7d / 7) : playlistOnlyStreams24h;
+                    
+                    // Current displayed daily rate based on view mode
+                    const dailyRate = streamViewMode === 'total' ? overallDailyRate : playlistDailyRate;
+                    
+                    // GOAL PROGRESS: Always calculated from VENDOR playlists only
+                    // Organic and algorithmic playlists do NOT count towards campaign goal
+                    const streamsTowardsGoal = playlistOnlyStreams28d;
+                    const progressPercent = streamGoal > 0 ? Math.min((streamsTowardsGoal / streamGoal) * 100, 100) : 0;
+                    const remainingStreams = Math.max(0, streamGoal - streamsTowardsGoal);
+                    // Days to goal: use playlist daily rate since only vendor playlists count towards goal
+                    const daysToGoal = playlistDailyRate > 0 && remainingStreams > 0 ? Math.ceil(remainingStreams / playlistDailyRate) : 0;
                     
                     // Calculate campaign timeline
                     const startDate = campaignData?.start_date ? new Date(campaignData.start_date) : null;
@@ -2333,15 +2447,15 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                       ? Math.max(1, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
                       : 30;
                     
-                    // Required daily rate to hit goal on time
+                    // Required daily rate to hit goal on time (from vendor playlists)
                     const requiredDailyRate = remainingStreams > 0 ? Math.ceil(remainingStreams / daysRemaining) : 0;
                     
-                    // Determine if on track: either already hit goal, or current rate will hit goal in time
-                    const isOnTrack = totalStreams28d >= streamGoal || (dailyRate >= requiredDailyRate && dailyRate > 0);
+                    // Determine if on track: based on vendor playlist performance only
+                    // Either already hit goal, or current playlist rate will hit goal in time
+                    const isOnTrack = streamsTowardsGoal >= streamGoal || (playlistDailyRate >= requiredDailyRate && playlistDailyRate > 0);
                     
                     // Generate chart data - project forward from current rate
                     const chartData = [];
-                    let cumulativeStreams = totalStreams28d;
                     for (let i = 0; i <= 30; i++) {
                       const date = new Date();
                       date.setDate(date.getDate() + i);
@@ -2357,12 +2471,57 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     return (
                       <>
                         {/* View mode explanation */}
-                        <p className="text-xs text-muted-foreground mb-4">
+                        <p className="text-xs text-muted-foreground mb-2">
                           {streamViewMode === 'total' 
                             ? '📊 Showing total song streams from Spotify for Artists (includes all sources)'
                             : '🎵 Showing streams from vendor-placed playlists only (excludes algorithmic & organic)'
                           }
                         </p>
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mb-4 flex items-center gap-1">
+                          <Target className="h-3 w-3" />
+                          Goal progress is always calculated from vendor playlists only — organic and algorithmic streams don't count.
+                        </p>
+                        
+                        {/* Projected Streams Banner - Always Show */}
+                        <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Target className="h-4 w-4 text-purple-600" />
+                              <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Projected Streams</span>
+                            </div>
+                            <span className="text-lg font-bold text-purple-600">
+                              {projectedTotalStreams.toLocaleString()} 
+                              <span className="text-xs font-normal text-muted-foreground ml-1">
+                                ({projectedDailyFromPlaylists.toLocaleString()}/day × {campaignDuration} days)
+                              </span>
+                            </span>
+                          </div>
+                          {projectedDailyFromPlaylists === 0 && playlists.length > 0 && (
+                            <p className="text-xs text-purple-600 mt-1">
+                              ⚠️ Playlists don't have avg_daily_streams data - run scraper to populate
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Daily Rate Comparison - Show Both Always */}
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Globe className="h-3 w-3 text-blue-600" />
+                              <span className="text-xs font-medium text-muted-foreground">Overall Daily Rate</span>
+                            </div>
+                            <div className="text-2xl font-bold text-blue-600">{overallDailyRate.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground">streams/day (SFA total)</p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Music className="h-3 w-3 text-green-600" />
+                              <span className="text-xs font-medium text-muted-foreground">Our Playlists Daily Rate</span>
+                            </div>
+                            <div className="text-2xl font-bold text-green-600">{playlistDailyRate.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground">streams/day (vendor playlists)</p>
+                          </div>
+                        </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                           {/* Current Streams */}
@@ -2384,7 +2543,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           {/* Daily Rate */}
                           <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-muted-foreground">Daily Rate</span>
+                              <span className="text-sm font-medium text-muted-foreground">
+                                {streamViewMode === 'total' ? 'Overall Daily' : 'Playlist Daily'}
+                              </span>
                               <TrendingUp className="h-4 w-4 text-blue-600" />
                             </div>
                             <div className="text-3xl font-bold text-blue-600">
@@ -2395,16 +2556,19 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                             </p>
                           </div>
                           
-                          {/* Progress */}
+                          {/* Progress - Always based on vendor playlists */}
                           <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-muted-foreground">Progress</span>
+                              <span className="text-sm font-medium text-muted-foreground">Goal Progress</span>
                               <CheckCircle className="h-4 w-4 text-green-600" />
                             </div>
                             <div className="text-3xl font-bold text-green-600">
                               {progressPercent.toFixed(1)}%
                             </div>
                             <Progress value={progressPercent} className="h-2 mt-2" />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {streamsTowardsGoal.toLocaleString()} / {streamGoal.toLocaleString()}
+                            </p>
                           </div>
                           
                           {/* Status */}
@@ -2568,7 +2732,10 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                   Vendor Payment Management
                 </h3>
                 <div className="text-sm text-muted-foreground">
-                  Total Campaign Budget: ${campaignData?.budget?.toLocaleString()}
+                  Total Campaign Budget: {campaignData?.budget && campaignData.budget > 0 
+                    ? `$${campaignData.budget.toLocaleString()}` 
+                    : 'Not set'
+                  }
                 </div>
               </div>
 

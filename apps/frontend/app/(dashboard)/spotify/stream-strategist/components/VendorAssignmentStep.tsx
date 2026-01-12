@@ -92,6 +92,7 @@ export function VendorAssignmentStep({
   const [selectedVendorId, setSelectedVendorId] = useState<string>('');
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
   const [hasAutoSuggested, setHasAutoSuggested] = useState(false);
+  const [autoApplyAttempted, setAutoApplyAttempted] = useState(false);
   
   const activeVendors = vendors.filter(v => v.is_active);
 
@@ -136,23 +137,92 @@ export function VendorAssignmentStep({
     return grouped;
   }, [playlistsWithScores]);
 
-  // Auto-suggest vendors based on genre matching
-  const handleAutoSuggest = () => {
-    if (campaignGenres.length === 0 || Object.keys(matchingPlaylistsByVendor).length === 0) {
+  // Count matching playlists (moved up for useEffect dependency)
+  const matchingPlaylistsCount = Object.values(matchingPlaylistsByVendor).flat().length;
+  const matchingVendorsCount = Object.keys(matchingPlaylistsByVendor).length;
+
+  // AUTO-APPLY: Automatically apply vendor suggestions when genres are available
+  // This ensures submissions always have vendor assignments pre-populated
+  useEffect(() => {
+    // Only auto-apply if:
+    // 1. Playlists have loaded
+    // 2. Genres are selected
+    // 3. There are matching vendors
+    // 4. No assignments exist yet
+    // 5. Haven't already attempted auto-apply
+    // 6. Total budget and stream goal are set
+    const shouldAutoApply = 
+      allPlaylists.length > 0 &&
+      campaignGenres.length > 0 &&
+      matchingVendorsCount > 0 &&
+      assignments.length === 0 &&
+      !autoApplyAttempted &&
+      totalStreamGoal > 0 &&
+      totalBudget > 0;
+    
+    console.log('🔍 Auto-apply check:', {
+      playlistsLoaded: allPlaylists.length,
+      genres: campaignGenres.length,
+      matchingVendors: matchingVendorsCount,
+      existingAssignments: assignments.length,
+      autoApplyAttempted,
+      streamGoal: totalStreamGoal,
+      budget: totalBudget,
+      shouldAutoApply
+    });
+    
+    if (shouldAutoApply) {
+      console.log('🎯 Auto-applying vendor suggestions based on genres:', campaignGenres);
+      setAutoApplyAttempted(true);
+      
+      // Small delay to ensure all computed values are ready
+      setTimeout(() => {
+        // Double-check we still have matching playlists
+        const currentMatching = Object.keys(matchingPlaylistsByVendor);
+        console.log('🔍 Matching vendors at apply time:', currentMatching.length);
+        if (currentMatching.length > 0) {
+          handleAutoSuggestInternal();
+        } else {
+          // Fallback: If no genre-matching vendors, distribute equally among top active vendors
+          console.log('⚠️ No genre-matching vendors, using fallback distribution');
+          handleFallbackDistribution();
+        }
+      }, 200);
+    }
+  }, [allPlaylists.length, campaignGenres, matchingVendorsCount, assignments.length, autoApplyAttempted, totalStreamGoal, totalBudget]);
+
+  // Internal auto-suggest function (reusable)
+  const handleAutoSuggestInternal = () => {
+    console.log('🔧 handleAutoSuggestInternal called');
+    console.log('🔧 Campaign genres:', campaignGenres);
+    console.log('🔧 Matching playlists by vendor:', Object.keys(matchingPlaylistsByVendor));
+    console.log('🔧 Active vendors count:', activeVendors.length);
+    
+    if (campaignGenres.length === 0) {
+      console.log('⚠️ No campaign genres, skipping auto-suggest');
+      return;
+    }
+    
+    if (Object.keys(matchingPlaylistsByVendor).length === 0) {
+      console.log('⚠️ No matching playlists by vendor, skipping auto-suggest');
       return;
     }
 
     const newAssignments: VendorAssignment[] = [];
-    const totalMatchingPlaylists = Object.values(matchingPlaylistsByVendor).flat().length;
     
     // Calculate total estimated daily streams from matching playlists
     const totalEstimatedStreams = Object.values(matchingPlaylistsByVendor)
       .flat()
       .reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
+    
+    console.log('🔧 Total estimated daily streams:', totalEstimatedStreams);
 
     Object.entries(matchingPlaylistsByVendor).forEach(([vendorId, playlists]) => {
       const vendor = activeVendors.find(v => v.id === vendorId);
-      if (!vendor) return;
+      if (!vendor) {
+        console.log('⚠️ Vendor not found for ID:', vendorId);
+        return;
+      }
 
       // Calculate this vendor's share based on their playlists' daily streams
       const vendorDailyStreams = playlists.reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
@@ -163,6 +233,8 @@ export function VendorAssignmentStep({
       const allocatedStreams = Math.floor(totalStreamGoal * streamShare);
       const allocatedBudget = Math.floor(totalBudget * streamShare * 100) / 100;
 
+      console.log(`🔧 Vendor ${vendor.name}: ${playlists.length} playlists, ${allocatedStreams} streams, $${allocatedBudget}`);
+
       newAssignments.push({
         vendor_id: vendorId,
         vendor_name: vendor.name,
@@ -171,6 +243,8 @@ export function VendorAssignmentStep({
         playlist_ids: playlists.map(p => p.id)
       });
     });
+
+    console.log('🔧 New assignments count before sorting:', newAssignments.length);
 
     // Sort by allocated streams (highest first) and limit to top 5
     newAssignments.sort((a, b) => b.allocated_streams - a.allocated_streams);
@@ -190,6 +264,8 @@ export function VendorAssignmentStep({
       }
     }
 
+    console.log('✅ Final assignments:', topAssignments.map(a => `${a.vendor_name}: ${a.allocated_streams} streams`));
+    
     onChange(topAssignments);
     setHasAutoSuggested(true);
     
@@ -197,9 +273,65 @@ export function VendorAssignmentStep({
     setExpandedVendors(new Set(topAssignments.map(a => a.vendor_id)));
   };
 
-  // Count matching playlists
-  const matchingPlaylistsCount = Object.values(matchingPlaylistsByVendor).flat().length;
-  const matchingVendorsCount = Object.keys(matchingPlaylistsByVendor).length;
+  // Fallback distribution when no genre matches found
+  const handleFallbackDistribution = () => {
+    console.log('🔧 handleFallbackDistribution called');
+    
+    if (activeVendors.length === 0) {
+      console.log('⚠️ No active vendors available');
+      return;
+    }
+    
+    // Get top 3 vendors with most playlists
+    const vendorPlaylistCounts = activeVendors.map(vendor => {
+      const vendorPlaylists = allPlaylists.filter(p => p.vendor_id === vendor.id);
+      return {
+        vendor,
+        playlistCount: vendorPlaylists.length,
+        playlists: vendorPlaylists
+      };
+    }).filter(v => v.playlistCount > 0)
+      .sort((a, b) => b.playlistCount - a.playlistCount)
+      .slice(0, 3);
+    
+    if (vendorPlaylistCounts.length === 0) {
+      console.log('⚠️ No vendors have playlists');
+      return;
+    }
+    
+    const sharePerVendor = 1 / vendorPlaylistCounts.length;
+    const newAssignments: VendorAssignment[] = vendorPlaylistCounts.map(({ vendor, playlists }) => ({
+      vendor_id: vendor.id,
+      vendor_name: vendor.name,
+      allocated_streams: Math.floor(totalStreamGoal * sharePerVendor),
+      allocated_budget: Math.floor(totalBudget * sharePerVendor * 100) / 100,
+      playlist_ids: playlists.slice(0, 5).map(p => p.id) // Max 5 playlists per vendor
+    }));
+    
+    // Adjust first vendor to match totals exactly
+    if (newAssignments.length > 0) {
+      const totalAllocatedStreams = newAssignments.reduce((sum, a) => sum + a.allocated_streams, 0);
+      const totalAllocatedBudget = newAssignments.reduce((sum, a) => sum + a.allocated_budget, 0);
+      
+      if (totalAllocatedStreams < totalStreamGoal) {
+        newAssignments[0].allocated_streams += totalStreamGoal - totalAllocatedStreams;
+      }
+      if (totalAllocatedBudget < totalBudget) {
+        newAssignments[0].allocated_budget += Math.round((totalBudget - totalAllocatedBudget) * 100) / 100;
+      }
+    }
+    
+    console.log('✅ Fallback assignments:', newAssignments.map(a => `${a.vendor_name}: ${a.allocated_streams} streams`));
+    
+    onChange(newAssignments);
+    setHasAutoSuggested(true);
+    setExpandedVendors(new Set(newAssignments.map(a => a.vendor_id)));
+  };
+
+  // Auto-suggest vendors based on genre matching (button handler - calls internal function)
+  const handleAutoSuggest = () => {
+    handleAutoSuggestInternal();
+  };
   
   // Calculate totals
   const totalAllocatedStreams = assignments.reduce((sum, a) => sum + (a.allocated_streams || 0), 0);

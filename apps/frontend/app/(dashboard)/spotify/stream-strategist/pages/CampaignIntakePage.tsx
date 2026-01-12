@@ -100,13 +100,25 @@ export default function CampaignIntakePage() {
         setFormData(prev => ({ ...prev, music_genres: [] }));
         setAvailableGenres([]);
         
-        // Call Supabase Edge Function to fetch track data
-        const { data, error } = await supabase.functions.invoke('spotify-fetch', {
-          body: { trackUrl: url }
-        });
+        // Extract track ID from URL
+        const trackId = url.split('/track/')[1]?.split('?')[0];
+        if (!trackId) {
+          toast({
+            title: "Invalid URL",
+            description: "Could not extract track ID from URL.",
+            variant: "destructive"
+          });
+          return;
+        }
 
-        if (error) {
-          console.error('Error fetching Spotify data:', error);
+        // Use the backend Spotify Web API route (same as CampaignConfiguration)
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.artistinfluence.com';
+        console.log('🎵 [Intake] Fetching track from:', `${apiBaseUrl}/api/spotify-web-api/track/${trackId}`);
+        
+        const response = await fetch(`${apiBaseUrl}/api/spotify-web-api/track/${trackId}`);
+        
+        if (!response.ok) {
+          console.error('Failed to fetch track data:', response.statusText);
           toast({
             title: "Spotify Error",
             description: "Could not fetch track information. Please enter manually.",
@@ -115,15 +127,18 @@ export default function CampaignIntakePage() {
           return;
         }
 
-        if (data?.name) {
+        const result = await response.json();
+        console.log('🎵 [Intake] Full API response:', result);
+        console.log('🎵 [Intake] Genres from API:', result.data?.genres);
+
+        if (result.success && result.data?.name) {
           // Auto-populate campaign name from track info
-          const trackName = data.name;
-          const artistName = data.artists?.[0]?.name;
+          const trackName = result.data.name;
+          const artistName = result.data.artists?.[0]?.name;
           const campaignName = artistName && trackName ? `${artistName} - ${trackName}` : trackName;
           
           // Auto-generate SFA URL from track ID
-          const trackId = url.split('/track/')[1]?.split('?')[0];
-          const sfaUrl = trackId ? `https://artists.spotify.com/c/song/${trackId}` : '';
+          const sfaUrl = `https://artists.spotify.com/c/song/${trackId}`;
           
           setFormData(prev => ({ 
             ...prev, 
@@ -137,26 +152,28 @@ export default function CampaignIntakePage() {
           });
         }
 
-        if (data?.genres && data.genres.length > 0) {
-          // Auto-populate genres
-          setAvailableGenres(data.genres);
+        const rawGenres = result.data?.genres || [];
+        console.log('🎵 [Intake] Raw genres array:', rawGenres);
+
+        if (rawGenres.length > 0) {
+          // Auto-populate genres from Spotify data
+          setAvailableGenres(rawGenres);
           setFormData(prev => ({ 
             ...prev, 
-            music_genres: data.genres 
+            music_genres: rawGenres 
           }));
           
           toast({
             title: "Genres Auto-Selected",
-            description: `Selected: ${data.genres.join(', ')}`,
+            description: `Selected: ${rawGenres.join(', ')}`,
           });
         } else {
-          // Enhanced fallback - suggest similar genres
-          const suggestedGenres = ['pop', 'dance', 'hip-hop']; // Default suggestions
+          // No genres found - suggest common genres
+          const suggestedGenres = ['pop', 'dance', 'hip-hop', 'electronic', 'r&b'];
           setAvailableGenres(suggestedGenres);
-          // Keep music_genres empty for fallback - user must manually select
           toast({
-            title: "Genres Auto-Suggested",
-            description: "No specific genres found. Please review and select appropriate genres below.",
+            title: "No Genres Found",
+            description: "This artist doesn't have genre tags in Spotify. Please select appropriate genres below.",
             variant: "default"
           });
         }

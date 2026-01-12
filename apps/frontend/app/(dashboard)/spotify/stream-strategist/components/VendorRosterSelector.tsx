@@ -21,7 +21,8 @@ import {
   ChevronDown,
   ChevronRight,
   Sparkles,
-  Filter
+  Filter,
+  AlertTriangle
 } from 'lucide-react';
 import { Vendor, Playlist } from '../types';
 import { UNIFIED_GENRES } from '../lib/constants';
@@ -103,9 +104,17 @@ interface VendorRosterSelectorProps {
   onNext: (selections: { playlistIds: string[] }) => void;
   onBack: () => void;
   campaignGenres?: string[];
+  streamGoal?: number;
+  campaignDuration?: number;
 }
 
-export function VendorRosterSelector({ onNext, onBack, campaignGenres = [] }: VendorRosterSelectorProps) {
+export function VendorRosterSelector({ 
+  onNext, 
+  onBack, 
+  campaignGenres = [],
+  streamGoal = 0,
+  campaignDuration = 90
+}: VendorRosterSelectorProps) {
   const [selectedPlaylists, setSelectedPlaylists] = useState<Set<string>>(new Set());
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
@@ -189,12 +198,40 @@ export function VendorRosterSelector({ onNext, onBack, campaignGenres = [] }: Ve
   }, [playlistsWithScores, campaignGenres]);
 
   // Auto-select playlists with good genre matches on first load
+  // CAP selections based on stream goal - only select enough playlists to meet the goal
   useEffect(() => {
     if (!hasAutoSelected && campaignGenres.length > 0 && playlistsWithScores.length > 0) {
-      const autoSelectIds = playlistsWithScores
-        .filter(p => p.genreMatchScore >= 2) // Auto-select playlists with score >= 2
-        .slice(0, 10) // Limit to top 10
-        .map(p => p.id);
+      // Sort by genre match score first, then by daily streams
+      const sortedCandidates = [...playlistsWithScores]
+        .filter(p => p.genreMatchScore >= 2)
+        .sort((a, b) => {
+          if (b.genreMatchScore !== a.genreMatchScore) {
+            return b.genreMatchScore - a.genreMatchScore;
+          }
+          return (b.avg_daily_streams || 0) - (a.avg_daily_streams || 0);
+        });
+
+      // If we have a stream goal, cap selections to meet it
+      const autoSelectIds: string[] = [];
+      let cumulativeProjectedStreams = 0;
+
+      for (const playlist of sortedCandidates) {
+        const projectedStreams = (playlist.avg_daily_streams || 0) * campaignDuration;
+        
+        // If no stream goal or we haven't reached it yet, add this playlist
+        if (streamGoal === 0 || cumulativeProjectedStreams < streamGoal) {
+          autoSelectIds.push(playlist.id);
+          cumulativeProjectedStreams += projectedStreams;
+          
+          // Stop if we've reached or exceeded the goal
+          if (streamGoal > 0 && cumulativeProjectedStreams >= streamGoal) {
+            break;
+          }
+        }
+        
+        // Also limit to reasonable number (max 20)
+        if (autoSelectIds.length >= 20) break;
+      }
       
       if (autoSelectIds.length > 0) {
         setSelectedPlaylists(new Set(autoSelectIds));
@@ -208,7 +245,7 @@ export function VendorRosterSelector({ onNext, onBack, campaignGenres = [] }: Ve
       }
       setHasAutoSelected(true);
     }
-  }, [hasAutoSelected, campaignGenres, playlistsWithScores]);
+  }, [hasAutoSelected, campaignGenres, playlistsWithScores, streamGoal, campaignDuration]);
 
   // Group playlists by vendor
   const playlistsByVendor = useMemo(() => {
@@ -280,8 +317,13 @@ export function VendorRosterSelector({ onNext, onBack, campaignGenres = [] }: Ve
   ).filter(Boolean);
 
   const totalDailyStreams = selectedPlaylistsList.reduce((sum, p) => sum + (p?.avg_daily_streams || 0), 0);
+  const totalProjectedStreams = totalDailyStreams * campaignDuration;
   
-  // Calculate total cost for 90 days
+  // Check if we're exceeding the stream goal
+  const isExceedingGoal = streamGoal > 0 && totalProjectedStreams > streamGoal;
+  const streamGoalPercentage = streamGoal > 0 ? Math.round((totalProjectedStreams / streamGoal) * 100) : 0;
+  
+  // Calculate total cost for campaign duration
   const totalCostPerDay = selectedPlaylistsList.reduce((sum, p) => {
     const vendor = p?.vendor;
     if (!vendor?.cost_per_1k_streams) return sum;
@@ -289,7 +331,7 @@ export function VendorRosterSelector({ onNext, onBack, campaignGenres = [] }: Ve
     return sum + dailyCost;
   }, 0);
   
-  const totalCost = totalCostPerDay * 90; // Assume 90-day campaign
+  const totalCost = totalCostPerDay * campaignDuration; // Use campaign duration instead of hardcoded 90
   
   const handleNext = () => {
     // Convert selected playlists to the format expected by CampaignReview
@@ -298,17 +340,31 @@ export function VendorRosterSelector({ onNext, onBack, campaignGenres = [] }: Ve
       name: playlist.name,
       url: playlist.url,
       vendor_name: playlist.vendor?.name,
+      vendor_id: playlist.vendor?.id,
+      vendor: playlist.vendor,
       genres: playlist.genres || [],
       status: 'Pending',
       streams_allocated: playlist.avg_daily_streams || 0,
       cost_per_stream: playlist.vendor?.cost_per_1k_streams ? (playlist.vendor.cost_per_1k_streams / 1000) : 0
     }));
     
+    // Collect unique vendors from selected playlists
+    const selectedVendorsList = [...new Map(
+      selectedPlaylistsList
+        .filter(p => p?.vendor)
+        .map(p => [p.vendor.id, { 
+          id: p.vendor.id, 
+          name: p.vendor.name,
+          cost_per_1k_streams: p.vendor.cost_per_1k_streams 
+        }])
+    ).values()];
+    
     onNext({
       playlistIds: Array.from(selectedPlaylists),
       selectedPlaylists: selectedPlaylistObjects,
+      selectedVendors: selectedVendorsList, // Include selected vendors
       allocations: selectedPlaylistObjects,
-      totalProjectedStreams: totalDailyStreams * 90, // 90-day projection
+      totalProjectedStreams: totalProjectedStreams, // Use calculated value with campaign duration
       totalCost: totalCost
     });
   };
@@ -392,15 +448,23 @@ export function VendorRosterSelector({ onNext, onBack, campaignGenres = [] }: Ve
 
           {/* Summary */}
           {selectedPlaylistsList.length > 0 && (
-            <Card className="bg-primary/5 border-primary/20">
+            <Card className={`${isExceedingGoal ? 'bg-amber-50 border-amber-300' : 'bg-primary/5 border-primary/20'}`}>
               <CardContent className="pt-4">
-                <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-4 gap-4 text-sm">
                   <div>
-                    <div className="text-muted-foreground">Total Daily Streams</div>
-                    <div className="text-xl font-bold">{totalDailyStreams.toLocaleString()}</div>
+                    <div className="text-muted-foreground">Projected Streams</div>
+                    <div className={`text-xl font-bold ${isExceedingGoal ? 'text-amber-600' : ''}`}>
+                      {totalProjectedStreams.toLocaleString()}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Estimated Daily Cost</div>
+                    <div className="text-muted-foreground">Stream Goal</div>
+                    <div className="text-xl font-bold">
+                      {streamGoal > 0 ? streamGoal.toLocaleString() : 'Not set'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Estimated Cost</div>
                     <div className="text-xl font-bold">${totalCost.toFixed(2)}</div>
                   </div>
                   <div>
@@ -410,6 +474,22 @@ export function VendorRosterSelector({ onNext, onBack, campaignGenres = [] }: Ve
                     </div>
                   </div>
                 </div>
+                {/* Warning when exceeding goal */}
+                {isExceedingGoal && (
+                  <div className="mt-3 p-2 bg-amber-100 border border-amber-300 rounded text-amber-700 text-sm flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>
+                      Selected playlists project {streamGoalPercentage}% of goal ({totalProjectedStreams.toLocaleString()} / {streamGoal.toLocaleString()} streams). 
+                      Consider removing some playlists.
+                    </span>
+                  </div>
+                )}
+                {/* Show goal coverage when under goal */}
+                {streamGoal > 0 && !isExceedingGoal && (
+                  <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+                    Coverage: {streamGoalPercentage}% of stream goal
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

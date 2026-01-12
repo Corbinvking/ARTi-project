@@ -111,16 +111,17 @@ export const useVendorPayouts = () => {
       
       console.log('💰 [VendorPayouts] SpotifyCampaignPayments map size:', spotifyCampaignPayments.size);
 
-      // Fetch campaign_playlists for cost_per_1k_override (campaign-specific pricing)
+      // Fetch campaign_playlists for cost_per_1k_override and vendor_paid (per-vendor payment tracking)
       const { data: campaignPlaylists, error: playlistsError } = await supabase
         .from('campaign_playlists')
-        .select('campaign_id, vendor_id, cost_per_1k_override, streams_28d, streams_7d')
+        .select('campaign_id, vendor_id, cost_per_1k_override, streams_28d, streams_7d, vendor_paid, vendor_payment_date, vendor_payment_amount')
         .not('vendor_id', 'is', null);
       
       console.log('💰 [VendorPayouts] CampaignPlaylists with overrides:', campaignPlaylists?.filter((p: any) => p.cost_per_1k_override)?.length || 0);
+      console.log('💰 [VendorPayouts] CampaignPlaylists paid:', campaignPlaylists?.filter((p: any) => p.vendor_paid)?.length || 0);
 
-      // Create a map for campaign-vendor cost overrides
-      const costOverrideMap = new Map<string, { override: number; streams: number }>();
+      // Create a map for campaign-vendor cost overrides AND payment status
+      const costOverrideMap = new Map<string, { override: number; streams: number; vendor_paid: boolean; payment_date: string | null }>();
       (campaignPlaylists || []).forEach((cp: any) => {
         const key = `${cp.campaign_id}-${cp.vendor_id}`;
         const existing = costOverrideMap.get(key);
@@ -132,10 +133,17 @@ export const useVendorPayouts = () => {
           if (cp.cost_per_1k_override && (!existing.override || cp.cost_per_1k_override > existing.override)) {
             existing.override = cp.cost_per_1k_override;
           }
+          // If any playlist for this vendor is paid, consider the vendor paid
+          if (cp.vendor_paid) {
+            existing.vendor_paid = true;
+            existing.payment_date = cp.vendor_payment_date || existing.payment_date;
+          }
         } else {
           costOverrideMap.set(key, {
             override: cp.cost_per_1k_override || 0,
-            streams: streams
+            streams: streams,
+            vendor_paid: cp.vendor_paid === true,
+            payment_date: cp.vendor_payment_date || null
           });
         }
       });
@@ -278,7 +286,12 @@ export const useVendorPayouts = () => {
         const invoiceArr = (invoicesByCampaign.get(campaign.id) || []) as any[];
         const invoice = invoiceArr[0];
         
-        // Check for Spotify campaign payment data
+        // Check for per-vendor payment status from campaign_playlists (primary source)
+        const playlistKey = `${aggregatedAllocation.campaign_id}-${aggregatedAllocation.vendor_id}`;
+        const playlistPaymentInfo = costOverrideMap.get(playlistKey);
+        const isPaidFromPlaylist = playlistPaymentInfo?.vendor_paid === true;
+        
+        // Check for Spotify campaign payment data (legacy fallback)
         const spotifyPayment = spotifyCampaignPayments.get(campaign.id);
         const isPaidFromSpotify = spotifyPayment?.paid_vendor === true || spotifyPayment?.paid_vendor === 'true';
 
@@ -286,9 +299,9 @@ export const useVendorPayouts = () => {
         const amountOwed = spotifyPayment?.sale_price || 
           ((aggregatedAllocation.actual_streams || 0) * (aggregatedAllocation.cost_per_stream || 0));
         
-        // Payment status: check invoice first, then spotify paid_vendor, otherwise unpaid
+        // Payment status: check campaign_playlists first (per-vendor), then invoice, then spotify paid_vendor
         const paymentStatus: 'paid' | 'unpaid' = 
-          invoice?.status === 'paid' || isPaidFromSpotify ? 'paid' : 'unpaid';
+          isPaidFromPlaylist || invoice?.status === 'paid' || isPaidFromSpotify ? 'paid' : 'unpaid';
 
         const startDate = new Date(campaign.start_date);
         const completionDate = new Date(startDate);
@@ -304,7 +317,7 @@ export const useVendorPayouts = () => {
           payment_status: paymentStatus,
           campaign_completion_date: isNaN(completionDate.getTime()) ? undefined : completionDate.toISOString().split('T')[0],
           invoice_id: invoice?.id,
-          payment_date: invoice?.paid_date,
+          payment_date: playlistPaymentInfo?.payment_date || invoice?.paid_date,
           allocated_streams: aggregatedAllocation.allocated_streams,
           actual_streams: aggregatedAllocation.actual_streams,
           cost_per_stream: aggregatedAllocation.cost_per_stream,
@@ -360,36 +373,68 @@ export const useMarkPayoutPaid = () => {
     }) => {
       console.log('💰 [MarkPaid] Starting mutation:', { campaignId, vendorId, amount, markAsPaid });
       
-      // Update spotify_campaigns.paid_vendor directly
-      const { data: updatedRows, error: spotifyError } = await supabase
-        .from('spotify_campaigns')
-        .update({ paid_vendor: markAsPaid ? 'true' : 'false' })
-        .eq('campaign_group_id', campaignId)
-        .select('id, campaign, campaign_group_id, paid_vendor');
+      let updateSucceeded = false;
+      
+      // First, try to update campaign_playlists (per-vendor payment tracking)
+      // This is the correct way to track payment per vendor per campaign
+      const { data: playlistRows, error: playlistError } = await supabase
+        .from('campaign_playlists')
+        .update({ 
+          vendor_paid: markAsPaid,
+          vendor_payment_date: markAsPaid ? new Date().toISOString().split('T')[0] : null,
+          vendor_payment_amount: markAsPaid ? amount : null
+        })
+        .eq('vendor_id', vendorId)
+        .eq('campaign_id', parseInt(campaignId))
+        .select('id, playlist_name, vendor_id, vendor_paid');
 
-      console.log('💰 [MarkPaid] Update result:', { 
-        updatedRows: updatedRows?.length || 0, 
-        rowsData: updatedRows,
-        error: spotifyError 
+      console.log('💰 [MarkPaid] campaign_playlists update result:', { 
+        updatedRows: playlistRows?.length || 0, 
+        rowsData: playlistRows,
+        error: playlistError 
       });
 
-      if (spotifyError) {
-        console.error('💰 [MarkPaid] Failed to update spotify_campaigns:', spotifyError);
-        throw spotifyError;
-      }
-      
-      let updateSucceeded = (updatedRows && updatedRows.length > 0);
-      
-      if (!updateSucceeded) {
-        console.warn('💰 [MarkPaid] No spotify_campaigns matched, trying invoice update...');
+      if (!playlistError && playlistRows && playlistRows.length > 0) {
+        updateSucceeded = true;
+        console.log('💰 [MarkPaid] Successfully updated campaign_playlists');
+      } else {
+        // Fallback: Try using campaign_group_id (for campaigns linked via campaign_groups)
+        console.log('💰 [MarkPaid] Trying campaign_group_id approach...');
+        
+        // First get the spotify_campaign IDs for this campaign_group
+        const { data: spotifyCampaigns } = await supabase
+          .from('spotify_campaigns')
+          .select('id')
+          .eq('campaign_group_id', campaignId);
+        
+        if (spotifyCampaigns && spotifyCampaigns.length > 0) {
+          const campaignIds = spotifyCampaigns.map(sc => sc.id);
+          
+          const { data: playlistRows2, error: playlistError2 } = await supabase
+            .from('campaign_playlists')
+            .update({ 
+              vendor_paid: markAsPaid,
+              vendor_payment_date: markAsPaid ? new Date().toISOString().split('T')[0] : null,
+              vendor_payment_amount: markAsPaid ? amount : null
+            })
+            .eq('vendor_id', vendorId)
+            .in('campaign_id', campaignIds)
+            .select('id, playlist_name, vendor_id, vendor_paid');
+
+          if (!playlistError2 && playlistRows2 && playlistRows2.length > 0) {
+            updateSucceeded = true;
+            console.log('💰 [MarkPaid] Successfully updated via campaign_group_id');
+          }
+        }
       }
 
-      // Also try to update/create invoice
+      // Also try to update/create invoice (for invoice tracking)
       try {
         const { data: existingInvoice } = await supabase
           .from('campaign_invoices')
           .select('id')
           .eq('campaign_id', campaignId)
+          .eq('vendor_id', vendorId)
           .maybeSingle();
 
         console.log('💰 [MarkPaid] Existing invoice:', existingInvoice);
@@ -415,10 +460,11 @@ export const useMarkPayoutPaid = () => {
             .from('campaign_invoices')
             .insert({
               campaign_id: campaignId,
+              vendor_id: vendorId,
               amount: amount,
               status: 'paid',
               paid_date: new Date().toISOString().split('T')[0],
-              invoice_number: `INV-${campaignId.substring(0, 8)}-${Date.now()}`
+              invoice_number: `INV-${campaignId.substring(0, 8)}-${vendorId.substring(0, 4)}-${Date.now()}`
             });
           
           if (!invoiceInsertError) {
@@ -433,10 +479,10 @@ export const useMarkPayoutPaid = () => {
       }
 
       if (!updateSucceeded) {
-        throw new Error(`No matching campaign found for ID: ${campaignId}. The campaign may not be linked to spotify_campaigns.`);
+        throw new Error(`No matching campaign/vendor combination found for campaignId: ${campaignId}, vendorId: ${vendorId}.`);
       }
 
-      return { campaignId, markAsPaid };
+      return { campaignId, vendorId, markAsPaid };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['vendor-payouts'] });
@@ -464,19 +510,41 @@ export const useBulkMarkPayoutsPaid = () => {
 
   return useMutation({
     mutationFn: async (payouts: Array<{ campaignId: string; vendorId: string; amount: number; markAsPaid?: boolean }>) => {
-      const results = [];
+      const results: string[] = [];
       const markAsPaid = payouts[0]?.markAsPaid ?? true; // Use first payout's markAsPaid value
       
       for (const payout of payouts) {
-        // Update spotify_campaigns.paid_vendor directly
-        const { error: spotifyError } = await supabase
-          .from('spotify_campaigns')
-          .update({ paid_vendor: markAsPaid ? 'true' : 'false' })
-          .eq('campaign_group_id', payout.campaignId);
+        // Update campaign_playlists per-vendor (correct approach)
+        const { error: playlistError } = await supabase
+          .from('campaign_playlists')
+          .update({ 
+            vendor_paid: markAsPaid,
+            vendor_payment_date: markAsPaid ? new Date().toISOString().split('T')[0] : null,
+            vendor_payment_amount: markAsPaid ? payout.amount : null
+          })
+          .eq('vendor_id', payout.vendorId)
+          .eq('campaign_id', parseInt(payout.campaignId));
 
-        if (spotifyError) {
-          console.error(`Failed to update spotify_campaigns for ${payout.campaignId}:`, spotifyError);
-          throw spotifyError;
+        if (playlistError) {
+          // Try fallback with campaign_group_id
+          const { data: spotifyCampaigns } = await supabase
+            .from('spotify_campaigns')
+            .select('id')
+            .eq('campaign_group_id', payout.campaignId);
+          
+          if (spotifyCampaigns && spotifyCampaigns.length > 0) {
+            const campaignIds = spotifyCampaigns.map(sc => sc.id);
+            
+            await supabase
+              .from('campaign_playlists')
+              .update({ 
+                vendor_paid: markAsPaid,
+                vendor_payment_date: markAsPaid ? new Date().toISOString().split('T')[0] : null,
+                vendor_payment_amount: markAsPaid ? payout.amount : null
+              })
+              .eq('vendor_id', payout.vendorId)
+              .in('campaign_id', campaignIds);
+          }
         }
 
         // Also try to update/create invoice (but don't fail if RLS blocks it)
@@ -485,6 +553,7 @@ export const useBulkMarkPayoutsPaid = () => {
             .from('campaign_invoices')
             .select('id')
             .eq('campaign_id', payout.campaignId)
+            .eq('vendor_id', payout.vendorId)
             .maybeSingle();
 
           if (existingInvoice) {
@@ -501,10 +570,11 @@ export const useBulkMarkPayoutsPaid = () => {
               .from('campaign_invoices')
               .insert({
                 campaign_id: payout.campaignId,
+                vendor_id: payout.vendorId,
                 amount: payout.amount,
                 status: 'paid',
                 paid_date: new Date().toISOString().split('T')[0],
-                invoice_number: `INV-${payout.campaignId.substring(0, 8)}-${Date.now()}`
+                invoice_number: `INV-${payout.campaignId.substring(0, 8)}-${payout.vendorId.substring(0, 4)}-${Date.now()}`
               });
           }
         } catch (invoiceError) {
