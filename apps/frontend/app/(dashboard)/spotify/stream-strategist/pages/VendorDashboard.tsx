@@ -315,8 +315,10 @@ export default function VendorDashboard() {
               <div className="space-y-4">
                 {sortedCampaigns.map((campaign) => {
                   const vendorStreamGoal = campaign.vendor_stream_goal || 0;
-                  const currentStreams = campaign.vendor_playlists?.reduce((sum: number, p: any) => 
-                    p.is_allocated ? (p.current_streams || 0) : 0, 0) || 0;
+                  // Use total_streams_delivered from hook (already calculated from campaign_playlists)
+                  const currentStreams = (campaign as any).total_streams_delivered || 
+                    campaign.vendor_playlists?.reduce((sum: number, p: any) => 
+                      p.is_allocated ? (p.current_streams || 0) : 0, 0) || 0;
                   const progressPercentage = vendorStreamGoal > 0 ? (currentStreams / vendorStreamGoal) * 100 : 0;
                   
                   const getPerformanceColor = () => {
@@ -326,18 +328,35 @@ export default function VendorDashboard() {
                     return 'text-red-600';
                   };
 
+                  const getPaymentBadge = () => {
+                    switch (campaign.payment_status) {
+                      case 'paid':
+                        return { variant: 'default' as const, label: 'Paid ✓', className: 'bg-green-100 text-green-800' };
+                      case 'partial':
+                        return { variant: 'secondary' as const, label: 'Partial', className: 'bg-yellow-100 text-yellow-800' };
+                      case 'pending':
+                        return { variant: 'secondary' as const, label: 'Pending', className: '' };
+                      default:
+                        return { variant: 'outline' as const, label: 'Unpaid', className: '' };
+                    }
+                  };
+                  const paymentBadge = getPaymentBadge();
+
                   return (
                     <Card key={campaign.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedCampaign(campaign)}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div className="space-y-1">
-                           <div className="flex items-center gap-2">
+                           <div className="flex items-center gap-2 flex-wrap">
+                             <Badge variant="secondary" className="text-xs bg-primary/10">
+                               {vendor?.name || 'My Campaign'}
+                             </Badge>
                              <h3 className="font-semibold">{campaign.name}</h3>
-                             <Badge variant={campaign.payment_status === 'paid' ? 'default' : campaign.payment_status === 'pending' ? 'secondary' : 'outline'}>
-                               {campaign.payment_status === 'paid' ? 'Paid ✓' : campaign.payment_status === 'pending' ? 'Pending' : 'Unpaid'}
+                             <Badge variant={paymentBadge.variant} className={paymentBadge.className}>
+                               {paymentBadge.label}
                              </Badge>
                            </div>
-                           {campaign.amount_owed && (
+                           {campaign.amount_owed !== undefined && campaign.amount_owed > 0 && (
                              <div className="text-sm text-muted-foreground">
                                Amount owed: <span className="font-medium text-green-600">${campaign.amount_owed.toFixed(2)}</span>
                              </div>
@@ -350,8 +369,8 @@ export default function VendorDashboard() {
                             </p>
                           </div>
                           <div className="text-right text-sm">
-                            <div className="font-medium">{vendorStreamGoal.toLocaleString()} streams</div>
-                            <div className="text-muted-foreground">Your goal</div>
+                            <div className="font-medium">{currentStreams.toLocaleString()} streams</div>
+                            <div className="text-muted-foreground">of {vendorStreamGoal.toLocaleString()} goal</div>
                           </div>
                         </div>
                         
@@ -359,7 +378,7 @@ export default function VendorDashboard() {
                           <div className="flex items-center gap-2 text-sm">
                             <span className="text-muted-foreground">Progress:</span>
                             <span className={`font-medium ${getPerformanceColor()}`}>
-                              {currentStreams.toLocaleString()} ({progressPercentage.toFixed(1)}%)
+                              {progressPercentage.toFixed(1)}%
                             </span>
                           </div>
                           <div className="text-sm text-muted-foreground">

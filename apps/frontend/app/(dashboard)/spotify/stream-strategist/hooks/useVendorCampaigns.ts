@@ -24,8 +24,9 @@ export interface VendorCampaign {
   status: string;
   selected_playlists: string[];
   vendor_allocations: Record<string, any>;
-  payment_status: 'paid' | 'unpaid' | 'pending';
+  payment_status: 'paid' | 'unpaid' | 'pending' | 'partial';
   amount_owed?: number;
+  total_streams_delivered?: number;
   // Vendor-specific data
   vendor_playlists?: Array<{
     id: string;
@@ -33,6 +34,13 @@ export interface VendorCampaign {
     avg_daily_streams: number;
     follower_count?: number;
     is_allocated: boolean;
+    // Actual scraped stream data
+    current_streams: number;
+    streams_24h: number;
+    streams_7d: number;
+    streams_12m: number;
+    vendor_paid: boolean;
+    cost_per_1k_override?: number | null;
   }>;
   vendor_stream_goal?: number;
   vendor_allocation?: Record<string, any>;
@@ -156,11 +164,37 @@ export function useVendorCampaigns() {
 
         const selectedPlaylistIds = normalizePlaylistIds(campaign.selected_playlists);
         
-        // Get vendor's playlists that are in this campaign
-        const vendorPlaylistsInCampaign = playlists?.map(playlist => ({
-          ...playlist,
-          is_allocated: selectedPlaylistIds.includes(playlist.id)
-        })) || [];
+        // Get campaign's spotify_campaign IDs for this campaign group
+        const campaignSpotifyIds = spotifyCampaigns
+          ?.filter(sc => sc.campaign_group_id === campaign.id)
+          ?.map(sc => sc.id) || [];
+        
+        // Get playlist performance for this campaign and vendor
+        const campaignPlaylistPerf = playlistPerformance?.filter(p => 
+          campaignSpotifyIds.includes(p.campaign_id) && vendorIds.includes(p.vendor_id)
+        ) || [];
+
+        // Get vendor's playlists with scraped performance data merged in
+        const vendorPlaylistsInCampaign = playlists?.map(playlist => {
+          // Find matching campaign_playlists entry for this playlist
+          const perfData = campaignPlaylistPerf.find(p => 
+            p.playlist_name === playlist.name || 
+            p.playlist_spotify_id === (playlist as any).spotify_id
+          );
+          
+          return {
+            ...playlist,
+            is_allocated: selectedPlaylistIds.includes(playlist.id) || !!perfData,
+            // Merge actual scraped streams
+            current_streams: perfData?.streams_12m || 0,
+            streams_24h: perfData?.streams_24h || 0,
+            streams_7d: perfData?.streams_7d || 0,
+            streams_12m: perfData?.streams_12m || 0,
+            // Payment status per playlist
+            vendor_paid: perfData?.vendor_paid || false,
+            cost_per_1k_override: perfData?.cost_per_1k_override || null
+          };
+        }) || [];
 
         // Calculate vendor's stream goal allocation
         const vendorAllocations = campaign.vendor_allocations as Record<string, any> || {};
@@ -172,20 +206,10 @@ export function useVendorCampaigns() {
           }
         }
 
-        // Get campaign's spotify_campaign IDs
-        const campaignSpotifyIds = spotifyCampaigns
-          ?.filter(sc => sc.campaign_group_id === campaign.id)
-          ?.map(sc => sc.id) || [];
-        
-        // Get playlist performance for this campaign and vendor
-        const campaignPlaylistPerf = playlistPerformance?.filter(p => 
-          campaignSpotifyIds.includes(p.campaign_id) && vendorIds.includes(p.vendor_id)
-        ) || [];
-
         // Calculate total streams and estimate payment
         let totalStreams = 0;
         let totalAmountOwed = 0;
-        let paymentStatus: 'paid' | 'unpaid' | 'pending' = 'pending';
+        let paymentStatus: 'paid' | 'unpaid' | 'pending' | 'partial' = 'pending';
 
         // Get vendor default cost rate
         const vendorData = vendorUsers?.find(vu => vendorIds.includes(vu.vendor_id))?.vendors as any;
@@ -201,8 +225,17 @@ export function useVendorCampaigns() {
           totalAmountOwed += (playlistStreams / 1000) * effectiveCostPer1k;
         }
         
-        // For now, mark as unpaid if there are streams, pending if no data
-        if (totalStreams > 0) {
+        // Determine payment status from campaign_playlists.vendor_paid
+        const paidCount = campaignPlaylistPerf.filter(p => p.vendor_paid === true).length;
+        const totalPlaylists = campaignPlaylistPerf.length;
+
+        if (totalPlaylists === 0) {
+          paymentStatus = 'pending';
+        } else if (paidCount === totalPlaylists) {
+          paymentStatus = 'paid';
+        } else if (paidCount > 0) {
+          paymentStatus = 'partial';
+        } else {
           paymentStatus = 'unpaid';
         }
 
@@ -212,7 +245,8 @@ export function useVendorCampaigns() {
           vendor_stream_goal: vendorStreamGoal,
           vendor_allocation: vendorAllocations[vendorIds[0]], // For simplicity, use first vendor
           payment_status: paymentStatus,
-          amount_owed: totalAmountOwed
+          amount_owed: totalAmountOwed,
+          total_streams_delivered: totalStreams
         };
       }) || [];
 

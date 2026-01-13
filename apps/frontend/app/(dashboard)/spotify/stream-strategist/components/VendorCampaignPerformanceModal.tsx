@@ -42,8 +42,19 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
   if (!freshCampaign) return null;
 
   const vendorStreamGoal = freshCampaign.vendor_stream_goal || 0;
-  const currentStreams = freshCampaign.vendor_playlists?.reduce((sum: number, p: any) => 
-    p.is_allocated ? (p.current_streams || 0) : 0, 0) || 0;
+  // Use total_streams_delivered from hook (already calculated from campaign_playlists)
+  // Or sum up current_streams from vendor_playlists (now populated with actual scraped data)
+  const currentStreams = (freshCampaign as any).total_streams_delivered || 
+    freshCampaign.vendor_playlists?.reduce((sum: number, p: any) => 
+      p.is_allocated ? (p.current_streams || 0) : 0, 0) || 0;
+
+  // Calculate streams by time period from vendor_playlists
+  const streams24h = freshCampaign.vendor_playlists?.reduce((sum: number, p: any) => 
+    p.is_allocated ? (p.streams_24h || 0) : 0, 0) || 0;
+  const streams7d = freshCampaign.vendor_playlists?.reduce((sum: number, p: any) => 
+    p.is_allocated ? (p.streams_7d || 0) : 0, 0) || 0;
+  const streams12m = freshCampaign.vendor_playlists?.reduce((sum: number, p: any) => 
+    p.is_allocated ? (p.streams_12m || 0) : 0, 0) || 0;
 
   // Get payment data for this campaign - either from the payments hook or from the campaign data itself
   const campaignPayment = payments.find(p => p.campaign_id === freshCampaign.id) || {
@@ -218,10 +229,14 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">Payment status</div>
                   <Badge 
-                    variant={campaignPayment.payment_status === 'paid' ? 'default' : 'outline'}
-                    className={campaignPayment.payment_status === 'paid' ? 'bg-green-100 text-green-800' : ''}
+                    variant={campaignPayment.payment_status === 'paid' ? 'default' : campaignPayment.payment_status === 'partial' ? 'secondary' : 'outline'}
+                    className={
+                      campaignPayment.payment_status === 'paid' ? 'bg-green-100 text-green-800' : 
+                      campaignPayment.payment_status === 'partial' ? 'bg-yellow-100 text-yellow-800' : ''
+                    }
                   >
-                    {campaignPayment.payment_status === 'paid' ? 'Paid ✓' : 'Unpaid'}
+                    {campaignPayment.payment_status === 'paid' ? 'Paid ✓' : 
+                     campaignPayment.payment_status === 'partial' ? 'Partial' : 'Unpaid'}
                   </Badge>
                   {campaignPayment.payment_date && (
                     <div className="text-xs text-muted-foreground">
@@ -233,30 +248,30 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
             </div>
           )}
 
-          {/* External Streaming Sources */}
+          {/* Streaming Data by Time Period */}
           <div className="p-4 border rounded-lg">
             <div className="flex items-center gap-2 mb-4">
               <Radio className="h-4 w-4" />
-              <span className="font-medium">External Streaming Sources</span>
+              <span className="font-medium">Your Streaming Data</span>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold">
-                  {(freshCampaign.radio_streams || 0).toLocaleString()}
+                  {streams24h.toLocaleString()}
                 </div>
-                <div className="text-sm text-muted-foreground">Radio Streams</div>
+                <div className="text-sm text-muted-foreground">Last 24 Hours</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold">
-                  {(freshCampaign.discover_weekly_streams || 0).toLocaleString()}
+                  {streams7d.toLocaleString()}
                 </div>
-                <div className="text-sm text-muted-foreground">Discover Weekly</div>
+                <div className="text-sm text-muted-foreground">Last 7 Days</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold">
-                  {((freshCampaign.radio_streams || 0) + (freshCampaign.discover_weekly_streams || 0)).toLocaleString()}
+                  {streams12m.toLocaleString()}
                 </div>
-                <div className="text-sm text-muted-foreground">Total External</div>
+                <div className="text-sm text-muted-foreground">Last 12 Months</div>
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-3 text-center">
@@ -343,17 +358,20 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
             {/* Your Allocated Playlists */}
             {freshCampaign.vendor_playlists && freshCampaign.vendor_playlists.length > 0 ? (
               <VendorOwnPlaylistView
-                playlists={freshCampaign.vendor_playlists.map(playlist => ({
+                playlists={freshCampaign.vendor_playlists.map((playlist: any) => ({
                   id: playlist.id,
                   name: playlist.name,
                   url: '#', // URL would come from playlists table
                   avg_daily_streams: playlist.avg_daily_streams,
                   follower_count: playlist.follower_count,
-                  allocated_streams: 0, // Would come from performance data
-                  actual_streams: 0, // Would come from performance data
-                  twelve_month_streams: 0, // Would come from historical data
+                  allocated_streams: vendorStreamGoal, // Use campaign goal
+                  actual_streams: playlist.current_streams || 0, // Actual scraped streams
+                  twelve_month_streams: playlist.streams_12m || 0, // 12-month scraped data
+                  streams_24h: playlist.streams_24h || 0,
+                  streams_7d: playlist.streams_7d || 0,
                   daily_data: [], // Would come from performance entries
-                  is_allocated: playlist.is_allocated
+                  is_allocated: playlist.is_allocated,
+                  vendor_paid: playlist.vendor_paid || false
                 }))}
                 onRemovePlaylist={(playlistId) => handlePlaylistToggle(playlistId, true)}
                 isRemoving={updatePlaylistAllocation.isPending}
