@@ -7,7 +7,7 @@ import { toast } from "../components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { ScrollArea } from "../components/ui/scroll-area";
-import { Plus, List, CheckCircle, XCircle, Music, TrendingUp, Users, ExternalLink, RotateCcw, Edit2, Loader2, ChevronUp, ChevronDown, ArrowUpDown } from "lucide-react";
+import { Plus, List, CheckCircle, XCircle, Music, TrendingUp, Users, ExternalLink, RotateCcw, Edit2, Loader2, ChevronUp, ChevronDown, ArrowUpDown, DollarSign, Target, Clock, Award, AlertTriangle, CircleDollarSign, Wallet } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useMyVendor } from "../hooks/useVendors";
 import { useMyPlaylists, useCreatePlaylist } from "../hooks/useVendorPlaylists";
@@ -53,6 +53,119 @@ export default function VendorDashboard() {
 
   const totalStreams = playlists?.reduce((sum, playlist) => sum + playlist.avg_daily_streams, 0) || 0;
   const pendingRequests = requests.filter(r => r.status === 'pending').length;
+
+  // Calculate overview metrics from campaigns
+  const overviewMetrics = (() => {
+    if (!campaigns || campaigns.length === 0) {
+      return {
+        totalDeliveredStreams: 0,
+        totalPendingPayout: 0,
+        totalPaidOut: 0,
+        workingPlaylists: 0,
+        campaignsOnTrack: 0,
+        campaignsBehind: 0,
+        campaignsAhead: 0,
+        onTrackPercent: 0,
+        behindPercent: 0,
+        bestPlaylist: null as any,
+        avgCostPer1k: 0,
+        totalCampaigns: 0,
+        activeCampaigns: 0
+      };
+    }
+
+    let totalDeliveredStreams = 0;
+    let totalPendingPayout = 0;
+    let totalPaidOut = 0;
+    const workingPlaylistNames = new Set<string>();
+    let campaignsOnTrack = 0;
+    let campaignsBehind = 0;
+    let campaignsAhead = 0;
+    const playlistPerformance: Record<string, { name: string; streams: number }> = {};
+    let totalCostPer1k = 0;
+    let costPer1kCount = 0;
+
+    campaigns.forEach(campaign => {
+      const vendorPlaylists = campaign.vendor_playlists || [];
+      
+      // Sum streams from vendor's playlists
+      vendorPlaylists.forEach((playlist: any) => {
+        const streams = playlist.streams_12m || playlist.current_streams || 0;
+        totalDeliveredStreams += streams;
+        
+        if (playlist.name) {
+          workingPlaylistNames.add(playlist.name);
+          
+          // Track playlist performance
+          if (!playlistPerformance[playlist.name]) {
+            playlistPerformance[playlist.name] = { name: playlist.name, streams: 0 };
+          }
+          playlistPerformance[playlist.name].streams += streams;
+        }
+
+        // Calculate payouts
+        const costPer1k = playlist.cost_per_1k_override || campaign.cost_per_1k_streams || 8;
+        const playlistPayout = (streams / 1000) * costPer1k;
+        
+        if (playlist.vendor_paid) {
+          totalPaidOut += playlistPayout;
+        } else {
+          totalPendingPayout += playlistPayout;
+        }
+
+        if (costPer1k > 0) {
+          totalCostPer1k += costPer1k;
+          costPer1kCount++;
+        }
+      });
+
+      // Calculate on-track status
+      const goal = campaign.total_goal || campaign.vendor_stream_goal || 0;
+      const currentStreams = vendorPlaylists.reduce((sum: number, p: any) => sum + (p.streams_12m || p.current_streams || 0), 0);
+      
+      if (goal > 0) {
+        const progressPercent = (currentStreams / goal) * 100;
+        
+        // Calculate expected progress based on campaign duration
+        const startDate = campaign.start_date ? new Date(campaign.start_date) : new Date();
+        const endDate = campaign.end_date ? new Date(campaign.end_date) : new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const now = new Date();
+        const totalDuration = endDate.getTime() - startDate.getTime();
+        const elapsed = Math.max(0, now.getTime() - startDate.getTime());
+        const expectedProgress = totalDuration > 0 ? (elapsed / totalDuration) * 100 : 0;
+
+        if (progressPercent >= expectedProgress + 10) {
+          campaignsAhead++;
+        } else if (progressPercent >= expectedProgress - 10) {
+          campaignsOnTrack++;
+        } else {
+          campaignsBehind++;
+        }
+      }
+    });
+
+    // Find best performing playlist
+    const bestPlaylist = Object.values(playlistPerformance)
+      .sort((a, b) => b.streams - a.streams)[0] || null;
+
+    const totalCampaignsWithStatus = campaignsOnTrack + campaignsBehind + campaignsAhead;
+    
+    return {
+      totalDeliveredStreams,
+      totalPendingPayout,
+      totalPaidOut,
+      workingPlaylists: workingPlaylistNames.size,
+      campaignsOnTrack,
+      campaignsBehind,
+      campaignsAhead,
+      onTrackPercent: totalCampaignsWithStatus > 0 ? ((campaignsOnTrack + campaignsAhead) / totalCampaignsWithStatus) * 100 : 0,
+      behindPercent: totalCampaignsWithStatus > 0 ? (campaignsBehind / totalCampaignsWithStatus) * 100 : 0,
+      bestPlaylist,
+      avgCostPer1k: costPer1kCount > 0 ? totalCostPer1k / costPer1kCount : 0,
+      totalCampaigns: campaigns.length,
+      activeCampaigns: campaigns.filter(c => c.status?.toLowerCase() === 'active').length
+    };
+  })();
 
   // Sort campaigns
   const sortedCampaigns = [...campaigns].sort((a, b) => {
@@ -269,6 +382,157 @@ export default function VendorDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Performance Overview */}
+        <Card className="border-2 border-primary/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Performance Overview
+            </CardTitle>
+            <CardDescription>Your campaign performance and earnings at a glance</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Financial Overview */}
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border border-green-200 dark:border-green-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700 dark:text-green-400">Total Streams Delivered</span>
+                </div>
+                <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                  {overviewMetrics.totalDeliveredStreams.toLocaleString()}
+                </div>
+                <p className="text-xs text-green-600/80 dark:text-green-400/80 mt-1">Across all campaigns (12m)</p>
+              </div>
+
+              <div className="p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-950/30 dark:to-amber-900/20 border border-yellow-200 dark:border-yellow-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Wallet className="h-4 w-4 text-yellow-600" />
+                  <span className="text-sm font-medium text-yellow-700 dark:text-yellow-400">Pending Payout</span>
+                </div>
+                <div className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+                  ${overviewMetrics.totalPendingPayout.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <p className="text-xs text-yellow-600/80 dark:text-yellow-400/80 mt-1">Awaiting payment</p>
+              </div>
+
+              <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <CircleDollarSign className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-400">Total Paid Out</span>
+                </div>
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  ${overviewMetrics.totalPaidOut.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <p className="text-xs text-blue-600/80 dark:text-blue-400/80 mt-1">Earnings received</p>
+              </div>
+
+              <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 border border-purple-200 dark:border-purple-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm font-medium text-purple-700 dark:text-purple-400">Avg Rate</span>
+                </div>
+                <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                  ${overviewMetrics.avgCostPer1k.toFixed(2)}<span className="text-sm font-normal">/1K</span>
+                </div>
+                <p className="text-xs text-purple-600/80 dark:text-purple-400/80 mt-1">Average per 1K streams</p>
+              </div>
+            </div>
+
+            {/* Campaign Status & Performance */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Campaign Status */}
+              <div className="p-4 rounded-lg border bg-card">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Campaign Status
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Active Campaigns</span>
+                    <Badge variant="outline" className="bg-primary/10">{overviewMetrics.activeCampaigns}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Working Playlists</span>
+                    <Badge variant="outline" className="bg-blue-500/10 text-blue-600">{overviewMetrics.workingPlaylists}</Badge>
+                  </div>
+                  
+                  {/* Progress bars for on-track status */}
+                  <div className="pt-2 border-t space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                        On Track / Ahead
+                      </span>
+                      <span className="font-medium text-green-600">{overviewMetrics.campaignsOnTrack + overviewMetrics.campaignsAhead} ({overviewMetrics.onTrackPercent.toFixed(0)}%)</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full transition-all" 
+                        style={{ width: `${overviewMetrics.onTrackPercent}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-1.5">
+                        <AlertTriangle className="h-3.5 w-3.5 text-orange-500" />
+                        Behind Schedule
+                      </span>
+                      <span className="font-medium text-orange-600">{overviewMetrics.campaignsBehind} ({overviewMetrics.behindPercent.toFixed(0)}%)</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-orange-500 h-2 rounded-full transition-all" 
+                        style={{ width: `${overviewMetrics.behindPercent}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Best Performer */}
+              <div className="p-4 rounded-lg border bg-card">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Award className="h-4 w-4 text-yellow-500" />
+                  Top Performing Playlist
+                </h4>
+                {overviewMetrics.bestPlaylist ? (
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-lg bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/30 dark:to-amber-950/30 border border-yellow-200 dark:border-yellow-800">
+                      <p className="font-medium text-lg">{overviewMetrics.bestPlaylist.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                        <span className="text-xl font-bold text-green-600">
+                          {overviewMetrics.bestPlaylist.streams.toLocaleString()}
+                        </span>
+                        <span className="text-sm text-muted-foreground">total streams</span>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="p-2 rounded bg-muted/50">
+                        <span className="text-muted-foreground">Total Playlists</span>
+                        <p className="font-medium">{playlists?.length || 0}</p>
+                      </div>
+                      <div className="p-2 rounded bg-muted/50">
+                        <span className="text-muted-foreground">In Campaigns</span>
+                        <p className="font-medium">{overviewMetrics.workingPlaylists}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Music className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No playlist performance data yet</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* My Campaigns */}
         <Card>
