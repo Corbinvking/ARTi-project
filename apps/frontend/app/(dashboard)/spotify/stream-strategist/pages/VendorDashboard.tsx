@@ -7,7 +7,7 @@ import { toast } from "../components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { ScrollArea } from "../components/ui/scroll-area";
-import { Plus, List, CheckCircle, XCircle, Music, TrendingUp, Users, ExternalLink, RotateCcw, Edit2, Loader2, ChevronUp, ChevronDown, ArrowUpDown, DollarSign, Target, Clock, Award, AlertTriangle, CircleDollarSign, Wallet } from "lucide-react";
+import { Plus, List, CheckCircle, XCircle, Music, TrendingUp, Users, ExternalLink, RotateCcw, Edit2, Loader2, ChevronUp, ChevronDown, ArrowUpDown, DollarSign, Target, Clock, Award, AlertTriangle, CircleDollarSign, Wallet, Search } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useMyVendor } from "../hooks/useVendors";
 import { useMyPlaylists, useCreatePlaylist } from "../hooks/useVendorPlaylists";
@@ -47,9 +47,10 @@ export default function VendorDashboard() {
   const [spotifyCreateError, setSpotifyCreateError] = useState<string | null>(null);
   const [lastFetchedUrl, setLastFetchedUrl] = useState<string>('');
   
-  // Sorting state for campaigns
+  // Sorting and search state for campaigns
   const [sortBy, setSortBy] = useState<'name' | 'start_date'>('start_date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [campaignSearch, setCampaignSearch] = useState('');
 
   const totalStreams = playlists?.reduce((sum, playlist) => sum + playlist.avg_daily_streams, 0) || 0;
   const pendingRequests = requests.filter(r => r.status === 'pending').length;
@@ -167,14 +168,24 @@ export default function VendorDashboard() {
     };
   })();
 
-  // Sort campaigns
-  const sortedCampaigns = [...campaigns].sort((a, b) => {
-    const aValue = sortBy === 'name' ? a.name : a.start_date;
-    const bValue = sortBy === 'name' ? b.name : b.start_date;
-    
-    const comparison = aValue.localeCompare(bValue);
-    return sortOrder === 'asc' ? comparison : -comparison;
-  });
+  // Filter and sort campaigns
+  const filteredAndSortedCampaigns = [...campaigns]
+    .filter(campaign => {
+      if (!campaignSearch.trim()) return true;
+      const search = campaignSearch.toLowerCase();
+      return (
+        campaign.name?.toLowerCase().includes(search) ||
+        campaign.artist_name?.toLowerCase().includes(search) ||
+        campaign.track_name?.toLowerCase().includes(search)
+      );
+    })
+    .sort((a, b) => {
+      const aValue = sortBy === 'name' ? a.name : a.start_date;
+      const bValue = sortBy === 'name' ? b.name : b.start_date;
+      
+      const comparison = aValue.localeCompare(bValue);
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
 
   const toggleSort = (newSortBy: 'name' | 'start_date') => {
     if (sortBy === newSortBy) {
@@ -544,40 +555,67 @@ export default function VendorDashboard() {
                   Manage your playlist participation in active campaigns
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toggleSort('name')}
-                  className="text-xs"
-                >
-                  Name
-                  {sortBy === 'name' ? (
-                    sortOrder === 'asc' ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />
-                  ) : (
-                    <ArrowUpDown className="h-3 w-3 ml-1" />
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toggleSort('start_date')}
-                  className="text-xs"
-                >
-                  Date
-                  {sortBy === 'start_date' ? (
-                    sortOrder === 'asc' ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />
-                  ) : (
-                    <ArrowUpDown className="h-3 w-3 ml-1" />
-                  )}
-                </Button>
+              <div className="flex items-center gap-3">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search campaigns..."
+                    value={campaignSearch}
+                    onChange={(e) => setCampaignSearch(e.target.value)}
+                    className="pl-8 w-[200px] h-9"
+                  />
+                </div>
+                {/* Sort Buttons */}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleSort('name')}
+                    className="text-xs"
+                  >
+                    Name
+                    {sortBy === 'name' ? (
+                      sortOrder === 'asc' ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />
+                    ) : (
+                      <ArrowUpDown className="h-3 w-3 ml-1" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleSort('start_date')}
+                    className="text-xs"
+                  >
+                    Date
+                    {sortBy === 'start_date' ? (
+                      sortOrder === 'asc' ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />
+                    ) : (
+                      <ArrowUpDown className="h-3 w-3 ml-1" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             {campaigns.length > 0 ? (
               <div className="space-y-4">
-                {sortedCampaigns.map((campaign) => {
+                {filteredAndSortedCampaigns.length === 0 && campaignSearch && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No campaigns found matching "{campaignSearch}"</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCampaignSearch('')}
+                      className="mt-2"
+                    >
+                      Clear search
+                    </Button>
+                  </div>
+                )}
+                {filteredAndSortedCampaigns.map((campaign) => {
                   const vendorStreamGoal = campaign.vendor_stream_goal || 0;
                   // Use total_streams_delivered from hook (already calculated from campaign_playlists)
                   const currentStreams = (campaign as any).total_streams_delivered || 
