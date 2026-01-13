@@ -174,32 +174,45 @@ export function useVendorCampaigns() {
           campaignSpotifyIds.includes(p.campaign_id) && vendorIds.includes(p.vendor_id)
         ) || [];
 
-        // Build vendor playlists directly from campaign_playlists data (actual scraped data)
-        // This ensures we show playlists even if they're not in the playlists table
-        const vendorPlaylistsInCampaign = campaignPlaylistPerf.map(perf => {
-          // Try to find matching playlist from playlists table for additional data
-          const matchingPlaylist = playlists?.find(p => 
-            p.name === perf.playlist_name || 
-            (p as any).spotify_id === perf.playlist_spotify_id
-          );
-          
-          return {
-            id: perf.id?.toString() || matchingPlaylist?.id || perf.playlist_spotify_id || '',
-            name: perf.playlist_name || matchingPlaylist?.name || 'Unknown Playlist',
-            avg_daily_streams: matchingPlaylist?.avg_daily_streams || 0,
-            follower_count: matchingPlaylist?.follower_count || perf.playlist_follower_count || 0,
-            vendor_id: perf.vendor_id,
-            is_allocated: true, // All campaign_playlists entries are allocated
-            // Actual scraped streams from campaign_playlists
-            current_streams: perf.streams_12m || 0,
-            streams_24h: perf.streams_24h || 0,
-            streams_7d: perf.streams_7d || 0,
-            streams_12m: perf.streams_12m || 0,
-            // Payment status per playlist
-            vendor_paid: perf.vendor_paid || false,
-            cost_per_1k_override: perf.cost_per_1k_override || null
-          };
-        });
+        // Get vendor's playlist names for strict matching
+        const vendorPlaylistNames = new Set(playlists?.map(p => p.name.toLowerCase()) || []);
+        const vendorPlaylistSpotifyIds = new Set(
+          playlists?.map(p => (p as any).spotify_id).filter(Boolean) || []
+        );
+
+        // Build vendor playlists - ONLY include playlists that the vendor actually owns
+        // Match by name OR spotify_id to ensure accuracy
+        const vendorPlaylistsInCampaign = campaignPlaylistPerf
+          .filter(perf => {
+            // Must match a playlist the vendor owns in the playlists table
+            const nameMatch = perf.playlist_name && vendorPlaylistNames.has(perf.playlist_name.toLowerCase());
+            const spotifyIdMatch = perf.playlist_spotify_id && vendorPlaylistSpotifyIds.has(perf.playlist_spotify_id);
+            return nameMatch || spotifyIdMatch;
+          })
+          .map(perf => {
+            // Find the matching playlist from playlists table
+            const matchingPlaylist = playlists?.find(p => 
+              p.name.toLowerCase() === perf.playlist_name?.toLowerCase() || 
+              (p as any).spotify_id === perf.playlist_spotify_id
+            );
+            
+            return {
+              id: matchingPlaylist?.id || perf.id?.toString() || perf.playlist_spotify_id || '',
+              name: matchingPlaylist?.name || perf.playlist_name || 'Unknown Playlist',
+              avg_daily_streams: matchingPlaylist?.avg_daily_streams || 0,
+              follower_count: matchingPlaylist?.follower_count || perf.playlist_follower_count || 0,
+              vendor_id: matchingPlaylist?.vendor_id || perf.vendor_id,
+              is_allocated: true, // All matched entries are allocated
+              // Actual scraped streams from campaign_playlists
+              current_streams: perf.streams_12m || 0,
+              streams_24h: perf.streams_24h || 0,
+              streams_7d: perf.streams_7d || 0,
+              streams_12m: perf.streams_12m || 0,
+              // Payment status per playlist
+              vendor_paid: perf.vendor_paid || false,
+              cost_per_1k_override: perf.cost_per_1k_override || null
+            };
+          });
 
         // Calculate vendor's stream goal allocation
         const vendorAllocations = campaign.vendor_allocations as Record<string, any> || {};
