@@ -342,13 +342,22 @@ export default function VendorDashboard() {
   return (
     <Layout>
       <div className="space-y-6 -mt-6" data-tour="vendor-portal">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Vendor Portal</h1>
-            <p className="text-muted-foreground">
-              {vendor ? `${vendor.name} - Manage your playlists and campaigns` : 'Manage your playlists and campaign participation'}
+        {/* Personalized Vendor Header */}
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6">
+          <div className="relative z-10">
+            <p className="text-sm font-medium text-primary/80 uppercase tracking-wider mb-1">
+              Vendor Portal
+            </p>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              {vendor?.name || 'Vendor Dashboard'}
+            </h1>
+            <p className="text-muted-foreground mt-2 text-lg">
+              Manage your playlists, campaigns, and earnings
             </p>
           </div>
+          {/* Decorative element */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-1/2 w-32 h-32 bg-gradient-to-t from-primary/10 to-transparent rounded-full blur-2xl translate-y-1/2" />
         </div>
 
 
