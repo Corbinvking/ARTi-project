@@ -6,15 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
-import { Music, TrendingUp, Target, ExternalLink, RotateCcw, Plus, X, Radio, Edit } from 'lucide-react';
+import { Music, TrendingUp, Target, ExternalLink, RotateCcw, Plus, X, Radio } from 'lucide-react';
 import { useUpdatePlaylistAllocation, useVendorCampaigns } from '../hooks/useVendorCampaigns';
 import { useMyPlaylists } from '../hooks/useVendorPlaylists';
 import { useCampaignPerformanceData, useCampaignOverallPerformance } from '../hooks/useCampaignPerformanceData';
 import { VendorPerformanceChart } from './VendorPerformanceChart';
 import { VendorOwnPlaylistView } from './VendorOwnPlaylistView';
 import AddPlaylistModal from './AddPlaylistModal';
-import { useVendorPaymentData, useUpdateVendorCampaignRate } from '../hooks/useVendorPayments';
-import { useMyVendor } from '../hooks/useVendors';
+import { useVendorPaymentData } from '../hooks/useVendorPayments';
 
 interface VendorCampaignPerformanceModalProps {
   campaign: any;
@@ -25,15 +24,11 @@ interface VendorCampaignPerformanceModalProps {
 export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: VendorCampaignPerformanceModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddPlaylistModal, setShowAddPlaylistModal] = useState(false);
-  const [editingRate, setEditingRate] = useState(false);
-  const [pendingRate, setPendingRate] = useState<number>(0);
   
   const updatePlaylistAllocation = useUpdatePlaylistAllocation();
   const { data: payments = [] } = useVendorPaymentData();
-  const updateRate = useUpdateVendorCampaignRate();
   const { data: myPlaylists } = useMyPlaylists();
   const { data: vendorCampaigns } = useVendorCampaigns();
-  const { data: myVendor } = useMyVendor();
   
   // Get fresh campaign data from the hook, fallback to prop
   const freshCampaign = vendorCampaigns?.find(c => c.id === campaign?.id) || campaign;
@@ -107,28 +102,6 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
     setSearchQuery('');
   };
 
-  const handleEditRate = () => {
-    if (campaignPayment) {
-      setPendingRate(campaignPayment.current_rate_per_1k);
-      setEditingRate(true);
-    }
-  };
-
-  const handleSaveRate = () => {
-    if (freshCampaign?.id && pendingRate > 0) {
-      updateRate.mutate({ 
-        campaignId: freshCampaign.id, 
-        newRatePer1k: pendingRate,
-        vendorId: myVendor?.id
-      });
-      setEditingRate(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingRate(false);
-    setPendingRate(0);
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -196,31 +169,8 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">Rate per 1k streams</div>
-                  {editingRate ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={pendingRate}
-                        onChange={(e) => setPendingRate(parseFloat(e.target.value) || 0)}
-                        className="w-24"
-                      />
-                      <Button size="sm" onClick={handleSaveRate} disabled={updateRate.isPending}>
-                        Save
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                        Cancel
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-semibold">${campaignPayment.current_rate_per_1k.toFixed(2)}</span>
-                      <Button size="sm" variant="ghost" onClick={handleEditRate}>
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="text-lg font-semibold">${campaignPayment.current_rate_per_1k.toFixed(2)}</div>
+                  <div className="text-xs text-muted-foreground">Set by Artist Influence</div>
                 </div>
                 
                 <div className="space-y-2">
