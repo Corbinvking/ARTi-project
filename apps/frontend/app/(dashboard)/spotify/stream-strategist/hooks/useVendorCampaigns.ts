@@ -262,11 +262,21 @@ export function useVendorCampaigns() {
           paymentStatus = 'unpaid';
         }
 
+        // Get the effective cost per 1k for this vendor in this campaign
+        // Priority: 1. cost_per_1k_override from first playlist, 2. vendor allocation rate, 3. vendor default
+        const firstPlaylistWithOverride = campaignPlaylistPerf.find(p => p.cost_per_1k_override != null);
+        const allocationCostPer1k = vendorAllocations[vendorIds[0]]?.cost_per_1k_streams;
+        const effectiveCostPer1k = firstPlaylistWithOverride?.cost_per_1k_override ?? allocationCostPer1k ?? vendorDefaultCost;
+
         return {
           ...campaign,
           vendor_playlists: vendorPlaylistsInCampaign,
           vendor_stream_goal: vendorStreamGoal,
-          vendor_allocation: vendorAllocations[vendorIds[0]], // For simplicity, use first vendor
+          vendor_allocation: {
+            ...vendorAllocations[vendorIds[0]],
+            cost_per_1k_streams: effectiveCostPer1k
+          },
+          cost_per_1k_streams: effectiveCostPer1k, // Top-level for easy access
           payment_status: paymentStatus,
           amount_owed: totalAmountOwed,
           total_streams_delivered: totalStreams

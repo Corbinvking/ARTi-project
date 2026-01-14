@@ -113,33 +113,50 @@ export const useUpdateVendorCampaignRate = () => {
   return useMutation({
     mutationFn: async ({ 
       campaignId, 
-      newRatePer1k 
+      newRatePer1k,
+      vendorId
     }: { 
       campaignId: string; 
-      newRatePer1k: number; 
+      newRatePer1k: number;
+      vendorId?: string;
     }) => {
-      if (!vendor?.id) throw new Error("No vendor found");
+      const effectiveVendorId = vendorId || vendor?.id;
+      if (!effectiveVendorId) throw new Error("No vendor found");
       
-      const costPerStream = newRatePer1k / 1000;
+      // First, get the spotify_campaign IDs for this campaign_group
+      const { data: spotifyCampaigns, error: scError } = await supabase
+        .from('spotify_campaigns')
+        .select('id')
+        .eq('campaign_group_id', campaignId);
 
-      // Update the cost_per_stream in campaign_allocations_performance
+      if (scError) throw scError;
+
+      const spotifyIds = spotifyCampaigns?.map(sc => sc.id) || [];
+      
+      if (spotifyIds.length === 0) {
+        throw new Error('No campaigns found');
+      }
+
+      // Update cost_per_1k_override in campaign_playlists for this campaign and vendor
       const { error } = await supabase
-        .from("campaign_allocations_performance")
+        .from("campaign_playlists")
         .update({ 
-          cost_per_stream: costPerStream,
+          cost_per_1k_override: newRatePer1k,
           updated_at: new Date().toISOString()
         })
-        .eq("campaign_id", campaignId)
-        .eq("vendor_id", vendor.id);
+        .in("campaign_id", spotifyIds)
+        .eq("vendor_id", effectiveVendorId);
 
       if (error) throw error;
 
-      return { campaignId, newRatePer1k, costPerStream };
+      return { campaignId, newRatePer1k };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["vendor-payment-data"] });
       queryClient.invalidateQueries({ queryKey: ["vendor-campaigns"] });
       queryClient.invalidateQueries({ queryKey: ["campaign-performance-data"] });
+      queryClient.invalidateQueries({ queryKey: ["playlists"] });
+      queryClient.invalidateQueries({ queryKey: ["campaign-playlists"] });
       toast({
         title: "Rate Updated",
         description: `Campaign rate updated to $${data.newRatePer1k.toFixed(2)} per 1k streams`,

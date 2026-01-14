@@ -14,6 +14,7 @@ import { VendorPerformanceChart } from './VendorPerformanceChart';
 import { VendorOwnPlaylistView } from './VendorOwnPlaylistView';
 import AddPlaylistModal from './AddPlaylistModal';
 import { useVendorPaymentData, useUpdateVendorCampaignRate } from '../hooks/useVendorPayments';
+import { useMyVendor } from '../hooks/useVendors';
 
 interface VendorCampaignPerformanceModalProps {
   campaign: any;
@@ -32,6 +33,7 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
   const updateRate = useUpdateVendorCampaignRate();
   const { data: myPlaylists } = useMyPlaylists();
   const { data: vendorCampaigns } = useVendorCampaigns();
+  const { data: myVendor } = useMyVendor();
   
   // Get fresh campaign data from the hook, fallback to prop
   const freshCampaign = vendorCampaigns?.find(c => c.id === campaign?.id) || campaign;
@@ -57,10 +59,17 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
     p.is_allocated ? (p.streams_12m || 0) : 0, 0) || 0;
 
   // Get payment data for this campaign - either from the payments hook or from the campaign data itself
-  const campaignPayment = payments.find(p => p.campaign_id === freshCampaign.id) || {
+  // Priority for rate: 1. payments hook, 2. campaign cost_per_1k_streams, 3. vendor_allocation, 4. default $8
+  const existingPayment = payments.find(p => p.campaign_id === freshCampaign.id);
+  const effectiveRate = existingPayment?.current_rate_per_1k || 
+    freshCampaign.cost_per_1k_streams || 
+    freshCampaign.vendor_allocation?.cost_per_1k_streams || 
+    8; // Default rate if nothing is set
+  
+  const campaignPayment = existingPayment || {
     campaign_id: freshCampaign.id,
-    current_rate_per_1k: freshCampaign.vendor_allocation?.cost_per_1k_streams || 0,
-    amount_owed: freshCampaign.amount_owed || 0,
+    current_rate_per_1k: effectiveRate,
+    amount_owed: freshCampaign.amount_owed || (currentStreams / 1000) * effectiveRate,
     actual_streams: currentStreams,
     allocated_streams: vendorStreamGoal,
     payment_status: freshCampaign.payment_status || 'unpaid',
@@ -109,7 +118,8 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
     if (freshCampaign?.id && pendingRate > 0) {
       updateRate.mutate({ 
         campaignId: freshCampaign.id, 
-        newRatePer1k: pendingRate 
+        newRatePer1k: pendingRate,
+        vendorId: myVendor?.id
       });
       setEditingRate(false);
     }
