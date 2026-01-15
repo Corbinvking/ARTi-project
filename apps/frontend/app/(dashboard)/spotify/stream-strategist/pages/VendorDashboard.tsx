@@ -341,9 +341,9 @@ export default function VendorDashboard() {
 
   return (
     <Layout>
-      <div className="space-y-6 -mt-6" data-tour="vendor-portal">
+      <div className="space-y-6" data-tour="vendor-portal">
         {/* Personalized Vendor Header */}
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6 mt-2">
           <div className="relative z-10">
             <p className="text-sm font-medium text-primary/80 uppercase tracking-wider mb-1">
               Vendor Portal
