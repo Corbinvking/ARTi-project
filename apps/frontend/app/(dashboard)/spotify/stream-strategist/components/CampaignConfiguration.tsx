@@ -451,10 +451,9 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
             setValue("track_name", result.data.name);
             setValue("name", campaignName); // Auto-populate campaign name
             
-            // Auto-generate Spotify for Artists URL
-            const sfaUrl = `https://artists.spotify.com/c/song/${trackId}`;
-            setValue("sfa_url", sfaUrl);
-            console.log('🔗 [SFA URL] Auto-generated:', sfaUrl);
+            // Note: SFA URL is NOT auto-generated because the correct format requires
+            // artist-specific credentials that we don't have access to.
+            // Users should manually enter their SFA URL if available.
             
             // Store raw Spotify genres for display
             const rawGenres = result.data.genres || [];

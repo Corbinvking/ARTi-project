@@ -137,13 +137,12 @@ export default function CampaignIntakePage() {
           const artistName = result.data.artists?.[0]?.name;
           const campaignName = artistName && trackName ? `${artistName} - ${trackName}` : trackName;
           
-          // Auto-generate SFA URL from track ID
-          const sfaUrl = `https://artists.spotify.com/c/song/${trackId}`;
+          // Note: SFA URL is NOT auto-generated because the correct format requires
+          // artist-specific credentials. Users should manually enter their SFA URL.
           
           setFormData(prev => ({ 
             ...prev, 
-            campaign_name: campaignName || prev.campaign_name,
-            sfa_url: sfaUrl
+            campaign_name: campaignName || prev.campaign_name
           }));
           
           toast({
