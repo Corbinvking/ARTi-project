@@ -607,9 +607,9 @@ export default function VendorDashboard() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {campaigns.length > 0 ? (
-              <div className="space-y-4">
+              <>
                 {filteredAndSortedCampaigns.length === 0 && campaignSearch && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -624,83 +624,107 @@ export default function VendorDashboard() {
                     </Button>
                   </div>
                 )}
-                {filteredAndSortedCampaigns.map((campaign) => {
-                  const vendorStreamGoal = campaign.vendor_stream_goal || 0;
-                  // Use total_streams_delivered from hook (already calculated from campaign_playlists)
-                  const currentStreams = (campaign as any).total_streams_delivered || 
-                    campaign.vendor_playlists?.reduce((sum: number, p: any) => 
-                      p.is_allocated ? (p.current_streams || 0) : 0, 0) || 0;
-                  const progressPercentage = vendorStreamGoal > 0 ? (currentStreams / vendorStreamGoal) * 100 : 0;
-                  
-                  const getPerformanceColor = () => {
-                    if (progressPercentage >= 110) return 'text-green-600';
-                    if (progressPercentage >= 80) return 'text-blue-600';
-                    if (progressPercentage >= 50) return 'text-yellow-600';
-                    return 'text-red-600';
-                  };
+                {filteredAndSortedCampaigns.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-muted/50">
+                        <tr className="border-b">
+                          <th className="text-left p-3 font-medium text-sm">Campaign</th>
+                          <th className="text-center p-3 font-medium text-sm">Goal</th>
+                          <th className="text-center p-3 font-medium text-sm">My Streams</th>
+                          <th className="text-center p-3 font-medium text-sm">Progress</th>
+                          <th className="text-center p-3 font-medium text-sm">Playlists</th>
+                          <th className="text-center p-3 font-medium text-sm">Earned</th>
+                          <th className="text-center p-3 font-medium text-sm">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredAndSortedCampaigns.map((campaign) => {
+                          const vendorStreamGoal = campaign.vendor_stream_goal || 0;
+                          const currentStreams = (campaign as any).total_streams_delivered || 
+                            campaign.vendor_playlists?.reduce((sum: number, p: any) => 
+                              p.is_allocated ? (p.current_streams || 0) : 0, 0) || 0;
+                          const progressPercentage = vendorStreamGoal > 0 ? (currentStreams / vendorStreamGoal) * 100 : 0;
+                          const playlistCount = campaign.vendor_playlists?.filter((p: any) => p.is_allocated).length || 0;
+                          
+                          const getProgressColor = () => {
+                            if (progressPercentage >= 100) return 'text-green-600 bg-green-50';
+                            if (progressPercentage >= 75) return 'text-blue-600 bg-blue-50';
+                            if (progressPercentage >= 50) return 'text-yellow-600 bg-yellow-50';
+                            return 'text-orange-600 bg-orange-50';
+                          };
 
-                  const getPaymentBadge = () => {
-                    switch (campaign.payment_status) {
-                      case 'paid':
-                        return { variant: 'default' as const, label: 'Paid ✓', className: 'bg-green-100 text-green-800' };
-                      case 'partial':
-                        return { variant: 'secondary' as const, label: 'Partial', className: 'bg-yellow-100 text-yellow-800' };
-                      case 'pending':
-                        return { variant: 'secondary' as const, label: 'Pending', className: '' };
-                      default:
-                        return { variant: 'outline' as const, label: 'Unpaid', className: '' };
-                    }
-                  };
-                  const paymentBadge = getPaymentBadge();
+                          const getPaymentBadge = () => {
+                            switch (campaign.payment_status) {
+                              case 'paid':
+                                return { className: 'bg-green-100 text-green-800 border-green-200', label: 'Paid' };
+                              case 'partial':
+                                return { className: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Partial' };
+                              case 'pending':
+                                return { className: 'bg-gray-100 text-gray-800 border-gray-200', label: 'Pending' };
+                              default:
+                                return { className: 'bg-orange-50 text-orange-700 border-orange-200', label: 'Unpaid' };
+                            }
+                          };
+                          const paymentBadge = getPaymentBadge();
 
-                  return (
-                    <Card key={campaign.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedCampaign(campaign)}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="space-y-1">
-                           <div className="flex items-center gap-2 flex-wrap">
-                             <Badge variant="secondary" className="text-xs bg-primary/10">
-                               {vendor?.name || 'My Campaign'}
-                             </Badge>
-                             <h3 className="font-semibold">{campaign.name}</h3>
-                             <Badge variant={paymentBadge.variant} className={paymentBadge.className}>
-                               {paymentBadge.label}
-                             </Badge>
-                           </div>
-                           {campaign.amount_owed !== undefined && campaign.amount_owed > 0 && (
-                             <div className="text-sm text-muted-foreground">
-                               Amount owed: <span className="font-medium text-green-600">${campaign.amount_owed.toFixed(2)}</span>
-                             </div>
-                           )}
-                            {campaign.brand_name && (
-                              <p className="text-sm text-muted-foreground">{campaign.brand_name}</p>
-                            )}
-                            <p className="text-xs text-muted-foreground">
-                              Started: {new Date(campaign.start_date).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right text-sm">
-                            <div className="font-medium">{currentStreams.toLocaleString()} streams</div>
-                            <div className="text-muted-foreground">of {vendorStreamGoal.toLocaleString()} goal</div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-muted-foreground">Progress:</span>
-                            <span className={`font-medium ${getPerformanceColor()}`}>
-                              {progressPercentage.toFixed(1)}%
-                            </span>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {campaign.vendor_playlists?.filter((p: any) => p.is_allocated).length || 0} active playlists
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                          return (
+                            <tr 
+                              key={campaign.id} 
+                              className="border-b hover:bg-muted/30 cursor-pointer transition-colors"
+                              onClick={() => setSelectedCampaign(campaign)}
+                            >
+                              <td className="p-3">
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-sm">{campaign.name}</span>
+                                  {campaign.brand_name && (
+                                    <span className="text-xs text-muted-foreground">{campaign.brand_name}</span>
+                                  )}
+                                  <span className="text-xs text-muted-foreground">
+                                    Started: {new Date(campaign.start_date).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="p-3 text-center">
+                                <span className="font-medium text-sm">{vendorStreamGoal.toLocaleString()}</span>
+                              </td>
+                              <td className="p-3 text-center">
+                                <span className="font-semibold text-sm text-primary">{currentStreams.toLocaleString()}</span>
+                              </td>
+                              <td className="p-3 text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${getProgressColor()}`}>
+                                    {progressPercentage.toFixed(0)}%
+                                  </span>
+                                  <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-primary rounded-full transition-all"
+                                      style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-3 text-center">
+                                <span className="text-sm">{playlistCount}</span>
+                              </td>
+                              <td className="p-3 text-center">
+                                <span className="font-medium text-sm text-green-600">
+                                  ${(campaign.amount_owed || 0).toFixed(2)}
+                                </span>
+                              </td>
+                              <td className="p-3 text-center">
+                                <span className={`text-xs px-2 py-1 rounded-full border ${paymentBadge.className}`}>
+                                  {paymentBadge.label}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-8">
                 <Music className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
