@@ -122,6 +122,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const [expandedVendors, setExpandedVendors] = useState<Record<string, boolean>>({});
   const [vendorData, setVendorData] = useState<Record<string, any>>({});
   const [markingPaid, setMarkingPaid] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useState("overview");
   const [editingSfaUrl, setEditingSfaUrl] = useState(false);
   const [sfaUrlInput, setSfaUrlInput] = useState('');
   const [savingSfaUrl, setSavingSfaUrl] = useState(false);
@@ -986,19 +987,32 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       console.log('💰 [MarkPaid] Updating payment for SPECIFIC vendor:', { campaignId, vendorId, vendorName, amount });
       
       let updateSucceeded = false;
+      let spotifyCampaignIds: number[] = [];
       
-      // STEP 1: First get the spotify_campaigns.id(s) for this campaign group
-      // campaign_playlists.campaign_id references spotify_campaigns.id (integer), not campaign_groups.id (uuid)
-      const { data: spotifyCampaigns, error: scError } = await supabase
-        .from('spotify_campaigns')
-        .select('id')
-        .eq('campaign_group_id', campaignId);
+      // STEP 1: Determine if campaignId is a campaign_group UUID or spotify_campaign integer
+      // UUIDs have dashes, integers don't
+      const isCampaignGroupId = typeof campaignId === 'string' && campaignId.includes('-');
       
-      if (scError) {
-        console.error('💰 [MarkPaid] Failed to fetch spotify_campaigns:', scError);
+      if (isCampaignGroupId) {
+        // It's a campaign_group UUID - fetch all spotify_campaigns for this group
+        const { data: spotifyCampaigns, error: scError } = await supabase
+          .from('spotify_campaigns')
+          .select('id')
+          .eq('campaign_group_id', campaignId);
+        
+        if (scError) {
+          console.error('💰 [MarkPaid] Failed to fetch spotify_campaigns:', scError);
+        }
+        spotifyCampaignIds = spotifyCampaigns?.map(sc => sc.id) || [];
+      } else {
+        // It's a spotify_campaign integer ID directly
+        const parsedId = parseInt(String(campaignId), 10);
+        if (!isNaN(parsedId)) {
+          spotifyCampaignIds = [parsedId];
+        }
       }
       
-      const spotifyCampaignIds = spotifyCampaigns?.map(sc => sc.id) || [];
+      console.log('💰 [MarkPaid] Campaign ID type:', isCampaignGroupId ? 'campaign_group' : 'spotify_campaign');
       console.log('💰 [MarkPaid] Found spotify_campaign IDs:', spotifyCampaignIds);
       
       // STEP 2: Update campaign_playlists for THIS SPECIFIC VENDOR ONLY
@@ -1240,7 +1254,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               Campaign Details
