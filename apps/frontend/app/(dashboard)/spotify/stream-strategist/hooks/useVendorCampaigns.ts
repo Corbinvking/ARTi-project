@@ -215,16 +215,32 @@ export function useVendorCampaigns() {
           });
 
         // Calculate vendor's stream goal allocation
-        const vendorAllocations = campaign.vendor_allocations as Record<string, any> || {};
+        // Priority: 1. vendor_allocations (if stored with allocated_streams)
+        //           2. Campaign's total_goal as the main source
+        const vendorAllocationsData = campaign.vendor_allocations;
         let vendorStreamGoal = 0;
         
-        for (const vendorId of vendorIds) {
-          if (vendorAllocations[vendorId]) {
-            vendorStreamGoal += vendorAllocations[vendorId].allocated_streams || 0;
+        // Handle both array and object formats for vendor_allocations
+        if (Array.isArray(vendorAllocationsData)) {
+          // Array format: [{vendor_id, allocated_streams, ...}]
+          for (const vendorId of vendorIds) {
+            const allocation = vendorAllocationsData.find((a: any) => a.vendor_id === vendorId);
+            if (allocation) {
+              vendorStreamGoal += allocation.allocated_streams || allocation.allocation || 0;
+            }
+          }
+        } else if (vendorAllocationsData && typeof vendorAllocationsData === 'object') {
+          // Object format: {vendorId: {allocated_streams, ...}}
+          for (const vendorId of vendorIds) {
+            const allocation = (vendorAllocationsData as Record<string, any>)[vendorId];
+            if (allocation) {
+              vendorStreamGoal += allocation.allocated_streams || allocation.allocation || 0;
+            }
           }
         }
         
-        // If no vendor allocations, use campaign's total_goal as fallback
+        // If no vendor-specific allocations, use campaign's total_goal
+        // This is the primary source for CSV-imported campaigns
         if (vendorStreamGoal === 0) {
           vendorStreamGoal = campaign.total_goal || campaign.stream_goal || 0;
         }
