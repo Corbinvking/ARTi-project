@@ -1,29 +1,43 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker } from "react-day-picker";
-
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./button";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
+export type CalendarProps = {
+  className?: string;
+  selected?: Date;
+  onSelect?: (date: Date | undefined) => void;
+  mode?: 'single';
+  defaultMonth?: Date;
   fromYear?: number;
   toYear?: number;
+  disabled?: (date: Date) => boolean;
 };
 
 function Calendar({
   className,
-  classNames,
-  showOutsideDays = true,
+  selected,
+  onSelect,
+  defaultMonth,
   fromYear = new Date().getFullYear() - 5,
   toYear = new Date().getFullYear() + 2,
-  ...props
+  disabled,
 }: CalendarProps) {
-  const [month, setMonth] = React.useState(props.defaultMonth || props.selected as Date || new Date());
+  const [currentMonth, setCurrentMonth] = React.useState(
+    defaultMonth || selected || new Date()
+  );
 
   const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const monthsShort = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
+
+  const weekDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
   const years = React.useMemo(() => {
     const yearList = [];
@@ -33,26 +47,100 @@ function Calendar({
     return yearList;
   }, [fromYear, toYear]);
 
-  const handleGoToToday = () => {
-    const today = new Date();
-    setMonth(today);
-    // If onSelect is provided (single mode), select today
-    if (props.mode === 'single' && props.onSelect) {
-      (props.onSelect as (date: Date | undefined) => void)(today);
-    }
+  // Get days in month
+  const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).getDate();
   };
 
+  // Get first day of month (0 = Sunday, 1 = Monday, etc.)
+  const getFirstDayOfMonth = (year: number, month: number) => {
+    return new Date(year, month, 1).getDay();
+  };
+
+  // Generate calendar grid
+  const generateCalendarDays = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+    const daysInPrevMonth = getDaysInMonth(year, month - 1);
+
+    const days: { date: Date; isCurrentMonth: boolean; isToday: boolean }[] = [];
+
+    // Previous month's days
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const day = daysInPrevMonth - i;
+      days.push({
+        date: new Date(year, month - 1, day),
+        isCurrentMonth: false,
+        isToday: false,
+      });
+    }
+
+    // Current month's days
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      days.push({
+        date,
+        isCurrentMonth: true,
+        isToday:
+          date.getDate() === today.getDate() &&
+          date.getMonth() === today.getMonth() &&
+          date.getFullYear() === today.getFullYear(),
+      });
+    }
+
+    // Next month's days to fill the grid
+    const remainingDays = 42 - days.length; // 6 rows * 7 days
+    for (let day = 1; day <= remainingDays; day++) {
+      days.push({
+        date: new Date(year, month + 1, day),
+        isCurrentMonth: false,
+        isToday: false,
+      });
+    }
+
+    return days;
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+  };
+
+  const handleGoToToday = () => {
+    const today = new Date();
+    setCurrentMonth(today);
+    onSelect?.(today);
+  };
+
+  const handleSelectDate = (date: Date) => {
+    if (disabled?.(date)) return;
+    onSelect?.(date);
+  };
+
+  const isSelected = (date: Date) => {
+    if (!selected) return false;
+    return (
+      date.getDate() === selected.getDate() &&
+      date.getMonth() === selected.getMonth() &&
+      date.getFullYear() === selected.getFullYear()
+    );
+  };
+
+  const calendarDays = generateCalendarDays();
+
   return (
-    <div className={cn("p-4 bg-popover border rounded-lg shadow-lg min-w-[280px]", className)}>
+    <div className={cn("p-4 bg-popover border rounded-lg shadow-lg w-[320px]", className)}>
       {/* Header with navigation */}
       <div className="flex items-center justify-between mb-4">
         <button
           type="button"
-          onClick={() => {
-            const newDate = new Date(month);
-            newDate.setMonth(newDate.getMonth() - 1);
-            setMonth(newDate);
-          }}
+          onClick={handlePrevMonth}
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),
             "h-8 w-8 p-0"
@@ -63,25 +151,25 @@ function Calendar({
 
         <div className="flex items-center gap-2">
           <select
-            value={month.getMonth()}
+            value={currentMonth.getMonth()}
             onChange={(e) => {
-              const newDate = new Date(month);
+              const newDate = new Date(currentMonth);
               newDate.setMonth(parseInt(e.target.value));
-              setMonth(newDate);
+              setCurrentMonth(newDate);
             }}
             className="text-sm font-semibold bg-muted/50 border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
           >
-            {months.map((m, i) => (
+            {monthsShort.map((m, i) => (
               <option key={m} value={i}>{m}</option>
             ))}
           </select>
 
           <select
-            value={month.getFullYear()}
+            value={currentMonth.getFullYear()}
             onChange={(e) => {
-              const newDate = new Date(month);
+              const newDate = new Date(currentMonth);
               newDate.setFullYear(parseInt(e.target.value));
-              setMonth(newDate);
+              setCurrentMonth(newDate);
             }}
             className="text-sm font-semibold bg-muted/50 border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
           >
@@ -101,11 +189,7 @@ function Calendar({
 
         <button
           type="button"
-          onClick={() => {
-            const newDate = new Date(month);
-            newDate.setMonth(newDate.getMonth() + 1);
-            setMonth(newDate);
-          }}
+          onClick={handleNextMonth}
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),
             "h-8 w-8 p-0"
@@ -115,49 +199,47 @@ function Calendar({
         </button>
       </div>
 
-      {/* Custom day of week headers */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-          <div key={day} className="h-8 w-9 flex items-center justify-center text-xs font-medium text-muted-foreground">
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 mb-2">
+        {weekDays.map((day) => (
+          <div
+            key={day}
+            className="h-8 flex items-center justify-center text-xs font-medium text-muted-foreground"
+          >
             {day}
           </div>
         ))}
       </div>
 
-      <DayPicker
-        showOutsideDays={showOutsideDays}
-        month={month}
-        onMonthChange={setMonth}
-        className="p-0"
-        classNames={{
-          months: "flex flex-col",
-          month: "space-y-1",
-          caption: "hidden",
-          caption_label: "sr-only",
-          nav: "hidden",
-          table: "w-full border-collapse",
-          head_row: "hidden",
-          head_cell: "hidden",
-          row: "grid grid-cols-7 gap-1",
-          cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-          day: cn(
-            buttonVariants({ variant: "ghost" }),
-            "h-9 w-9 p-0 font-normal hover:bg-muted transition-colors rounded-md text-sm"
-          ),
-          day_range_end: "day-range-end",
-          day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 font-medium",
-          day_today: "ring-2 ring-primary text-primary font-semibold",
-          day_outside: "text-muted-foreground/40 opacity-50",
-          day_disabled: "text-muted-foreground/30 opacity-30 cursor-not-allowed",
-          day_range_middle: "aria-selected:bg-primary/10",
-          day_hidden: "invisible",
-          ...classNames,
-        }}
-        {...props}
-      />
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {calendarDays.map((day, index) => {
+          const isDisabled = disabled?.(day.date);
+          return (
+            <button
+              key={index}
+              type="button"
+              onClick={() => handleSelectDate(day.date)}
+              disabled={isDisabled}
+              className={cn(
+                "h-9 w-9 rounded-md text-sm font-normal transition-colors",
+                "hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
+                !day.isCurrentMonth && "text-muted-foreground/40",
+                day.isCurrentMonth && "text-foreground",
+                day.isToday && "ring-2 ring-primary font-semibold",
+                isSelected(day.date) && "bg-primary text-primary-foreground hover:bg-primary/90",
+                isDisabled && "opacity-30 cursor-not-allowed"
+              )}
+            >
+              {day.date.getDate()}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
+
 Calendar.displayName = "Calendar";
 
 export { Calendar };
