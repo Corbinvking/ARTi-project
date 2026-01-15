@@ -741,9 +741,9 @@ export default function VendorDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <div className="space-y-1">
-              <CardTitle>Recent Playlists</CardTitle>
+              <CardTitle>My Playlists</CardTitle>
               <CardDescription>
-                Your active playlists available for campaigns
+                Manage your playlists with 12-month performance tracking
               </CardDescription>
             </div>
             <Button onClick={() => setShowCreatePlaylistModal(true)} size="sm">
@@ -751,44 +751,90 @@ export default function VendorDashboard() {
               Add Playlist
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {playlistsLoading ? (
               <div className="text-center py-8 text-muted-foreground">
                 Loading playlists...
               </div>
             ) : playlists && playlists.length > 0 ? (
-              <div className="space-y-3">
-                <ScrollArea className="h-60">
-                  <div className="space-y-3 pr-3">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    <tr className="border-b">
+                      <th className="text-left p-3 font-medium text-sm">Playlist</th>
+                      <th className="text-center p-3 font-medium text-sm">Followers</th>
+                      <th className="text-center p-3 font-medium text-sm">Daily Avg</th>
+                      <th className="text-center p-3 font-medium text-sm">Genres</th>
+                      <th className="text-right p-3 font-medium text-sm">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {playlists.map((playlist) => (
-                      <div key={playlist.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Music className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div className="font-medium">{playlist.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {playlist.avg_daily_streams.toLocaleString()} daily streams
-                            </div>
-                            <div className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              {playlist.follower_count?.toLocaleString() || '0'} followers
+                      <tr key={playlist.id} className="border-b hover:bg-muted/30 transition-colors">
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <Music className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <div>
+                              <div className="font-medium text-sm">{playlist.name}</div>
+                              {(playlist as any).spotify_url && (
+                                <a 
+                                  href={(playlist as any).spotify_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-primary hover:underline"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  View on Spotify
+                                </a>
+                              )}
                             </div>
                           </div>
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedPlaylist(playlist)}>
-                          <Edit2 className="h-3 w-3 mr-1" />
-                          Manage
-                        </Button>
-                      </div>
+                        </td>
+                        <td className="p-3 text-center">
+                          <div className="flex items-center justify-center gap-1 text-sm">
+                            <Users className="h-3 w-3 text-muted-foreground" />
+                            <span className="font-medium">{(playlist.follower_count || 0).toLocaleString()}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 text-center">
+                          <div className="flex items-center justify-center gap-1 text-sm">
+                            <TrendingUp className="h-3 w-3 text-green-500" />
+                            <span className="font-medium">{playlist.avg_daily_streams.toLocaleString()}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 text-center">
+                          <div className="flex flex-wrap justify-center gap-1">
+                            {(playlist as any).genres?.slice(0, 2).map((genre: string, idx: number) => (
+                              <span key={idx} className="text-xs px-1.5 py-0.5 bg-muted rounded">
+                                {genre}
+                              </span>
+                            )) || <span className="text-xs text-muted-foreground">-</span>}
+                          </div>
+                        </td>
+                        <td className="p-3 text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setSelectedPlaylist(playlist)}
+                            className="h-7 text-xs"
+                          >
+                            <Edit2 className="h-3 w-3 mr-1" />
+                            Manage
+                          </Button>
+                        </td>
+                      </tr>
                     ))}
-                  </div>
-                </ScrollArea>
-                <Button variant="outline" className="w-full" onClick={() => setShowCreatePlaylistModal(true)}>
-                  Add More Playlists
-                </Button>
+                  </tbody>
+                </table>
+                <div className="p-3 border-t">
+                  <Button variant="outline" className="w-full" onClick={() => setShowCreatePlaylistModal(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add More Playlists
+                  </Button>
+                </div>
               </div>
             ) : (
-              <div className="text-center py-8">
+              <div className="text-center py-8 px-4">
                 <Music className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No playlists yet</h3>
                 <p className="text-muted-foreground mb-4">
