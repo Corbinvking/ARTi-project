@@ -106,9 +106,28 @@ export function SubmissionDetailModal({
     (sum, va) => sum + va.allocated_budget, 0
   ) || 0;
 
-  const costPerStream = submission.stream_goal > 0 
-    ? (submission.price_paid / submission.stream_goal * 1000).toFixed(2)
-    : '0.00';
+  // Calculate client's cost per 1K streams (what they pay us)
+  const clientCostPer1K = submission.stream_goal > 0 
+    ? (submission.price_paid / submission.stream_goal * 1000)
+    : 0;
+
+  // Calculate average vendor rate from actual allocations
+  const vendorAssignments = submission.vendor_assignments || [];
+  const avgVendorRatePer1K = vendorAssignments.length > 0 && totalAllocatedStreams > 0
+    ? vendorAssignments.reduce((sum, va) => {
+        // Cost per 1K for this vendor = (allocated_budget / allocated_streams) * 1000
+        const vendorRate = va.allocated_streams > 0 
+          ? (va.allocated_budget / va.allocated_streams * 1000) 
+          : 0;
+        // Weight by streams allocated
+        return sum + (vendorRate * va.allocated_streams);
+      }, 0) / totalAllocatedStreams
+    : null;
+  
+  // Estimated margin (client rate - vendor rate)
+  const estimatedMarginPer1K = avgVendorRatePer1K !== null && clientCostPer1K > 0
+    ? clientCostPer1K - avgVendorRatePer1K
+    : null;
 
   return (
     <>
@@ -232,14 +251,29 @@ export function SubmissionDetailModal({
                       <p className="text-xl font-bold">${submission.price_paid.toLocaleString()}</p>
                     </div>
                     <div>
-                      <Label className="text-muted-foreground">Cost per Stream</Label>
-                      <p className="text-xl font-bold">${costPerStream}</p>
+                      <Label className="text-muted-foreground">Client Rate/1K</Label>
+                      <p className="text-xl font-bold">${clientCostPer1K.toFixed(2)}</p>
                     </div>
                     <div>
-                      <Label className="text-muted-foreground">Cost per 1K</Label>
-                      <p className="text-xl font-bold">${(parseFloat(costPerStream) * 1000).toFixed(2)}</p>
+                      <Label className="text-muted-foreground">Avg Vendor Rate/1K</Label>
+                      <p className="text-xl font-bold">
+                        {avgVendorRatePer1K !== null 
+                          ? `$${avgVendorRatePer1K.toFixed(2)}`
+                          : <span className="text-muted-foreground text-base">Not assigned</span>
+                        }
+                      </p>
                     </div>
                   </div>
+                  {estimatedMarginPer1K !== null && (
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-muted-foreground">Est. Margin per 1K Streams</Label>
+                        <p className={`text-lg font-bold ${estimatedMarginPer1K >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ${estimatedMarginPer1K.toFixed(2)} ({((estimatedMarginPer1K / clientCostPer1K) * 100).toFixed(0)}%)
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
