@@ -312,9 +312,13 @@ export function VendorRosterSelector({
     setSelectedPlaylists(new Set());
   };
 
+  // Only count playlists that are actually visible in the current filtered view
   const selectedPlaylistsList = Array.from(selectedPlaylists).map(id => 
-    allPlaylists.find(p => p.id === id)
+    filteredPlaylists.find(p => p.id === id)
   ).filter(Boolean);
+
+  // Also track if there are hidden selections (selected but filtered out)
+  const hiddenSelectedCount = selectedPlaylists.size - selectedPlaylistsList.length;
 
   const totalDailyStreams = selectedPlaylistsList.reduce((sum, p) => sum + (p?.avg_daily_streams || 0), 0);
   const totalProjectedStreams = totalDailyStreams * campaignDuration;
@@ -326,12 +330,13 @@ export function VendorRosterSelector({
   // Calculate total cost for campaign duration
   const totalCostPerDay = selectedPlaylistsList.reduce((sum, p) => {
     const vendor = p?.vendor;
-    if (!vendor?.cost_per_1k_streams) return sum;
-    const dailyCost = (p.avg_daily_streams || 0) / 1000 * vendor.cost_per_1k_streams;
+    // Default to $8 per 1k if vendor rate not set
+    const costPer1k = vendor?.cost_per_1k_streams || 8;
+    const dailyCost = (p?.avg_daily_streams || 0) / 1000 * costPer1k;
     return sum + dailyCost;
   }, 0);
   
-  const totalCost = totalCostPerDay * campaignDuration; // Use campaign duration instead of hardcoded 90
+  const totalCost = totalCostPerDay * campaignDuration;
   
   const handleNext = () => {
     // Convert selected playlists to the format expected by CampaignReview
@@ -447,6 +452,7 @@ export function VendorRosterSelector({
           </div>
 
           {/* Summary */}
+          {/* Show summary only when playlists are visibly selected */}
           {selectedPlaylistsList.length > 0 && (
             <Card className={`${isExceedingGoal ? 'bg-amber-50 border-amber-300' : 'bg-primary/5 border-primary/20'}`}>
               <CardContent className="pt-4">
@@ -470,7 +476,7 @@ export function VendorRosterSelector({
                   <div>
                     <div className="text-muted-foreground">Unique Vendors</div>
                     <div className="text-xl font-bold">
-                      {new Set(selectedPlaylistsList.map(p => p?.vendor_id)).size}
+                      {new Set(selectedPlaylistsList.map(p => p?.vendor_id).filter(Boolean)).size}
                     </div>
                   </div>
                 </div>
@@ -490,6 +496,26 @@ export function VendorRosterSelector({
                     Coverage: {streamGoalPercentage}% of stream goal
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Show message when playlists are selected but hidden by filter */}
+          {selectedPlaylistsList.length === 0 && hiddenSelectedCount > 0 && (
+            <Card className="bg-blue-50 border-blue-300">
+              <CardContent className="pt-4">
+                <div className="text-sm text-blue-700 flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  <span>
+                    {hiddenSelectedCount} playlist{hiddenSelectedCount > 1 ? 's' : ''} selected but hidden by current filter. 
+                    <button 
+                      onClick={() => setShowOnlyMatching(false)}
+                      className="underline ml-1 hover:text-blue-900"
+                    >
+                      Show all playlists
+                    </button>
+                  </span>
+                </div>
               </CardContent>
             </Card>
           )}
