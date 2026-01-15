@@ -2401,8 +2401,13 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     const playlistOnlyStreams24h = vendorPlaylists
                       .reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0);
                     
-                    // Calculate PROJECTED daily streams from playlists (based on avg_daily_streams or current rate)
-                    const projectedDailyFromPlaylists = playlists.reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
+                    // Calculate PROJECTED daily streams from vendor playlists (use avg_daily_streams from playlists table, or estimate from 7d data)
+                    // First try avg_daily_streams, then fall back to current 7d rate
+                    const projectedDailyFromPlaylists = vendorPlaylists.reduce((sum: number, p: any) => {
+                      // Use avg_daily_streams if available, otherwise estimate from 7-day data
+                      const dailyRate = p.avg_daily_streams || (p.streams_7d ? Math.round(p.streams_7d / 7) : 0);
+                      return sum + dailyRate;
+                    }, 0);
                     
                     // Calculate projected streams for campaign duration
                     const campaignDuration = campaignData?.duration_days || 90;
@@ -2437,10 +2442,18 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     const endDate = campaignData?.end_date ? new Date(campaignData.end_date) : null;
                     const now = new Date();
                     
-                    // Calculate days elapsed since campaign start
+                    // Check if campaign hasn't started yet
+                    const hasNotStarted = startDate && startDate > now;
+                    
+                    // Calculate days elapsed since campaign start (0 if not started)
                     const daysElapsed = startDate 
-                      ? Math.max(1, Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
+                      ? (hasNotStarted ? 0 : Math.max(1, Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))))
                       : 28; // Default to 28 days if no start date
+                    
+                    // Calculate days until start (for unreleased)
+                    const daysUntilStart = startDate && hasNotStarted
+                      ? Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                      : 0;
                     
                     // Calculate days remaining until end (or default to 30 if no end date)
                     const daysRemaining = endDate 
@@ -2450,9 +2463,12 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     // Required daily rate to hit goal on time (from vendor playlists)
                     const requiredDailyRate = remainingStreams > 0 ? Math.ceil(remainingStreams / daysRemaining) : 0;
                     
-                    // Determine if on track: based on vendor playlist performance only
-                    // Either already hit goal, or current playlist rate will hit goal in time
-                    const isOnTrack = streamsTowardsGoal >= streamGoal || (playlistDailyRate >= requiredDailyRate && playlistDailyRate > 0);
+                    // Determine campaign status
+                    // For unreleased: show "Not Started"
+                    // For released: either on track or behind
+                    const isOnTrack = hasNotStarted 
+                      ? null // null = not started yet
+                      : (streamsTowardsGoal >= streamGoal || (playlistDailyRate >= requiredDailyRate && playlistDailyRate > 0));
                     
                     // Generate chart data - project forward from current rate
                     const chartData = [];
@@ -2496,9 +2512,14 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                               </span>
                             </span>
                           </div>
-                          {projectedDailyFromPlaylists === 0 && playlists.length > 0 && (
+                          {projectedDailyFromPlaylists === 0 && vendorPlaylists.length > 0 && (
                             <p className="text-xs text-purple-600 mt-1">
-                              ⚠️ Playlists don't have avg_daily_streams data - run scraper to populate
+                              ⚠️ No daily stream data available yet - run scraper after song release to populate
+                            </p>
+                          )}
+                          {projectedDailyFromPlaylists === 0 && vendorPlaylists.length === 0 && (
+                            <p className="text-xs text-purple-600 mt-1">
+                              ℹ️ No vendor playlists assigned yet - add playlists to see projections
                             </p>
                           )}
                         </div>
@@ -2573,23 +2594,32 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           
                           {/* Status */}
                           <div className={`p-4 rounded-lg border ${
-                            isOnTrack 
-                              ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
-                              : 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800'
+                            isOnTrack === null
+                              ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
+                              : isOnTrack 
+                                ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
+                                : 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800'
                           }`}>
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-muted-foreground">Status</span>
-                              {isOnTrack ? (
+                              {isOnTrack === null ? (
+                                <Clock className="h-4 w-4 text-blue-600" />
+                              ) : isOnTrack ? (
                                 <CheckCircle className="h-4 w-4 text-green-600" />
                               ) : (
                                 <AlertCircle className="h-4 w-4 text-orange-600" />
                               )}
                             </div>
-                            <div className={`text-xl font-bold ${isOnTrack ? 'text-green-600' : 'text-orange-600'}`}>
-                              {isOnTrack ? 'On Track' : 'Behind'}
+                            <div className={`text-xl font-bold ${
+                              isOnTrack === null ? 'text-blue-600' : isOnTrack ? 'text-green-600' : 'text-orange-600'
+                            }`}>
+                              {isOnTrack === null ? 'Not Started' : isOnTrack ? 'On Track' : 'Behind'}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                              {daysToGoal < 999 ? `~${daysToGoal} days to goal` : 'Need more streams'}
+                              {isOnTrack === null 
+                                ? `Starts in ${daysUntilStart} days`
+                                : daysToGoal < 999 ? `~${daysToGoal} days to goal` : 'Need more streams'
+                              }
                             </p>
                           </div>
                         </div>
