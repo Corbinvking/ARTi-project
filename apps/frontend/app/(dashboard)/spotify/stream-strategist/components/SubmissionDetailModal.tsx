@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
+import { Input } from './ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { 
@@ -20,10 +21,17 @@ import {
   Clock,
   Music,
   Globe,
-  Package
+  Package,
+  Plus,
+  Trash2,
+  Save,
+  Edit2,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '../hooks/use-toast';
+import { useVendors } from '../hooks/useVendors';
+import { useUpdateSubmissionVendors } from '../hooks/useCampaignSubmissions';
 
 interface VendorAssignment {
   vendor_id: string;
@@ -76,9 +84,163 @@ export function SubmissionDetailModal({
 }: SubmissionDetailModalProps) {
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [isEditingVendors, setIsEditingVendors] = useState(false);
+  const [editedAssignments, setEditedAssignments] = useState<VendorAssignment[]>([]);
+  const [selectedVendorId, setSelectedVendorId] = useState<string>('');
   const { toast } = useToast();
+  
+  const { data: vendors = [] } = useVendors();
+  const updateVendorsMutation = useUpdateSubmissionVendors();
+
+  // Sync edited assignments when modal opens or submission changes
+  useEffect(() => {
+    if (submission?.vendor_assignments) {
+      setEditedAssignments([...submission.vendor_assignments]);
+    } else {
+      setEditedAssignments([]);
+    }
+    setIsEditingVendors(false);
+  }, [submission?.id, open]);
 
   if (!submission) return null;
+  
+  // Get vendors not yet assigned
+  const availableVendors = vendors.filter(
+    v => !editedAssignments.some(a => a.vendor_id === v.id)
+  );
+
+  const handleAddVendor = () => {
+    if (!selectedVendorId) return;
+    const vendor = vendors.find(v => v.id === selectedVendorId);
+    if (!vendor) return;
+    
+    // Calculate default allocation based on remaining streams/budget
+    const currentAllocatedStreams = editedAssignments.reduce((sum, a) => sum + a.allocated_streams, 0);
+    const currentAllocatedBudget = editedAssignments.reduce((sum, a) => sum + a.allocated_budget, 0);
+    const remainingStreams = Math.max(0, submission.stream_goal - currentAllocatedStreams);
+    const remainingBudget = Math.max(0, submission.price_paid - currentAllocatedBudget);
+    
+    // Split remaining evenly if adding to existing, or take all if first vendor
+    const vendorCount = editedAssignments.length + 1;
+    const defaultStreams = editedAssignments.length === 0 
+      ? remainingStreams 
+      : Math.round(remainingStreams / 2);
+    
+    // Calculate budget based on vendor's rate or default $8/1k
+    const ratePer1k = vendor.cost_per_1k_streams || 8;
+    const defaultBudget = Math.min((defaultStreams / 1000) * ratePer1k, remainingBudget);
+    
+    setEditedAssignments([
+      ...editedAssignments,
+      {
+        vendor_id: vendor.id,
+        vendor_name: vendor.name,
+        allocated_streams: defaultStreams,
+        allocated_budget: Math.round(defaultBudget * 100) / 100,
+        playlist_ids: []
+      }
+    ]);
+    setSelectedVendorId('');
+  };
+
+  const handleRemoveVendor = (vendorId: string) => {
+    setEditedAssignments(editedAssignments.filter(a => a.vendor_id !== vendorId));
+  };
+
+  const handleUpdateAllocation = (vendorId: string, field: 'allocated_streams' | 'allocated_budget', value: number) => {
+    setEditedAssignments(editedAssignments.map(a => 
+      a.vendor_id === vendorId ? { ...a, [field]: value } : a
+    ));
+  };
+
+  const handleSaveVendors = async () => {
+    try {
+      await updateVendorsMutation.mutateAsync({
+        submissionId: submission.id,
+        vendorAssignments: editedAssignments
+      });
+      setIsEditingVendors(false);
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditedAssignments(submission.vendor_assignments ? [...submission.vendor_assignments] : []);
+    setIsEditingVendors(false);
+  };
+
+  // Auto-suggest vendors based on genre matching
+  const handleAutoSuggest = () => {
+    if (vendors.length === 0) {
+      toast({
+        title: "No vendors available",
+        description: "Add vendors first before auto-suggesting.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Get active vendors sorted by their max daily capacity
+    const activeVendors = vendors
+      .filter(v => v.is_active)
+      .sort((a, b) => b.max_daily_streams - a.max_daily_streams);
+    
+    if (activeVendors.length === 0) {
+      toast({
+        title: "No active vendors",
+        description: "All vendors are inactive.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Calculate how to split streams across vendors
+    const totalCapacity = activeVendors.reduce((sum, v) => sum + v.max_daily_streams, 0);
+    const campaignDays = submission.duration_days || 90;
+    const dailyStreamsNeeded = submission.stream_goal / campaignDays;
+    
+    const newAssignments: VendorAssignment[] = [];
+    let remainingStreams = submission.stream_goal;
+    let remainingBudget = submission.price_paid;
+    
+    for (const vendor of activeVendors) {
+      if (remainingStreams <= 0) break;
+      
+      // Allocate proportionally based on capacity
+      const proportion = vendor.max_daily_streams / totalCapacity;
+      const allocatedStreams = Math.min(
+        Math.round(submission.stream_goal * proportion),
+        remainingStreams
+      );
+      
+      // Calculate budget based on vendor's rate
+      const ratePer1k = vendor.cost_per_1k_streams || 8;
+      const allocatedBudget = Math.min(
+        (allocatedStreams / 1000) * ratePer1k,
+        remainingBudget
+      );
+      
+      if (allocatedStreams > 0) {
+        newAssignments.push({
+          vendor_id: vendor.id,
+          vendor_name: vendor.name,
+          allocated_streams: allocatedStreams,
+          allocated_budget: Math.round(allocatedBudget * 100) / 100,
+          playlist_ids: []
+        });
+        
+        remainingStreams -= allocatedStreams;
+        remainingBudget -= allocatedBudget;
+      }
+    }
+    
+    setEditedAssignments(newAssignments);
+    toast({
+      title: "Vendors auto-suggested",
+      description: `${newAssignments.length} vendors assigned based on capacity.`
+    });
+  };
 
   const handleApprove = () => {
     onApprove(submission.id);
@@ -301,76 +463,224 @@ export function SubmissionDetailModal({
 
             {/* Tab 2: Vendor Assignments */}
             <TabsContent value="vendors" className="space-y-4 mt-4">
-              {submission.vendor_assignments && submission.vendor_assignments.length > 0 ? (
-                <>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Allocation Summary</CardTitle>
-                      <CardDescription>
-                        Total allocations across all vendors
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+              {/* Edit Mode Controls */}
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  {isEditingVendors ? 'Edit Vendor Assignments' : 'Vendor Assignments'}
+                </h3>
+                <div className="flex gap-2">
+                  {isEditingVendors ? (
+                    <>
+                      <Button variant="outline" size="sm" onClick={handleCancelEdit}>
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={handleSaveVendors}
+                        disabled={updateVendorsMutation.isPending}
+                      >
+                        <Save className="h-4 w-4 mr-1" />
+                        {updateVendorsMutation.isPending ? 'Saving...' : 'Save'}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => setIsEditingVendors(true)}>
+                      <Edit2 className="h-4 w-4 mr-1" />
+                      Edit Assignments
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Allocation Summary - always show */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Allocation Summary</CardTitle>
+                  <CardDescription>
+                    {isEditingVendors 
+                      ? 'Preview of current allocations (save to apply changes)'
+                      : 'Total allocations across all vendors'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const displayAssignments = isEditingVendors ? editedAssignments : (submission.vendor_assignments || []);
+                    const displayAllocatedStreams = displayAssignments.reduce((sum, a) => sum + a.allocated_streams, 0);
+                    const displayAllocatedBudget = displayAssignments.reduce((sum, a) => sum + a.allocated_budget, 0);
+                    
+                    return (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
                           <Label className="text-muted-foreground">Total Allocated Streams</Label>
-                          <p className="text-lg font-bold">{totalAllocatedStreams.toLocaleString()}</p>
+                          <p className="text-lg font-bold">{displayAllocatedStreams.toLocaleString()}</p>
                           <p className="text-xs text-muted-foreground">
-                            {((totalAllocatedStreams / submission.stream_goal) * 100).toFixed(0)}% of goal
+                            {submission.stream_goal > 0 
+                              ? `${((displayAllocatedStreams / submission.stream_goal) * 100).toFixed(0)}% of goal`
+                              : '0% of goal'}
                           </p>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">Total Allocated Budget</Label>
-                          <p className="text-lg font-bold">${totalAllocatedBudget.toLocaleString()}</p>
+                          <p className="text-lg font-bold">${displayAllocatedBudget.toLocaleString()}</p>
                           <p className="text-xs text-muted-foreground">
-                            {((totalAllocatedBudget / submission.price_paid) * 100).toFixed(0)}% of budget
+                            {submission.price_paid > 0 
+                              ? `${((displayAllocatedBudget / submission.price_paid) * 100).toFixed(0)}% of budget`
+                              : '0% of budget'}
                           </p>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">Remaining Streams</Label>
-                          <p className="text-lg font-bold text-muted-foreground">
-                            {(submission.stream_goal - totalAllocatedStreams).toLocaleString()}
+                          <p className={`text-lg font-bold ${(submission.stream_goal - displayAllocatedStreams) < 0 ? 'text-red-600' : 'text-muted-foreground'}`}>
+                            {(submission.stream_goal - displayAllocatedStreams).toLocaleString()}
                           </p>
                         </div>
                         <div>
                           <Label className="text-muted-foreground">Remaining Budget</Label>
-                          <p className="text-lg font-bold text-muted-foreground">
-                            ${(submission.price_paid - totalAllocatedBudget).toLocaleString()}
+                          <p className={`text-lg font-bold ${(submission.price_paid - displayAllocatedBudget) < 0 ? 'text-red-600' : 'text-muted-foreground'}`}>
+                            ${(submission.price_paid - displayAllocatedBudget).toLocaleString()}
                           </p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
 
+              {/* Edit Mode: Add Vendor + Auto-Suggest */}
+              {isEditingVendors && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Add Vendor</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Label className="text-sm text-muted-foreground mb-1 block">Select Vendor</Label>
+                        <select
+                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={selectedVendorId}
+                          onChange={(e) => setSelectedVendorId(e.target.value)}
+                        >
+                          <option value="">Choose a vendor...</option>
+                          {availableVendors.map(v => (
+                            <option key={v.id} value={v.id}>
+                              {v.name} (${v.cost_per_1k_streams || 8}/1K, max {v.max_daily_streams.toLocaleString()}/day)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <Button 
+                        onClick={handleAddVendor} 
+                        disabled={!selectedVendorId}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add
+                      </Button>
+                      <Button 
+                        variant="secondary"
+                        onClick={handleAutoSuggest}
+                      >
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        Auto-Suggest
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Vendor List */}
+              {(() => {
+                const displayAssignments = isEditingVendors ? editedAssignments : (submission.vendor_assignments || []);
+                
+                if (displayAssignments.length === 0) {
+                  return (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">No vendor assignments yet</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {isEditingVendors 
+                            ? 'Use the dropdown above to add vendors or click Auto-Suggest'
+                            : 'Click "Edit Assignments" to add vendors'}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                
+                return (
                   <div className="space-y-3">
-                    {submission.vendor_assignments.map((assignment, idx) => {
+                    {displayAssignments.map((assignment, idx) => {
                       const vendorCostPerStream = assignment.allocated_streams > 0
                         ? (assignment.allocated_budget / assignment.allocated_streams * 1000).toFixed(2)
                         : '0.00';
+                      const vendor = vendors.find(v => v.id === assignment.vendor_id);
                       
                       return (
-                        <Card key={idx}>
-                          <CardHeader>
+                        <Card key={assignment.vendor_id || idx}>
+                          <CardHeader className="pb-2">
                             <CardTitle className="text-base flex items-center justify-between">
                               <span className="flex items-center gap-2">
                                 <Package className="h-4 w-4" />
                                 {assignment.vendor_name}
                               </span>
-                              <Badge variant="outline">Vendor #{idx + 1}</Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline">
+                                  Rate: ${vendor?.cost_per_1k_streams || 8}/1K
+                                </Badge>
+                                {isEditingVendors && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="text-destructive hover:text-destructive"
+                                    onClick={() => handleRemoveVendor(assignment.vendor_id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                               <div>
                                 <Label className="text-muted-foreground">Allocated Streams</Label>
-                                <p className="text-lg font-bold">{assignment.allocated_streams.toLocaleString()}</p>
+                                {isEditingVendors ? (
+                                  <Input
+                                    type="number"
+                                    value={assignment.allocated_streams}
+                                    onChange={(e) => handleUpdateAllocation(
+                                      assignment.vendor_id, 
+                                      'allocated_streams', 
+                                      parseInt(e.target.value) || 0
+                                    )}
+                                    className="mt-1"
+                                  />
+                                ) : (
+                                  <p className="text-lg font-bold">{assignment.allocated_streams.toLocaleString()}</p>
+                                )}
                               </div>
                               <div>
                                 <Label className="text-muted-foreground">Allocated Budget</Label>
-                                <p className="text-lg font-bold">${assignment.allocated_budget.toLocaleString()}</p>
+                                {isEditingVendors ? (
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={assignment.allocated_budget}
+                                    onChange={(e) => handleUpdateAllocation(
+                                      assignment.vendor_id, 
+                                      'allocated_budget', 
+                                      parseFloat(e.target.value) || 0
+                                    )}
+                                    className="mt-1"
+                                  />
+                                ) : (
+                                  <p className="text-lg font-bold">${assignment.allocated_budget.toLocaleString()}</p>
+                                )}
                               </div>
                               <div>
-                                <Label className="text-muted-foreground">Cost per 1K Streams</Label>
+                                <Label className="text-muted-foreground">Effective Rate/1K</Label>
                                 <p className="text-lg font-bold">${vendorCostPerStream}</p>
                               </div>
                             </div>
@@ -379,18 +689,8 @@ export function SubmissionDetailModal({
                       );
                     })}
                   </div>
-                </>
-              ) : (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No vendor assignments for this submission</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Vendors can be assigned during the approval process
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
+                );
+              })()}
             </TabsContent>
 
             {/* Tab 3: Additional Info */}

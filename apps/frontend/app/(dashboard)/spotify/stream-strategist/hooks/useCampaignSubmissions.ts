@@ -380,6 +380,59 @@ export function useRejectCampaignSubmission() {
   });
 }
 
+// Hook to update vendor assignments on a submission
+export function useUpdateSubmissionVendors() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      submissionId, 
+      vendorAssignments 
+    }: { 
+      submissionId: string; 
+      vendorAssignments: Array<{
+        vendor_id: string;
+        vendor_name: string;
+        allocated_streams: number;
+        allocated_budget: number;
+        playlist_ids?: string[];
+      }>;
+    }) => {
+      console.log('📝 Updating vendor assignments for submission:', submissionId, vendorAssignments);
+      
+      const { error } = await supabase
+        .from('campaign_submissions')
+        .update({ 
+          vendor_assignments: vendorAssignments
+        })
+        .eq('id', submissionId);
+
+      if (error) {
+        console.error('❌ Error updating vendor assignments:', error);
+        throw error;
+      }
+      
+      console.log('✅ Vendor assignments updated successfully');
+      return true;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Vendor Assignments Updated",
+        description: "Vendor allocations have been saved.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['campaign-submissions'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update vendor assignments.",
+        variant: "destructive",
+      });
+    },
+  });
+}
+
 
 
 
