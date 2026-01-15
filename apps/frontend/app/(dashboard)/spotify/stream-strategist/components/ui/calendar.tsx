@@ -115,6 +115,15 @@ function Calendar({
         </button>
       </div>
 
+      {/* Custom day of week headers */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+          <div key={day} className="h-8 w-9 flex items-center justify-center text-xs font-medium text-muted-foreground">
+            {day}
+          </div>
+        ))}
+      </div>
+
       <DayPicker
         showOutsideDays={showOutsideDays}
         month={month}
@@ -122,13 +131,13 @@ function Calendar({
         className="p-0"
         classNames={{
           months: "flex flex-col",
-          month: "space-y-3",
+          month: "space-y-1",
           caption: "hidden",
           caption_label: "sr-only",
           nav: "hidden",
           table: "w-full border-collapse",
-          head_row: "grid grid-cols-7 gap-1 mb-1",
-          head_cell: "text-muted-foreground font-medium text-xs text-center py-1",
+          head_row: "hidden",
+          head_cell: "hidden",
           row: "grid grid-cols-7 gap-1",
           cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
           day: cn(
