@@ -639,21 +639,27 @@ export function VendorRosterSelector({
                               <div className="col-span-2 text-center">
                                 <div className="text-sm font-medium flex items-center justify-center gap-1">
                                   <TrendingUp className="h-3 w-3" />
-                                  {playlist.avg_daily_streams?.toLocaleString() || 0}
+                                  {(playlist.avg_daily_streams && playlist.avg_daily_streams > 0) 
+                                    ? playlist.avg_daily_streams.toLocaleString()
+                                    : <span className="text-muted-foreground text-xs">--</span>
+                                  }
                                 </div>
                                 <div className="text-xs text-muted-foreground">daily</div>
                               </div>
                               <div className="col-span-2 text-center">
                                 <div className="text-sm font-medium flex items-center justify-center gap-1">
                                   <Users className="h-3 w-3" />
-                                  {playlist.follower_count?.toLocaleString() || 'N/A'}
+                                  {(playlist.follower_count && playlist.follower_count > 0)
+                                    ? playlist.follower_count.toLocaleString()
+                                    : <span className="text-muted-foreground text-xs">--</span>
+                                  }
                                 </div>
                                 <div className="text-xs text-muted-foreground">followers</div>
                               </div>
                               <div className="col-span-2 text-center">
                                 <div className="text-sm font-medium flex items-center justify-center gap-1">
                                   <DollarSign className="h-3 w-3" />
-                                  {playlist.vendor?.cost_per_1k_streams ? `$${playlist.vendor.cost_per_1k_streams}` : 'N/A'}
+                                  ${playlist.vendor?.cost_per_1k_streams || 8}
                                 </div>
                                 <div className="text-xs text-muted-foreground">per 1K</div>
                               </div>
