@@ -43,9 +43,9 @@ function Calendar({
   };
 
   return (
-    <div className={cn("p-3 bg-popover border rounded-lg shadow-md", className)}>
-      {/* Compact Header */}
-      <div className="flex items-center justify-between mb-2">
+    <div className={cn("p-4 bg-popover border rounded-lg shadow-lg min-w-[280px]", className)}>
+      {/* Header with navigation */}
+      <div className="flex items-center justify-between mb-4">
         <button
           type="button"
           onClick={() => {
@@ -54,14 +54,14 @@ function Calendar({
             setMonth(newDate);
           }}
           className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            "h-7 w-7 p-0"
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "h-8 w-8 p-0"
           )}
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <select
             value={month.getMonth()}
             onChange={(e) => {
@@ -69,7 +69,7 @@ function Calendar({
               newDate.setMonth(parseInt(e.target.value));
               setMonth(newDate);
             }}
-            className="text-sm font-medium bg-transparent border-none focus:outline-none focus:ring-0 cursor-pointer hover:text-primary"
+            className="text-sm font-semibold bg-muted/50 border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
           >
             {months.map((m, i) => (
               <option key={m} value={i}>{m}</option>
@@ -83,7 +83,7 @@ function Calendar({
               newDate.setFullYear(parseInt(e.target.value));
               setMonth(newDate);
             }}
-            className="text-sm font-medium bg-transparent border-none focus:outline-none focus:ring-0 cursor-pointer hover:text-primary"
+            className="text-sm font-semibold bg-muted/50 border border-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
           >
             {years.map((y) => (
               <option key={y} value={y}>{y}</option>
@@ -93,7 +93,7 @@ function Calendar({
           <button
             type="button"
             onClick={handleGoToToday}
-            className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
           >
             Today
           </button>
@@ -107,8 +107,8 @@ function Calendar({
             setMonth(newDate);
           }}
           className={cn(
-            buttonVariants({ variant: "ghost", size: "sm" }),
-            "h-7 w-7 p-0"
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "h-8 w-8 p-0"
           )}
         >
           <ChevronRight className="h-4 w-4" />
@@ -122,22 +122,22 @@ function Calendar({
         className="p-0"
         classNames={{
           months: "flex flex-col",
-          month: "space-y-2",
+          month: "space-y-3",
           caption: "hidden",
           caption_label: "sr-only",
           nav: "hidden",
           table: "w-full border-collapse",
-          head_row: "flex",
-          head_cell: "text-muted-foreground w-8 font-medium text-[0.7rem] text-center",
-          row: "flex w-full mt-0.5",
-          cell: "h-8 w-8 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+          head_row: "grid grid-cols-7 gap-1 mb-1",
+          head_cell: "text-muted-foreground font-medium text-xs text-center py-1",
+          row: "grid grid-cols-7 gap-1",
+          cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
           day: cn(
             buttonVariants({ variant: "ghost" }),
-            "h-8 w-8 p-0 font-normal hover:bg-muted transition-colors rounded-md text-sm"
+            "h-9 w-9 p-0 font-normal hover:bg-muted transition-colors rounded-md text-sm"
           ),
           day_range_end: "day-range-end",
           day_selected: "bg-primary text-primary-foreground hover:bg-primary/90 font-medium",
-          day_today: "bg-accent text-accent-foreground font-semibold",
+          day_today: "ring-2 ring-primary text-primary font-semibold",
           day_outside: "text-muted-foreground/40 opacity-50",
           day_disabled: "text-muted-foreground/30 opacity-30 cursor-not-allowed",
           day_range_middle: "aria-selected:bg-primary/10",
