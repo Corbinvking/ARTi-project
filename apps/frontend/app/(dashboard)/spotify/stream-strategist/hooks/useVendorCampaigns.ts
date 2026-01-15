@@ -281,15 +281,24 @@ export function useVendorCampaigns() {
         // Get the effective cost per 1k for this vendor in this campaign
         // Priority: 1. cost_per_1k_override from first playlist, 2. vendor allocation rate, 3. vendor default
         const firstPlaylistWithOverride = campaignPlaylistPerf.find(p => p.cost_per_1k_override != null);
-        const allocationCostPer1k = vendorAllocations[vendorIds[0]]?.cost_per_1k_streams;
-        const effectiveCostPer1k = firstPlaylistWithOverride?.cost_per_1k_override ?? allocationCostPer1k ?? vendorDefaultCost;
+        
+        // Safely extract vendor-specific allocation data
+        let vendorAllocationData: Record<string, any> | null = null;
+        if (Array.isArray(vendorAllocationsData)) {
+          vendorAllocationData = vendorAllocationsData.find((a: any) => vendorIds.includes(a.vendor_id)) || null;
+        } else if (vendorAllocationsData && typeof vendorAllocationsData === 'object') {
+          vendorAllocationData = (vendorAllocationsData as Record<string, any>)[vendorIds[0]] || null;
+        }
+        
+        const allocationCostPer1k = vendorAllocationData?.cost_per_1k_streams;
+        const effectiveCostPer1k = firstPlaylistWithOverride?.cost_per_1k_override ?? allocationCostPer1k ?? vendorDefaultCost ?? 8;
 
         return {
           ...campaign,
           vendor_playlists: vendorPlaylistsInCampaign,
           vendor_stream_goal: vendorStreamGoal,
           vendor_allocation: {
-            ...vendorAllocations[vendorIds[0]],
+            ...(vendorAllocationData || {}),
             cost_per_1k_streams: effectiveCostPer1k
           },
           cost_per_1k_streams: effectiveCostPer1k, // Top-level for easy access
