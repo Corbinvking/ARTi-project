@@ -466,24 +466,26 @@ export function VendorRosterSelector({
               <CardContent className="pt-4">
                 <div className="grid grid-cols-4 gap-4 text-sm">
                   <div>
-                    <div className="text-muted-foreground">Projected Streams</div>
-                    <div className={`text-xl font-bold ${isExceedingGoal ? 'text-amber-600' : ''}`}>
+                    <div className={isExceedingGoal ? 'text-amber-700' : 'text-muted-foreground'}>Projected Streams</div>
+                    <div className={`text-xl font-bold ${isExceedingGoal ? 'text-amber-900' : ''}`}>
                       {totalProjectedStreams.toLocaleString()}
                     </div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Stream Goal</div>
-                    <div className="text-xl font-bold">
+                    <div className={isExceedingGoal ? 'text-amber-700' : 'text-muted-foreground'}>Stream Goal</div>
+                    <div className={`text-xl font-bold ${isExceedingGoal ? 'text-amber-900' : ''}`}>
                       {streamGoal > 0 ? streamGoal.toLocaleString() : 'Not set'}
                     </div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Estimated Cost</div>
-                    <div className="text-xl font-bold">${totalCost.toFixed(2)}</div>
+                    <div className={isExceedingGoal ? 'text-amber-700' : 'text-muted-foreground'}>Estimated Cost</div>
+                    <div className={`text-xl font-bold ${isExceedingGoal ? 'text-amber-900' : ''}`}>
+                      ${totalCost.toFixed(2)}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Unique Vendors</div>
-                    <div className="text-xl font-bold">
+                    <div className={isExceedingGoal ? 'text-amber-700' : 'text-muted-foreground'}>Unique Vendors</div>
+                    <div className={`text-xl font-bold ${isExceedingGoal ? 'text-amber-900' : ''}`}>
                       {new Set(selectedPlaylistsList.map(p => p?.vendor_id).filter(Boolean)).size}
                     </div>
                   </div>
