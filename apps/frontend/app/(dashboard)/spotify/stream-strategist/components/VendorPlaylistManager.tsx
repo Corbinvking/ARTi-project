@@ -351,101 +351,131 @@ export default function VendorPlaylistManager() {
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {playlists?.map((playlist) => {
-          const historicalData = historicalPerformance?.find(hp => hp.playlist_id === playlist.id);
-          const activeCampaigns = historicalData?.campaign_performance?.length || 0;
-          const totalCampaignStreams = historicalData?.campaign_performance?.reduce((sum, cp) => sum + cp.streams_contributed, 0) || 0;
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted/50 border-b">
+                <tr>
+                  <th className="text-left p-3 font-medium text-sm">Playlist</th>
+                  <th className="text-center p-3 font-medium text-sm">Followers</th>
+                  <th className="text-center p-3 font-medium text-sm">Daily Avg</th>
+                  <th className="text-center p-3 font-medium text-sm">12-Month Total</th>
+                  <th className="text-center p-3 font-medium text-sm">Campaigns</th>
+                  <th className="text-center p-3 font-medium text-sm">Genres</th>
+                  <th className="text-right p-3 font-medium text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {playlists?.map((playlist) => {
+                  const historicalData = historicalPerformance?.find(hp => hp.playlist_id === playlist.id);
+                  const activeCampaigns = historicalData?.campaign_performance?.length || 0;
+                  const totalCampaignStreams = historicalData?.campaign_performance?.reduce((sum, cp) => sum + cp.streams_contributed, 0) || 0;
 
-          return (
-            <Card key={playlist.id} className="relative">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Music className="h-4 w-4" />
-                    {playlist.name}
-                  </CardTitle>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => handleEditClick(playlist)}>
-                      <Edit2 className="h-3 w-3" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleDelete(playlist.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-                {activeCampaigns > 0 && (
-                  <Badge variant="secondary" className="w-fit">
-                    {activeCampaigns} active campaigns
-                  </Badge>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <ExternalLink className="h-3 w-3" />
-                    <a href={playlist.url} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">
-                      View on Spotify
-                    </a>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <div className="flex items-center gap-1 text-muted-foreground mb-1">
-                        <TrendingUp className="h-3 w-3" />
-                        <span>Daily Streams</span>
-                      </div>
-                      <div className="font-medium">{playlist.avg_daily_streams.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1 text-muted-foreground mb-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>12 Month Total</span>
-                      </div>
-                      <div className="font-medium">
-                        {historicalData?.total_streams_12_months.toLocaleString() || '0'}
-                      </div>
-                    </div>
-                  </div>
+                  return (
+                    <tr key={playlist.id} className="border-b hover:bg-muted/30 transition-colors">
+                      {/* Playlist Name & Spotify Link */}
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Music className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <div>
+                            <div className="font-medium text-sm">{playlist.name}</div>
+                            <a 
+                              href={playlist.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline flex items-center gap-1"
+                            >
+                              <ExternalLink className="h-2.5 w-2.5" />
+                              View on Spotify
+                            </a>
+                          </div>
+                        </div>
+                      </td>
 
-                  {totalCampaignStreams > 0 && (
-                    <div className="p-2 bg-accent/10 rounded-lg">
-                      <div className="text-xs text-muted-foreground">Campaign Contributions</div>
-                      <div className="font-medium text-sm">{totalCampaignStreams.toLocaleString()} streams</div>
-                    </div>
-                  )}
+                      {/* Followers */}
+                      <td className="p-3 text-center">
+                        <span className="font-medium text-sm">
+                          {(playlist.follower_count || 0).toLocaleString()}
+                        </span>
+                      </td>
 
-                  {playlist.follower_count && (
-                    <div className="text-sm text-muted-foreground">
-                      {playlist.follower_count.toLocaleString()} followers
-                    </div>
-                  )}
-                  
-                  {playlist.genres?.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {playlist.genres.slice(0, 3).map((genre) => (
-                        <Badge key={genre} variant="outline" className="text-xs">
-                          {genre}
-                        </Badge>
-                      ))}
-                      {playlist.genres.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{playlist.genres.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                      {/* Daily Avg */}
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-1 text-sm">
+                          <TrendingUp className="h-3 w-3 text-green-500" />
+                          <span className="font-medium">{playlist.avg_daily_streams.toLocaleString()}</span>
+                        </div>
+                      </td>
+
+                      {/* 12-Month Total */}
+                      <td className="p-3 text-center">
+                        <span className="font-medium text-sm">
+                          {historicalData?.total_streams_12_months?.toLocaleString() || '0'}
+                        </span>
+                      </td>
+
+                      {/* Campaigns */}
+                      <td className="p-3 text-center">
+                        {activeCampaigns > 0 ? (
+                          <div className="text-sm">
+                            <Badge variant="secondary" className="text-xs">
+                              {activeCampaigns} active
+                            </Badge>
+                            {totalCampaignStreams > 0 && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {totalCampaignStreams.toLocaleString()} streams
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                      </td>
+
+                      {/* Genres */}
+                      <td className="p-3 text-center">
+                        <div className="flex flex-wrap justify-center gap-1">
+                          {playlist.genres?.slice(0, 2).map((genre) => (
+                            <span key={genre} className="text-xs px-1.5 py-0.5 bg-muted rounded">
+                              {genre}
+                            </span>
+                          ))}
+                          {playlist.genres?.length > 2 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{playlist.genres.length - 2}
+                            </span>
+                          )}
+                          {(!playlist.genres || playlist.genres.length === 0) && (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEditClick(playlist)} className="h-7 w-7 p-0">
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleDelete(playlist.id)}
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       {playlists?.length === 0 && (
         <Card>
