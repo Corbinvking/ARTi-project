@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit2, Trash2, ExternalLink, Music, TrendingUp, Calendar, AlertCircle, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink, Music, TrendingUp, Calendar, AlertCircle, Loader2, HelpCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMyPlaylists, useCreatePlaylist, useUpdatePlaylist, useDeletePlaylist } from '../hooks/useVendorPlaylists';
 import { usePlaylistHistoricalPerformance, useCampaignPaceAnalysis } from '../hooks/usePlaylistHistoricalPerformance';
 import { useVendorCampaigns } from '../hooks/useVendorCampaigns';
@@ -395,17 +396,55 @@ export default function VendorPlaylistManager() {
 
                       {/* Followers */}
                       <td className="p-3 text-center">
-                        <span className="font-medium text-sm">
-                          {(playlist.follower_count || 0).toLocaleString()}
-                        </span>
+                        {(playlist.follower_count || 0) > 0 ? (
+                          <span className="font-medium text-sm">
+                            {playlist.follower_count.toLocaleString()}
+                          </span>
+                        ) : (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center justify-center gap-1 text-muted-foreground cursor-help">
+                                  <span className="text-sm">-</span>
+                                  <HelpCircle className="h-3 w-3" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs max-w-[200px]">
+                                  {playlist.url?.includes('unknown') 
+                                    ? 'Add a valid Spotify URL to fetch follower data'
+                                    : 'Follower data pending - will be enriched automatically'}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </td>
 
                       {/* Daily Avg */}
                       <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-1 text-sm">
-                          <TrendingUp className="h-3 w-3 text-green-500" />
-                          <span className="font-medium">{playlist.avg_daily_streams.toLocaleString()}</span>
-                        </div>
+                        {(playlist.avg_daily_streams || 0) > 0 ? (
+                          <div className="flex items-center justify-center gap-1 text-sm">
+                            <TrendingUp className="h-3 w-3 text-green-500" />
+                            <span className="font-medium">{playlist.avg_daily_streams.toLocaleString()}</span>
+                          </div>
+                        ) : (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center justify-center gap-1 text-muted-foreground cursor-help">
+                                  <span className="text-sm">-</span>
+                                  <HelpCircle className="h-3 w-3" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs max-w-[200px]">
+                                  Stream data calculated from campaign performance. Add playlist to campaigns to track.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </td>
 
                       {/* 12-Month Total */}
