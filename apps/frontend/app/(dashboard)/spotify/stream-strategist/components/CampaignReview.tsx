@@ -136,12 +136,22 @@ export default function CampaignReview({
   // Fix: Remove incorrect fallback that was using arbitrary multiplier
   const totalCost = allocationsData.totalCost || 0;
 
-  // Calculate metrics
-  const calculateCPSt = () => {
-    return totalProjectedStreams > 0 
-      ? (campaignData.budget / totalProjectedStreams * 1000).toFixed(3)
-      : "0.000";
+  // Calculate average vendor cost per 1K streams
+  const calculateAvgVendorCostPer1k = () => {
+    const playlists = allocationsData.selectedPlaylists || [];
+    if (playlists.length === 0) return 8; // Default
+    
+    let totalCostPer1k = 0;
+    let count = 0;
+    for (const p of playlists) {
+      const costPer1k = p.cost_per_1k || p.vendor?.cost_per_1k_streams || 8;
+      totalCostPer1k += costPer1k;
+      count++;
+    }
+    return count > 0 ? totalCostPer1k / count : 8;
   };
+
+  const avgVendorCostPer1k = calculateAvgVendorCostPer1k();
 
   const coverage = Math.min((totalProjectedStreams / campaignData.stream_goal) * 100, 100);
   const endDate = new Date(new Date(campaignData.start_date).getTime() + campaignData.duration_days * 24 * 60 * 60 * 1000);
@@ -281,34 +291,36 @@ export default function CampaignReview({
                   <div className="space-y-4 max-h-64 overflow-y-auto">
                      {(() => {
                        // Group playlists by vendor - properly fetch and display vendor information
-                       const vendorGroups = allocationsData.selectedPlaylists.reduce((acc: any, playlistId: string) => {
-                         // Find allocation for this playlist
-                         const allocation = allocationsData.allocations?.find((a: any) => 
-                           a.playlist_id === playlistId
-                         );
+                       const vendorGroups = allocationsData.selectedPlaylists.reduce((acc: any, playlist: any) => {
+                         // Handle both playlist object and playlist ID formats
+                         const playlistData = typeof playlist === 'string' 
+                           ? allocationsData.allocations?.find((a: any) => a.id === playlist || a.playlist_id === playlist)
+                           : playlist;
                          
-                         if (!allocation) return acc;
+                         if (!playlistData) return acc;
                          
-                         const vendorId = allocation.vendor_id;
-                         const vendorName = allocation.vendor?.name || `Vendor ${vendorId?.slice(-8) || 'Unknown'}`;
+                         const vendorId = playlistData.vendor_id || playlistData.vendor?.id;
+                         const vendorName = playlistData.vendor_name || playlistData.vendor?.name || `Vendor ${vendorId?.slice?.(-8) || 'Unknown'}`;
+                         const costPer1k = playlistData.cost_per_1k || playlistData.vendor?.cost_per_1k_streams || 8;
                          
                          if (!acc[vendorName]) {
                            acc[vendorName] = {
-                             vendor: { name: vendorName, id: vendorId },
+                             vendor: { name: vendorName, id: vendorId, cost_per_1k: costPer1k },
                              playlists: [],
                              totalStreams: 0,
                              totalCost: 0
                            };
                          }
                          
-                         const streams = allocation.allocation || 0;
-                         const cost = streams * 0.001; // Approximate cost calculation
+                         const streams = playlistData.streams_allocated || playlistData.allocation || 0;
+                         const cost = (streams / 1000) * costPer1k;
                          
                          acc[vendorName].playlists.push({
-                           id: playlistId,
-                           name: allocation.playlist?.name || `Playlist ${playlistId?.slice(-8)}`,
+                           id: playlistData.id,
+                           name: playlistData.name || `Playlist`,
                            streams,
-                           cost
+                           cost,
+                           dailyStreams: playlistData.avg_daily_streams || 0
                          });
                          acc[vendorName].totalStreams += streams;
                          acc[vendorName].totalCost += cost;
@@ -363,25 +375,37 @@ export default function CampaignReview({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Budget</p>
                   <p className="text-xl font-bold">${campaignData.budget.toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Projected Cost</p>
-                  <p className="text-xl font-bold">${totalCost.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Projected Vendor Cost</p>
+                  <p className="text-xl font-bold text-green-600">
+                    ${totalCost > 0 ? totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ((totalProjectedStreams / 1000) * avgVendorCostPer1k).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">CPSt</p>
-                  <p className="text-xl font-bold">${calculateCPSt()}</p>
+                  <p className="text-sm text-muted-foreground">Avg Vendor Rate</p>
+                  <p className="text-xl font-bold">${avgVendorCostPer1k.toFixed(2)}/1K</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Est. Margin</p>
+                  <p className="text-xl font-bold text-blue-600">
+                    ${(campaignData.budget - (totalCost > 0 ? totalCost : ((totalProjectedStreams / 1000) * avgVendorCostPer1k))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 gap-4 pt-4 border-t">
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                 <div>
                   <p className="text-sm text-muted-foreground">Expected Daily Streams</p>
                   <p className="font-medium">{Math.round(totalProjectedStreams / campaignData.duration_days).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Projected Total Streams</p>
+                  <p className="font-medium">{totalProjectedStreams.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>

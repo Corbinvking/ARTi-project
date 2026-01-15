@@ -340,18 +340,26 @@ export function VendorRosterSelector({
   
   const handleNext = () => {
     // Convert selected playlists to the format expected by CampaignReview
-    const selectedPlaylistObjects = selectedPlaylistsList.map(playlist => ({
-      id: playlist.id,
-      name: playlist.name,
-      url: playlist.url,
-      vendor_name: playlist.vendor?.name,
-      vendor_id: playlist.vendor?.id,
-      vendor: playlist.vendor,
-      genres: playlist.genres || [],
-      status: 'Pending',
-      streams_allocated: playlist.avg_daily_streams || 0,
-      cost_per_stream: playlist.vendor?.cost_per_1k_streams ? (playlist.vendor.cost_per_1k_streams / 1000) : 0
-    }));
+    const selectedPlaylistObjects = selectedPlaylistsList.map(playlist => {
+      const costPer1k = playlist.vendor?.cost_per_1k_streams || 8; // Default $8/1k
+      return {
+        id: playlist.id,
+        name: playlist.name,
+        url: playlist.url,
+        vendor_name: playlist.vendor?.name,
+        vendor_id: playlist.vendor?.id,
+        vendor: { 
+          ...playlist.vendor, 
+          cost_per_1k_streams: costPer1k 
+        },
+        genres: playlist.genres || [],
+        status: 'Pending',
+        avg_daily_streams: playlist.avg_daily_streams || 0,
+        streams_allocated: (playlist.avg_daily_streams || 0) * campaignDuration,
+        cost_per_stream: costPer1k / 1000,
+        cost_per_1k: costPer1k
+      };
+    });
     
     // Collect unique vendors from selected playlists
     const selectedVendorsList = [...new Map(
