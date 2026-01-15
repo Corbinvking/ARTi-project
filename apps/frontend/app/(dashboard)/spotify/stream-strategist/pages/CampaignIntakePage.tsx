@@ -375,6 +375,8 @@ export default function CampaignIntakePage() {
           placeholder="https://artists.spotify.com/c/song/..."
           value={formData.sfa_url}
           onChange={(e) => setFormData({...formData, sfa_url: e.target.value})}
+          autoComplete="off"
+          name="sfa_url_intake"
         />
         <p className="text-xs text-muted-foreground mt-1">
           Link to Spotify for Artists dashboard for this track (if available)

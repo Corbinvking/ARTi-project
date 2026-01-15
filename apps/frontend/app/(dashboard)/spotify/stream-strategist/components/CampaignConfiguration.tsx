@@ -646,6 +646,7 @@ export default function CampaignConfiguration({ onNext, onBack, initialData }: C
                     placeholder="https://artists.spotify.com/c/song/..."
                     className={errors.sfa_url ? "border-destructive" : ""}
                     defaultValue={(initialData as any)?.sfa_url}
+                    autoComplete="off"
                     {...register("sfa_url")}
                   />
                   {errors.sfa_url && (
