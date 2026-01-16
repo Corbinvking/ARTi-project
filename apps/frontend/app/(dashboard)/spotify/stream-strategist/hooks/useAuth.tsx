@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react"
+import { createContext, useContext, ReactNode } from "react"
 import { useAuth as useUnifiedAuth } from "@/hooks/use-auth"
 
 interface StreamStrategistUser {
@@ -26,14 +26,9 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const unifiedAuth = useUnifiedAuth()
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    // Map unified auth user to Stream Strategist format
-    if (unifiedAuth.user) {
-      setLoading(false)
-    }
-  }, [unifiedAuth.user])
+  // Sync loading state with unified auth - no need for separate state
+  // This prevents double-loading delays
 
   const streamStrategistUser: StreamStrategistUser | null = unifiedAuth.user ? {
     id: unifiedAuth.user.id,
@@ -56,7 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     currentRole: streamStrategistUser?.role || null,
     hasRole,
     signOut,
-    loading: unifiedAuth.loading || loading
+    loading: unifiedAuth.loading
   }
 
   return (

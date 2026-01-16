@@ -51,45 +51,23 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
     
     if (session?.user) {
       try {
-        // Get user profile from database
+        // Get user profile from database (use maybeSingle to avoid 406 errors)
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
-          .single()
+          .maybeSingle()
         
         if (error) {
-          console.warn('⚠️ Profile not found, using metadata:', error)
+          console.warn('⚠️ Profile query error:', error.message)
+        } else if (!profile) {
+          console.log('ℹ️ No profile found, using auth metadata')
         }
         
-        // Get user permissions via backend API
+        // Skip external permissions API call - use role-based permissions instead
+        // This avoids CORS issues and speeds up auth significantly
         let permissions: Permission[] = []
-        try {
-          console.log('🔍 Loading permissions for user:', session.user.id)
-          
-          // Get API base URL from environment
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
-          
-          // Call backend API endpoint
-          const response = await fetch(`${apiBaseUrl}/auth/permissions`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-              'Content-Type': 'application/json'
-            }
-          })
-          
-          if (response.ok) {
-            const data = await response.json()
-            permissions = data.permissions || []
-            console.log('✅ Loaded permissions for user:', session.user.email, permissions.length, 'permissions')
-            permissions.forEach(p => console.log('  -', p.platform, 'read:', p.can_read))
-          } else {
-            console.warn('⚠️ Failed to load permissions via backend API:', response.status, response.statusText)
-          }
-        } catch (error) {
-          console.warn('⚠️ Permission loading failed, continuing without permissions:', error instanceof Error ? error.message : String(error))
-        }
+        console.log('ℹ️ Using role-based permissions for:', session.user.email)
         
         const user: User = {
           id: session.user.id,
@@ -120,35 +98,10 @@ const ROLE_PERMISSIONS = {
   vendor: ["read", "create_content"],
 }
 
-// Function to refresh permissions for current user
+// Function to refresh permissions for current user (no-op - using role-based)
 export async function refreshUserPermissions(): Promise<void> {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session?.access_token) {
-    try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
-      
-      const response = await fetch(`${apiBaseUrl}/auth/permissions`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        console.log('🔄 Refreshed permissions:', data.permissions?.length || 0)
-        
-        // Trigger auth state change to update UI
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          supabase.auth.onAuthStateChange(() => {}) // Trigger refresh
-        }
-      }
-    } catch (error) {
-      console.warn('⚠️ Failed to refresh permissions:', error)
-    }
-  }
+  // Using role-based permissions, no refresh needed
+  console.log('ℹ️ Using role-based permissions, no refresh needed')
 }
 
 export const authService = {

@@ -52,9 +52,12 @@ export function useVendorCampaigns() {
   return useQuery({
     queryKey: ['vendor-campaigns', user?.id ?? 'anon'],
     enabled: !!user && !loading,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+    staleTime: 30000, // Cache for 30 seconds to reduce refetches
+    gcTime: 60000, // Keep in cache for 1 minute
+    refetchOnWindowFocus: false, // Don't refetch on every tab switch
+    retry: 1, // Only retry once on failure
     queryFn: async () => {
+      console.log('🔄 useVendorCampaigns: Starting query for user', user?.id);
       // First get current user's vendor data
       const { data: vendorUsers, error: vendorError } = await supabase
         .from('vendor_users')

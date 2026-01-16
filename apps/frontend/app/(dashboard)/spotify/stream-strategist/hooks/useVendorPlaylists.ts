@@ -28,6 +28,10 @@ export interface CreatePlaylistData {
 export function useMyPlaylists() {
   return useQuery({
     queryKey: ['my-playlists'],
+    staleTime: 60000, // Cache for 1 minute
+    gcTime: 120000, // Keep in cache for 2 minutes
+    refetchOnWindowFocus: false,
+    retry: 1,
     queryFn: async () => {
       console.log('🔍 useMyPlaylists: Starting query...');
       
