@@ -374,17 +374,89 @@ export function useCampaignBuilder() {
               console.log(`✅ Created ${performanceEntries.length} campaign_allocations_performance entries for vendor payments`);
             }
           }
+          
+          // 5. Create campaign_vendor_requests for each vendor so they can accept/reject
+          // Group playlists by vendor
+          const vendorPlaylistGroups = playlistDetails.reduce((groups: Record<string, string[]>, playlist) => {
+            const vendorId = playlist.vendor_id;
+            if (vendorId) {
+              if (!groups[vendorId]) {
+                groups[vendorId] = [];
+              }
+              groups[vendorId].push(playlist.id);
+            }
+            return groups;
+          }, {});
+          
+          const vendorIds = Object.keys(vendorPlaylistGroups);
+          
+          if (vendorIds.length > 0) {
+            console.log('📨 Creating vendor campaign requests for', vendorIds.length, 'vendors');
+            
+            const vendorRequests = vendorIds.map(vendorId => ({
+              campaign_id: createdCampaignGroup.id, // Use campaign_group_id as the linking ID
+              vendor_id: vendorId,
+              playlist_ids: vendorPlaylistGroups[vendorId],
+              status: 'pending',
+              requested_at: new Date().toISOString(),
+              org_id: '00000000-0000-0000-0000-000000000001'
+            }));
+            
+            const { error: requestError } = await supabase
+              .from('campaign_vendor_requests')
+              .insert(vendorRequests);
+            
+            if (requestError) {
+              console.error('❌ Error creating vendor requests:', requestError);
+              // Don't throw - vendor requests are secondary to campaign creation
+            } else {
+              console.log(`✅ Created ${vendorRequests.length} vendor campaign requests`);
+            }
+          }
         } else {
           console.log('⚠️ No playlist details found');
         }
       } else {
-        console.log('⚠️ No playlist IDs to associate');
+        // Even without specific playlists, if we have vendor_allocations data, create vendor requests
+        const vendorAllocations = allocationsData?.vendorAllocations;
+        if (vendorAllocations && typeof vendorAllocations === 'object') {
+          const vendorIds = Object.keys(vendorAllocations).filter(id => id && id !== 'undefined');
+          
+          if (vendorIds.length > 0) {
+            console.log('📨 Creating vendor campaign requests from allocations for', vendorIds.length, 'vendors');
+            
+            const vendorRequests = vendorIds.map(vendorId => ({
+              campaign_id: createdCampaignGroup.id,
+              vendor_id: vendorId,
+              playlist_ids: [],
+              status: 'pending',
+              requested_at: new Date().toISOString(),
+              org_id: '00000000-0000-0000-0000-000000000001'
+            }));
+            
+            const { error: requestError } = await supabase
+              .from('campaign_vendor_requests')
+              .insert(vendorRequests);
+            
+            if (requestError) {
+              console.error('❌ Error creating vendor requests:', requestError);
+            } else {
+              console.log(`✅ Created ${vendorRequests.length} vendor campaign requests from allocations`);
+            }
+          } else {
+            console.log('⚠️ No vendor IDs in allocations');
+          }
+        } else {
+          console.log('⚠️ No playlist IDs or vendor allocations to associate');
+        }
       }
 
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       queryClient.invalidateQueries({ queryKey: ['campaigns-enhanced'] }); // FIX: Campaign History uses this key
       queryClient.invalidateQueries({ queryKey: ['campaign-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-campaign-requests'] }); // For vendor dashboard
+      queryClient.invalidateQueries({ queryKey: ['pending-submissions-for-vendor'] }); // For vendor pending view
 
       const action = isEditing ? 'updated' : 'created';
       const statusMessage = status === 'active' ? 'and activated' : 
