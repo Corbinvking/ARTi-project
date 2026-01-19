@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Clock, Music, DollarSign, Target } from 'lucide-react';
-import { useVendorCampaignRequests, usePendingSubmissionsForVendor } from '../hooks/useVendorCampaignRequests';
+import { useVendorCampaignRequests, usePendingSubmissionsForVendor, useVendorRequestHistory } from '../hooks/useVendorCampaignRequests';
 import { VendorCampaignRequestModal } from './VendorCampaignRequestModal';
 import { formatDistanceToNow } from 'date-fns';
 import { Hourglass, ExternalLink } from 'lucide-react';
@@ -16,6 +16,7 @@ export function VendorCampaignRequestsManager() {
 
   const { data: requests = [], isLoading } = useVendorCampaignRequests();
   const { data: pendingSubmissions = [], isLoading: pendingLoading } = usePendingSubmissionsForVendor();
+  const { data: requestHistory = [] } = useVendorRequestHistory();
 
   const handleReviewRequest = (request: any) => {
     setSelectedRequest(request);
@@ -408,6 +409,53 @@ export function VendorCampaignRequestsManager() {
           </Card>
         )}
       </div>
+
+      {/* Recently Responded Requests History */}
+      {requestHistory.length > 0 && (
+        <div className="space-y-4 mt-6">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-lg font-semibold">Recent Responses</h3>
+            <Badge variant="outline">
+              {requestHistory.length} in history
+            </Badge>
+          </div>
+          <div className="grid gap-3">
+            {requestHistory.slice(0, 5).map((response: any) => (
+              <Card key={response.id} className={`border-l-4 ${
+                response.status === 'approved' 
+                  ? 'border-l-green-400 bg-green-50/30 dark:bg-green-950/10' 
+                  : 'border-l-red-400 bg-red-50/30 dark:bg-red-950/10'
+              }`}>
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{response.campaign?.name || 'Campaign'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {response.responded_at 
+                          ? `Responded ${formatDistanceToNow(new Date(response.responded_at), { addSuffix: true })}`
+                          : 'Recently responded'}
+                      </p>
+                    </div>
+                    <Badge variant={response.status === 'approved' ? 'default' : 'destructive'}>
+                      {response.status === 'approved' ? (
+                        <><CheckCircle className="h-3 w-3 mr-1" /> Accepted</>
+                      ) : (
+                        <><XCircle className="h-3 w-3 mr-1" /> Rejected</>
+                      )}
+                    </Badge>
+                  </div>
+                  {response.response_notes && (
+                    <p className="text-sm text-muted-foreground mt-2 italic">
+                      "{response.response_notes}"
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Enhanced Request Review Modal */}
       <VendorCampaignRequestModal

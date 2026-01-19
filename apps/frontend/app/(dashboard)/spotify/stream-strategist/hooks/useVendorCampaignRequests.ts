@@ -279,6 +279,62 @@ export function usePendingSubmissionsForVendor() {
   });
 }
 
+// Hook to fetch vendor's accepted/rejected requests (for history view)
+export function useVendorRequestHistory() {
+  const { user, loading } = useAuth();
+  return useQuery({
+    queryKey: ['vendor-request-history', user?.id ?? 'anon'],
+    enabled: !!user && !loading,
+    staleTime: 30000,
+    queryFn: async () => {
+      // First get current user's vendor IDs
+      const { data: vendorUsers, error: vendorError } = await supabase
+        .from('vendor_users')
+        .select('vendor_id')
+        .eq('user_id', user!.id);
+
+      if (vendorError) throw vendorError;
+      
+      const vendorIds = vendorUsers?.map(vu => vu.vendor_id) || [];
+      if (vendorIds.length === 0) return [];
+
+      // Fetch non-pending requests (approved/rejected)
+      const { data: requests, error } = await supabase
+        .from('campaign_vendor_requests')
+        .select('*')
+        .in('vendor_id', vendorIds)
+        .neq('status', 'pending')
+        .order('responded_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      // Fetch campaign details
+      const campaignGroupIds = Array.from(new Set((requests || []).map((r: any) => r.campaign_id)));
+      let campaignsMap: Record<string, any> = {};
+
+      if (campaignGroupIds.length > 0) {
+        const { data: campaignGroups } = await supabase
+          .from('campaign_groups')
+          .select('id, name, status, start_date, end_date')
+          .in('id', campaignGroupIds);
+        
+        if (campaignGroups) {
+          campaignsMap = campaignGroups.reduce((acc: any, cg: any) => {
+            acc[cg.id] = cg;
+            return acc;
+          }, {});
+        }
+      }
+
+      return (requests || []).map((request: any) => ({
+        ...request,
+        campaign: campaignsMap[request.campaign_id]
+      }));
+    },
+  });
+}
+
 // Hook to respond to campaign requests (approve/reject)
 export function useRespondToVendorRequest() {
   const queryClient = useQueryClient();

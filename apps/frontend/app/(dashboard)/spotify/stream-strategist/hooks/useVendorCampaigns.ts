@@ -95,32 +95,45 @@ export function useVendorCampaigns() {
 
       if (cpError) throw cpError;
       
+      // ALSO fetch campaigns from campaign_vendor_requests where vendor has accepted
+      const { data: acceptedRequests, error: arError } = await supabase
+        .from('campaign_vendor_requests')
+        .select('campaign_id')
+        .in('vendor_id', vendorIds)
+        .eq('status', 'approved');
+      
+      if (arError) console.error('Error fetching accepted requests:', arError);
+      
+      // Campaign IDs from accepted requests are campaign_group IDs directly
+      const acceptedCampaignGroupIds = [...new Set(acceptedRequests?.map(ar => ar.campaign_id).filter(Boolean) || [])];
+      console.log('📋 Found', acceptedCampaignGroupIds.length, 'accepted campaign group IDs');
+      
       // Get unique campaign IDs (these are spotify_campaigns.id, not campaign_groups.id)
       const spotifyCampaignIds = [...new Set(campaignPlaylists?.map(cp => cp.campaign_id).filter(Boolean) || [])];
       
-      if (spotifyCampaignIds.length === 0) {
-        console.log('📋 No campaign playlists found for vendor');
-        return [];
+      let campaignIdsWithAllocations: string[] = [...acceptedCampaignGroupIds];
+      
+      if (spotifyCampaignIds.length > 0) {
+        console.log('📋 Found', spotifyCampaignIds.length, 'spotify campaign IDs');
+        
+        // Get the campaign_group_ids from spotify_campaigns
+        const { data: spotifyCampaigns, error: scError } = await supabase
+          .from('spotify_campaigns')
+          .select('id, campaign_group_id')
+          .in('id', spotifyCampaignIds);
+        
+        if (scError) throw scError;
+        
+        const playlistCampaignGroupIds = spotifyCampaigns?.map(sc => sc.campaign_group_id).filter(Boolean) || [];
+        campaignIdsWithAllocations = [...new Set([...campaignIdsWithAllocations, ...playlistCampaignGroupIds])];
       }
-      
-      console.log('📋 Found', spotifyCampaignIds.length, 'spotify campaign IDs');
-      
-      // Get the campaign_group_ids from spotify_campaigns
-      const { data: spotifyCampaigns, error: scError } = await supabase
-        .from('spotify_campaigns')
-        .select('id, campaign_group_id')
-        .in('id', spotifyCampaignIds);
-      
-      if (scError) throw scError;
-      
-      const campaignIdsWithAllocations = [...new Set(spotifyCampaigns?.map(sc => sc.campaign_group_id).filter(Boolean) || [])];
       
       if (campaignIdsWithAllocations.length === 0) {
         console.log('📋 No campaign groups found for vendor campaigns');
         return [];
       }
       
-      console.log('📋 Found', campaignIdsWithAllocations.length, 'campaign group IDs');
+      console.log('📋 Found', campaignIdsWithAllocations.length, 'total campaign group IDs');
 
       // Fetch only campaigns where this vendor has allocations AND status is 'Active'
       const { data: campaigns, error: campaignError } = await supabase
