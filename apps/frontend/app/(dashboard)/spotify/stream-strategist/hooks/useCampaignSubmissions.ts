@@ -309,9 +309,11 @@ export function useApproveCampaignSubmission() {
       console.log('📨 Creating vendor campaign requests...');
       const uniqueVendors = new Map<string, string[]>();
       vendorAssignments.forEach((va: any) => {
-        if (va.vendor_id && va.playlist_ids?.length > 0) {
+        // Include vendors even without specific playlist_ids - they can choose later
+        if (va.vendor_id) {
           const existing = uniqueVendors.get(va.vendor_id) || [];
-          uniqueVendors.set(va.vendor_id, [...existing, ...va.playlist_ids]);
+          const playlistIds = va.playlist_ids || [];
+          uniqueVendors.set(va.vendor_id, [...existing, ...playlistIds]);
         }
       });
 
@@ -319,7 +321,7 @@ export function useApproveCampaignSubmission() {
         const vendorRequests = Array.from(uniqueVendors.entries()).map(([vendorId, playlistIds]) => ({
           campaign_id: createdCampaignGroup.id, // Use campaign_group_id as the linking ID
           vendor_id: vendorId,
-          playlist_ids: playlistIds,
+          playlist_ids: playlistIds, // May be empty - vendor will select playlists when accepting
           status: 'pending',
           requested_at: new Date().toISOString(),
           org_id: '00000000-0000-0000-0000-000000000001'
@@ -338,7 +340,7 @@ export function useApproveCampaignSubmission() {
           console.log(`✅ Created ${vendorRequests.length} vendor campaign requests`);
         }
       } else {
-        console.log('⚠️ No vendor assignments with playlist IDs found, skipping vendor requests');
+        console.log('⚠️ No vendor assignments found, skipping vendor requests');
       }
 
       // Update submission status to approved
