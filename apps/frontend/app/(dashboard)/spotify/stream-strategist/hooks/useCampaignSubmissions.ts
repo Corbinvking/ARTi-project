@@ -74,6 +74,148 @@ export function useCampaignSubmissions() {
   });
 }
 
+// Interface for campaigns awaiting vendor response
+export interface CampaignAwaitingVendor {
+  id: string;
+  name: string;
+  client_name: string;
+  track_url: string;
+  stream_goal: number;
+  budget: number;
+  start_date: string;
+  status: string;
+  created_at: string;
+  pending_vendors: Array<{
+    vendor_id: string;
+    vendor_name: string;
+    requested_at: string;
+  }>;
+  total_vendors: number;
+  pending_count: number;
+  approved_count: number;
+  rejected_count: number;
+}
+
+// Hook to fetch campaigns awaiting vendor response (for admin view)
+export function useCampaignsAwaitingVendor() {
+  return useQuery({
+    queryKey: ['campaigns-awaiting-vendor'],
+    queryFn: async () => {
+      console.log('🔍 Fetching campaigns awaiting vendor response...');
+      
+      // Fetch all pending vendor requests
+      const { data: pendingRequests, error: requestsError } = await supabase
+        .from('campaign_vendor_requests')
+        .select(`
+          id,
+          campaign_id,
+          vendor_id,
+          status,
+          requested_at,
+          responded_at,
+          vendors (id, name)
+        `)
+        .order('requested_at', { ascending: false });
+
+      if (requestsError) {
+        console.error('❌ Error fetching vendor requests:', requestsError);
+        throw requestsError;
+      }
+
+      if (!pendingRequests || pendingRequests.length === 0) {
+        return [];
+      }
+
+      // Group requests by campaign_id
+      const campaignRequestsMap = new Map<string, any[]>();
+      for (const req of pendingRequests) {
+        const existing = campaignRequestsMap.get(req.campaign_id) || [];
+        existing.push(req);
+        campaignRequestsMap.set(req.campaign_id, existing);
+      }
+
+      // Filter to only campaigns with at least one pending request
+      const campaignsWithPending: string[] = [];
+      campaignRequestsMap.forEach((requests, campaignId) => {
+        if (requests.some(r => r.status === 'pending')) {
+          campaignsWithPending.push(campaignId);
+        }
+      });
+
+      if (campaignsWithPending.length === 0) {
+        return [];
+      }
+
+      // Fetch campaign details from campaign_groups
+      const { data: campaignGroups, error: campaignsError } = await supabase
+        .from('campaign_groups')
+        .select(`
+          id,
+          name,
+          start_date,
+          end_date,
+          total_goal,
+          total_budget,
+          status,
+          created_at,
+          clients (name)
+        `)
+        .in('id', campaignsWithPending);
+
+      if (campaignsError) {
+        console.error('❌ Error fetching campaign groups:', campaignsError);
+        throw campaignsError;
+      }
+
+      // Also fetch spotify_campaigns for track URL
+      const { data: spotifyCampaigns } = await supabase
+        .from('spotify_campaigns')
+        .select('campaign_group_id, url, campaign')
+        .in('campaign_group_id', campaignsWithPending);
+
+      const spotifyCampaignsMap = (spotifyCampaigns || []).reduce((acc: any, sc: any) => {
+        acc[sc.campaign_group_id] = sc;
+        return acc;
+      }, {});
+
+      // Build result with vendor request stats
+      const result: CampaignAwaitingVendor[] = (campaignGroups || []).map(cg => {
+        const requests = campaignRequestsMap.get(cg.id) || [];
+        const pendingVendors = requests
+          .filter(r => r.status === 'pending')
+          .map(r => ({
+            vendor_id: r.vendor_id,
+            vendor_name: (r.vendors as any)?.name || 'Unknown Vendor',
+            requested_at: r.requested_at
+          }));
+        
+        const spotifyCampaign = spotifyCampaignsMap[cg.id];
+        
+        return {
+          id: cg.id,
+          name: cg.name || spotifyCampaign?.campaign || 'Campaign',
+          client_name: (cg.clients as any)?.name || 'Unknown Client',
+          track_url: spotifyCampaign?.url || '',
+          stream_goal: cg.total_goal || 0,
+          budget: cg.total_budget || 0,
+          start_date: cg.start_date,
+          status: cg.status,
+          created_at: cg.created_at,
+          pending_vendors: pendingVendors,
+          total_vendors: requests.length,
+          pending_count: requests.filter(r => r.status === 'pending').length,
+          approved_count: requests.filter(r => r.status === 'approved').length,
+          rejected_count: requests.filter(r => r.status === 'rejected').length
+        };
+      });
+
+      console.log('📦 Campaigns awaiting vendor:', result.length);
+      return result;
+    },
+    staleTime: 30000,
+  });
+}
+
 // Hook to create a new submission (public)
 export function useCreateCampaignSubmission() {
   const { toast } = useToast();

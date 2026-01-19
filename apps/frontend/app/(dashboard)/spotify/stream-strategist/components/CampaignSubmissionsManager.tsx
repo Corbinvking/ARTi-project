@@ -7,11 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { XCircle, Clock, Eye } from 'lucide-react';
-import { useCampaignSubmissions, useRejectCampaignSubmission, useApproveCampaignSubmission } from '../hooks/useCampaignSubmissions';
+import { XCircle, Clock, Eye, Hourglass, Users, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useCampaignSubmissions, useRejectCampaignSubmission, useApproveCampaignSubmission, useCampaignsAwaitingVendor } from '../hooks/useCampaignSubmissions';
 import { SubmissionDetailModal } from './SubmissionDetailModal';
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface CampaignSubmissionsManagerProps {
   highlightSubmissionId?: string | null;
@@ -23,6 +24,7 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
   const router = useRouter();
 
   const { data: submissions = [], isLoading } = useCampaignSubmissions();
+  const { data: campaignsAwaitingVendor = [], isLoading: awaitingLoading } = useCampaignsAwaitingVendor();
   const rejectMutation = useRejectCampaignSubmission();
   const approveMutation = useApproveCampaignSubmission();
   
@@ -104,8 +106,121 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
           <Badge variant="outline">
             {submissions.filter(s => s.status === 'pending_approval').length} Pending Review
           </Badge>
+          {campaignsAwaitingVendor.length > 0 && (
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <Hourglass className="h-3 w-3 mr-1" />
+              {campaignsAwaitingVendor.length} Awaiting Vendor
+            </Badge>
+          )}
         </div>
       </div>
+
+      {/* Campaigns Awaiting Vendor Response Section */}
+      {campaignsAwaitingVendor.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-blue-500" />
+            <h3 className="text-lg font-semibold">Awaiting Vendor Response</h3>
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              {campaignsAwaitingVendor.length} campaigns
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            These campaigns have been created and are waiting for vendors to accept. Vendors must start/accept before campaigns become fully active.
+          </p>
+          <div className="grid gap-3">
+            {campaignsAwaitingVendor.map((campaign) => (
+              <Card 
+                key={campaign.id} 
+                className="border-l-4 border-l-blue-400 bg-blue-50/30 dark:bg-blue-950/10"
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-base leading-tight">{campaign.name}</CardTitle>
+                      <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 text-xs">
+                        <Hourglass className="h-3 w-3 mr-1" />
+                        Waiting for Vendor
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Created {formatDistanceToNow(new Date(campaign.created_at), { addSuffix: true })}
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-tight">
+                    Client: {campaign.client_name}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* Campaign Details */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs leading-tight">
+                    <div>
+                      <span className="font-medium text-muted-foreground">Budget</span>
+                      <div className="text-sm font-medium">${campaign.budget?.toLocaleString() || 0}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Stream Goal</span>
+                      <div className="text-sm font-medium">{campaign.stream_goal?.toLocaleString() || 0}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Start Date</span>
+                      <div className="text-sm font-medium">{campaign.start_date ? new Date(campaign.start_date).toLocaleDateString() : '-'}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-muted-foreground">Track</span>
+                      <div className="text-sm">
+                        {campaign.track_url ? (
+                          <a 
+                            href={campaign.track_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            View Track
+                          </a>
+                        ) : '-'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vendor Status Summary */}
+                  <div className="flex items-center gap-4 text-xs bg-muted/50 p-2 rounded">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-amber-500" />
+                      <span className="font-medium">{campaign.pending_count} Pending</span>
+                    </div>
+                    {campaign.approved_count > 0 && (
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span className="font-medium">{campaign.approved_count} Accepted</span>
+                      </div>
+                    )}
+                    {campaign.rejected_count > 0 && (
+                      <div className="flex items-center gap-1 text-red-600">
+                        <XCircle className="h-3 w-3" />
+                        <span className="font-medium">{campaign.rejected_count} Rejected</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Pending Vendors List */}
+                  <div className="flex flex-wrap gap-2">
+                    {campaign.pending_vendors.map((vendor, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs">
+                        <Clock className="h-3 w-3 mr-1 text-amber-500" />
+                        {vendor.vendor_name}
+                        <span className="text-muted-foreground ml-1">
+                          ({formatDistanceToNow(new Date(vendor.requested_at), { addSuffix: true })})
+                        </span>
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-3">
         <div className="grid gap-3">
