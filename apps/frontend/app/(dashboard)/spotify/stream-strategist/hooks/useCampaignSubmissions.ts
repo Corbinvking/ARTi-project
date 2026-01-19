@@ -305,6 +305,42 @@ export function useApproveCampaignSubmission() {
         }
       }
 
+      // 4. Create campaign_vendor_requests for each vendor so they can accept/reject
+      console.log('📨 Creating vendor campaign requests...');
+      const uniqueVendors = new Map<string, string[]>();
+      vendorAssignments.forEach((va: any) => {
+        if (va.vendor_id && va.playlist_ids?.length > 0) {
+          const existing = uniqueVendors.get(va.vendor_id) || [];
+          uniqueVendors.set(va.vendor_id, [...existing, ...va.playlist_ids]);
+        }
+      });
+
+      if (uniqueVendors.size > 0) {
+        const vendorRequests = Array.from(uniqueVendors.entries()).map(([vendorId, playlistIds]) => ({
+          campaign_id: createdCampaignGroup.id, // Use campaign_group_id as the linking ID
+          vendor_id: vendorId,
+          playlist_ids: playlistIds,
+          status: 'pending',
+          requested_at: new Date().toISOString(),
+          org_id: '00000000-0000-0000-0000-000000000001'
+        }));
+        
+        console.log('Creating vendor requests:', vendorRequests.length);
+        
+        const { error: requestError } = await supabase
+          .from('campaign_vendor_requests')
+          .insert(vendorRequests);
+        
+        if (requestError) {
+          console.error('❌ Error creating vendor requests:', requestError);
+          // Don't throw - vendor requests are secondary to campaign creation
+        } else {
+          console.log(`✅ Created ${vendorRequests.length} vendor campaign requests`);
+        }
+      } else {
+        console.log('⚠️ No vendor assignments with playlist IDs found, skipping vendor requests');
+      }
+
       // Update submission status to approved
       console.log('✅ Updating submission status to approved...');
       const { error: updateError } = await supabase

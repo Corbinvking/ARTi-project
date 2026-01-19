@@ -80,17 +80,65 @@ export function useVendorCampaignRequests() {
 
       if (error) throw error;
 
-      // Collect unique campaign IDs and fetch campaigns separately (no FK join available)
-      const campaignIds = Array.from(new Set((requests || []).map((r: any) => r.campaign_id)));
+      // Collect unique campaign_group IDs and fetch campaign data
+      // campaign_id in campaign_vendor_requests now references campaign_groups.id
+      const campaignGroupIds = Array.from(new Set((requests || []).map((r: any) => r.campaign_id)));
       let campaignsMap: Record<string, any> = {};
 
-      if (campaignIds.length > 0) {
-        const { data: campaigns, error: campaignsError } = await supabase
-          .from('campaigns')
-          .select('id, name, brand_name, track_name, track_url, budget, start_date, duration_days, music_genres, content_types, territory_preferences, post_types, sub_genres, stream_goal, creator_count')
-          .in('id', campaignIds);
-        if (campaignsError) throw campaignsError;
-        campaignsMap = (campaigns || []).reduce((acc: any, c: any) => { acc[c.id] = c; return acc; }, {});
+      if (campaignGroupIds.length > 0) {
+        // First try to fetch from campaign_groups with related spotify_campaigns data
+        const { data: campaignGroups, error: groupsError } = await supabase
+          .from('campaign_groups')
+          .select(`
+            id, 
+            name, 
+            client_id,
+            start_date,
+            end_date,
+            stream_goal,
+            budget,
+            notes,
+            clients (name)
+          `)
+          .in('id', campaignGroupIds);
+        
+        if (groupsError) {
+          console.error('Error fetching campaign groups:', groupsError);
+        } else if (campaignGroups && campaignGroups.length > 0) {
+          // Also fetch spotify_campaigns for additional track info
+          const { data: spotifyCampaigns } = await supabase
+            .from('spotify_campaigns')
+            .select('campaign_group_id, campaign, url, status')
+            .in('campaign_group_id', campaignGroupIds);
+          
+          const spotifyCampaignsMap = (spotifyCampaigns || []).reduce((acc: any, sc: any) => {
+            acc[sc.campaign_group_id] = sc;
+            return acc;
+          }, {});
+          
+          campaignsMap = campaignGroups.reduce((acc: any, cg: any) => {
+            const spotifyCampaign = spotifyCampaignsMap[cg.id];
+            acc[cg.id] = {
+              id: cg.id,
+              name: cg.name || spotifyCampaign?.campaign || 'Campaign',
+              brand_name: (cg.clients as any)?.name || 'Unknown Client',
+              track_name: spotifyCampaign?.campaign || cg.name,
+              track_url: spotifyCampaign?.url || '',
+              budget: cg.budget || 0,
+              start_date: cg.start_date,
+              duration_days: cg.end_date && cg.start_date 
+                ? Math.ceil((new Date(cg.end_date).getTime() - new Date(cg.start_date).getTime()) / (1000 * 60 * 60 * 24))
+                : 30,
+              music_genres: [],
+              content_types: [],
+              territory_preferences: [],
+              post_types: [],
+              stream_goal: cg.stream_goal || 0,
+              creator_count: 0
+            };
+            return acc;
+          }, {});
+        }
       }
 
       // Fetch playlist details for each request and attach campaign data
@@ -160,31 +208,54 @@ export function useRespondToVendorRequest() {
 
       if (error) throw error;
 
-      // If approved, add playlists to campaign's selected_playlists (only if playlists selected)
+      // If approved, update campaign_playlists to mark vendor's playlists as accepted
+      // campaign_id now references campaign_groups.id, so we need to find the spotify_campaign
       if (status === 'approved' && playlistsToUse && Array.isArray(playlistsToUse) && playlistsToUse.length > 0) {
-        const { data: campaign, error: campaignError } = await supabase
-          .from('campaigns')
-          .select('selected_playlists')
-          .eq('id', request.campaign_id)
-          .single();
+        // Get spotify_campaign linked to this campaign_group
+        const { data: spotifyCampaign, error: scError } = await supabase
+          .from('spotify_campaigns')
+          .select('id')
+          .eq('campaign_group_id', request.campaign_id)
+          .maybeSingle();
 
-        if (campaignError) throw campaignError;
+        if (scError) {
+          console.error('Error fetching spotify campaign:', scError);
+        } else if (spotifyCampaign) {
+          // Get playlist details to update/create campaign_playlists entries
+          const { data: playlistDetails, error: playlistError } = await supabase
+            .from('playlists')
+            .select('id, name, vendor_id, vendor:vendors(id, name)')
+            .in('id', playlistsToUse);
 
-        // Add new playlist IDs to existing selected_playlists (avoid duplicates)
-        const existingPlaylists = Array.isArray(campaign.selected_playlists) ? campaign.selected_playlists : [];
-        const newPlaylists = playlistsToUse.filter(id => !existingPlaylists.includes(id));
-        const updatedPlaylists = [...existingPlaylists, ...newPlaylists];
+          if (playlistError) {
+            console.error('Error fetching playlist details:', playlistError);
+          } else if (playlistDetails && playlistDetails.length > 0) {
+            // Create campaign_playlists entries for approved playlists
+            const campaignPlaylistEntries = playlistDetails.map(playlist => ({
+              campaign_id: spotifyCampaign.id,
+              playlist_name: playlist.name,
+              vendor_id: playlist.vendor_id,
+              playlist_curator: (playlist as any).vendor?.name || null,
+              is_algorithmic: false,
+              vendor_accepted: true, // Mark as vendor accepted
+              org_id: '00000000-0000-0000-0000-000000000001'
+            }));
 
-        // Update campaign with new playlists
-        const { error: updateError } = await supabase
-          .from('campaigns')
-          .update({
-            selected_playlists: updatedPlaylists,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', request.campaign_id);
+            // Use upsert to avoid duplicates - match on campaign_id + playlist_name
+            const { error: upsertError } = await supabase
+              .from('campaign_playlists')
+              .upsert(campaignPlaylistEntries, { 
+                onConflict: 'campaign_id,playlist_name',
+                ignoreDuplicates: false 
+              });
 
-        if (updateError) throw updateError;
+            if (upsertError) {
+              console.error('Error upserting campaign_playlists:', upsertError);
+            } else {
+              console.log(`✅ Added ${campaignPlaylistEntries.length} playlists to campaign`);
+            }
+          }
+        }
       }
 
       return data;
