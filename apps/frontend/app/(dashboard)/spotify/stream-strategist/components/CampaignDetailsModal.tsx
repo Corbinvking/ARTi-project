@@ -1539,13 +1539,33 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
             </div>
           )}
           
-          {/* Vendor Responses */}
+          {/* Vendor Responses/Status */}
           {vendorResponses.length > 0 && (
             <div className="space-y-4">
-              <Label className="text-lg font-semibold">Vendor Responses ({vendorResponses.length})</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-lg font-semibold">Vendor Status ({vendorResponses.length})</Label>
+                <div className="flex gap-2 text-xs">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    {vendorResponses.filter(r => r.status === 'pending').length} Pending
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    {vendorResponses.filter(r => r.status === 'approved').length} Accepted
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                    {vendorResponses.filter(r => r.status === 'rejected').length} Rejected
+                  </span>
+                </div>
+              </div>
               <div className="grid gap-4">
                 {vendorResponses.map((response) => (
-                  <Card key={response.id} className="p-4">
+                  <Card key={response.id} className={`p-4 border-l-4 ${
+                    response.status === 'pending' ? 'border-l-amber-400 bg-amber-50/30 dark:bg-amber-950/10' :
+                    response.status === 'approved' ? 'border-l-green-400 bg-green-50/30 dark:bg-green-950/10' :
+                    'border-l-red-400 bg-red-50/30 dark:bg-red-950/10'
+                  }`}>
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="font-medium">
@@ -1553,12 +1573,18 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                         </Badge>
                         <Badge variant={getVendorResponseVariant(response.status)}>
                           {getVendorResponseIcon(response.status)}
-                          {response.status.charAt(0).toUpperCase() + response.status.slice(1)}
+                          {response.status === 'pending' ? 'Awaiting Response' : 
+                           response.status === 'approved' ? 'Accepted' : 
+                           response.status.charAt(0).toUpperCase() + response.status.slice(1)}
                         </Badge>
                       </div>
-                      {response.responded_at && (
+                      {response.responded_at ? (
                         <span className="text-sm text-muted-foreground">
-                          {formatDate(response.responded_at)}
+                          Responded {formatDate(response.responded_at)}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-amber-600">
+                          Waiting for vendor...
                         </span>
                       )}
                     </div>
@@ -1566,7 +1592,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     {response.playlists && response.playlists.length > 0 && (
                       <div className="mb-3">
                         <Label className="text-sm text-muted-foreground mb-1 block">
-                          Requested Playlists:
+                          {response.status === 'pending' ? 'Requested Playlists:' : 'Selected Playlists:'}
                         </Label>
                         <div className="flex flex-wrap gap-1">
                           {response.playlists.map((playlist) => (
@@ -1575,6 +1601,12 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                             </Badge>
                           ))}
                         </div>
+                      </div>
+                    )}
+                    
+                    {response.status === 'pending' && !response.playlists?.length && (
+                      <div className="text-sm text-muted-foreground italic">
+                        Vendor will select playlists upon acceptance
                       </div>
                     )}
                     
