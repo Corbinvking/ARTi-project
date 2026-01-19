@@ -243,12 +243,18 @@ export function usePendingSubmissionsForVendor() {
           vendorIds.includes(va.vendor_id)
         );
         
-        if (vendorAssignment && vendorAssignment.playlist_ids?.length > 0) {
-          // Fetch playlist details
-          const { data: playlists } = await supabase
-            .from('playlists')
-            .select('id, name, avg_daily_streams')
-            .in('id', vendorAssignment.playlist_ids);
+        // Include submission if vendor is assigned (even without specific playlists)
+        if (vendorAssignment) {
+          let playlists: any[] = [];
+          
+          // Fetch playlist details if playlist_ids exist
+          if (vendorAssignment.playlist_ids?.length > 0) {
+            const { data: playlistData } = await supabase
+              .from('playlists')
+              .select('id, name, avg_daily_streams')
+              .in('id', vendorAssignment.playlist_ids);
+            playlists = playlistData || [];
+          }
           
           relevantSubmissions.push({
             id: submission.id,
@@ -263,7 +269,7 @@ export function usePendingSubmissionsForVendor() {
             status: submission.status,
             created_at: submission.created_at,
             vendor_allocation: vendorAssignment,
-            playlists: playlists || []
+            playlists: playlists
           });
         }
       }

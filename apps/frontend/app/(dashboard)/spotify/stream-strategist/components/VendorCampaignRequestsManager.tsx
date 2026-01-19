@@ -203,7 +203,7 @@ export function VendorCampaignRequestsManager() {
                   )}
 
                   {/* Requested Playlists */}
-                  {submission.playlists.length > 0 && (
+                  {submission.playlists.length > 0 ? (
                     <div className="text-sm">
                       <span className="font-medium">Your Playlists ({submission.playlists.length}):</span>
                       <div className="mt-2 space-y-1">
@@ -219,6 +219,10 @@ export function VendorCampaignRequestsManager() {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm p-2 bg-muted/30 rounded text-muted-foreground">
+                      <span className="font-medium">Playlists:</span> No specific playlists selected yet - you'll choose when accepting
                     </div>
                   )}
 
