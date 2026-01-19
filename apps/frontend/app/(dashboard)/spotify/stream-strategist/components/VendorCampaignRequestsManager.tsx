@@ -5,15 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Clock, Music, DollarSign, Target } from 'lucide-react';
-import { useVendorCampaignRequests } from '../hooks/useVendorCampaignRequests';
+import { useVendorCampaignRequests, usePendingSubmissionsForVendor } from '../hooks/useVendorCampaignRequests';
 import { VendorCampaignRequestModal } from './VendorCampaignRequestModal';
 import { formatDistanceToNow } from 'date-fns';
+import { Hourglass, ExternalLink } from 'lucide-react';
 
 export function VendorCampaignRequestsManager() {
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
 
   const { data: requests = [], isLoading } = useVendorCampaignRequests();
+  const { data: pendingSubmissions = [], isLoading: pendingLoading } = usePendingSubmissionsForVendor();
 
   const handleReviewRequest = (request: any) => {
     setSelectedRequest(request);
@@ -50,11 +52,12 @@ export function VendorCampaignRequestsManager() {
     }).format(amount);
   };
 
-  if (isLoading) {
+  if (isLoading && pendingLoading) {
     return <div className="flex justify-center p-8">Loading campaign requests...</div>;
   }
 
   const pendingRequests = requests.filter(r => r.status === 'pending');
+  const awaitingAdminCount = pendingSubmissions.length;
   const potentialRevenue = pendingRequests.reduce((sum, req) => {
     const streams = req.playlists?.reduce((pSum, p) => pSum + p.avg_daily_streams, 0) || 0;
     return sum + (streams * 0.001 * (req.campaign?.duration_days || 30)); // Rough calculation
@@ -72,14 +75,27 @@ export function VendorCampaignRequestsManager() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="border-l-4 border-l-amber-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Awaiting Admin</CardTitle>
+            <Hourglass className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingRequests.length}</div>
+            <div className="text-2xl font-bold text-amber-600">{awaitingAdminCount}</div>
+            <p className="text-xs text-muted-foreground">
+              Pending admin approval
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Ready to Accept</CardTitle>
+            <Clock className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{pendingRequests.length}</div>
             <p className="text-xs text-muted-foreground">
               Awaiting your response
             </p>
@@ -116,6 +132,135 @@ export function VendorCampaignRequestsManager() {
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Awaiting Admin Approval Section */}
+      {pendingSubmissions.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Hourglass className="h-5 w-5 text-amber-500" />
+            <h3 className="text-lg font-semibold">Awaiting Admin Approval</h3>
+            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+              {pendingSubmissions.length} pending
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            These campaigns include your playlists and are waiting for admin approval. Once approved, you'll be able to accept or decline.
+          </p>
+          <div className="grid gap-3">
+            {pendingSubmissions.map((submission) => (
+              <Card key={submission.id} className="border-l-4 border-l-amber-400 bg-amber-50/30 dark:bg-amber-950/10">
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <CardTitle className="text-lg">{submission.campaign_name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Client: {submission.client_name} • Submitted {formatDistanceToNow(new Date(submission.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
+                      <Hourglass className="h-3 w-3 mr-1" />
+                      Awaiting Admin
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Campaign Details */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Your Allocation:</span>
+                      <div>{submission.vendor_allocation.allocated_streams.toLocaleString()} streams</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Your Budget:</span>
+                      <div>{formatCurrency(submission.vendor_allocation.allocated_budget)}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Start Date:</span>
+                      <div>{new Date(submission.start_date).toLocaleDateString()}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium">Duration:</span>
+                      <div>{submission.duration_days} days</div>
+                    </div>
+                  </div>
+
+                  {/* Track URL */}
+                  {submission.track_url && (
+                    <div className="text-sm">
+                      <span className="font-medium">Track:</span>
+                      <div>
+                        <a 
+                          href={submission.track_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          View Track <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Requested Playlists */}
+                  {submission.playlists.length > 0 && (
+                    <div className="text-sm">
+                      <span className="font-medium">Your Playlists ({submission.playlists.length}):</span>
+                      <div className="mt-2 space-y-1">
+                        {submission.playlists.map((playlist) => (
+                          <div key={playlist.id} className="flex justify-between items-center py-1 px-2 bg-white/50 dark:bg-white/5 rounded text-xs">
+                            <span className="flex items-center gap-2">
+                              <Music className="h-3 w-3" />
+                              {playlist.name}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {playlist.avg_daily_streams.toLocaleString()} daily streams
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Music Genres */}
+                  {submission.music_genres.length > 0 && (
+                    <div className="text-sm">
+                      <span className="font-medium">Music Genres:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {submission.music_genres.map((genre, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {genre}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Info Banner */}
+                  <div className="flex items-center gap-2 p-3 bg-amber-100/50 dark:bg-amber-900/20 rounded-md text-sm text-amber-800 dark:text-amber-200">
+                    <Clock className="h-4 w-4" />
+                    <span>This campaign is pending admin approval. You'll be notified when it's ready for your response.</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Requests Ready for Your Response */}
+      <div className="space-y-4">
+        {(pendingSubmissions.length > 0 || requests.length > 0) && (
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-blue-500" />
+            <h3 className="text-lg font-semibold">Ready for Your Response</h3>
+            {pendingRequests.length > 0 && (
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                {pendingRequests.length} to review
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Requests List */}
@@ -235,13 +380,25 @@ export function VendorCampaignRequestsManager() {
           </Card>
         ))}
 
-        {requests.length === 0 && (
+        {requests.length === 0 && pendingSubmissions.length === 0 && (
           <Card>
             <CardContent className="text-center py-12">
               <Music className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Campaign Requests</h3>
               <p className="text-muted-foreground">
                 You don't have any campaign participation requests at the moment.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {requests.length === 0 && pendingSubmissions.length > 0 && (
+          <Card>
+            <CardContent className="text-center py-8">
+              <CheckCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+              <h3 className="text-base font-semibold mb-1">No Requests Ready Yet</h3>
+              <p className="text-muted-foreground text-sm">
+                You have {pendingSubmissions.length} campaign{pendingSubmissions.length > 1 ? 's' : ''} awaiting admin approval above.
               </p>
             </CardContent>
           </Card>

@@ -5,6 +5,33 @@ import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import { useAuth } from '../hooks/useAuth';
 
+// Interface for pending admin submissions that include this vendor
+export interface PendingSubmissionForVendor {
+  id: string;
+  campaign_name: string;
+  client_name: string;
+  track_url: string;
+  stream_goal: number;
+  price_paid: number;
+  start_date: string;
+  duration_days: number;
+  music_genres: string[];
+  status: string;
+  created_at: string;
+  vendor_allocation: {
+    vendor_id: string;
+    vendor_name: string;
+    allocated_streams: number;
+    allocated_budget: number;
+    playlist_ids: string[];
+  };
+  playlists: Array<{
+    id: string;
+    name: string;
+    avg_daily_streams: number;
+  }>;
+}
+
 export interface VendorCampaignRequest {
   id: string;
   campaign_id: string;
@@ -169,6 +196,79 @@ export function useVendorCampaignRequests() {
       );
 
       return requestsWithPlaylists as VendorCampaignRequest[];
+    },
+  });
+}
+
+// Hook to fetch pending submissions that include this vendor's playlists (awaiting admin approval)
+export function usePendingSubmissionsForVendor() {
+  const { user, loading } = useAuth();
+  return useQuery({
+    queryKey: ['pending-submissions-for-vendor', user?.id ?? 'anon'],
+    enabled: !!user && !loading,
+    staleTime: 30000,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      // First get current user's vendor IDs
+      const { data: vendorUsers, error: vendorError } = await supabase
+        .from('vendor_users')
+        .select('vendor_id')
+        .eq('user_id', user!.id);
+
+      if (vendorError) throw vendorError;
+      
+      const vendorIds = vendorUsers?.map(vu => vu.vendor_id) || [];
+      if (vendorIds.length === 0) return [];
+
+      // Fetch all pending submissions
+      const { data: submissions, error: submissionsError } = await supabase
+        .from('campaign_submissions')
+        .select('*')
+        .eq('status', 'pending_approval')
+        .order('created_at', { ascending: false });
+
+      if (submissionsError) {
+        console.error('Error fetching pending submissions:', submissionsError);
+        return [];
+      }
+
+      // Filter submissions that include this vendor in vendor_assignments
+      const relevantSubmissions: PendingSubmissionForVendor[] = [];
+      
+      for (const submission of submissions || []) {
+        const vendorAssignments = (submission.vendor_assignments as any[]) || [];
+        
+        // Find assignment for this vendor
+        const vendorAssignment = vendorAssignments.find(va => 
+          vendorIds.includes(va.vendor_id)
+        );
+        
+        if (vendorAssignment && vendorAssignment.playlist_ids?.length > 0) {
+          // Fetch playlist details
+          const { data: playlists } = await supabase
+            .from('playlists')
+            .select('id, name, avg_daily_streams')
+            .in('id', vendorAssignment.playlist_ids);
+          
+          relevantSubmissions.push({
+            id: submission.id,
+            campaign_name: submission.campaign_name,
+            client_name: submission.client_name,
+            track_url: submission.track_url,
+            stream_goal: submission.stream_goal,
+            price_paid: submission.price_paid,
+            start_date: submission.start_date,
+            duration_days: submission.duration_days,
+            music_genres: submission.music_genres || [],
+            status: submission.status,
+            created_at: submission.created_at,
+            vendor_allocation: vendorAssignment,
+            playlists: playlists || []
+          });
+        }
+      }
+      
+      return relevantSubmissions;
     },
   });
 }
