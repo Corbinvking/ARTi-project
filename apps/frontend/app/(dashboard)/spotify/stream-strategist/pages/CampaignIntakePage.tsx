@@ -607,21 +607,28 @@ export default function CampaignIntakePage() {
               {/* Music Genres */}
               <div>
                 <Label>Music Genres {formData.music_genres.length > 0 && `(${formData.music_genres.length} selected)`}</Label>
-                <div className="flex flex-wrap gap-2 mt-2 p-4 border rounded-md bg-muted/20">
-                  {(availableGenres.length > 0 ? availableGenres : UNIFIED_GENRES).map(genre => (
+                <div className="flex flex-wrap gap-2 mt-2 p-4 border rounded-md bg-muted/20 max-h-48 overflow-y-auto">
+                  {UNIFIED_GENRES.map(genre => (
                     <Badge
                       key={genre}
                       variant={formData.music_genres.includes(genre) ? "default" : "outline"}
-                      className="cursor-pointer hover:bg-primary/80"
+                      className={`cursor-pointer hover:bg-primary/80 ${
+                        availableGenres.includes(genre) && !formData.music_genres.includes(genre) 
+                          ? 'ring-2 ring-green-400 ring-offset-1' 
+                          : ''
+                      }`}
                       onClick={() => handleGenreToggle(genre)}
                     >
                       {genre}
+                      {availableGenres.includes(genre) && !formData.music_genres.includes(genre) && (
+                        <span className="ml-1 text-xs text-green-500">✓</span>
+                      )}
                     </Badge>
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {availableGenres.length > 0 ? 
-                    "Genres auto-detected from Spotify. Click to modify selection." :
+                    `Spotify detected: ${availableGenres.join(', ')}. Click any genre to toggle selection.` :
                     "Select genres that best describe the track. Multiple selections allowed."
                   }
                 </p>

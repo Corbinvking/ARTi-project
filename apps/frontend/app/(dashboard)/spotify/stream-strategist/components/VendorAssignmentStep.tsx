@@ -195,15 +195,15 @@ export function VendorAssignmentStep({
   const handleAutoSuggestInternal = () => {
     console.log('🔧 handleAutoSuggestInternal called');
     console.log('🔧 Campaign genres:', campaignGenres);
-    console.log('🔧 Matching playlists by vendor:', Object.keys(matchingPlaylistsByVendor));
-    console.log('🔧 Active vendors count:', activeVendors.length);
+    console.log('🔧 Matching playlists by vendor:', Object.keys(matchingPlaylistsByVendor || {}));
+    console.log('🔧 Active vendors count:', activeVendors?.length || 0);
     
-    if (campaignGenres.length === 0) {
+    if (!campaignGenres || campaignGenres.length === 0) {
       console.log('⚠️ No campaign genres, skipping auto-suggest');
       return;
     }
     
-    if (Object.keys(matchingPlaylistsByVendor).length === 0) {
+    if (!matchingPlaylistsByVendor || Object.keys(matchingPlaylistsByVendor).length === 0) {
       console.log('⚠️ No matching playlists by vendor, skipping auto-suggest');
       return;
     }
@@ -213,7 +213,7 @@ export function VendorAssignmentStep({
     // Calculate total estimated daily streams from matching playlists
     const totalEstimatedStreams = Object.values(matchingPlaylistsByVendor)
       .flat()
-      .reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
+      .reduce((sum, p) => sum + (p?.avg_daily_streams || 0), 0);
     
     console.log('🔧 Total estimated daily streams:', totalEstimatedStreams);
 
@@ -330,7 +330,13 @@ export function VendorAssignmentStep({
 
   // Auto-suggest vendors based on genre matching (button handler - calls internal function)
   const handleAutoSuggest = () => {
-    handleAutoSuggestInternal();
+    try {
+      handleAutoSuggestInternal();
+    } catch (error) {
+      console.error('❌ Error in auto-suggest:', error);
+      // Fallback to basic distribution if auto-suggest fails
+      handleFallbackDistribution();
+    }
   };
   
   // Calculate totals
