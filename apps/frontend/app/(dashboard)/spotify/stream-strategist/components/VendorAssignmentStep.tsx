@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import { Label } from './ui/label';
@@ -92,7 +92,8 @@ export function VendorAssignmentStep({
   const [selectedVendorId, setSelectedVendorId] = useState<string>('');
   const [expandedVendors, setExpandedVendors] = useState<Set<string>>(new Set());
   const [hasAutoSuggested, setHasAutoSuggested] = useState(false);
-  const [autoApplyAttempted, setAutoApplyAttempted] = useState(false);
+  // Use ref instead of state to prevent re-render loops
+  const autoApplyAttemptedRef = useRef(false);
   
   const activeVendors = vendors.filter(v => v.is_active);
 
@@ -141,55 +142,9 @@ export function VendorAssignmentStep({
   const matchingPlaylistsCount = Object.values(matchingPlaylistsByVendor).flat().length;
   const matchingVendorsCount = Object.keys(matchingPlaylistsByVendor).length;
 
-  // AUTO-APPLY: Automatically apply vendor suggestions when genres are available
-  // This ensures submissions always have vendor assignments pre-populated
-  useEffect(() => {
-    // Only auto-apply if:
-    // 1. Playlists have loaded
-    // 2. Genres are selected
-    // 3. There are matching vendors
-    // 4. No assignments exist yet
-    // 5. Haven't already attempted auto-apply
-    // 6. Total budget and stream goal are set
-    const shouldAutoApply = 
-      allPlaylists.length > 0 &&
-      campaignGenres.length > 0 &&
-      matchingVendorsCount > 0 &&
-      assignments.length === 0 &&
-      !autoApplyAttempted &&
-      totalStreamGoal > 0 &&
-      totalBudget > 0;
-    
-    console.log('🔍 Auto-apply check:', {
-      playlistsLoaded: allPlaylists.length,
-      genres: campaignGenres.length,
-      matchingVendors: matchingVendorsCount,
-      existingAssignments: assignments.length,
-      autoApplyAttempted,
-      streamGoal: totalStreamGoal,
-      budget: totalBudget,
-      shouldAutoApply
-    });
-    
-    if (shouldAutoApply) {
-      console.log('🎯 Auto-applying vendor suggestions based on genres:', campaignGenres);
-      setAutoApplyAttempted(true);
-      
-      // Small delay to ensure all computed values are ready
-      setTimeout(() => {
-        // Double-check we still have matching playlists
-        const currentMatching = Object.keys(matchingPlaylistsByVendor);
-        console.log('🔍 Matching vendors at apply time:', currentMatching.length);
-        if (currentMatching.length > 0) {
-          handleAutoSuggestInternal();
-        } else {
-          // Fallback: If no genre-matching vendors, distribute equally among top active vendors
-          console.log('⚠️ No genre-matching vendors, using fallback distribution');
-          handleFallbackDistribution();
-        }
-      }, 200);
-    }
-  }, [allPlaylists.length, campaignGenres, matchingVendorsCount, assignments.length, autoApplyAttempted, totalStreamGoal, totalBudget]);
+  // AUTO-APPLY: Disabled to prevent infinite render loops
+  // Manual auto-suggest via button click is still available
+  // The auto-apply was causing issues with Radix UI Select components
 
   // Internal auto-suggest function (reusable)
   const handleAutoSuggestInternal = () => {
