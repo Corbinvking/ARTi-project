@@ -103,7 +103,7 @@ export function useCampaignsAwaitingVendor() {
     queryFn: async () => {
       console.log('🔍 Fetching campaigns awaiting vendor response...');
       
-      // Fetch all pending vendor requests
+      // Fetch all vendor requests (not just pending, so we can show stats)
       const { data: pendingRequests, error: requestsError } = await supabase
         .from('campaign_vendor_requests')
         .select(`
@@ -116,6 +116,16 @@ export function useCampaignsAwaitingVendor() {
           vendors (id, name)
         `)
         .order('requested_at', { ascending: false });
+      
+      console.log('📊 All vendor requests:', pendingRequests?.length || 0, 'Error:', requestsError);
+      if (pendingRequests && pendingRequests.length > 0) {
+        console.log('📊 Request breakdown:', {
+          pending: pendingRequests.filter(r => r.status === 'pending').length,
+          approved: pendingRequests.filter(r => r.status === 'approved').length,
+          rejected: pendingRequests.filter(r => r.status === 'rejected').length,
+          vendors: pendingRequests.map(r => ({ vendor: (r.vendors as any)?.name, status: r.status }))
+        });
+      }
 
       if (requestsError) {
         console.error('❌ Error fetching vendor requests:', requestsError);

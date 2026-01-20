@@ -86,16 +86,25 @@ export function useVendorCampaignRequests() {
     staleTime: 0,
     refetchOnWindowFocus: true,
     queryFn: async () => {
+      console.log('🔍 useVendorCampaignRequests - User:', user?.id, user?.email);
+      
       // First get current user's vendor IDs
       const { data: vendorUsers, error: vendorError } = await supabase
         .from('vendor_users')
         .select('vendor_id')
         .eq('user_id', user!.id);
 
+      console.log('👤 Vendor users found:', vendorUsers, 'Error:', vendorError);
+
       if (vendorError) throw vendorError;
       
       const vendorIds = vendorUsers?.map(vu => vu.vendor_id) || [];
-      if (vendorIds.length === 0) return [];
+      console.log('🏢 Vendor IDs for user:', vendorIds);
+      
+      if (vendorIds.length === 0) {
+        console.log('⚠️ No vendor IDs found for this user - they may not be linked to a vendor');
+        return [];
+      }
 
       // Fetch campaign vendor requests for current user's vendors (pending only)
       const { data: requests, error } = await supabase
@@ -104,6 +113,11 @@ export function useVendorCampaignRequests() {
         .in('vendor_id', vendorIds)
         .eq('status', 'pending')
         .order('requested_at', { ascending: false });
+
+      console.log('📬 Pending requests found:', requests?.length || 0, 'Error:', error);
+      if (requests && requests.length > 0) {
+        console.log('📬 Request details:', requests);
+      }
 
       if (error) throw error;
 
