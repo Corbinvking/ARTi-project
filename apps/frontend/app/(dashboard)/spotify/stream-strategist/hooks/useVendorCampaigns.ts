@@ -55,9 +55,11 @@ export function useVendorCampaigns() {
     staleTime: 30000, // Cache for 30 seconds to reduce refetches
     gcTime: 60000, // Keep in cache for 1 minute
     refetchOnWindowFocus: false, // Don't refetch on every tab switch
-    retry: 1, // Only retry once on failure
+    retry: 2, // Retry twice on failure
+    retryDelay: 1000, // Wait 1 second before retry
     queryFn: async () => {
       console.log('🔄 useVendorCampaigns: Starting query for user', user?.id);
+      const startTime = Date.now();
       // First get current user's vendor data
       const { data: vendorUsers, error: vendorError } = await supabase
         .from('vendor_users')
@@ -324,6 +326,14 @@ export function useVendorCampaigns() {
         };
       }) || [];
 
+      const endTime = Date.now();
+      console.log(`✅ useVendorCampaigns: Completed in ${endTime - startTime}ms, found ${vendorCampaigns.length} campaigns`);
+      
+      if (vendorCampaigns.length > 0) {
+        const totalStreamsDelivered = vendorCampaigns.reduce((sum, c) => sum + (c.total_streams_delivered || 0), 0);
+        console.log(`📊 Total streams delivered across campaigns: ${totalStreamsDelivered}`);
+      }
+      
       return vendorCampaigns as VendorCampaign[];
     },
   });

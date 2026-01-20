@@ -27,7 +27,16 @@ export default function VendorDashboard() {
   const { data: vendor, isLoading: vendorLoading, error: vendorError } = useMyVendor();
   const { data: playlists, isLoading: playlistsLoading, error: playlistsError } = useMyPlaylists();
   const { data: requests = [] } = useVendorCampaignRequests();
-  const { data: campaigns = [], isLoading: campaignsLoading } = useVendorCampaigns();
+  const { data: campaigns = [], isLoading: campaignsLoading, error: campaignsError, isError: isCampaignsError } = useVendorCampaigns();
+  
+  // Debug logging
+  console.log('🏠 VendorDashboard render:', {
+    userId: user?.id,
+    vendorId: vendor?.id,
+    campaignsCount: campaigns?.length || 0,
+    campaignsLoading,
+    campaignsError: campaignsError?.message || null
+  });
   const createPlaylist = useCreatePlaylist();
 
   // Modal states
@@ -426,6 +435,12 @@ export default function VendorDashboard() {
                     <div className="h-3 w-28 rounded bg-muted-foreground/20" />
                   </div>
                 ))}
+              </div>
+            ) : isCampaignsError ? (
+              <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20 text-center">
+                <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                <p className="text-sm text-red-700 dark:text-red-400">Failed to load campaign data</p>
+                <p className="text-xs text-red-600/80 mt-1">{campaignsError?.message || 'Unknown error'}</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-4">
