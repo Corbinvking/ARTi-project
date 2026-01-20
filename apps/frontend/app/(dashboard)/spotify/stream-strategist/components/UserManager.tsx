@@ -20,7 +20,13 @@ interface User {
   email: string;
   roles: string[];
   created_at: string;
+  vendor_id?: string;
   vendor_name?: string; // Vendor association if user is a vendor
+}
+
+interface Vendor {
+  id: string;
+  name: string;
 }
 
 interface CreateUserFormData {
@@ -32,12 +38,26 @@ interface CreateUserFormData {
 export function UserManager() {
   const { user } = useAuth();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedUserForVendor, setSelectedUserForVendor] = useState<User | null>(null);
   const [formData, setFormData] = useState<CreateUserFormData>({
     email: '',
     password: '',
     roles: []
   });
   const queryClient = useQueryClient();
+
+  // Fetch all vendors for the dropdown
+  const { data: vendors = [] } = useQuery({
+    queryKey: ['vendors-for-assignment'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vendors')
+        .select('id, name')
+        .order('name');
+      if (error) throw error;
+      return data as Vendor[];
+    }
+  });
 
   // Fetch ALL users from auth.users and their roles from user_roles
   const { data: users = [], isLoading, error: queryError } = useQuery({
@@ -78,11 +98,11 @@ export function UserManager() {
         rolesByUser.get(ur.user_id)!.push(ur.role);
       });
       
-      // Map vendor associations
-      const vendorByUser = new Map<string, string>();
+      // Map vendor associations (id and name)
+      const vendorByUser = new Map<string, { id: string; name: string }>();
       vendorMappings?.forEach((vm: any) => {
-        if (vm.vendors?.name) {
-          vendorByUser.set(vm.user_id, vm.vendors.name);
+        if (vm.vendors?.id) {
+          vendorByUser.set(vm.user_id, { id: vm.vendors.id, name: vm.vendors.name });
         }
       });
       
@@ -99,7 +119,7 @@ export function UserManager() {
       
       for (const userId of allUserIds) {
         const roles = rolesByUser.get(userId) || [];
-        const vendorName = vendorByUser.get(userId);
+        const vendorInfo = vendorByUser.get(userId);
         
         // Try to get user email from public.users first
         const { data: userData } = await supabase
@@ -113,7 +133,8 @@ export function UserManager() {
             id: userId,
             email: userData.email || 'Unknown',
             roles: roles,
-            vendor_name: vendorName,
+            vendor_id: vendorInfo?.id,
+            vendor_name: vendorInfo?.name,
             created_at: userData.created_at
           });
         } else {
@@ -123,7 +144,8 @@ export function UserManager() {
             id: userId,
             email: `user-${userId.substring(0, 8)}`,
             roles: roles,
-            vendor_name: vendorName,
+            vendor_id: vendorInfo?.id,
+            vendor_name: vendorInfo?.name,
             created_at: new Date().toISOString()
           });
         }
@@ -166,6 +188,50 @@ export function UserManager() {
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to delete user');
+    }
+  });
+
+  // Assign vendor to user mutation
+  const assignVendorMutation = useMutation({
+    mutationFn: async ({ userId, vendorId }: { userId: string; vendorId: string | null }) => {
+      // First, remove any existing vendor associations for this user
+      const { error: deleteError } = await supabase
+        .from('vendor_users')
+        .delete()
+        .eq('user_id', userId);
+      
+      if (deleteError) {
+        console.error('Error removing old vendor association:', deleteError);
+        throw deleteError;
+      }
+      
+      // If vendorId is null, we just wanted to remove the association
+      if (!vendorId) {
+        return { success: true, action: 'removed' };
+      }
+      
+      // Insert the new vendor association
+      const { error: insertError } = await supabase
+        .from('vendor_users')
+        .insert({ user_id: userId, vendor_id: vendorId });
+      
+      if (insertError) {
+        console.error('Error assigning vendor:', insertError);
+        throw insertError;
+      }
+      
+      return { success: true, action: 'assigned' };
+    },
+    onSuccess: (result) => {
+      const message = result.action === 'removed' 
+        ? 'Vendor association removed' 
+        : 'Vendor assigned successfully';
+      toast.success(message);
+      setSelectedUserForVendor(null);
+      queryClient.invalidateQueries({ queryKey: ['users-with-roles-and-vendors'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to assign vendor');
     }
   });
 
@@ -339,13 +405,23 @@ export function UserManager() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {user.vendor_name ? (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
-                          {user.vendor_name}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {user.vendor_name ? (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                            {user.vendor_name}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedUserForVendor(user)}
+                          className="text-xs h-6 px-2"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell>
                       {new Date(user.created_at).toLocaleDateString()}
@@ -374,6 +450,66 @@ export function UserManager() {
           </div>
         )}
       </CardContent>
+
+      {/* Vendor Assignment Dialog */}
+      <Dialog open={!!selectedUserForVendor} onOpenChange={() => setSelectedUserForVendor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Vendor</DialogTitle>
+            <DialogDescription>
+              Link {selectedUserForVendor?.email} to a vendor account. This allows them to see and accept campaign requests for that vendor.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Current Vendor</Label>
+              <div>
+                {selectedUserForVendor?.vendor_name ? (
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+                    {selectedUserForVendor.vendor_name}
+                  </Badge>
+                ) : (
+                  <span className="text-muted-foreground text-sm">No vendor assigned</span>
+                )}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Assign to Vendor</Label>
+              <Select
+                value={selectedUserForVendor?.vendor_id || ''}
+                onValueChange={(vendorId) => {
+                  if (selectedUserForVendor) {
+                    assignVendorMutation.mutate({ 
+                      userId: selectedUserForVendor.id, 
+                      vendorId: vendorId || null 
+                    });
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a vendor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">— No Vendor —</SelectItem>
+                  {vendors.map((vendor) => (
+                    <SelectItem key={vendor.id} value={vendor.id}>
+                      {vendor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedUserForVendor(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
