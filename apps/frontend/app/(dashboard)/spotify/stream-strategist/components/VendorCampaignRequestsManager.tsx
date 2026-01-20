@@ -204,7 +204,7 @@ export function VendorCampaignRequestsManager() {
                   )}
 
                   {/* Requested Playlists */}
-                  {submission.playlists.length > 0 ? (
+                  {submission.playlists && submission.playlists.length > 0 ? (
                     <div className="text-sm">
                       <span className="font-medium">Your Playlists ({submission.playlists.length}):</span>
                       <div className="mt-2 space-y-1">
@@ -228,7 +228,7 @@ export function VendorCampaignRequestsManager() {
                   )}
 
                   {/* Music Genres */}
-                  {submission.music_genres.length > 0 && (
+                  {submission.music_genres && submission.music_genres.length > 0 && (
                     <div className="text-sm">
                       <span className="font-medium">Music Genres:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
