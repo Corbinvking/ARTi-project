@@ -299,7 +299,8 @@ export default function CampaignIntakePage() {
     }
 
     try {
-      await createSubmissionMutation.mutateAsync({
+      console.log('📤 Calling createSubmissionMutation.mutateAsync...');
+      const result = await createSubmissionMutation.mutateAsync({
         client_id: formData.client_id || null,
         client_name: isNewClient ? formData.client_name : selectedClientName || '',
         client_emails: emailsArray,
@@ -316,11 +317,18 @@ export default function CampaignIntakePage() {
         territory_preferences: formData.territory_preferences,
         vendor_assignments: formData.vendor_assignments
       });
+      console.log('✅ Mutation completed successfully:', result);
 
       // Show success dialog instead of resetting form immediately
       handleSubmissionSuccess();
-    } catch (error) {
-      console.error('Submission error:', error);
+    } catch (error: any) {
+      console.error('❌ Submission error:', error);
+      console.error('Error details:', error?.message, error?.code, error?.details);
+      toast({
+        title: "Submission Failed",
+        description: error?.message || "An error occurred while submitting the campaign.",
+        variant: "destructive"
+      });
     }
   };
 
