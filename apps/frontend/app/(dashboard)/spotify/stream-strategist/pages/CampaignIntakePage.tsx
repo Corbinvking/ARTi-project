@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -342,6 +342,14 @@ export default function CampaignIntakePage() {
     }));
   };
 
+  // Memoized callback to prevent infinite re-renders with Radix Select
+  const handleVendorAssignmentsChange = useCallback((assignments: typeof formData.vendor_assignments) => {
+    setFormData(prev => ({
+      ...prev,
+      vendor_assignments: assignments
+    }));
+  }, []);
+
   // Available territories (continents + US)
   const territories = [
     'United States', 'North America', 'South America', 'Europe', 'Asia', 
@@ -658,7 +666,7 @@ export default function CampaignIntakePage() {
               <div className="border-t pt-6 mt-6">
                 <VendorAssignmentStep
                   assignments={formData.vendor_assignments}
-                  onChange={(assignments) => setFormData({...formData, vendor_assignments: assignments})}
+                  onChange={handleVendorAssignmentsChange}
                   totalStreamGoal={parseInt(formData.stream_goal) || 0}
                   totalBudget={parseFloat(formData.price_paid) || 0}
                   campaignGenres={formData.music_genres}
