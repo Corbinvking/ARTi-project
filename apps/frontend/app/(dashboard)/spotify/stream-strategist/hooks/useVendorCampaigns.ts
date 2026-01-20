@@ -114,19 +114,21 @@ export function useVendorCampaigns() {
       const spotifyCampaignIds = [...new Set(campaignPlaylists?.map(cp => cp.campaign_id).filter(Boolean) || [])];
       
       let campaignIdsWithAllocations: string[] = [...acceptedCampaignGroupIds];
+      let spotifyCampaigns: any[] = []; // Declare outside if block so it's available later
       
       if (spotifyCampaignIds.length > 0) {
         console.log('📋 Found', spotifyCampaignIds.length, 'spotify campaign IDs');
         
         // Get the campaign_group_ids from spotify_campaigns
-        const { data: spotifyCampaigns, error: scError } = await supabase
+        const { data: scData, error: scError } = await supabase
           .from('spotify_campaigns')
           .select('id, campaign_group_id')
           .in('id', spotifyCampaignIds);
         
         if (scError) throw scError;
+        spotifyCampaigns = scData || [];
         
-        const playlistCampaignGroupIds = spotifyCampaigns?.map(sc => sc.campaign_group_id).filter(Boolean) || [];
+        const playlistCampaignGroupIds = spotifyCampaigns.map(sc => sc.campaign_group_id).filter(Boolean) || [];
         campaignIdsWithAllocations = [...new Set([...campaignIdsWithAllocations, ...playlistCampaignGroupIds])];
       }
       
