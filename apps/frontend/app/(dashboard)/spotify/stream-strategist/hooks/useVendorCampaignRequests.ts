@@ -136,8 +136,8 @@ export function useVendorCampaignRequests() {
             client_id,
             start_date,
             end_date,
-            stream_goal,
-            budget,
+            total_goal,
+            total_budget,
             notes,
             clients (name)
           `)
@@ -165,7 +165,7 @@ export function useVendorCampaignRequests() {
               brand_name: (cg.clients as any)?.name || 'Unknown Client',
               track_name: spotifyCampaign?.campaign || cg.name,
               track_url: spotifyCampaign?.url || '',
-              budget: cg.budget || 0,
+              budget: cg.total_budget || 0,
               start_date: cg.start_date,
               duration_days: cg.end_date && cg.start_date 
                 ? Math.ceil((new Date(cg.end_date).getTime() - new Date(cg.start_date).getTime()) / (1000 * 60 * 60 * 24))
@@ -174,7 +174,7 @@ export function useVendorCampaignRequests() {
               content_types: [],
               territory_preferences: [],
               post_types: [],
-              stream_goal: cg.stream_goal || 0,
+              stream_goal: cg.total_goal || spotifyCampaign?.goal || 0,
               creator_count: 0
             };
             return acc;
