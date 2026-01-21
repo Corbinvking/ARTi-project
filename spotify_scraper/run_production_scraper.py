@@ -850,6 +850,10 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
         
         vendor_match_info = f", {vendor_matched_count} vendor-matched" if vendor_matched_count > 0 else ""
         logger.info(f"[{campaign_id}] ✓ Synced {len(playlist_records)} playlists ({algorithmic_count} algorithmic, {vendor_count} vendor{vendor_match_info})")
+        
+        # After successful sync, save performance entries for historical tracking
+        await save_performance_entries(campaign_id, playlist_records, headers)
+        
         return True
         
     except Exception as e:
@@ -857,6 +861,58 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
         import traceback
         traceback.print_exc()
         return False
+
+
+async def save_performance_entries(campaign_id, playlist_records, headers):
+    """
+    Save daily performance entries for historical tracking.
+    This allows us to show streaming performance history over time.
+    """
+    try:
+        # First, get the campaign_playlists IDs we just created
+        get_url = f"{SUPABASE_URL}/rest/v1/campaign_playlists"
+        get_params = {'campaign_id': f'eq.{campaign_id}', 'select': 'id,playlist_name,streams_24h'}
+        
+        response = requests.get(get_url, headers=headers, params=get_params)
+        if response.status_code != 200:
+            logger.warning(f"[{campaign_id}] Could not fetch playlist IDs for performance entries")
+            return
+        
+        playlists = response.json()
+        if not playlists:
+            return
+        
+        # Get today's date
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        
+        # Create performance entries for each playlist
+        performance_entries = []
+        for playlist in playlists:
+            if playlist['streams_24h'] and playlist['streams_24h'] > 0:
+                performance_entries.append({
+                    'campaign_id': None,  # campaign_playlists.campaign_id is integer, but performance_entries expects UUID - leaving null for now
+                    'playlist_id': playlist['id'],  # This is the UUID from campaign_playlists
+                    'daily_streams': playlist['streams_24h'],
+                    'date_recorded': today
+                })
+        
+        if not performance_entries:
+            return
+        
+        # Use upsert to avoid duplicates if run multiple times in a day
+        insert_url = f"{SUPABASE_URL}/rest/v1/performance_entries"
+        # Add Prefer header for upsert on conflict
+        upsert_headers = {**headers, 'Prefer': 'resolution=merge-duplicates'}
+        
+        insert_response = requests.post(insert_url, headers=upsert_headers, json=performance_entries)
+        
+        if insert_response.status_code in [200, 201]:
+            logger.info(f"[{campaign_id}] ✓ Saved {len(performance_entries)} performance entries for {today}")
+        else:
+            logger.warning(f"[{campaign_id}] Could not save performance entries: {insert_response.status_code}")
+            
+    except Exception as e:
+        logger.warning(f"[{campaign_id}] Error saving performance entries: {e}")
 
 
 def get_directory_size(path):
