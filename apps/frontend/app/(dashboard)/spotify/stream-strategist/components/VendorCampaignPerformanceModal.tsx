@@ -41,17 +41,19 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
   const vendorStreamGoal = freshCampaign.vendor_stream_goal || 0;
   // Use total_streams_delivered from hook (already calculated from campaign_playlists)
   // Or sum up current_streams from vendor_playlists (now populated with actual scraped data)
+  // Sum total streams from all vendor playlists in this campaign
   const currentStreams = (freshCampaign as any).total_streams_delivered || 
     freshCampaign.vendor_playlists?.reduce((sum: number, p: any) => 
-      p.is_allocated ? (p.current_streams || 0) : 0, 0) || 0;
+      sum + (p.current_streams || p.streams_12m || 0), 0) || 0;
 
   // Calculate streams by time period from vendor_playlists
+  // Sum ALL playlists in the campaign (not just allocated ones) since they all contribute to streams
   const streams24h = freshCampaign.vendor_playlists?.reduce((sum: number, p: any) => 
-    p.is_allocated ? (p.streams_24h || 0) : 0, 0) || 0;
+    sum + (p.streams_24h || 0), 0) || 0;
   const streams7d = freshCampaign.vendor_playlists?.reduce((sum: number, p: any) => 
-    p.is_allocated ? (p.streams_7d || 0) : 0, 0) || 0;
+    sum + (p.streams_7d || 0), 0) || 0;
   const streams12m = freshCampaign.vendor_playlists?.reduce((sum: number, p: any) => 
-    p.is_allocated ? (p.streams_12m || 0) : 0, 0) || 0;
+    sum + (p.streams_12m || 0), 0) || 0;
 
   // Get payment data for this campaign - either from the payments hook or from the campaign data itself
   // Priority for rate: 1. payments hook, 2. campaign cost_per_1k_streams, 3. vendor_allocation, 4. default $8
