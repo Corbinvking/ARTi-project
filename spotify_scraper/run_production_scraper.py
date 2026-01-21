@@ -477,6 +477,7 @@ async def scrape_campaign(page, spotify_page, campaign):
         stats_7d = song_data['time_ranges']['7day']['stats']
         stats_12m = song_data['time_ranges']['12months']['stats']
         
+        now_iso = datetime.now(timezone.utc).isoformat()
         return {
             'streams_24h': stats_24h.get('streams', 0),
             'streams_7d': stats_7d.get('streams', 0),
@@ -484,7 +485,8 @@ async def scrape_campaign(page, spotify_page, campaign):
             'playlists_24h_count': len(stats_24h.get('playlists', [])),
             'playlists_7d_count': len(stats_7d.get('playlists', [])),
             'playlists_12m_count': len(stats_12m.get('playlists', [])),
-            'last_scraped_at': datetime.now(timezone.utc).isoformat(),
+            'last_scraped_at': now_iso,
+            'updated_at': now_iso,  # Also update this so frontend shows correct "last updated" 
             'scrape_data': song_data
         }
         
