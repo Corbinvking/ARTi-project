@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, Component, ErrorInfo, ReactNode } from 'react';
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -23,8 +23,67 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import { UNIFIED_GENRES } from '../lib/constants';
 import { supabase } from '../integrations/supabase/client';
-import { CheckCircle, RefreshCcw, Eye, CalendarIcon, ArrowLeft, ArrowRight } from 'lucide-react';
+import { CheckCircle, RefreshCcw, Eye, CalendarIcon, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
+
+// Error Boundary for VendorAssignmentStep to prevent page crashes
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class VendorAssignmentErrorBoundary extends Component<{ children: ReactNode; onReset?: () => void }, ErrorBoundaryState> {
+  constructor(props: { children: ReactNode; onReset?: () => void }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('VendorAssignment Error:', error, errorInfo);
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+    this.props.onReset?.();
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardContent className="py-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                  Vendor Assignment Error
+                </h3>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                  Something went wrong loading vendor assignments. You can still submit your campaign - vendor assignments can be added later.
+                </p>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  size="sm" 
+                  onClick={this.handleRetry}
+                  className="mt-3 border-amber-300 text-amber-700 hover:bg-amber-100"
+                >
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default function CampaignIntakePage() {
   const { toast } = useToast();
@@ -350,12 +409,31 @@ export default function CampaignIntakePage() {
     }));
   };
 
+  // Use ref to prevent re-entrant updates
+  const isUpdatingVendorAssignments = useRef(false);
+  
   // Memoized callback to prevent infinite re-renders with Radix Select
+  // Added guard to prevent re-entrant updates that cause infinite loops
   const handleVendorAssignmentsChange = useCallback((assignments: typeof formData.vendor_assignments) => {
-    setFormData(prev => ({
-      ...prev,
-      vendor_assignments: assignments
-    }));
+    // Prevent re-entrant updates
+    if (isUpdatingVendorAssignments.current) {
+      console.warn('Preventing re-entrant vendor assignment update');
+      return;
+    }
+    
+    isUpdatingVendorAssignments.current = true;
+    
+    // Use requestAnimationFrame to batch the update
+    requestAnimationFrame(() => {
+      setFormData(prev => ({
+        ...prev,
+        vendor_assignments: assignments
+      }));
+      // Reset the flag after a short delay to allow normal updates
+      setTimeout(() => {
+        isUpdatingVendorAssignments.current = false;
+      }, 100);
+    });
   }, []);
 
   // Memoize campaignGenres to prevent infinite re-renders in VendorAssignmentStep
@@ -676,13 +754,17 @@ export default function CampaignIntakePage() {
 
               {/* Vendor Assignment Section */}
               <div className="border-t pt-6 mt-6">
-                <VendorAssignmentStep
-                  assignments={formData.vendor_assignments}
-                  onChange={handleVendorAssignmentsChange}
-                  totalStreamGoal={parseInt(formData.stream_goal) || 0}
-                  totalBudget={parseFloat(formData.price_paid) || 0}
-                  campaignGenres={memoizedCampaignGenres}
-                />
+                <VendorAssignmentErrorBoundary 
+                  onReset={() => setFormData(prev => ({ ...prev, vendor_assignments: [] }))}
+                >
+                  <VendorAssignmentStep
+                    assignments={formData.vendor_assignments}
+                    onChange={handleVendorAssignmentsChange}
+                    totalStreamGoal={parseInt(formData.stream_goal) || 0}
+                    totalBudget={parseFloat(formData.price_paid) || 0}
+                    campaignGenres={memoizedCampaignGenres}
+                  />
+                </VendorAssignmentErrorBoundary>
               </div>
 
               {/* Notes */}
