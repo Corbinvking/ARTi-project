@@ -56,10 +56,11 @@ export default function VendorDashboard() {
   const [spotifyCreateError, setSpotifyCreateError] = useState<string | null>(null);
   const [lastFetchedUrl, setLastFetchedUrl] = useState<string>('');
   
-  // Sorting and search state for campaigns
+  // Sorting, search, and filter state for campaigns
   const [sortBy, setSortBy] = useState<'name' | 'start_date'>('start_date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [campaignSearch, setCampaignSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'on-track' | 'behind'>('all');
 
   const totalStreams = playlists?.reduce((sum, playlist) => sum + playlist.avg_daily_streams, 0) || 0;
   const pendingRequests = requests.filter(r => r.status === 'pending').length;
@@ -177,9 +178,43 @@ export default function VendorDashboard() {
     };
   })();
 
+  // Helper function to determine if campaign is on-track or behind
+  const getCampaignPaceStatus = (campaign: any): 'on-track' | 'behind' | 'ahead' => {
+    const vendorStreamGoal = campaign.vendor_stream_goal || 0;
+    const currentStreams = (campaign as any).total_streams_delivered || 
+      campaign.vendor_playlists?.reduce((sum: number, p: any) => 
+        p.is_allocated ? (p.current_streams || 0) : 0, 0) || 0;
+    
+    if (vendorStreamGoal <= 0) return 'on-track'; // No goal set, consider on-track
+    
+    const progressPercentage = (currentStreams / vendorStreamGoal) * 100;
+    
+    // Calculate expected progress based on campaign duration
+    const startDate = new Date(campaign.start_date);
+    const endDate = campaign.end_date ? new Date(campaign.end_date) : 
+      new Date(startDate.getTime() + (campaign.duration_days || 90) * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const totalDays = Math.max(1, (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+    const elapsedDays = Math.max(0, (now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+    const expectedProgress = (elapsedDays / totalDays) * 100;
+    
+    // Allow 20% buffer for "on-track"
+    if (progressPercentage >= expectedProgress * 1.1) return 'ahead';
+    if (progressPercentage >= expectedProgress * 0.8) return 'on-track';
+    return 'behind';
+  };
+
   // Filter and sort campaigns
   const filteredAndSortedCampaigns = [...campaigns]
     .filter(campaign => {
+      // Status filter
+      if (statusFilter !== 'all') {
+        const paceStatus = getCampaignPaceStatus(campaign);
+        if (statusFilter === 'on-track' && paceStatus === 'behind') return false;
+        if (statusFilter === 'behind' && paceStatus !== 'behind') return false;
+      }
+      
+      // Search filter
       if (!campaignSearch.trim()) return true;
       const search = campaignSearch.toLowerCase();
       return (
@@ -612,7 +647,46 @@ export default function VendorDashboard() {
                   Manage your playlist participation in active campaigns
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Status Filter Tabs */}
+                <div className="flex gap-1 p-1 bg-muted rounded-lg">
+                  <Button
+                    variant={statusFilter === 'all' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStatusFilter('all')}
+                    className="text-xs h-7"
+                  >
+                    All
+                    <Badge variant="outline" className="ml-1.5 h-4 px-1 text-[10px]">
+                      {campaigns.length}
+                    </Badge>
+                  </Button>
+                  <Button
+                    variant={statusFilter === 'on-track' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStatusFilter('on-track')}
+                    className="text-xs h-7"
+                  >
+                    <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
+                    On Track
+                    <Badge variant="outline" className="ml-1.5 h-4 px-1 text-[10px]">
+                      {campaigns.filter(c => getCampaignPaceStatus(c) !== 'behind').length}
+                    </Badge>
+                  </Button>
+                  <Button
+                    variant={statusFilter === 'behind' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStatusFilter('behind')}
+                    className="text-xs h-7"
+                  >
+                    <AlertTriangle className="h-3 w-3 mr-1 text-orange-600" />
+                    Behind
+                    <Badge variant="outline" className="ml-1.5 h-4 px-1 text-[10px]">
+                      {campaigns.filter(c => getCampaignPaceStatus(c) === 'behind').length}
+                    </Badge>
+                  </Button>
+                </div>
+                
                 {/* Search Bar */}
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
