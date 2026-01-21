@@ -231,56 +231,77 @@ export function SubmissionDetailModal({
       return;
     }
     
-    // Get active vendors with capacity, sorted by max daily streams
-    const activeVendors = vendors
-      .filter(v => v.is_active && (v.max_daily_streams || 0) > 0)
+    // Get all active vendors
+    const allActiveVendors = vendors.filter(v => v.is_active);
+    
+    // Prefer vendors with capacity set, but fallback to all active if none have capacity
+    const vendorsWithCapacity = allActiveVendors
+      .filter(v => (v.max_daily_streams || 0) > 0)
       .sort((a, b) => (b.max_daily_streams || 0) - (a.max_daily_streams || 0));
     
-    console.log('🔧 Active vendors with capacity:', activeVendors.map(v => 
-      `${v.name}: ${v.max_daily_streams}/day @ $${v.cost_per_1k_streams || 8}/1K`
+    // Use vendors with capacity if available, otherwise use all active vendors
+    const useCapacityBasedDistribution = vendorsWithCapacity.length > 0;
+    const activeVendors = useCapacityBasedDistribution ? vendorsWithCapacity : allActiveVendors.slice(0, 5); // Limit to 5 for equal distribution
+    
+    console.log('🔧 Active vendors:', activeVendors.map(v => 
+      `${v.name}: ${v.max_daily_streams || 'N/A'}/day @ $${v.cost_per_1k_streams || 8}/1K`
     ));
+    console.log('🔧 Distribution mode:', useCapacityBasedDistribution ? 'capacity-based' : 'equal distribution');
     
     if (activeVendors.length === 0) {
       toast({
         title: "No active vendors",
-        description: "All vendors are inactive or have no daily capacity set.",
+        description: "No active vendors available for assignment.",
         variant: "destructive"
       });
       return;
     }
     
-    // Calculate proportional allocation based on daily capacity
-    const totalDailyCapacity = activeVendors.reduce((sum, v) => sum + (v.max_daily_streams || 0), 0);
     const campaignDays = submission.duration_days || 90;
     const dailyStreamsNeeded = submission.stream_goal / campaignDays;
+    
+    // Calculate capacity or use equal distribution
+    let totalDailyCapacity = 0;
+    if (useCapacityBasedDistribution) {
+      totalDailyCapacity = activeVendors.reduce((sum, v) => sum + (v.max_daily_streams || 0), 0);
+    }
     
     console.log('🔧 Campaign analysis:', {
       streamGoal: submission.stream_goal,
       campaignDays,
       dailyNeeded: dailyStreamsNeeded.toFixed(0),
-      totalDailyCapacity,
-      utilizationPercent: ((dailyStreamsNeeded / totalDailyCapacity) * 100).toFixed(1) + '%'
+      totalDailyCapacity: useCapacityBasedDistribution ? totalDailyCapacity : 'N/A (equal)',
+      vendorCount: activeVendors.length
     });
     
     const newAssignments: VendorAssignment[] = [];
     let remainingStreams = submission.stream_goal;
     
-    for (const vendor of activeVendors) {
+    for (let i = 0; i < activeVendors.length; i++) {
+      const vendor = activeVendors[i];
       if (remainingStreams <= 0) break;
       
-      // Allocate proportionally based on daily capacity
-      const vendorDailyCapacity = vendor.max_daily_streams || 0;
-      const proportion = vendorDailyCapacity / totalDailyCapacity;
-      const allocatedStreams = Math.min(
-        Math.round(submission.stream_goal * proportion),
-        remainingStreams
-      );
+      // Calculate proportion based on capacity or equal distribution
+      let proportion: number;
+      if (useCapacityBasedDistribution) {
+        const vendorDailyCapacity = vendor.max_daily_streams || 0;
+        proportion = vendorDailyCapacity / totalDailyCapacity;
+      } else {
+        // Equal distribution among vendors
+        proportion = 1 / activeVendors.length;
+      }
+      
+      // For the last vendor, assign all remaining to avoid rounding errors
+      const isLastVendor = i === activeVendors.length - 1;
+      const allocatedStreams = isLastVendor
+        ? remainingStreams
+        : Math.min(Math.round(submission.stream_goal * proportion), remainingStreams);
       
       // Calculate budget based on vendor's rate
       const ratePer1k = vendor.cost_per_1k_streams || 8;
       const allocatedBudget = (allocatedStreams / 1000) * ratePer1k;
       
-      console.log(`🔧 ${vendor.name}: capacity=${vendorDailyCapacity}/day, proportion=${(proportion * 100).toFixed(1)}%, streams=${allocatedStreams}, budget=$${allocatedBudget.toFixed(2)}`);
+      console.log(`🔧 ${vendor.name}: proportion=${(proportion * 100).toFixed(1)}%, streams=${allocatedStreams}, budget=$${allocatedBudget.toFixed(2)}`);
       
       if (allocatedStreams > 0) {
         newAssignments.push({
@@ -301,9 +322,10 @@ export function SubmissionDetailModal({
     ));
     
     setEditedAssignments(newAssignments);
+    setIsEditingVendors(true); // Enter edit mode so they can adjust
     toast({
       title: "Vendors auto-suggested",
-      description: `${newAssignments.length} vendors assigned based on daily capacity. Click Save to apply.`
+      description: `${newAssignments.length} vendors assigned${useCapacityBasedDistribution ? ' based on daily capacity' : ' (equal distribution)'}. Adjust if needed, then Save.`
     });
   };
 
