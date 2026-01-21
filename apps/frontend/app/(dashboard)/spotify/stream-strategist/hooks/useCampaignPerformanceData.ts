@@ -86,11 +86,11 @@ export function useCampaignPerformanceData(campaignId: string) {
         vendorData.cost_per_stream = allocation.cost_per_stream || 0;
 
         // Fetch daily performance data for this playlist
+        // Note: We only filter by playlist_id since campaign_playlists entries are unique per campaign
         const { data: dailyData } = await supabase
           .from('performance_entries')
           .select('daily_streams, date_recorded')
           .eq('playlist_id', allocation.playlist_id)
-          .eq('campaign_id', campaignId)
           .order('date_recorded', { ascending: true })
           .limit(30); // Last 30 days
 
