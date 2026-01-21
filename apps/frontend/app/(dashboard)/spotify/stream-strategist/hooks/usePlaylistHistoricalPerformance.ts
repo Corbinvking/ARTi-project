@@ -68,27 +68,57 @@ export function usePlaylistHistoricalPerformance(playlistIds?: string[]) {
       console.log('📊 Searching for playlist names:', playlistNames.slice(0, 5), '...');
 
       // Get 12-month stream data from campaign_playlists (scraped data)
-      // Batch the query to avoid URL length limits
+      // Try multiple matching strategies: by name and by spotify_id
       let campaignPlaylistData: any[] = [];
+      const foundPlaylistNames = new Set<string>();
       
+      // Strategy 1: Match by playlist name (batched)
       if (playlistNames.length > 0) {
-        // Query in batches of 50 names to avoid URL length limits
         for (let i = 0; i < playlistNames.length; i += BATCH_SIZE) {
           const batchNames = playlistNames.slice(i, i + BATCH_SIZE);
           const { data: cpData, error: cpError } = await supabase
             .from('campaign_playlists')
-            .select('playlist_name, streams_12m, streams_7d, streams_24h, campaign_id, vendor_id')
+            .select('playlist_name, playlist_spotify_id, streams_12m, streams_7d, streams_24h, campaign_id, vendor_id')
             .in('playlist_name', batchNames)
             .order('streams_12m', { ascending: false });
 
           if (cpError) {
-            console.warn('Could not fetch campaign_playlists batch:', cpError);
+            console.warn('Could not fetch campaign_playlists batch by name:', cpError);
           } else if (cpData) {
+            cpData.forEach(cp => {
+              if (cp.playlist_name) foundPlaylistNames.add(cp.playlist_name.toLowerCase().trim());
+            });
             campaignPlaylistData = [...campaignPlaylistData, ...cpData];
           }
         }
-        console.log('📊 Found', campaignPlaylistData.length, 'matching campaign_playlists entries');
       }
+      
+      // Strategy 2: Match by spotify_id for playlists not found by name
+      if (playlistSpotifyIds.length > 0) {
+        for (let i = 0; i < playlistSpotifyIds.length; i += BATCH_SIZE) {
+          const batchSpotifyIds = playlistSpotifyIds.slice(i, i + BATCH_SIZE);
+          const { data: cpData, error: cpError } = await supabase
+            .from('campaign_playlists')
+            .select('playlist_name, playlist_spotify_id, streams_12m, streams_7d, streams_24h, campaign_id, vendor_id')
+            .in('playlist_spotify_id', batchSpotifyIds)
+            .order('streams_12m', { ascending: false });
+
+          if (cpError) {
+            console.warn('Could not fetch campaign_playlists batch by spotify_id:', cpError);
+          } else if (cpData) {
+            // Only add entries we haven't already found by name
+            cpData.forEach(cp => {
+              const normalizedName = cp.playlist_name?.toLowerCase().trim();
+              if (!normalizedName || !foundPlaylistNames.has(normalizedName)) {
+                campaignPlaylistData.push(cp);
+                if (normalizedName) foundPlaylistNames.add(normalizedName);
+              }
+            });
+          }
+        }
+      }
+      
+      console.log('📊 Found', campaignPlaylistData.length, 'matching campaign_playlists entries');
 
       // Get campaign names separately
       const campaignIds = [...new Set(campaignPlaylistData?.map(a => a.campaign_id) || [])];
@@ -118,7 +148,13 @@ export function usePlaylistHistoricalPerformance(playlistIds?: string[]) {
         }
       }
 
-      // Process campaign_playlists data - match by name and aggregate streams
+      // Create lookup maps for matching
+      const playlistByName = new Map(playlists.map(p => [p.name.toLowerCase().trim(), p]));
+      const playlistBySpotifyId = new Map(
+        playlists.filter(p => p.spotify_id).map(p => [p.spotify_id, p])
+      );
+      
+      // Process campaign_playlists data - match by name OR spotify_id
       // Keep track of which campaign-playlist combos we've seen to avoid duplicates
       const seenCampaignPlaylists = new Set<string>();
       
@@ -126,19 +162,23 @@ export function usePlaylistHistoricalPerformance(playlistIds?: string[]) {
       const playlistsWithData = new Set<string>();
       
       campaignPlaylistData?.forEach(cpData => {
-        if (!cpData.playlist_name) return;
+        // Try to find matching playlist by spotify_id first, then by name
+        let matchingPlaylist = null;
         
-        // Find matching playlist by name (case-insensitive, trim whitespace)
-        const normalizedCpName = cpData.playlist_name.toLowerCase().trim();
-        const matchingPlaylist = playlists?.find(p => 
-          p.name.toLowerCase().trim() === normalizedCpName
-        );
+        if (cpData.playlist_spotify_id) {
+          matchingPlaylist = playlistBySpotifyId.get(cpData.playlist_spotify_id);
+        }
+        
+        if (!matchingPlaylist && cpData.playlist_name) {
+          const normalizedCpName = cpData.playlist_name.toLowerCase().trim();
+          matchingPlaylist = playlistByName.get(normalizedCpName);
+        }
         
         if (matchingPlaylist) {
           playlistsWithData.add(matchingPlaylist.id);
           const playlist = playlistMap.get(matchingPlaylist.id);
           if (playlist) {
-            const campaignPlaylistKey = `${cpData.campaign_id}-${cpData.playlist_name}`;
+            const campaignPlaylistKey = `${cpData.campaign_id}-${matchingPlaylist.id}`;
             
             // Only count each campaign-playlist combo once (avoid duplicates)
             if (!seenCampaignPlaylists.has(campaignPlaylistKey)) {
@@ -177,8 +217,18 @@ export function usePlaylistHistoricalPerformance(playlistIds?: string[]) {
 
       const results = Array.from(playlistMap.values());
       const withData = results.filter(p => p.total_streams_12_months > 0);
-      console.log('📊 Matched', playlistsWithData.size, 'playlists to campaign_playlists data');
-      console.log('📊 Returning', results.length, 'playlists,', withData.length, 'with 12-month data');
+      const withAvgDaily = playlists.filter(p => p.avg_daily_streams && p.avg_daily_streams > 0).length;
+      
+      console.log('📊 Data sources breakdown:');
+      console.log('   - Playlists with avg_daily_streams in DB:', withAvgDaily);
+      console.log('   - Playlists matched to campaign_playlists:', playlistsWithData.size);
+      console.log('   - Total playlists with 12-month data:', withData.length, '/', results.length);
+      
+      // Log a few examples of playlists without data for debugging
+      const withoutData = results.filter(p => p.total_streams_12_months === 0);
+      if (withoutData.length > 0) {
+        console.log('📊 Sample playlists without data:', withoutData.slice(0, 3).map(p => p.playlist_name));
+      }
       
       return results;
     },
