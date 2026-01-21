@@ -449,9 +449,27 @@ export default function VendorPlaylistManager() {
 
                       {/* 12-Month Total */}
                       <td className="p-3 text-center">
-                        <span className="font-medium text-sm">
-                          {historicalData?.total_streams_12_months?.toLocaleString() || '0'}
-                        </span>
+                        {(historicalData?.total_streams_12_months || 0) > 0 ? (
+                          <span className="font-medium text-sm">
+                            {historicalData.total_streams_12_months.toLocaleString()}
+                          </span>
+                        ) : (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center justify-center gap-1 text-muted-foreground cursor-help">
+                                  <span className="text-sm">-</span>
+                                  <HelpCircle className="h-3 w-3" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs max-w-[200px]">
+                                  No stream data yet. Add this playlist to campaigns to start tracking.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </td>
 
                       {/* Campaigns */}
