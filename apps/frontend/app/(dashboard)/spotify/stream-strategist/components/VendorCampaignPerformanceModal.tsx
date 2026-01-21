@@ -105,7 +105,7 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[1000px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             {freshCampaign.name}
@@ -119,7 +119,7 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 flex-1 overflow-y-auto">
           {/* Performance Overview */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 border rounded-lg">
