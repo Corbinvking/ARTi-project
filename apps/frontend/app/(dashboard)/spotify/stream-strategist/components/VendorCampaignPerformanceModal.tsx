@@ -174,8 +174,15 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground">Total earned</div>
-                  <div className="text-lg font-semibold text-green-600">${campaignPayment.amount_owed.toFixed(2)}</div>
+                  <div className="text-sm text-muted-foreground">Total Paid</div>
+                  <div className="text-lg font-semibold text-green-600">
+                    ${campaignPayment.payment_status === 'paid' ? campaignPayment.amount_owed.toFixed(2) : '0.00'}
+                  </div>
+                  {campaignPayment.payment_status !== 'paid' && campaignPayment.amount_owed > 0 && (
+                    <div className="text-xs text-amber-600">
+                      ${campaignPayment.amount_owed.toFixed(2)} pending
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
