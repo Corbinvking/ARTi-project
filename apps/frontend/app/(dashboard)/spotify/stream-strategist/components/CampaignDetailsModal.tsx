@@ -920,16 +920,33 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
 
   // Get stored vendor allocations from campaign_groups.vendor_allocations
   const storedVendorAllocations = (campaignData?.vendor_allocations as Record<string, { allocated_streams?: number; allocated_budget?: number }>) || {};
+  
+  // Get total campaign stream goal for proportional allocation fallback
+  const campaignStreamGoal = campaignData?.stream_goal || 0;
+  
+  // Calculate total actual streams across all vendors for proportion calculation
+  const totalActualStreamsAllVendors = Object.values(groupedPlaylists).reduce(
+    (sum: number, v: any) => sum + (v.totalStreams || 0), 0
+  );
 
   // Calculate total payment for each vendor after processing all playlists
   Object.keys(groupedPlaylists).forEach(vendorId => {
     const vendorGroup = groupedPlaylists[vendorId];
     
-    // Override totalAllocated with stored allocation if available
+    // Determine allocated streams with priority:
+    // 1. Stored allocation override (manual entry)
+    // 2. Proportional split of campaign goal based on vendor's actual stream contribution
+    // 3. If no goal, fall back to actual streams
     const storedAllocation = storedVendorAllocations[vendorId];
     if (storedAllocation?.allocated_streams !== undefined) {
+      // Use manually set allocation
       vendorGroup.totalAllocated = storedAllocation.allocated_streams;
+    } else if (campaignStreamGoal > 0 && totalActualStreamsAllVendors > 0) {
+      // Calculate proportional split of campaign goal based on this vendor's share of actual streams
+      const vendorProportion = vendorGroup.totalStreams / totalActualStreamsAllVendors;
+      vendorGroup.totalAllocated = Math.round(campaignStreamGoal * vendorProportion);
     }
+    // Otherwise, keep the fallback of totalAllocated = sum of actual streams (set during grouping)
     
     // Calculate total payment using the consistent cost per 1k rate
     // Use actual streams from campaign_playlists and the effective cost per 1k
