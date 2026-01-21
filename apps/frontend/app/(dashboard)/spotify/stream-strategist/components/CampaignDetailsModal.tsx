@@ -2529,6 +2529,13 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     const totalSongStreams7d = songs.reduce((sum: number, s: any) => sum + (s.streams_7d || 0), 0);
                     const totalSongStreams24h = songs.reduce((sum: number, s: any) => sum + (s.streams_24h || 0), 0);
                     
+                    // Get the most recent update timestamp from songs
+                    const lastUpdated = songs.reduce((latest: Date | null, s: any) => {
+                      if (!s.updated_at) return latest;
+                      const songDate = new Date(s.updated_at);
+                      return !latest || songDate > latest ? songDate : latest;
+                    }, null as Date | null);
+                    
                     // Get playlist-only streams (from campaign_playlists - excluding algorithmic and organic)
                     const vendorPlaylists = campaignPlaylists
                       .filter((p: any) => !p.is_algorithmic && !p.is_organic);
@@ -2689,6 +2696,11 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                             <p className="text-xs text-muted-foreground mt-1">
                               Goal: {streamGoal.toLocaleString()}
                             </p>
+                            {lastUpdated && streamViewMode === 'total' && (
+                              <p className="text-xs text-amber-600 mt-1">
+                                Last updated: {lastUpdated.toLocaleDateString()}
+                              </p>
+                            )}
                           </div>
                           
                           {/* Daily Rate */}
