@@ -34,9 +34,12 @@ export function ClientSelector({ value, onChange, placeholder = "Search clients 
   const { data: clients = [], refetch: refetchClients, isLoading } = useClients();
   const createClient = useCreateClient();
 
-  console.log('ClientSelector - clients:', clients?.length || 0, 'isLoading:', isLoading);
+  // Debug logging removed to reduce console spam
 
   const selectedClient = clients?.find((client) => client.id === value);
+  
+  // Memoize selected client name to prevent useEffect from triggering on object reference changes
+  const selectedClientName = selectedClient?.name;
   
   // Filter clients based on search query
   const filteredClients = clients.filter((client) =>
@@ -46,12 +49,12 @@ export function ClientSelector({ value, onChange, placeholder = "Search clients 
   // Show "no results" message
   const showNoResults = searchQuery && filteredClients.length === 0 && !isLoading;
   
-  // Update search query when client is selected
+  // Update search query when client is selected - only depend on primitive values, not object references
   useEffect(() => {
-    if (selectedClient) {
-      setSearchQuery(selectedClient.name);
+    if (selectedClientName && searchQuery !== selectedClientName) {
+      setSearchQuery(selectedClientName);
     }
-  }, [selectedClient]);
+  }, [selectedClientName]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Close suggestions when clicking outside
   useEffect(() => {
