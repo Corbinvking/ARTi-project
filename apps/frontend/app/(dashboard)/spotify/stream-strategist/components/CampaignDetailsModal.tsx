@@ -1079,18 +1079,21 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         // Still consider it a success if we tried - the vendor might just not have playlist data yet
       }
       
-      // Invalidate relevant queries to ensure UI updates
+      // Show success toast immediately
+      toast({
+        title: "Payment Marked as Paid",
+        description: `Payment of $${amount.toFixed(2)} to ${vendorName} has been recorded.`,
+      });
+      
+      // Invalidate relevant queries to ensure data refreshes in background
       queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaignId] });
       queryClient.invalidateQueries({ queryKey: ['vendor-payouts'] });
       queryClient.invalidateQueries({ queryKey: ['vendor-campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       
-      // Refresh campaign details to show updated payment status
-      await fetchCampaignDetails();
-      
-      toast({
-        title: "Payment Marked as Paid",
-        description: `Payment of $${amount.toFixed(2)} to ${vendorName} has been marked as paid.`,
-      });
+      // Note: We don't call fetchCampaignDetails() here because it sets loading=true
+      // which causes the modal to flash to "Loading..." state
+      // The query invalidation above will trigger a background refresh
     } catch (error) {
       console.error('Failed to mark payment as paid:', error);
       toast({
