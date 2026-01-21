@@ -936,17 +936,22 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     // Determine allocated streams with priority:
     // 1. Stored allocation override (manual entry)
     // 2. Proportional split of campaign goal based on vendor's actual stream contribution
-    // 3. If no goal, fall back to actual streams
+    // 3. Fall back to actual delivered streams (best available data)
     const storedAllocation = storedVendorAllocations[vendorId];
-    if (storedAllocation?.allocated_streams !== undefined) {
+    if (storedAllocation?.allocated_streams !== undefined && storedAllocation.allocated_streams > 0) {
       // Use manually set allocation
       vendorGroup.totalAllocated = storedAllocation.allocated_streams;
     } else if (campaignStreamGoal > 0 && totalActualStreamsAllVendors > 0) {
       // Calculate proportional split of campaign goal based on this vendor's share of actual streams
       const vendorProportion = vendorGroup.totalStreams / totalActualStreamsAllVendors;
       vendorGroup.totalAllocated = Math.round(campaignStreamGoal * vendorProportion);
+    } else {
+      // No goal set - use actual delivered streams as the "allocated" value
+      // This provides meaningful data when campaign goals aren't configured
+      vendorGroup.totalAllocated = vendorGroup.totalStreams || vendorGroup.totalActual || 0;
     }
-    // Otherwise, keep the fallback of totalAllocated = sum of actual streams (set during grouping)
+    
+    console.log(`Allocation calc for ${vendorGroup.vendorName}: stored=${storedAllocation?.allocated_streams}, goal=${campaignStreamGoal}, totalActual=${totalActualStreamsAllVendors}, vendorStreams=${vendorGroup.totalStreams} => allocated=${vendorGroup.totalAllocated}`);
     
     // Calculate total payment using the consistent cost per 1k rate
     // Use actual streams from campaign_playlists and the effective cost per 1k
