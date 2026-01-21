@@ -352,18 +352,28 @@ export function VendorAssignmentStep({
   };
 
   const handleTogglePlaylist = (vendorId: string, playlistId: string) => {
-    onChange(
-      assignments.map(a => {
-        if (a.vendor_id !== vendorId) return a;
-        
-        const currentPlaylists = a.playlist_ids || [];
-        const newPlaylists = currentPlaylists.includes(playlistId)
-          ? currentPlaylists.filter(id => id !== playlistId)
-          : [...currentPlaylists, playlistId];
-        
-        return { ...a, playlist_ids: newPlaylists };
-      })
-    );
+    // Validate inputs
+    if (!vendorId || !playlistId) {
+      console.warn('handleTogglePlaylist: Missing vendorId or playlistId', { vendorId, playlistId });
+      return;
+    }
+    
+    try {
+      onChange(
+        assignments.map(a => {
+          if (a.vendor_id !== vendorId) return a;
+          
+          const currentPlaylists = a.playlist_ids || [];
+          const newPlaylists = currentPlaylists.includes(playlistId)
+            ? currentPlaylists.filter(id => id !== playlistId)
+            : [...currentPlaylists, playlistId];
+          
+          return { ...a, playlist_ids: newPlaylists };
+        })
+      );
+    } catch (error) {
+      console.error('Error toggling playlist:', error);
+    }
   };
 
   const handleToggleVendorExpansion = (vendorId: string) => {
@@ -766,8 +776,10 @@ export function VendorAssignmentStep({
                                     <div className="flex-1 min-w-0">
                                       <div className="text-sm font-medium truncate">{playlist.name}</div>
                                       <div className="text-xs text-muted-foreground">
-                                        {playlist.follower_count?.toLocaleString() || 0} followers
-                                        {playlist.avg_daily_streams && ` • ~${playlist.avg_daily_streams.toLocaleString()}/day`}
+                                        {(playlist.follower_count || 0).toLocaleString()} followers
+                                        {playlist.avg_daily_streams && playlist.avg_daily_streams > 0 && (
+                                          <span> • ~{playlist.avg_daily_streams.toLocaleString()}/day</span>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
