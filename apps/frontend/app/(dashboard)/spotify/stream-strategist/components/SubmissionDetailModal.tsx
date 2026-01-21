@@ -39,6 +39,7 @@ interface VendorAssignment {
   allocated_streams: number;
   allocated_budget: number;
   playlist_ids?: string[];
+  cost_per_1k?: number; // Vendor's rate, can be overridden
 }
 
 interface Submission {
@@ -128,7 +129,7 @@ export function SubmissionDetailModal({
     
     // Calculate budget based on vendor's rate or default $8/1k
     const ratePer1k = vendor.cost_per_1k_streams || 8;
-    const defaultBudget = Math.min((defaultStreams / 1000) * ratePer1k, remainingBudget);
+    const defaultBudget = (defaultStreams / 1000) * ratePer1k;
     
     setEditedAssignments([
       ...editedAssignments,
@@ -137,6 +138,7 @@ export function SubmissionDetailModal({
         vendor_name: vendor.name,
         allocated_streams: defaultStreams,
         allocated_budget: Math.round(defaultBudget * 100) / 100,
+        cost_per_1k: ratePer1k,
         playlist_ids: []
       }
     ]);
@@ -147,10 +149,25 @@ export function SubmissionDetailModal({
     setEditedAssignments(editedAssignments.filter(a => a.vendor_id !== vendorId));
   };
 
-  const handleUpdateAllocation = (vendorId: string, field: 'allocated_streams' | 'allocated_budget', value: number) => {
-    setEditedAssignments(editedAssignments.map(a => 
-      a.vendor_id === vendorId ? { ...a, [field]: value } : a
-    ));
+  const handleUpdateAllocation = (vendorId: string, field: 'allocated_streams' | 'allocated_budget' | 'cost_per_1k', value: number) => {
+    setEditedAssignments(editedAssignments.map(a => {
+      if (a.vendor_id !== vendorId) return a;
+      
+      const vendor = vendors.find(v => v.id === vendorId);
+      const updated = { ...a, [field]: value };
+      
+      // Auto-recalculate budget when streams or cost_per_1k changes
+      if (field === 'allocated_streams' || field === 'cost_per_1k') {
+        const streams = field === 'allocated_streams' ? value : (a.allocated_streams || 0);
+        const costPer1k = field === 'cost_per_1k' ? value : (a.cost_per_1k ?? vendor?.cost_per_1k_streams ?? 8);
+        updated.allocated_budget = Math.round((streams / 1000) * costPer1k * 100) / 100;
+        if (field === 'cost_per_1k') {
+          updated.cost_per_1k = value;
+        }
+      }
+      
+      return updated;
+    }));
   };
 
   const handleSaveVendors = async () => {
@@ -216,10 +233,7 @@ export function SubmissionDetailModal({
       
       // Calculate budget based on vendor's rate
       const ratePer1k = vendor.cost_per_1k_streams || 8;
-      const allocatedBudget = Math.min(
-        (allocatedStreams / 1000) * ratePer1k,
-        remainingBudget
-      );
+      const allocatedBudget = (allocatedStreams / 1000) * ratePer1k;
       
       if (allocatedStreams > 0) {
         newAssignments.push({
@@ -227,6 +241,7 @@ export function SubmissionDetailModal({
           vendor_name: vendor.name,
           allocated_streams: allocatedStreams,
           allocated_budget: Math.round(allocatedBudget * 100) / 100,
+          cost_per_1k: ratePer1k,
           playlist_ids: []
         });
         
@@ -277,10 +292,9 @@ export function SubmissionDetailModal({
   const vendorAssignments = submission.vendor_assignments || [];
   const avgVendorRatePer1K = vendorAssignments.length > 0 && totalAllocatedStreams > 0
     ? vendorAssignments.reduce((sum, va) => {
-        // Cost per 1K for this vendor = (allocated_budget / allocated_streams) * 1000
-        const vendorRate = va.allocated_streams > 0 
-          ? (va.allocated_budget / va.allocated_streams * 1000) 
-          : 0;
+        // Use stored cost_per_1k if available, otherwise look up vendor's default rate
+        const vendor = vendors.find(v => v.id === va.vendor_id);
+        const vendorRate = va.cost_per_1k ?? vendor?.cost_per_1k_streams ?? 8;
         // Weight by streams allocated
         return sum + (vendorRate * va.allocated_streams);
       }, 0) / totalAllocatedStreams
@@ -612,10 +626,10 @@ export function SubmissionDetailModal({
                 return (
                   <div className="space-y-3">
                     {displayAssignments.map((assignment, idx) => {
-                      const vendorCostPerStream = assignment.allocated_streams > 0
-                        ? (assignment.allocated_budget / assignment.allocated_streams * 1000).toFixed(2)
-                        : '0.00';
                       const vendor = vendors.find(v => v.id === assignment.vendor_id);
+                      // Use stored cost_per_1k if available, otherwise use vendor's default rate
+                      const effectiveRate = assignment.cost_per_1k ?? vendor?.cost_per_1k_streams ?? 8;
+                      const vendorCostPerStream = effectiveRate.toFixed(2);
                       
                       return (
                         <Card key={assignment.vendor_id || idx}>
@@ -643,7 +657,7 @@ export function SubmissionDetailModal({
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                               <div>
                                 <Label className="text-muted-foreground">Allocated Streams</Label>
                                 {isEditingVendors ? (
@@ -662,26 +676,29 @@ export function SubmissionDetailModal({
                                 )}
                               </div>
                               <div>
-                                <Label className="text-muted-foreground">Allocated Budget</Label>
+                                <Label className="text-muted-foreground">Rate/1K</Label>
                                 {isEditingVendors ? (
                                   <Input
                                     type="number"
                                     step="0.01"
-                                    value={assignment.allocated_budget}
+                                    value={assignment.cost_per_1k ?? vendor?.cost_per_1k_streams ?? 8}
                                     onChange={(e) => handleUpdateAllocation(
                                       assignment.vendor_id, 
-                                      'allocated_budget', 
+                                      'cost_per_1k', 
                                       parseFloat(e.target.value) || 0
                                     )}
                                     className="mt-1"
                                   />
                                 ) : (
-                                  <p className="text-lg font-bold">${assignment.allocated_budget.toLocaleString()}</p>
+                                  <p className="text-lg font-bold">${vendorCostPerStream}</p>
                                 )}
                               </div>
                               <div>
-                                <Label className="text-muted-foreground">Effective Rate/1K</Label>
-                                <p className="text-lg font-bold">${vendorCostPerStream}</p>
+                                <Label className="text-muted-foreground">Budget (auto)</Label>
+                                <p className="text-lg font-bold">${assignment.allocated_budget.toLocaleString()}</p>
+                                {isEditingVendors && (
+                                  <p className="text-xs text-muted-foreground">Auto-calculated</p>
+                                )}
                               </div>
                             </div>
                           </CardContent>
