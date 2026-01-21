@@ -187,45 +187,60 @@ export function SubmissionDetailModal({
     setIsEditingVendors(false);
   };
 
-  // Auto-suggest vendors based on genre matching
+  // Auto-suggest vendors based on daily capacity
   const handleAutoSuggest = () => {
+    console.log('🔧 Auto-suggest started');
+    console.log('🔧 Total vendors:', vendors.length);
+    
     if (vendors.length === 0) {
       toast({
         title: "No vendors available",
-        description: "Add vendors first before auto-suggesting.",
+        description: "Please wait for vendor data to load.",
         variant: "destructive"
       });
       return;
     }
     
-    // Get active vendors sorted by their max daily capacity
+    // Get active vendors with capacity, sorted by max daily streams
     const activeVendors = vendors
-      .filter(v => v.is_active)
-      .sort((a, b) => b.max_daily_streams - a.max_daily_streams);
+      .filter(v => v.is_active && (v.max_daily_streams || 0) > 0)
+      .sort((a, b) => (b.max_daily_streams || 0) - (a.max_daily_streams || 0));
+    
+    console.log('🔧 Active vendors with capacity:', activeVendors.map(v => 
+      `${v.name}: ${v.max_daily_streams}/day @ $${v.cost_per_1k_streams || 8}/1K`
+    ));
     
     if (activeVendors.length === 0) {
       toast({
         title: "No active vendors",
-        description: "All vendors are inactive.",
+        description: "All vendors are inactive or have no daily capacity set.",
         variant: "destructive"
       });
       return;
     }
     
-    // Calculate how to split streams across vendors
-    const totalCapacity = activeVendors.reduce((sum, v) => sum + v.max_daily_streams, 0);
+    // Calculate proportional allocation based on daily capacity
+    const totalDailyCapacity = activeVendors.reduce((sum, v) => sum + (v.max_daily_streams || 0), 0);
     const campaignDays = submission.duration_days || 90;
     const dailyStreamsNeeded = submission.stream_goal / campaignDays;
     
+    console.log('🔧 Campaign analysis:', {
+      streamGoal: submission.stream_goal,
+      campaignDays,
+      dailyNeeded: dailyStreamsNeeded.toFixed(0),
+      totalDailyCapacity,
+      utilizationPercent: ((dailyStreamsNeeded / totalDailyCapacity) * 100).toFixed(1) + '%'
+    });
+    
     const newAssignments: VendorAssignment[] = [];
     let remainingStreams = submission.stream_goal;
-    let remainingBudget = submission.price_paid;
     
     for (const vendor of activeVendors) {
       if (remainingStreams <= 0) break;
       
-      // Allocate proportionally based on capacity
-      const proportion = vendor.max_daily_streams / totalCapacity;
+      // Allocate proportionally based on daily capacity
+      const vendorDailyCapacity = vendor.max_daily_streams || 0;
+      const proportion = vendorDailyCapacity / totalDailyCapacity;
       const allocatedStreams = Math.min(
         Math.round(submission.stream_goal * proportion),
         remainingStreams
@@ -234,6 +249,8 @@ export function SubmissionDetailModal({
       // Calculate budget based on vendor's rate
       const ratePer1k = vendor.cost_per_1k_streams || 8;
       const allocatedBudget = (allocatedStreams / 1000) * ratePer1k;
+      
+      console.log(`🔧 ${vendor.name}: capacity=${vendorDailyCapacity}/day, proportion=${(proportion * 100).toFixed(1)}%, streams=${allocatedStreams}, budget=$${allocatedBudget.toFixed(2)}`);
       
       if (allocatedStreams > 0) {
         newAssignments.push({
@@ -246,14 +263,17 @@ export function SubmissionDetailModal({
         });
         
         remainingStreams -= allocatedStreams;
-        remainingBudget -= allocatedBudget;
       }
     }
+    
+    console.log('✅ Auto-suggest complete:', newAssignments.map(a => 
+      `${a.vendor_name}: ${a.allocated_streams.toLocaleString()} streams, $${a.allocated_budget.toFixed(2)}`
+    ));
     
     setEditedAssignments(newAssignments);
     toast({
       title: "Vendors auto-suggested",
-      description: `${newAssignments.length} vendors assigned based on capacity.`
+      description: `${newAssignments.length} vendors assigned based on daily capacity. Click Save to apply.`
     });
   };
 
@@ -663,7 +683,7 @@ export function SubmissionDetailModal({
                                 {isEditingVendors ? (
                                   <Input
                                     type="number"
-                                    value={assignment.allocated_streams}
+                                    value={assignment.allocated_streams || 0}
                                     onChange={(e) => handleUpdateAllocation(
                                       assignment.vendor_id, 
                                       'allocated_streams', 
@@ -672,7 +692,7 @@ export function SubmissionDetailModal({
                                     className="mt-1"
                                   />
                                 ) : (
-                                  <p className="text-lg font-bold">{assignment.allocated_streams.toLocaleString()}</p>
+                                  <p className="text-lg font-bold">{(assignment.allocated_streams || 0).toLocaleString()}</p>
                                 )}
                               </div>
                               <div>
