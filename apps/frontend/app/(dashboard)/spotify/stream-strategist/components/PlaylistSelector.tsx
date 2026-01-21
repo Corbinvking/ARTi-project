@@ -72,7 +72,97 @@ export function PlaylistSelector({
   const [newPlaylistUrl, setNewPlaylistUrl] = useState('');
   const [newPlaylistVendor, setNewPlaylistVendor] = useState('');
   const [newPlaylistDailyStreams, setNewPlaylistDailyStreams] = useState('');
+  const [newPlaylistGenres, setNewPlaylistGenres] = useState('');
   const [creatingPlaylist, setCreatingPlaylist] = useState(false);
+
+  // Function to create a new playlist
+  const handleCreatePlaylist = async () => {
+    if (!newPlaylistName.trim() || !newPlaylistVendor) {
+      toast({
+        title: "Error",
+        description: "Please provide at least a playlist name and vendor",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCreatingPlaylist(true);
+    try {
+      // Extract Spotify ID from URL if provided
+      let spotifyId = null;
+      if (newPlaylistUrl) {
+        const match = newPlaylistUrl.match(/playlist\/([a-zA-Z0-9]+)/);
+        if (match) {
+          spotifyId = match[1];
+        }
+      }
+
+      // Parse genres from comma-separated string
+      const genresArray = newPlaylistGenres
+        .split(',')
+        .map(g => g.trim().toLowerCase())
+        .filter(g => g.length > 0);
+
+      const { data, error } = await supabase
+        .from('playlists')
+        .insert({
+          name: newPlaylistName.trim(),
+          url: newPlaylistUrl.trim() || null,
+          spotify_id: spotifyId,
+          vendor_id: newPlaylistVendor,
+          avg_daily_streams: parseInt(newPlaylistDailyStreams) || 0,
+          genres: genresArray.length > 0 ? genresArray : null,
+          follower_count: 0,
+        })
+        .select(`
+          id,
+          name,
+          url,
+          avg_daily_streams,
+          follower_count,
+          genres,
+          vendor_id,
+          vendors(name)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      // Add the new playlist to the local state
+      const newPlaylist = {
+        ...data,
+        vendor_name: (data.vendors as any)?.name || 'Unknown Vendor',
+        genres: data.genres || [],
+      };
+      
+      setPlaylists(prev => [newPlaylist, ...prev]);
+      
+      // Auto-select the newly created playlist
+      setSelectedPlaylists(prev => new Set([...prev, data.id]));
+      
+      toast({
+        title: "Success",
+        description: `Playlist "${newPlaylistName}" created and added`,
+      });
+
+      // Reset form and close
+      setShowAddPlaylist(false);
+      setNewPlaylistName('');
+      setNewPlaylistUrl('');
+      setNewPlaylistVendor('');
+      setNewPlaylistDailyStreams('');
+      setNewPlaylistGenres('');
+    } catch (error: any) {
+      console.error('Failed to create playlist:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create playlist",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingPlaylist(false);
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -248,11 +338,107 @@ export function PlaylistSelector({
           />
         </div>
 
-        {/* Results count and selected count */}
+        {/* Results count, selected count, and Add New button */}
         <div className="flex justify-between items-center text-sm text-muted-foreground">
           <span>{sortedPlaylists.length} playlists found</span>
-          <span>{selectedPlaylists.size} selected</span>
+          <div className="flex items-center gap-4">
+            <span>{selectedPlaylists.size} selected</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowAddPlaylist(!showAddPlaylist)}
+              className="flex items-center gap-1"
+            >
+              <Plus className="h-4 w-4" />
+              Add New Playlist
+            </Button>
+          </div>
         </div>
+
+        {/* Add New Playlist Form */}
+        {showAddPlaylist && (
+          <Card className="border-primary/50">
+            <CardContent className="pt-4 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-playlist-name">Playlist Name *</Label>
+                  <Input
+                    id="new-playlist-name"
+                    placeholder="My New Playlist"
+                    value={newPlaylistName}
+                    onChange={(e) => setNewPlaylistName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-playlist-vendor">Vendor *</Label>
+                  <Select value={newPlaylistVendor} onValueChange={setNewPlaylistVendor}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select vendor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vendors.map(vendor => (
+                        <SelectItem key={vendor.id} value={vendor.id}>
+                          {vendor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-playlist-url">Spotify URL (optional)</Label>
+                  <Input
+                    id="new-playlist-url"
+                    placeholder="https://open.spotify.com/playlist/..."
+                    value={newPlaylistUrl}
+                    onChange={(e) => setNewPlaylistUrl(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-playlist-streams">Avg Daily Streams (optional)</Label>
+                  <Input
+                    id="new-playlist-streams"
+                    type="number"
+                    placeholder="1000"
+                    value={newPlaylistDailyStreams}
+                    onChange={(e) => setNewPlaylistDailyStreams(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2 col-span-2">
+                  <Label htmlFor="new-playlist-genres">Genres (comma-separated, optional)</Label>
+                  <Input
+                    id="new-playlist-genres"
+                    placeholder="pop, hip-hop, electronic"
+                    value={newPlaylistGenres}
+                    onChange={(e) => setNewPlaylistGenres(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    setShowAddPlaylist(false);
+                    setNewPlaylistName('');
+                    setNewPlaylistUrl('');
+                    setNewPlaylistVendor('');
+                    setNewPlaylistDailyStreams('');
+                    setNewPlaylistGenres('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleCreatePlaylist}
+                  disabled={creatingPlaylist || !newPlaylistName.trim() || !newPlaylistVendor}
+                >
+                  {creatingPlaylist ? 'Creating...' : 'Create & Add'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Playlist list */}
         <div className="h-[400px] overflow-hidden border rounded-lg">
