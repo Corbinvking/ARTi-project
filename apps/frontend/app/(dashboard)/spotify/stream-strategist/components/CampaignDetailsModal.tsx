@@ -130,6 +130,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const [editingVendorCost, setEditingVendorCost] = useState<{ vendorId: string; vendorName: string; currentCost: number } | null>(null);
   const [vendorCostInput, setVendorCostInput] = useState<string>('');
   const [savingVendorCost, setSavingVendorCost] = useState(false);
+  const [editingVendorAllocation, setEditingVendorAllocation] = useState<{ vendorId: string; vendorName: string; currentAllocated: number } | null>(null);
+  const [vendorAllocationInput, setVendorAllocationInput] = useState<string>('');
+  const [savingVendorAllocation, setSavingVendorAllocation] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -915,9 +918,18 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     return acc;
   }, {} as Record<string, any>);
 
+  // Get stored vendor allocations from campaign_groups.vendor_allocations
+  const storedVendorAllocations = (campaignData?.vendor_allocations as Record<string, { allocated_streams?: number; allocated_budget?: number }>) || {};
+
   // Calculate total payment for each vendor after processing all playlists
   Object.keys(groupedPlaylists).forEach(vendorId => {
     const vendorGroup = groupedPlaylists[vendorId];
+    
+    // Override totalAllocated with stored allocation if available
+    const storedAllocation = storedVendorAllocations[vendorId];
+    if (storedAllocation?.allocated_streams !== undefined) {
+      vendorGroup.totalAllocated = storedAllocation.allocated_streams;
+    }
     
     // Calculate total payment using the consistent cost per 1k rate
     // Use actual streams from campaign_playlists and the effective cost per 1k
@@ -1214,6 +1226,83 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       });
     } finally {
       setSavingVendorCost(false);
+    }
+  };
+
+  // Save vendor allocation override to campaign_groups.vendor_allocations
+  const saveVendorAllocationOverride = async () => {
+    if (!editingVendorAllocation) return;
+    
+    const newAllocation = parseInt(vendorAllocationInput);
+    if (isNaN(newAllocation) || newAllocation < 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid stream count (0 or greater)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSavingVendorAllocation(true);
+    
+    try {
+      // Get the campaign group ID
+      const campaignGroupId = typeof campaign.id === 'string' && campaign.id.includes('-') 
+        ? campaign.id 
+        : null;
+      
+      if (!campaignGroupId) {
+        throw new Error('Campaign group ID not found');
+      }
+
+      // Fetch current vendor_allocations
+      const { data: currentCampaign, error: fetchError } = await supabase
+        .from('campaign_groups')
+        .select('vendor_allocations')
+        .eq('id', campaignGroupId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Merge new allocation with existing allocations
+      const existingAllocations = (currentCampaign?.vendor_allocations as Record<string, any>) || {};
+      const updatedAllocations = {
+        ...existingAllocations,
+        [editingVendorAllocation.vendorId]: {
+          ...(existingAllocations[editingVendorAllocation.vendorId] || {}),
+          allocated_streams: newAllocation,
+        }
+      };
+
+      // Update campaign_groups.vendor_allocations
+      const { error } = await supabase
+        .from('campaign_groups')
+        .update({ vendor_allocations: updatedAllocations })
+        .eq('id', campaignGroupId);
+
+      if (error) throw error;
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign.id] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-details', campaign.id] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      
+      toast({
+        title: "Success",
+        description: `Allocated streams for ${editingVendorAllocation.vendorName} updated to ${newAllocation.toLocaleString()}`,
+      });
+      
+      setEditingVendorAllocation(null);
+      setVendorAllocationInput('');
+    } catch (error) {
+      console.error('Failed to update vendor allocation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update vendor allocation",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingVendorAllocation(false);
     }
   };
 
@@ -2885,7 +2974,61 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           </div>
                           <div className="space-y-1">
                             <Label className="text-sm text-muted-foreground">Allocated streams</Label>
-                            <p className="text-lg font-semibold">{vendorData.totalAllocated.toLocaleString()}</p>
+                            <div className="flex items-center gap-2">
+                              {editingVendorAllocation?.vendorId === vendorId ? (
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="1000"
+                                    value={vendorAllocationInput}
+                                    onChange={(e) => setVendorAllocationInput(e.target.value)}
+                                    className="w-32 h-8"
+                                    placeholder="0"
+                                    disabled={savingVendorAllocation}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={saveVendorAllocationOverride}
+                                    disabled={savingVendorAllocation}
+                                  >
+                                    {savingVendorAllocation ? '...' : 'Save'}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setEditingVendorAllocation(null);
+                                      setVendorAllocationInput('');
+                                    }}
+                                    disabled={savingVendorAllocation}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              ) : (
+                                <>
+                                  <p className="text-lg font-semibold">{vendorData.totalAllocated.toLocaleString()}</p>
+                                  {canEditCampaign && vendorId !== 'unknown' && vendorId !== 'unassigned' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => {
+                                        setEditingVendorAllocation({
+                                          vendorId: vendorId,
+                                          vendorName: vendorData.vendorName,
+                                          currentAllocated: vendorData.totalAllocated
+                                        });
+                                        setVendorAllocationInput(vendorData.totalAllocated.toString());
+                                      }}
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           </div>
                           <div className="space-y-1">
                             <Label className="text-sm text-muted-foreground">Actual streams delivered</Label>
