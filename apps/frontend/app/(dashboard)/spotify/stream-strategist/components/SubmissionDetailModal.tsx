@@ -32,6 +32,7 @@ import { format } from 'date-fns';
 import { useToast } from '../hooks/use-toast';
 import { useVendors } from '../hooks/useVendors';
 import { useUpdateSubmissionVendors } from '../hooks/useCampaignSubmissions';
+import { PlaylistSelector } from './PlaylistSelector';
 
 interface VendorAssignment {
   vendor_id: string;
@@ -88,6 +89,8 @@ export function SubmissionDetailModal({
   const [isEditingVendors, setIsEditingVendors] = useState(false);
   const [editedAssignments, setEditedAssignments] = useState<VendorAssignment[]>([]);
   const [selectedVendorId, setSelectedVendorId] = useState<string>('');
+  const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
+  const [playlistSelectorVendorId, setPlaylistSelectorVendorId] = useState<string | null>(null);
   const { toast } = useToast();
   
   const { data: vendors = [] } = useVendors();
@@ -185,6 +188,33 @@ export function SubmissionDetailModal({
   const handleCancelEdit = () => {
     setEditedAssignments(submission.vendor_assignments ? [...submission.vendor_assignments] : []);
     setIsEditingVendors(false);
+  };
+
+  // Open playlist selector for a specific vendor
+  const handleOpenPlaylistSelector = (vendorId: string) => {
+    setPlaylistSelectorVendorId(vendorId);
+    setShowPlaylistSelector(true);
+  };
+
+  // Handle playlists selected from the selector
+  const handlePlaylistsSelected = (playlists: any[]) => {
+    if (!playlistSelectorVendorId) return;
+    
+    const playlistIds = playlists.map(p => p.id);
+    setEditedAssignments(editedAssignments.map(a => {
+      if (a.vendor_id === playlistSelectorVendorId) {
+        return { ...a, playlist_ids: playlistIds };
+      }
+      return a;
+    }));
+    
+    setShowPlaylistSelector(false);
+    setPlaylistSelectorVendorId(null);
+    
+    toast({
+      title: "Playlists updated",
+      description: `${playlists.length} playlist${playlists.length !== 1 ? 's' : ''} selected for ${editedAssignments.find(a => a.vendor_id === playlistSelectorVendorId)?.vendor_name}`,
+    });
   };
 
   // Auto-suggest vendors based on daily capacity
@@ -329,12 +359,12 @@ export function SubmissionDetailModal({
     <>
       <Dialog open={open && !showRejectDialog} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+          <DialogHeader className="pr-8">
             <DialogTitle className="text-2xl flex items-center gap-2">
               <Music className="h-6 w-6 text-primary" />
               {submission.campaign_name}
             </DialogTitle>
-            <DialogDescription className="flex items-center gap-2">
+            <DialogDescription className="flex items-center gap-2 flex-wrap">
               <Badge variant={submission.status === 'pending_approval' ? 'default' : 'secondary'}>
                 {submission.status === 'pending_approval' ? 'Pending Approval' : submission.status}
               </Badge>
@@ -638,6 +668,9 @@ export function SubmissionDetailModal({
                             ? 'Use the dropdown above to add vendors or click Auto-Suggest'
                             : 'Click "Edit Assignments" to add vendors'}
                         </p>
+                        <p className="text-xs text-muted-foreground mt-4 italic">
+                          Note: You can approve without assigning vendors. Playlists can be added later.
+                        </p>
                       </CardContent>
                     </Card>
                   );
@@ -718,6 +751,27 @@ export function SubmissionDetailModal({
                                 <p className="text-lg font-bold">${assignment.allocated_budget.toLocaleString()}</p>
                                 {isEditingVendors && (
                                   <p className="text-xs text-muted-foreground">Auto-calculated</p>
+                                )}
+                              </div>
+                              <div>
+                                <Label className="text-muted-foreground">Playlists</Label>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-lg font-bold">
+                                    {assignment.playlist_ids?.length || 0}
+                                  </span>
+                                  {isEditingVendors && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleOpenPlaylistSelector(assignment.vendor_id)}
+                                    >
+                                      <Edit2 className="h-3 w-3 mr-1" />
+                                      Select
+                                    </Button>
+                                  )}
+                                </div>
+                                {!isEditingVendors && (assignment.playlist_ids?.length || 0) === 0 && (
+                                  <p className="text-xs text-muted-foreground">Vendor will choose</p>
                                 )}
                               </div>
                             </div>
@@ -875,6 +929,18 @@ export function SubmissionDetailModal({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Playlist Selector for Vendor Assignments */}
+      <PlaylistSelector
+        open={showPlaylistSelector}
+        onClose={() => {
+          setShowPlaylistSelector(false);
+          setPlaylistSelectorVendorId(null);
+        }}
+        onSelect={handlePlaylistsSelected}
+        campaignGenre={submission?.music_genres?.[0]}
+        excludePlaylistIds={[]}
+      />
     </>
   );
 }
