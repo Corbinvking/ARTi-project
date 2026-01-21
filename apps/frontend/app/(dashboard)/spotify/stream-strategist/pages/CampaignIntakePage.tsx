@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -358,6 +358,10 @@ export default function CampaignIntakePage() {
     }));
   }, []);
 
+  // Memoize campaignGenres to prevent infinite re-renders in VendorAssignmentStep
+  // This ensures the array reference doesn't change unless the actual genres change
+  const memoizedCampaignGenres = useMemo(() => formData.music_genres, [formData.music_genres.join(',')]);
+
   // Available territories (continents + US)
   const territories = [
     'United States', 'North America', 'South America', 'Europe', 'Asia', 
@@ -677,7 +681,7 @@ export default function CampaignIntakePage() {
                   onChange={handleVendorAssignmentsChange}
                   totalStreamGoal={parseInt(formData.stream_goal) || 0}
                   totalBudget={parseFloat(formData.price_paid) || 0}
-                  campaignGenres={formData.music_genres}
+                  campaignGenres={memoizedCampaignGenres}
                 />
               </div>
 

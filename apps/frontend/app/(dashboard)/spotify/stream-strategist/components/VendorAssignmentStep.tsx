@@ -117,26 +117,36 @@ export function VendorAssignmentStep({
 
   // Calculate genre match scores for all playlists
   const playlistsWithScores = useMemo(() => {
-    return allPlaylists.map(playlist => ({
-      ...playlist,
-      genreMatchScore: calculateGenreMatchScore(campaignGenres, playlist.genres || [])
-    }));
+    try {
+      return allPlaylists.map(playlist => ({
+        ...playlist,
+        genreMatchScore: calculateGenreMatchScore(campaignGenres || [], playlist.genres || [])
+      }));
+    } catch (error) {
+      console.error('Error calculating playlist scores:', error);
+      return allPlaylists;
+    }
   }, [allPlaylists, campaignGenres]);
 
   // Get matching playlists grouped by vendor
   const matchingPlaylistsByVendor = useMemo(() => {
-    const matching = playlistsWithScores.filter(p => p.genreMatchScore >= 2);
-    const grouped: Record<string, any[]> = {};
-    
-    matching.forEach(playlist => {
-      if (!playlist.vendor_id) return;
-      if (!grouped[playlist.vendor_id]) {
-        grouped[playlist.vendor_id] = [];
-      }
-      grouped[playlist.vendor_id].push(playlist);
-    });
-    
-    return grouped;
+    try {
+      const matching = playlistsWithScores.filter(p => (p.genreMatchScore || 0) >= 2);
+      const grouped: Record<string, any[]> = {};
+      
+      matching.forEach(playlist => {
+        if (!playlist.vendor_id) return;
+        if (!grouped[playlist.vendor_id]) {
+          grouped[playlist.vendor_id] = [];
+        }
+        grouped[playlist.vendor_id].push(playlist);
+      });
+      
+      return grouped;
+    } catch (error) {
+      console.error('Error grouping playlists by vendor:', error);
+      return {};
+    }
   }, [playlistsWithScores]);
 
   // Count matching playlists (moved up for useEffect dependency)
@@ -388,10 +398,23 @@ export function VendorAssignmentStep({
     });
   };
 
-  // Get playlists for a specific vendor
-  const getVendorPlaylists = (vendorId: string) => {
-    return allPlaylists.filter(p => p.vendor_id === vendorId);
-  };
+  // Memoized vendor playlists map to prevent creating new arrays on each render
+  const vendorPlaylistsMap = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    allPlaylists.forEach(p => {
+      if (!p.vendor_id) return;
+      if (!map[p.vendor_id]) {
+        map[p.vendor_id] = [];
+      }
+      map[p.vendor_id].push(p);
+    });
+    return map;
+  }, [allPlaylists]);
+
+  // Get playlists for a specific vendor (returns memoized array)
+  const getVendorPlaylists = useCallback((vendorId: string) => {
+    return vendorPlaylistsMap[vendorId] || [];
+  }, [vendorPlaylistsMap]);
 
   // Smart auto-distribute: genre-matched playlists, proportional streams, budget based on cost per 1k
   const handleSmartAutoDistribute = () => {
@@ -761,7 +784,8 @@ export function VendorAssignmentStep({
                           <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
                             {getVendorPlaylists(assignment.vendor_id).length > 0 ? (
                               getVendorPlaylists(assignment.vendor_id).map(playlist => {
-                                const isSelected = assignment.playlist_ids?.includes(playlist.id);
+                                // Ensure isSelected is always a boolean (not undefined)
+                                const isSelected = Boolean(assignment.playlist_ids?.includes(playlist.id));
                                 return (
                                   <div
                                     key={playlist.id}
