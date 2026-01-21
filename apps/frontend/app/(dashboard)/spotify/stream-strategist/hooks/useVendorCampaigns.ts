@@ -189,26 +189,32 @@ export function useVendorCampaigns() {
           ?.filter(sc => sc.campaign_group_id === campaign.id)
           ?.map(sc => sc.id) || [];
         
-        // Get playlist performance for this campaign and vendor
-        const campaignPlaylistPerf = playlistPerformance?.filter(p => 
-          campaignSpotifyIds.includes(p.campaign_id) && vendorIds.includes(p.vendor_id)
-        ) || [];
-
-        // Get vendor's playlist names for strict matching
+        // Get vendor's playlist names and spotify IDs for matching
         const vendorPlaylistNames = new Set(playlists?.map(p => p.name.toLowerCase()) || []);
         const vendorPlaylistSpotifyIds = new Set(
           playlists?.map(p => (p as any).spotify_id).filter(Boolean) || []
         );
 
-        // Build vendor playlists - ONLY include playlists that the vendor actually owns
-        // Match by name OR spotify_id to ensure accuracy
+        // Get playlist performance for this campaign that belongs to the vendor
+        // Match by: vendor_id OR playlist name OR spotify_id (to handle missing vendor_id in campaign_playlists)
+        const campaignPlaylistPerf = playlistPerformance?.filter(p => {
+          // Must be for this campaign
+          if (!campaignSpotifyIds.includes(p.campaign_id)) return false;
+          
+          // Match by vendor_id (if set)
+          if (p.vendor_id && vendorIds.includes(p.vendor_id)) return true;
+          
+          // Match by playlist name (for entries without vendor_id)
+          if (p.playlist_name && vendorPlaylistNames.has(p.playlist_name.toLowerCase())) return true;
+          
+          // Match by spotify_id (for entries without vendor_id)
+          if (p.playlist_spotify_id && vendorPlaylistSpotifyIds.has(p.playlist_spotify_id)) return true;
+          
+          return false;
+        }) || [];
+
+        // Build vendor playlists from matched performance data
         const vendorPlaylistsInCampaign = campaignPlaylistPerf
-          .filter(perf => {
-            // Must match a playlist the vendor owns in the playlists table
-            const nameMatch = perf.playlist_name && vendorPlaylistNames.has(perf.playlist_name.toLowerCase());
-            const spotifyIdMatch = perf.playlist_spotify_id && vendorPlaylistSpotifyIds.has(perf.playlist_spotify_id);
-            return nameMatch || spotifyIdMatch;
-          })
           .map(perf => {
             // Find the matching playlist from playlists table
             const matchingPlaylist = playlists?.find(p => 
