@@ -48,18 +48,29 @@ export function usePlaylistHistoricalPerformance(playlistIds?: string[]) {
       const playlistLookup = new Map(playlists?.map(p => [p.id, p]) || []);
       
       // Get playlist names for matching with campaign_playlists
-      const playlistNames = playlists?.map(p => p.name.toLowerCase()) || [];
+      const playlistNames = playlists?.map(p => p.name) || [];
       const playlistSpotifyIds = playlists?.map(p => (p as any).spotify_id).filter(Boolean) || [];
 
-      // Get 12-month stream data from campaign_playlists (scraped data)
-      // Match by playlist name since campaign_playlists doesn't have the same IDs
-      const { data: campaignPlaylistData, error: cpError } = await supabase
-        .from('campaign_playlists')
-        .select('playlist_name, streams_12m, streams_7d, streams_24h, campaign_id, vendor_id')
-        .order('updated_at', { ascending: false });
+      console.log('📊 Searching for playlist names:', playlistNames.slice(0, 5), '...');
 
-      if (cpError) {
-        console.warn('Could not fetch campaign_playlists:', cpError);
+      // Get 12-month stream data from campaign_playlists (scraped data)
+      // Filter by playlist names we care about to avoid Supabase's 1000 row limit
+      let campaignPlaylistData: any[] = [];
+      
+      if (playlistNames.length > 0) {
+        // Query in batches to handle the filter properly
+        const { data: cpData, error: cpError } = await supabase
+          .from('campaign_playlists')
+          .select('playlist_name, streams_12m, streams_7d, streams_24h, campaign_id, vendor_id')
+          .in('playlist_name', playlistNames)
+          .order('streams_12m', { ascending: false });
+
+        if (cpError) {
+          console.warn('Could not fetch campaign_playlists:', cpError);
+        } else {
+          campaignPlaylistData = cpData || [];
+          console.log('📊 Found', campaignPlaylistData.length, 'matching campaign_playlists entries');
+        }
       }
 
       // Get campaign names separately
