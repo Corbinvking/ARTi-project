@@ -498,6 +498,7 @@ export function VendorAssignmentStep({
         {/* Auto-Suggest Button */}
         {campaignGenres.length > 0 && matchingVendorsCount > 0 && (
           <Button 
+            type="button"
             onClick={handleAutoSuggest}
             variant="default"
             size="sm"
@@ -522,6 +523,7 @@ export function VendorAssignmentStep({
                 </p>
               </div>
               <Button 
+                type="button"
                 onClick={handleAutoSuggest}
                 size="sm"
                 variant="outline"
@@ -646,6 +648,7 @@ export function VendorAssignmentStep({
                 ))}
             </select>
             <Button 
+              type="button"
               onClick={handleAddVendor}
               disabled={!selectedVendorId}
               size="default"
@@ -666,6 +669,7 @@ export function VendorAssignmentStep({
               <CardDescription>{assignments.length} vendor(s) assigned</CardDescription>
             </div>
             <Button 
+              type="button"
               onClick={handleSmartAutoDistribute}
               variant="default"
               size="sm"
@@ -693,6 +697,7 @@ export function VendorAssignmentStep({
                           )}
                         </div>
                         <Button
+                          type="button"
                           onClick={() => handleRemoveVendor(assignment.vendor_id)}
                           variant="ghost"
                           size="sm"
