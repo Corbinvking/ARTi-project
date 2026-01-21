@@ -316,18 +316,24 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
         logger.warn({ error: streamError }, 'Failed to fetch campaign_playlists for stream data');
       }
       
-      // Group streams by playlist name and calculate averages
-      const streamsByName = new Map<string, { total7d: number; total24h: number; count: number }>();
+      // Group streams by playlist name - track MAX streams per playlist
+      // A playlist appears in multiple campaigns but stream counts should be consistent
+      // We use MAX to get the most recent/accurate count rather than summing across campaigns
+      const streamsByName = new Map<string, { max7d: number; max24h: number; sum7d: number; sum24h: number; count: number }>();
       for (const row of streamData || []) {
         const name = row.playlist_name?.toLowerCase()?.trim();
         if (!name) continue;
         
         if (!streamsByName.has(name)) {
-          streamsByName.set(name, { total7d: 0, total24h: 0, count: 0 });
+          streamsByName.set(name, { max7d: 0, max24h: 0, sum7d: 0, sum24h: 0, count: 0 });
         }
         const entry = streamsByName.get(name)!;
-        entry.total7d += row.streams_7d || 0;
-        entry.total24h += row.streams_24h || 0;
+        // Track max values (same playlist should have same streams, take highest to get freshest data)
+        entry.max7d = Math.max(entry.max7d, row.streams_7d || 0);
+        entry.max24h = Math.max(entry.max24h, row.streams_24h || 0);
+        // Also track sum for averaging if needed
+        entry.sum7d += row.streams_7d || 0;
+        entry.sum24h += row.streams_24h || 0;
         entry.count++;
       }
 
@@ -369,10 +375,12 @@ export async function spotifyWebApiRoutes(server: FastifyInstance) {
           const normalizedName = playlist.name?.toLowerCase()?.trim();
           const streamEntry = streamsByName.get(normalizedName);
           if (streamEntry && streamEntry.count > 0) {
+            // Use MAX values (same playlist appears in multiple campaigns, take highest/freshest data)
+            // Then divide by 7 to get daily average from 7-day data
             // Prefer 7-day average, fallback to 24h
-            const avgDaily = streamEntry.total7d > 0 
-              ? Math.round(streamEntry.total7d / 7)
-              : streamEntry.total24h;
+            const avgDaily = streamEntry.max7d > 0 
+              ? Math.round(streamEntry.max7d / 7)
+              : streamEntry.max24h;
             
             if (avgDaily > 0) {
               updates.avg_daily_streams = avgDaily;
