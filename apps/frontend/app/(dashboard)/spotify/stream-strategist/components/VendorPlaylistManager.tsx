@@ -474,21 +474,35 @@ export default function VendorPlaylistManager() {
 
                       {/* Genres */}
                       <td className="p-3 text-center">
-                        <div className="flex flex-wrap justify-center gap-1">
-                          {playlist.genres?.slice(0, 2).map((genre) => (
-                            <span key={genre} className="text-xs px-1.5 py-0.5 bg-muted rounded">
-                              {genre}
-                            </span>
-                          ))}
-                          {playlist.genres?.length > 2 && (
-                            <span className="text-xs text-muted-foreground">
-                              +{playlist.genres.length - 2}
-                            </span>
-                          )}
-                          {(!playlist.genres || playlist.genres.length === 0) && (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </div>
+                        {playlist.genres && playlist.genres.length > 0 ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center justify-center gap-1 cursor-default max-w-[150px] mx-auto">
+                                  <span className="text-xs px-1.5 py-0.5 bg-muted rounded truncate">
+                                    {playlist.genres[0]}
+                                  </span>
+                                  {playlist.genres.length > 1 && (
+                                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                                      +{playlist.genres.length - 1}
+                                    </span>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-[250px]">
+                                <div className="flex flex-wrap gap-1">
+                                  {playlist.genres.map((genre: string) => (
+                                    <span key={genre} className="text-xs px-1.5 py-0.5 bg-muted rounded">
+                                      {genre}
+                                    </span>
+                                  ))}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
                       </td>
 
                       {/* Actions */}

@@ -35,83 +35,107 @@ export function usePlaylistHistoricalPerformance(playlistIds?: string[]) {
     queryFn: async (): Promise<PlaylistHistoricalPerformance[]> => {
       if (!playlistIds || playlistIds.length === 0) return [];
 
-      // Get 12-month historical data for playlists
-      const { data: performanceEntries, error: performanceError } = await supabase
-        .from('performance_entries')
-        .select('playlist_id, daily_streams, date_recorded, campaign_id')
-        .in('playlist_id', playlistIds)
-        .gte('date_recorded', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
-        .order('date_recorded', { ascending: false });
-
-      if (performanceError) throw performanceError;
-
-      // Get playlist names separately
+      // Get playlist data including avg_daily_streams from playlists table
       const { data: playlists } = await supabase
         .from('playlists')
-        .select('id, name')
+        .select('id, name, avg_daily_streams, spotify_id')
         .in('id', playlistIds);
 
       const playlistLookup = new Map(playlists?.map(p => [p.id, p]) || []);
+      
+      // Get playlist names for matching with campaign_playlists
+      const playlistNames = playlists?.map(p => p.name.toLowerCase()) || [];
+      const playlistSpotifyIds = playlists?.map(p => (p as any).spotify_id).filter(Boolean) || [];
 
-      // Get campaign allocation performance for these playlists
-      const { data: allocations, error: allocError } = await supabase
-        .from('campaign_allocations_performance')
-        .select('playlist_id, campaign_id, actual_streams, performance_score')
-        .in('playlist_id', playlistIds);
+      // Get 12-month stream data from campaign_playlists (scraped data)
+      // Match by playlist name since campaign_playlists doesn't have the same IDs
+      const { data: campaignPlaylistData, error: cpError } = await supabase
+        .from('campaign_playlists')
+        .select('playlist_name, streams_12m, streams_7d, streams_24h, campaign_id, vendor_id')
+        .order('updated_at', { ascending: false });
 
-      if (allocError) throw allocError;
+      if (cpError) {
+        console.warn('Could not fetch campaign_playlists:', cpError);
+      }
 
       // Get campaign names separately
-      const campaignIds = [...new Set(allocations?.map(a => a.campaign_id) || [])];
+      const campaignIds = [...new Set(campaignPlaylistData?.map(a => a.campaign_id) || [])];
       const { data: campaigns } = await supabase
-        .from('campaigns')
-        .select('id, name')
+        .from('spotify_campaigns')
+        .select('id, campaign')
         .in('id', campaignIds);
 
-      const campaignLookup = new Map(campaigns?.map(c => [c.id, c]) || []);
+      const campaignLookup = new Map(campaigns?.map(c => [c.id, { name: c.campaign }]) || []);
 
       // Group data by playlist
       const playlistMap = new Map<string, PlaylistHistoricalPerformance>();
 
-      // Initialize playlists
+      // Initialize playlists with data from playlists table
       for (const playlistId of playlistIds) {
         if (!playlistMap.has(playlistId)) {
           const playlist = playlistLookup.get(playlistId);
+          // Estimate 12-month total from avg_daily_streams if available
+          const estimatedTotal = (playlist?.avg_daily_streams || 0) * 365;
           playlistMap.set(playlistId, {
             playlist_id: playlistId,
             playlist_name: playlist?.name || 'Unknown Playlist',
-            total_streams_12_months: 0,
-            avg_daily_streams: 0,
+            total_streams_12_months: estimatedTotal,
+            avg_daily_streams: playlist?.avg_daily_streams || 0,
             campaign_performance: []
           });
         }
       }
 
-      // Process performance entries
-      performanceEntries?.forEach(entry => {
-        const playlist = playlistMap.get(entry.playlist_id);
-        if (playlist) {
-          playlist.total_streams_12_months += entry.daily_streams;
+      // Process campaign_playlists data - match by name and aggregate streams
+      // Keep track of which campaign-playlist combos we've seen to avoid duplicates
+      const seenCampaignPlaylists = new Set<string>();
+      
+      campaignPlaylistData?.forEach(cpData => {
+        if (!cpData.playlist_name) return;
+        
+        // Find matching playlist by name
+        const matchingPlaylist = playlists?.find(p => 
+          p.name.toLowerCase() === cpData.playlist_name.toLowerCase()
+        );
+        
+        if (matchingPlaylist) {
+          const playlist = playlistMap.get(matchingPlaylist.id);
+          if (playlist) {
+            const campaignPlaylistKey = `${cpData.campaign_id}-${cpData.playlist_name}`;
+            
+            // Only count each campaign-playlist combo once (avoid duplicates)
+            if (!seenCampaignPlaylists.has(campaignPlaylistKey)) {
+              seenCampaignPlaylists.add(campaignPlaylistKey);
+              
+              // Use scraped streams_12m if available and higher than estimated
+              if (cpData.streams_12m && cpData.streams_12m > 0) {
+                // Take the max of scraped and estimated (in case we have partial data)
+                playlist.total_streams_12_months = Math.max(
+                  playlist.total_streams_12_months, 
+                  cpData.streams_12m
+                );
+              }
+              
+              // Add campaign performance
+              const campaign = campaignLookup.get(cpData.campaign_id);
+              if (campaign) {
+                playlist.campaign_performance.push({
+                  campaign_id: cpData.campaign_id?.toString() || '',
+                  campaign_name: campaign.name || 'Unknown Campaign',
+                  streams_contributed: cpData.streams_12m || 0,
+                  performance_score: 0
+                });
+              }
+            }
+          }
         }
       });
 
-      // Process campaign allocations
-      allocations?.forEach(allocation => {
-        const playlist = playlistMap.get(allocation.playlist_id);
-        const campaign = campaignLookup.get(allocation.campaign_id);
-        if (playlist) {
-          playlist.campaign_performance.push({
-            campaign_id: allocation.campaign_id,
-            campaign_name: campaign?.name || 'Unknown Campaign',
-            streams_contributed: allocation.actual_streams,
-            performance_score: allocation.performance_score || 0
-          });
-        }
-      });
-
-      // Calculate average daily streams (12 months = 365 days)
+      // Recalculate avg_daily_streams from total if we got better data
       Array.from(playlistMap.values()).forEach(playlist => {
-        playlist.avg_daily_streams = Math.round(playlist.total_streams_12_months / 365);
+        if (playlist.total_streams_12_months > 0 && playlist.avg_daily_streams === 0) {
+          playlist.avg_daily_streams = Math.round(playlist.total_streams_12_months / 365);
+        }
       });
 
       return Array.from(playlistMap.values());
