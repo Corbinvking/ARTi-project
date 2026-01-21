@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -20,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Users, ExternalLink } from 'lucide-react';
+import { Search, Users, ExternalLink, Plus } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 
@@ -64,6 +65,14 @@ export function PlaylistSelector({
   const [minStreams, setMinStreams] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  
+  // New playlist creation state
+  const [showAddPlaylist, setShowAddPlaylist] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState('');
+  const [newPlaylistUrl, setNewPlaylistUrl] = useState('');
+  const [newPlaylistVendor, setNewPlaylistVendor] = useState('');
+  const [newPlaylistDailyStreams, setNewPlaylistDailyStreams] = useState('');
+  const [creatingPlaylist, setCreatingPlaylist] = useState(false);
 
   useEffect(() => {
     if (open) {

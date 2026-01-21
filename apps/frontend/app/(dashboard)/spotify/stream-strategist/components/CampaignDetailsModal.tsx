@@ -2659,16 +2659,8 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                           )}
                         </div>
                         
-                        {/* Daily Rate Comparison - Show Both Always */}
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Globe className="h-3 w-3 text-blue-600" />
-                              <span className="text-xs font-medium text-muted-foreground">Overall Daily Rate</span>
-                            </div>
-                            <div className="text-2xl font-bold text-blue-600">{overallDailyRate.toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">streams/day (SFA total)</p>
-                          </div>
+                        {/* Daily Rate - Vendor Playlists Only */}
+                        <div className="mb-4">
                           <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
                             <div className="flex items-center gap-2 mb-1">
                               <Music className="h-3 w-3 text-green-600" />
