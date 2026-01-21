@@ -71,6 +71,7 @@ interface VendorAssignment {
   allocated_streams: number;
   allocated_budget: number;
   playlist_ids?: string[];
+  cost_per_1k?: number; // Allow override of default vendor rate
 }
 
 interface VendorAssignmentStepProps {
@@ -331,13 +332,22 @@ export function VendorAssignmentStep({
     onChange(assignments.filter(a => a.vendor_id !== vendorId));
   };
 
-  const handleUpdateAssignment = (vendorId: string, field: 'allocated_streams' | 'allocated_budget', value: number) => {
+  const handleUpdateAssignment = (vendorId: string, field: 'allocated_streams' | 'allocated_budget' | 'cost_per_1k', value: number) => {
     onChange(
-      assignments.map(a => 
-        a.vendor_id === vendorId 
-          ? { ...a, [field]: Math.max(0, value) } 
-          : a
-      )
+      assignments.map(a => {
+        if (a.vendor_id !== vendorId) return a;
+        
+        const updated = { ...a, [field]: Math.max(0, value) };
+        
+        // Auto-recalculate budget when streams or cost_per_1k changes
+        if (field === 'allocated_streams' || field === 'cost_per_1k') {
+          const streams = field === 'allocated_streams' ? value : (a.allocated_streams || 0);
+          const costPer1k = field === 'cost_per_1k' ? value : (a.cost_per_1k ?? activeVendors.find(v => v.id === vendorId)?.cost_per_1k_streams ?? 8);
+          updated.allocated_budget = Math.round((streams / 1000) * costPer1k * 100) / 100;
+        }
+        
+        return updated;
+      })
     );
   };
 
@@ -373,22 +383,73 @@ export function VendorAssignmentStep({
     return allPlaylists.filter(p => p.vendor_id === vendorId);
   };
 
-  const handleAutoDistribute = (type: 'streams' | 'budget') => {
+  // Smart auto-distribute: genre-matched playlists, proportional streams, budget based on cost per 1k
+  const handleSmartAutoDistribute = () => {
     if (assignments.length === 0) return;
     
-    const equalShare = type === 'streams' 
-      ? Math.floor(totalStreamGoal / assignments.length)
-      : Math.floor((totalBudget / assignments.length) * 100) / 100;
+    // Calculate total matching daily streams across all assigned vendors
+    const totalMatchingStreams = assignments.reduce((total, assignment) => {
+      const vendorMatchingPlaylists = matchingPlaylistsByVendor[assignment.vendor_id] || [];
+      return total + vendorMatchingPlaylists.reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
+    }, 0);
     
-    onChange(
-      assignments.map((a, index) => ({
-        ...a,
-        [type === 'streams' ? 'allocated_streams' : 'allocated_budget']: 
-          index === 0 
-            ? (type === 'streams' ? totalStreamGoal : totalBudget) - (equalShare * (assignments.length - 1))
-            : equalShare
-      }))
-    );
+    // If no genre matches, fall back to equal distribution based on all playlists
+    const useEqualDistribution = totalMatchingStreams === 0;
+    
+    const updatedAssignments = assignments.map(assignment => {
+      const vendor = activeVendors.find(v => v.id === assignment.vendor_id);
+      const vendorCost = assignment.cost_per_1k ?? vendor?.cost_per_1k_streams ?? 8;
+      
+      // Get genre-matching playlists for this vendor (or all vendor playlists if no matches)
+      const vendorMatchingPlaylists = matchingPlaylistsByVendor[assignment.vendor_id] || [];
+      const vendorAllPlaylists = allPlaylists.filter(p => p.vendor_id === assignment.vendor_id);
+      const playlistsToUse = vendorMatchingPlaylists.length > 0 ? vendorMatchingPlaylists : vendorAllPlaylists.slice(0, 10);
+      
+      const vendorDailyStreams = playlistsToUse.reduce((sum, p) => sum + (p.avg_daily_streams || 0), 0);
+      
+      // Calculate this vendor's proportional share
+      let streamShare: number;
+      if (useEqualDistribution) {
+        streamShare = 1 / assignments.length;
+      } else {
+        streamShare = totalMatchingStreams > 0 
+          ? vendorDailyStreams / totalMatchingStreams 
+          : 1 / assignments.length;
+      }
+      
+      const allocatedStreams = Math.floor(totalStreamGoal * streamShare);
+      const allocatedBudget = (allocatedStreams / 1000) * vendorCost;
+      
+      return {
+        ...assignment,
+        allocated_streams: allocatedStreams,
+        allocated_budget: Math.round(allocatedBudget * 100) / 100,
+        cost_per_1k: vendorCost,
+        playlist_ids: playlistsToUse.map(p => p.id)
+      };
+    });
+    
+    // Adjust remainder to first vendor to match totals exactly
+    if (updatedAssignments.length > 0) {
+      const totalAllocatedStreams = updatedAssignments.reduce((sum, a) => sum + a.allocated_streams, 0);
+      const streamRemainder = totalStreamGoal - totalAllocatedStreams;
+      
+      if (streamRemainder !== 0) {
+        updatedAssignments[0].allocated_streams += streamRemainder;
+        // Recalculate budget for first vendor with adjusted streams
+        const firstVendorCost = updatedAssignments[0].cost_per_1k ?? 8;
+        updatedAssignments[0].allocated_budget = Math.round((updatedAssignments[0].allocated_streams / 1000) * firstVendorCost * 100) / 100;
+      }
+    }
+    
+    console.log('✅ Smart auto-distribute:', updatedAssignments.map(a => 
+      `${a.vendor_name}: ${a.allocated_streams} streams, $${a.allocated_budget} @ $${a.cost_per_1k}/1k`
+    ));
+    
+    onChange(updatedAssignments);
+    
+    // Expand all assigned vendors to show playlists
+    setExpandedVendors(new Set(updatedAssignments.map(a => a.vendor_id)));
   };
 
   return (
@@ -571,30 +632,20 @@ export function VendorAssignmentStep({
               <CardTitle className="text-base">Vendor Allocations</CardTitle>
               <CardDescription>{assignments.length} vendor(s) assigned</CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => handleAutoDistribute('streams')}
-                variant="outline"
-                size="sm"
-              >
-                Auto-Distribute Streams
-              </Button>
-              <Button 
-                onClick={() => handleAutoDistribute('budget')}
-                variant="outline"
-                size="sm"
-              >
-                Auto-Distribute Budget
-              </Button>
-            </div>
+            <Button 
+              onClick={handleSmartAutoDistribute}
+              variant="default"
+              size="sm"
+              className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+            >
+              <Wand2 className="h-4 w-4" />
+              Auto-Distribute
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {assignments.map((assignment, index) => {
                 const vendor = activeVendors.find(v => v.id === assignment.vendor_id);
-                const costPerStream = assignment.allocated_streams > 0 
-                  ? assignment.allocated_budget / assignment.allocated_streams * 1000
-                  : 0;
                 
                 return (
                   <Card key={assignment.vendor_id} className="border-2">
@@ -618,7 +669,7 @@ export function VendorAssignmentStep({
                         </Button>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <Label className="text-xs">Allocated Streams</Label>
                           <Input
@@ -634,6 +685,26 @@ export function VendorAssignmentStep({
                           />
                         </div>
                         <div>
+                          <Label className="text-xs">Cost per 1K ($)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={assignment.cost_per_1k ?? vendor?.cost_per_1k_streams ?? ''}
+                            onChange={(e) => handleUpdateAssignment(
+                              assignment.vendor_id, 
+                              'cost_per_1k', 
+                              parseFloat(e.target.value) || 0
+                            )}
+                            placeholder={vendor?.cost_per_1k_streams?.toString() || "8.00"}
+                          />
+                          {vendor?.cost_per_1k_streams && assignment.cost_per_1k && assignment.cost_per_1k !== vendor.cost_per_1k_streams && (
+                            <p className="text-xs text-amber-600 mt-1">
+                              Default: ${vendor.cost_per_1k_streams}
+                            </p>
+                          )}
+                        </div>
+                        <div>
                           <Label className="text-xs">Allocated Budget ($)</Label>
                           <Input
                             type="number"
@@ -646,15 +717,11 @@ export function VendorAssignmentStep({
                               parseFloat(e.target.value) || 0
                             )}
                             placeholder="0.00"
+                            className="bg-muted/50"
                           />
+                          <p className="text-xs text-muted-foreground mt-1">Auto-calculated</p>
                         </div>
                       </div>
-                      
-                      {assignment.allocated_streams > 0 && (
-                        <div className="mt-3 text-xs text-muted-foreground">
-                          Cost per 1K streams: ${costPerStream.toFixed(2)}
-                        </div>
-                      )}
 
                       {/* Playlist Selection */}
                       <div className="mt-4 pt-4 border-t">
@@ -733,4 +800,5 @@ export function VendorAssignmentStep({
     </div>
   );
 }
+
 
