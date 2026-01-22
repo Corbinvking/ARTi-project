@@ -24,6 +24,14 @@ interface PerformanceEntry {
   created_at: string;
 }
 
+interface CurrentStreamData {
+  streams_24h: number;
+  streams_7d: number;
+  streams_12m: number;
+  last_scraped: string | null;
+  campaign_name?: string;
+}
+
 export default function PerformanceHistoryModal({ 
   open, 
   onOpenChange, 
@@ -32,9 +40,9 @@ export default function PerformanceHistoryModal({
 }: PerformanceHistoryModalProps) {
   const queryClient = useQueryClient();
   
-  const { data: entries, isLoading } = useQuery({
+  const { data: queryResult, isLoading } = useQuery({
     queryKey: ["performance-entries", playlistId],
-    queryFn: async () => {
+    queryFn: async (): Promise<{ entries: PerformanceEntry[]; currentData: CurrentStreamData[] }> => {
       // First, get the spotify_id from the playlists table
       const { data: playlistData, error: playlistError } = await supabase
         .from("playlists")
@@ -44,39 +52,49 @@ export default function PerformanceHistoryModal({
       
       if (playlistError) {
         console.warn("Could not find playlist:", playlistError);
-        return [];
+        return { entries: [], currentData: [] };
       }
       
       // Strategy 1: Find campaign_playlists entries by spotify_id
-      let campaignPlaylistIds: string[] = [];
+      let campaignPlaylists: any[] = [];
       
       if (playlistData?.spotify_id) {
         const { data: cpBySpotifyId } = await supabase
           .from("campaign_playlists")
-          .select("id")
+          .select("id, streams_24h, streams_7d, streams_12m, last_scraped, campaign_id")
           .eq("playlist_spotify_id", playlistData.spotify_id);
         
         if (cpBySpotifyId && cpBySpotifyId.length > 0) {
-          campaignPlaylistIds = cpBySpotifyId.map(cp => cp.id);
+          campaignPlaylists = cpBySpotifyId;
         }
       }
       
       // Strategy 2: Fall back to matching by playlist name (case-insensitive)
-      if (campaignPlaylistIds.length === 0 && playlistData?.name) {
+      if (campaignPlaylists.length === 0 && playlistData?.name) {
         const { data: cpByName } = await supabase
           .from("campaign_playlists")
-          .select("id")
+          .select("id, streams_24h, streams_7d, streams_12m, last_scraped, campaign_id")
           .ilike("playlist_name", playlistData.name);
         
         if (cpByName && cpByName.length > 0) {
-          campaignPlaylistIds = cpByName.map(cp => cp.id);
+          campaignPlaylists = cpByName;
         }
       }
       
-      if (campaignPlaylistIds.length === 0) {
+      if (campaignPlaylists.length === 0) {
         console.log("No campaign_playlists found for playlist:", playlistData?.name);
-        return [];
+        return { entries: [], currentData: [] };
       }
+      
+      const campaignPlaylistIds = campaignPlaylists.map(cp => cp.id);
+      
+      // Extract current stream data from campaign_playlists
+      const currentData: CurrentStreamData[] = campaignPlaylists.map(cp => ({
+        streams_24h: cp.streams_24h || 0,
+        streams_7d: cp.streams_7d || 0,
+        streams_12m: cp.streams_12m || 0,
+        last_scraped: cp.last_scraped,
+      }));
       
       // Now fetch performance_entries for all matching campaign_playlists
       const { data, error } = await supabase
@@ -88,10 +106,13 @@ export default function PerformanceHistoryModal({
       if (error) throw error;
       
       console.log(`Found ${data?.length || 0} performance entries for playlist ${playlistData?.name}`);
-      return data as PerformanceEntry[];
+      return { entries: data as PerformanceEntry[], currentData };
     },
     enabled: open
   });
+  
+  const entries = queryResult?.entries || [];
+  const currentData = queryResult?.currentData || [];
 
   const handleDeleteEntry = async (entryId: string) => {
     try {
@@ -133,16 +154,76 @@ export default function PerformanceHistoryModal({
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
-        ) : entries?.length === 0 ? (
+        ) : entries.length === 0 && currentData.length === 0 ? (
           <div className="text-center py-8 space-y-2">
-            <p className="text-muted-foreground">No performance entries found for this playlist.</p>
+            <p className="text-muted-foreground">No performance data found for this playlist.</p>
             <p className="text-xs text-muted-foreground/70">
-              Performance history is recorded automatically when campaigns are scraped.
-              This playlist may not be part of any active campaign, or the scraper hasn't run yet.
+              This playlist is not part of any active campaign.
+            </p>
+          </div>
+        ) : entries.length === 0 && currentData.length > 0 ? (
+          <div className="space-y-6">
+            {/* Current Stream Data from campaign_playlists */}
+            <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+              <p className="text-sm font-medium mb-3">Current Stream Data (from last scrape)</p>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold">
+                    {currentData.reduce((sum, d) => sum + d.streams_24h, 0).toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Last 24h</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">
+                    {currentData.reduce((sum, d) => sum + d.streams_7d, 0).toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Last 7 days</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">
+                    {currentData.reduce((sum, d) => sum + d.streams_12m, 0).toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Last 12 months</div>
+                </div>
+              </div>
+              {currentData[0]?.last_scraped && (
+                <p className="text-xs text-muted-foreground mt-3 text-center">
+                  Last scraped: {format(new Date(currentData[0].last_scraped), "MMM dd, yyyy 'at' h:mm a")}
+                </p>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              Daily performance history will be recorded when the scraper runs.
             </p>
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Current Stream Summary from campaign_playlists */}
+            {currentData.length > 0 && (
+              <div className="p-3 rounded-lg bg-muted/50 border">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-lg font-bold">
+                      {currentData.reduce((sum, d) => sum + d.streams_24h, 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Last 24h</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold">
+                      {currentData.reduce((sum, d) => sum + d.streams_7d, 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Last 7 days</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold">
+                      {currentData.reduce((sum, d) => sum + d.streams_12m, 0).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Last 12 months</div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Statistics Cards */}
             {stats && (
               <div className="grid grid-cols-2 gap-4">
