@@ -7,12 +7,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit2, Trash2, ExternalLink, Music, TrendingUp, Calendar, AlertCircle, Loader2, HelpCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, ExternalLink, Music, TrendingUp, Calendar, AlertCircle, Loader2, HelpCircle, BarChart3 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMyPlaylists, useCreatePlaylist, useUpdatePlaylist, useDeletePlaylist } from '../hooks/useVendorPlaylists';
 import { usePlaylistHistoricalPerformance, useCampaignPaceAnalysis } from '../hooks/usePlaylistHistoricalPerformance';
 import { useVendorCampaigns } from '../hooks/useVendorCampaigns';
 import { CampaignPaceIndicator } from './CampaignPaceIndicator';
+import PerformanceHistoryModal from './PerformanceHistoryModal';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -32,6 +33,8 @@ export default function VendorPlaylistManager() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingPlaylist, setEditingPlaylist] = useState<any>(null);
+  const [performanceHistoryOpen, setPerformanceHistoryOpen] = useState(false);
+  const [selectedPlaylistForPerformance, setSelectedPlaylistForPerformance] = useState<{ id: string; name: string } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     url: '',
@@ -526,6 +529,24 @@ export default function VendorPlaylistManager() {
                       {/* Actions */}
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => {
+                                    setSelectedPlaylistForPerformance({ id: playlist.id, name: playlist.name });
+                                    setPerformanceHistoryOpen(true);
+                                  }}
+                                  className="h-7 w-7 p-0"
+                                >
+                                  <BarChart3 className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Performance History</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                           <Button variant="ghost" size="sm" onClick={() => handleEditClick(playlist)} className="h-7 w-7 p-0">
                             <Edit2 className="h-3.5 w-3.5" />
                           </Button>
@@ -672,6 +693,16 @@ export default function VendorPlaylistManager() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Performance History Modal */}
+      {selectedPlaylistForPerformance && (
+        <PerformanceHistoryModal
+          open={performanceHistoryOpen}
+          onOpenChange={setPerformanceHistoryOpen}
+          playlistId={selectedPlaylistForPerformance.id}
+          playlistName={selectedPlaylistForPerformance.name}
+        />
+      )}
     </div>
   );
 }
