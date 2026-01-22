@@ -1067,6 +1067,25 @@ export default function PlaylistsPage() {
           vendorId={selectedVendor}
           editingPlaylist={editingPlaylist}
         />
+        
+        {/* Performance modals for vendor detail view */}
+        {selectedPlaylistForPerformance && (
+          <>
+            <AddPerformanceEntryModal
+              open={addPerformanceModalOpen}
+              onOpenChange={setAddPerformanceModalOpen}
+              playlistId={selectedPlaylistForPerformance.id}
+              playlistName={selectedPlaylistForPerformance.name}
+            />
+            
+            <PerformanceHistoryModal
+              open={performanceHistoryModalOpen}
+              onOpenChange={setPerformanceHistoryModalOpen}
+              playlistId={selectedPlaylistForPerformance.id}
+              playlistName={selectedPlaylistForPerformance.name}
+            />
+          </>
+        )}
       </Layout>
     );
   }
