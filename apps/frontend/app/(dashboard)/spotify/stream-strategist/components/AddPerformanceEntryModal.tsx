@@ -37,14 +37,58 @@ export default function AddPerformanceEntryModal({
 
   const addEntryMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      // First, get the spotify_id from the playlists table
+      const { data: playlistData, error: playlistError } = await supabase
+        .from("playlists")
+        .select("spotify_id, name")
+        .eq("id", playlistId)
+        .single();
+      
+      if (playlistError) {
+        throw new Error(`Could not find playlist: ${playlistError.message}`);
+      }
+      
+      // Find a campaign_playlists entry for this playlist
+      let campaignPlaylistId: string | null = null;
+      
+      // Strategy 1: Match by spotify_id
+      if (playlistData?.spotify_id) {
+        const { data: cpBySpotifyId } = await supabase
+          .from("campaign_playlists")
+          .select("id")
+          .eq("playlist_spotify_id", playlistData.spotify_id)
+          .limit(1);
+        
+        if (cpBySpotifyId && cpBySpotifyId.length > 0) {
+          campaignPlaylistId = cpBySpotifyId[0].id;
+        }
+      }
+      
+      // Strategy 2: Fall back to matching by name
+      if (!campaignPlaylistId && playlistData?.name) {
+        const { data: cpByName } = await supabase
+          .from("campaign_playlists")
+          .select("id")
+          .ilike("playlist_name", playlistData.name)
+          .limit(1);
+        
+        if (cpByName && cpByName.length > 0) {
+          campaignPlaylistId = cpByName[0].id;
+        }
+      }
+      
+      if (!campaignPlaylistId) {
+        throw new Error("This playlist is not part of any active campaign. Performance entries can only be added for playlists that are assigned to campaigns.");
+      }
+      
       console.log("Adding performance entry:", {
-        playlist_id: playlistId,
+        playlist_id: campaignPlaylistId,
         daily_streams: parseInt(data.daily_streams),
         date_recorded: format(data.date_recorded, 'yyyy-MM-dd'),
       });
       
       const { data: result, error } = await supabase.from("performance_entries").insert({
-        playlist_id: playlistId,
+        playlist_id: campaignPlaylistId,
         daily_streams: parseInt(data.daily_streams),
         date_recorded: format(data.date_recorded, 'yyyy-MM-dd'),
       }).select();
@@ -65,10 +109,10 @@ export default function AddPerformanceEntryModal({
       onOpenChange(false);
       setFormData({ daily_streams: "", date_recorded: new Date() });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: "Failed to add performance entry",
+        description: error.message || "Failed to add performance entry",
         variant: "destructive",
       });
       console.error("Error adding performance entry:", error);

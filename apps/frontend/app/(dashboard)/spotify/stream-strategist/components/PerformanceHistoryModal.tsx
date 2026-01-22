@@ -35,13 +35,59 @@ export default function PerformanceHistoryModal({
   const { data: entries, isLoading } = useQuery({
     queryKey: ["performance-entries", playlistId],
     queryFn: async () => {
+      // First, get the spotify_id from the playlists table
+      const { data: playlistData, error: playlistError } = await supabase
+        .from("playlists")
+        .select("spotify_id, name")
+        .eq("id", playlistId)
+        .single();
+      
+      if (playlistError) {
+        console.warn("Could not find playlist:", playlistError);
+        return [];
+      }
+      
+      // Strategy 1: Find campaign_playlists entries by spotify_id
+      let campaignPlaylistIds: string[] = [];
+      
+      if (playlistData?.spotify_id) {
+        const { data: cpBySpotifyId } = await supabase
+          .from("campaign_playlists")
+          .select("id")
+          .eq("playlist_spotify_id", playlistData.spotify_id);
+        
+        if (cpBySpotifyId && cpBySpotifyId.length > 0) {
+          campaignPlaylistIds = cpBySpotifyId.map(cp => cp.id);
+        }
+      }
+      
+      // Strategy 2: Fall back to matching by playlist name (case-insensitive)
+      if (campaignPlaylistIds.length === 0 && playlistData?.name) {
+        const { data: cpByName } = await supabase
+          .from("campaign_playlists")
+          .select("id")
+          .ilike("playlist_name", playlistData.name);
+        
+        if (cpByName && cpByName.length > 0) {
+          campaignPlaylistIds = cpByName.map(cp => cp.id);
+        }
+      }
+      
+      if (campaignPlaylistIds.length === 0) {
+        console.log("No campaign_playlists found for playlist:", playlistData?.name);
+        return [];
+      }
+      
+      // Now fetch performance_entries for all matching campaign_playlists
       const { data, error } = await supabase
         .from("performance_entries")
         .select("*")
-        .eq("playlist_id", playlistId)
+        .in("playlist_id", campaignPlaylistIds)
         .order("date_recorded", { ascending: false });
       
       if (error) throw error;
+      
+      console.log(`Found ${data?.length || 0} performance entries for playlist ${playlistData?.name}`);
       return data as PerformanceEntry[];
     },
     enabled: open
@@ -67,8 +113,8 @@ export default function PerformanceHistoryModal({
     }
   };
 
-  // Calculate statistics
-  const stats = entries ? {
+  // Calculate statistics - handle edge cases for empty arrays
+  const stats = entries && entries.length > 0 ? {
     totalEntries: entries.length,
     averageStreams: Math.round(entries.reduce((sum, entry) => sum + entry.daily_streams, 0) / entries.length),
     highestStreams: Math.max(...entries.map(entry => entry.daily_streams)),
@@ -88,8 +134,12 @@ export default function PerformanceHistoryModal({
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : entries?.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No performance entries found for this playlist.
+          <div className="text-center py-8 space-y-2">
+            <p className="text-muted-foreground">No performance entries found for this playlist.</p>
+            <p className="text-xs text-muted-foreground/70">
+              Performance history is recorded automatically when campaigns are scraped.
+              This playlist may not be part of any active campaign, or the scraper hasn't run yet.
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
