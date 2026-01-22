@@ -6,7 +6,7 @@ import { Badge } from "./ui/badge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../integrations/supabase/client";
 import { format } from "date-fns";
-import { CalendarIcon, TrendingUp, BarChart3, Trash2 } from "lucide-react";
+import { CalendarIcon, TrendingUp, BarChart3, Trash2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { toast } from "sonner";
 
@@ -113,6 +113,12 @@ export default function PerformanceHistoryModal({
   
   const entries = queryResult?.entries || [];
   const currentData = queryResult?.currentData || [];
+  
+  // Check if playlist appears inactive (all zeros across all time ranges)
+  const totalCurrentStreams = currentData.reduce((sum, d) => 
+    sum + (d.streams_24h || 0) + (d.streams_7d || 0) + (d.streams_12m || 0), 0
+  );
+  const isInactivePlaylist = currentData.length > 0 && totalCurrentStreams === 0;
 
   const handleDeleteEntry = async (entryId: string) => {
     try {
@@ -163,24 +169,44 @@ export default function PerformanceHistoryModal({
           </div>
         ) : entries.length === 0 && currentData.length > 0 ? (
           <div className="space-y-6">
+            {/* Inactive Playlist Warning */}
+            {isInactivePlaylist && (
+              <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Inactive Playlist</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                      This playlist shows 0 streams across all time ranges. This typically means:
+                    </p>
+                    <ul className="text-xs text-amber-700 dark:text-amber-300 mt-2 list-disc list-inside space-y-1">
+                      <li>The track was removed from this playlist</li>
+                      <li>The playlist is no longer active for this campaign</li>
+                      <li>The scraper couldn't find streams for this specific track</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Current Stream Data from campaign_playlists */}
-            <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+            <div className={`p-4 rounded-lg border ${isInactivePlaylist ? 'bg-muted/30 border-muted' : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'}`}>
               <p className="text-sm font-medium mb-3">Current Stream Data (from last scrape)</p>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold">
+                  <div className={`text-2xl font-bold ${isInactivePlaylist ? 'text-muted-foreground' : ''}`}>
                     {currentData.reduce((sum, d) => sum + d.streams_24h, 0).toLocaleString()}
                   </div>
                   <div className="text-xs text-muted-foreground">Last 24h</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold">
+                  <div className={`text-2xl font-bold ${isInactivePlaylist ? 'text-muted-foreground' : ''}`}>
                     {currentData.reduce((sum, d) => sum + d.streams_7d, 0).toLocaleString()}
                   </div>
                   <div className="text-xs text-muted-foreground">Last 7 days</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold">
+                  <div className={`text-2xl font-bold ${isInactivePlaylist ? 'text-muted-foreground' : ''}`}>
                     {currentData.reduce((sum, d) => sum + d.streams_12m, 0).toLocaleString()}
                   </div>
                   <div className="text-xs text-muted-foreground">Last 12 months</div>
@@ -192,30 +218,44 @@ export default function PerformanceHistoryModal({
                 </p>
               )}
             </div>
-            <p className="text-xs text-muted-foreground text-center">
-              Daily performance history will be recorded when the scraper runs.
-            </p>
+            {!isInactivePlaylist && (
+              <p className="text-xs text-muted-foreground text-center">
+                Daily performance history will be recorded when the scraper runs.
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Inactive Playlist Warning (if current data shows all zeros) */}
+            {isInactivePlaylist && (
+              <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    <span className="font-medium">Inactive:</span> Current scrape shows 0 streams - track may have been removed from playlist
+                  </p>
+                </div>
+              </div>
+            )}
+            
             {/* Current Stream Summary from campaign_playlists */}
             {currentData.length > 0 && (
-              <div className="p-3 rounded-lg bg-muted/50 border">
+              <div className={`p-3 rounded-lg border ${isInactivePlaylist ? 'bg-muted/30' : 'bg-muted/50'}`}>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <div className="text-lg font-bold">
+                    <div className={`text-lg font-bold ${isInactivePlaylist ? 'text-muted-foreground' : ''}`}>
                       {currentData.reduce((sum, d) => sum + d.streams_24h, 0).toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground">Last 24h</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold">
+                    <div className={`text-lg font-bold ${isInactivePlaylist ? 'text-muted-foreground' : ''}`}>
                       {currentData.reduce((sum, d) => sum + d.streams_7d, 0).toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground">Last 7 days</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold">
+                    <div className={`text-lg font-bold ${isInactivePlaylist ? 'text-muted-foreground' : ''}`}>
                       {currentData.reduce((sum, d) => sum + d.streams_12m, 0).toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground">Last 12 months</div>
