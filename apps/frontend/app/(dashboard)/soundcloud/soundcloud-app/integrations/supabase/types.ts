@@ -1809,6 +1809,9 @@ export type Database = {
           default_reach_factor: number | null
           id: string
           inactivity_days: number | null
+          ip_api_key: string | null
+          ip_base_url: string | null
+          ip_username: string | null
           preview_cache_days: number | null
           proof_sla_hours: number | null
           size_tier_thresholds: Json | null
@@ -1827,6 +1830,9 @@ export type Database = {
           default_reach_factor?: number | null
           id?: string
           inactivity_days?: number | null
+          ip_api_key?: string | null
+          ip_base_url?: string | null
+          ip_username?: string | null
           preview_cache_days?: number | null
           proof_sla_hours?: number | null
           size_tier_thresholds?: Json | null
@@ -1845,6 +1851,9 @@ export type Database = {
           default_reach_factor?: number | null
           id?: string
           inactivity_days?: number | null
+          ip_api_key?: string | null
+          ip_base_url?: string | null
+          ip_username?: string | null
           preview_cache_days?: number | null
           proof_sla_hours?: number | null
           size_tier_thresholds?: Json | null

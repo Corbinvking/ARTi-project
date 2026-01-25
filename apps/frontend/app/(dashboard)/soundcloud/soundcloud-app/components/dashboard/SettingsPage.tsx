@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "../../hooks/use-toast";
+import { useAuth } from "../../contexts/AuthContext";
 import { Loader2, Save, Settings2, Clock, Users, Bell, Plus, Trash2 } from "lucide-react";
 
 const tierSchema = z.object({
@@ -30,6 +31,9 @@ const settingsSchema = z.object({
   proof_sla_hours: z.number().min(1).max(168),
   decision_sla_hours: z.number().min(1).max(168),
   size_tiers: z.array(tierSchema).min(1, "At least one tier is required"),
+  ip_base_url: z.string().url().optional().or(z.literal("")),
+  ip_username: z.string().optional().or(z.literal("")),
+  ip_api_key: z.string().optional(),
 }).refine((data) => {
   // Validate that tiers don't overlap and are in logical order
   const sortedTiers = [...data.size_tiers].sort((a, b) => a.min - b.min);
@@ -49,7 +53,13 @@ type SettingsFormData = z.infer<typeof settingsSchema>;
 export const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [ipKeyConfigured, setIpKeyConfigured] = useState(false);
+  const [lastTestStatus, setLastTestStatus] = useState<"idle" | "success" | "error">("idle");
+  const [lastTestMessage, setLastTestMessage] = useState<string | null>(null);
+  const [lastTestAt, setLastTestAt] = useState<string | null>(null);
   const { toast } = useToast();
+  const { session } = useAuth();
 
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
@@ -67,6 +77,9 @@ export const SettingsPage = () => {
         { name: "Mid", min: 10000, max: 100000 },
         { name: "Macro", min: 100000, max: 999999999 },
       ],
+      ip_base_url: "https://api.influenceplanner.com/partner/v1/",
+      ip_username: "",
+      ip_api_key: "",
     },
   });
 
@@ -74,11 +87,48 @@ export const SettingsPage = () => {
     fetchSettings();
   }, []);
 
+  useEffect(() => {
+    if (session?.access_token) {
+      fetchInfluencePlannerSettings();
+    }
+  }, [session?.access_token]);
+
+  const fetchInfluencePlannerSettings = async () => {
+    if (!session?.access_token) return;
+    try {
+      const response = await fetch("/api/soundcloud/influenceplanner/settings", {
+        headers: {
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load InfluencePlanner settings.");
+      }
+
+      const data = await response.json();
+      form.setValue("ip_base_url", data.ip_base_url || "https://api.influenceplanner.com/partner/v1/");
+      form.setValue("ip_username", data.ip_username || "");
+      setIpKeyConfigured(!!data.api_key_configured);
+    } catch (error) {
+      console.warn("InfluencePlanner settings unavailable:", error);
+    }
+  };
+
   const fetchSettings = async () => {
     try {
       const { data, error } = await supabase
         .from("settings")
-        .select("*")
+        .select([
+          "slack_enabled",
+          "slack_channel",
+          "slack_webhook",
+          "preview_cache_days",
+          "inactivity_days",
+          "proof_sla_hours",
+          "decision_sla_hours",
+          "size_tier_thresholds",
+        ])
         .single();
 
       if (error && error.code !== "PGRST116") {
@@ -117,6 +167,9 @@ export const SettingsPage = () => {
           proof_sla_hours: data.proof_sla_hours || 24,
           decision_sla_hours: data.decision_sla_hours || 24,
           size_tiers: sizeTiers,
+          ip_base_url: form.getValues("ip_base_url"),
+          ip_username: form.getValues("ip_username"),
+          ip_api_key: "",
         });
       }
     } catch (error) {
@@ -134,6 +187,8 @@ export const SettingsPage = () => {
   const onSubmit = async (data: SettingsFormData) => {
     setSaving(true);
     try {
+      await saveInfluencePlannerSettings(data);
+
       const settingsData = {
         slack_enabled: data.slack_enabled,
         slack_channel: data.slack_channel,
@@ -170,6 +225,82 @@ export const SettingsPage = () => {
       setSaving(false);
     }
   };
+
+  const saveInfluencePlannerSettings = async (data: SettingsFormData) => {
+    if (!data.ip_username && !data.ip_api_key) {
+      return;
+    }
+
+    if (!data.ip_username) {
+      throw new Error("InfluencePlanner username is required.");
+    }
+
+    if (!session?.access_token) {
+      throw new Error("You must be signed in to save API settings.");
+    }
+
+    const payload = {
+      ip_base_url: data.ip_base_url || "https://api.influenceplanner.com/partner/v1/",
+      ip_username: data.ip_username,
+      ip_api_key: data.ip_api_key || undefined,
+    };
+
+    const response = await fetch("/api/soundcloud/influenceplanner/settings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error?.error || "Failed to save InfluencePlanner settings.");
+    }
+
+    if (data.ip_api_key) {
+      setIpKeyConfigured(true);
+      form.setValue("ip_api_key", "");
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setTestingConnection(true);
+    try {
+      const response = await fetch("/api/soundcloud/influenceplanner/test", {
+        headers: {
+          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.error || "InfluencePlanner connection failed.");
+      }
+
+      setLastTestStatus("success");
+      setLastTestMessage("Connection successful");
+      setLastTestAt(new Date().toLocaleString());
+      toast({
+        title: "Connection successful",
+        description: "InfluencePlanner API responded successfully.",
+      });
+    } catch (error: any) {
+      setLastTestStatus("error");
+      setLastTestMessage(error.message || "Connection failed");
+      setLastTestAt(new Date().toLocaleString());
+      toast({
+        title: "Connection failed",
+        description: error.message || "Unable to reach InfluencePlanner API.",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
+  const appBaseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   const addTier = () => {
     const currentTiers = form.getValues("size_tiers");
@@ -274,6 +405,130 @@ export const SettingsPage = () => {
                   )}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* InfluencePlanner API */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>InfluencePlanner API</CardTitle>
+                  <CardDescription>
+                    Configure InfluencePlanner connectivity for member syncing and scheduling
+                  </CardDescription>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {ipKeyConfigured ? "API key configured" : "API key not set"}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg border border-dashed p-3 text-sm">
+                <div className="font-medium">Available endpoints</div>
+                <div className="mt-2 space-y-1 text-muted-foreground">
+                  <div>GET {form.watch("ip_base_url") || "https://api.influenceplanner.com/partner/v1/"}network/members</div>
+                  <div>POST {form.watch("ip_base_url") || "https://api.influenceplanner.com/partner/v1/"}schedule/create</div>
+                </div>
+                <div className="mt-3 border-t pt-3">
+                  <div className="font-medium">App proxy endpoints</div>
+                  <div className="mt-2 space-y-1 text-muted-foreground">
+                    <div>GET {appBaseUrl}/api/soundcloud/influenceplanner/members</div>
+                    <div>POST {appBaseUrl}/api/soundcloud/influenceplanner/schedule</div>
+                    <div>GET {appBaseUrl}/api/soundcloud/influenceplanner/settings</div>
+                    <div>POST {appBaseUrl}/api/soundcloud/influenceplanner/settings</div>
+                    <div>GET {appBaseUrl}/api/soundcloud/influenceplanner/test</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="ip_base_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Base URL</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="https://api.influenceplanner.com/partner/v1/" />
+                      </FormControl>
+                      <FormDescription>
+                        InfluencePlanner Partner API base URL
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="ip_username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="InfluencePlanner username" />
+                      </FormControl>
+                      <FormDescription>
+                        Partner account username
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="ip_api_key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>API Key</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        placeholder={ipKeyConfigured ? "•••••••• (saved)" : "Enter API key"}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      This key is stored server-side only. Leave blank to keep the current key.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleTestConnection}
+                  disabled={testingConnection || !ipKeyConfigured}
+                >
+                  {testingConnection ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    "Test connection"
+                  )}
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Save settings before testing a new key.
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {lastTestAt
+                    ? `Last test: ${lastTestAt} (${lastTestStatus === "success" ? "success" : "error"})`
+                    : "No tests run yet."}
+                </span>
+              </div>
+              {lastTestMessage && (
+                <div className={`text-xs ${lastTestStatus === "error" ? "text-destructive" : "text-muted-foreground"}`}>
+                  {lastTestMessage}
+                </div>
+              )}
             </CardContent>
           </Card>
 
