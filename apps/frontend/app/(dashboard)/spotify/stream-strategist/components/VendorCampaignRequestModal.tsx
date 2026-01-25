@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, XCircle, Clock, Music, DollarSign, Calendar, Target, ExternalLink } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Music, DollarSign, Calendar, Target, ExternalLink, X, CheckSquare, Square } from 'lucide-react';
 import { useRespondToVendorRequest } from '../hooks/useVendorCampaignRequests';
 import { useMyPlaylists } from '../hooks/useVendorPlaylists';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -165,21 +165,45 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
 
           {/* Playlist Selection */}
           <div className="border rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Music className="h-4 w-4" />
-              <span className="font-medium">Playlist Selection</span>
-              {isResponding && (
-                <Badge variant="outline" className="text-xs">
-                  {selectedPlaylistIds.length !== (request.playlists?.length || 0) ? 'Modified' : 'Original'}
-                </Badge>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Music className="h-4 w-4" />
+                <span className="font-medium">Playlist Selection</span>
+                {isResponding && (
+                  <Badge variant="outline" className="text-xs">
+                    {selectedPlaylistIds.length} selected
+                  </Badge>
+                )}
+              </div>
+              {isResponding && myPlaylists && myPlaylists.length > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedPlaylistIds(myPlaylists.map(p => p.id))}
+                    className="text-xs h-7"
+                  >
+                    <CheckSquare className="h-3 w-3 mr-1" />
+                    Select All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedPlaylistIds([])}
+                    className="text-xs h-7"
+                  >
+                    <Square className="h-3 w-3 mr-1" />
+                    Clear All
+                  </Button>
+                </div>
               )}
             </div>
             
             {isResponding ? (
               <div className="space-y-3">
-                 <div className="text-sm text-muted-foreground">
-                   Select which playlists to include in your response (you can approve with no playlists and add them later):
-                 </div>
+                <div className="text-sm text-muted-foreground">
+                  Select which playlists to include. You can approve with no playlists and add them later.
+                </div>
                 <MultiSelect
                   options={myPlaylists?.map(p => p.name) || []}
                   selected={selectedPlaylistIds.map(id => {
@@ -193,30 +217,42 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                     }).filter(Boolean) as string[];
                     setSelectedPlaylistIds(ids);
                   }}
-                  placeholder="Select playlists for this campaign..."
+                  placeholder="Search and select playlists..."
                 />
-                 <div className="space-y-2">
-                   <div className="text-sm font-medium">
-                     {selectedPlaylistIds.length === 0 ? 'No playlists selected - will approve for future assignment' : 'Selected Playlists:'}
-                   </div>
-                   {selectedPlaylistIds.length === 0 ? (
-                     <div className="py-2 px-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
-                       You can approve this request without selecting playlists and assign them later from your active campaigns.
-                     </div>
-                   ) : (
-                     selectedPlaylistIds.map(id => {
-                       const playlist = myPlaylists?.find(p => p.id === id);
-                       return playlist ? (
-                         <div key={id} className="flex justify-between items-center py-2 px-3 bg-muted/10 rounded-md text-sm">
-                           <span className="font-medium">{playlist.name}</span>
-                           <span className="text-muted-foreground">
-                             {playlist.avg_daily_streams.toLocaleString()} daily streams
-                           </span>
-                         </div>
-                       ) : null;
-                     })
-                   )}
-                 </div>
+                <div className="space-y-2">
+                  {selectedPlaylistIds.length === 0 ? (
+                    <div className="py-3 px-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md text-sm text-amber-800 dark:text-amber-200">
+                      <strong>No playlists selected.</strong> You can approve now and assign playlists later from your active campaigns.
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-sm font-medium">Selected Playlists ({selectedPlaylistIds.length}):</div>
+                      <div className="max-h-48 overflow-y-auto space-y-1">
+                        {selectedPlaylistIds.map(id => {
+                          const playlist = myPlaylists?.find(p => p.id === id);
+                          return playlist ? (
+                            <div key={id} className="flex justify-between items-center py-2 px-3 bg-muted/20 rounded-md text-sm group">
+                              <span className="font-medium">{playlist.name}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground text-xs">
+                                  {playlist.avg_daily_streams.toLocaleString()} daily
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedPlaylistIds(prev => prev.filter(pid => pid !== id))}
+                                  className="h-6 w-6 p-0 opacity-50 hover:opacity-100 hover:text-destructive"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="space-y-2">
