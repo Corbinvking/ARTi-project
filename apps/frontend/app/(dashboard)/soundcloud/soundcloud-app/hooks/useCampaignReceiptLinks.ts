@@ -42,14 +42,26 @@ export const useReceiptLinks = (campaignId?: string, submissionId?: string) => {
         .eq(column, id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // Handle case where table doesn't exist - return empty data silently
+        if (error.code === 'PGRST116' || error.message?.includes('does not exist') || error.code === '42P01') {
+          console.log('campaign_receipt_links table not found, using empty data');
+          setReceiptLinks([]);
+          return;
+        }
+        throw error;
+      }
       setReceiptLinks(data || []);
     } catch (error: any) {
-      toast({
-        title: "Error loading receipt links",
-        description: error.message,
-        variant: "destructive"
-      });
+      // Only show error for unexpected errors
+      if (!error?.message?.includes('404') && !error?.message?.includes('does not exist')) {
+        toast({
+          title: "Error loading receipt links",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+      setReceiptLinks([]);
     } finally {
       setLoading(false);
     }

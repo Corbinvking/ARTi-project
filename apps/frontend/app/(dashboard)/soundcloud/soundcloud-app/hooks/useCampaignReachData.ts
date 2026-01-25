@@ -22,6 +22,12 @@ export const useCampaignReachData = () => {
         .select('campaign_id, reach_amount')
       
       if (error) {
+        // Handle case where table doesn't exist (404) - return empty data silently
+        if (error.code === 'PGRST116' || error.message?.includes('does not exist') || error.code === '42P01') {
+          console.log('campaign_receipt_links table not found, using empty data')
+          setReachData([])
+          return
+        }
         throw error
       }
 
@@ -41,12 +47,16 @@ export const useCampaignReachData = () => {
 
       setReachData(reachDataArray)
     } catch (error: any) {
+      // Only show error toast for unexpected errors, not for missing table
       console.error('Error fetching campaign reach data:', error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch campaign reach data",
-        variant: "destructive",
-      })
+      if (!error?.message?.includes('404') && !error?.message?.includes('does not exist')) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch campaign reach data",
+          variant: "destructive",
+        })
+      }
+      setReachData([])
     } finally {
       setLoading(false)
     }
