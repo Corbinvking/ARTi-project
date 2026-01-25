@@ -487,7 +487,17 @@ export function useApproveCampaignSubmission() {
         
         if (requestError) {
           console.error('❌ Error creating vendor requests:', requestError);
+          console.error('📋 Vendor request error details:', {
+            message: requestError.message,
+            code: requestError.code,
+            details: requestError.details,
+            hint: requestError.hint
+          });
+          // Log the payload for debugging
+          console.error('📋 Vendor request payload:', vendorRequests);
           // Don't throw - vendor requests are secondary to campaign creation
+          // But log a warning that can be seen
+          console.warn('⚠️ Campaign created but vendor requests failed - campaign may not appear in "Awaiting Vendor" section');
         } else {
           console.log(`✅ Created ${vendorRequests.length} vendor campaign requests`);
         }
@@ -527,9 +537,24 @@ export function useApproveCampaignSubmission() {
     },
     onError: (error: any) => {
       console.error('💥 Campaign approval failed:', error);
+      // Extract detailed error message
+      let errorMessage = "Failed to approve campaign.";
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      if (error?.details) {
+        errorMessage += ` Details: ${error.details}`;
+      }
+      if (error?.hint) {
+        errorMessage += ` Hint: ${error.hint}`;
+      }
+      // Handle RLS policy errors specifically
+      if (errorMessage.includes('row-level security policy') || errorMessage.includes('RLS')) {
+        errorMessage = "Permission error: The campaign was partially created but vendor requests could not be added. Please contact an administrator to check database permissions.";
+      }
       toast({
         title: "Approval Failed",
-        description: error.message || "Failed to approve campaign. Check console for details.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
