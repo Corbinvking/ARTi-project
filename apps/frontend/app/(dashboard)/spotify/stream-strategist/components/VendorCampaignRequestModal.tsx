@@ -104,14 +104,25 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Campaign Details */}
+          {/* Vendor-Specific Campaign Details */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div className="p-3 border rounded-lg">
+            <div className="p-3 border rounded-lg bg-primary/5">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <Target className="h-4 w-4" />
+                <span className="font-medium">Your Streams</span>
+              </div>
+              <div className="text-lg font-semibold text-primary">
+                {request.allocated_streams ? request.allocated_streams.toLocaleString() : 'TBD'}
+              </div>
+            </div>
+            <div className="p-3 border rounded-lg bg-primary/5">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <DollarSign className="h-4 w-4" />
-                <span className="font-medium">Budget</span>
+                <span className="font-medium">Rate/1k</span>
               </div>
-              <div className="text-lg font-semibold">{formatCurrency(request.campaign?.budget || 0)}</div>
+              <div className="text-lg font-semibold text-primary">
+                {request.cost_per_1k ? formatCurrency(request.cost_per_1k) : 'Default'}
+              </div>
             </div>
             <div className="p-3 border rounded-lg">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -128,13 +139,6 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                 <span className="font-medium">Duration</span>
               </div>
               <div className="text-lg font-semibold">{request.campaign?.duration_days || 0} days</div>
-            </div>
-            <div className="p-3 border rounded-lg">
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Target className="h-4 w-4" />
-                <span className="font-medium">Stream Goal</span>
-              </div>
-              <div className="text-lg font-semibold">{request.campaign?.stream_goal?.toLocaleString() || 'Not specified'}</div>
             </div>
           </div>
 

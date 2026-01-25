@@ -139,9 +139,16 @@ export function useVendorCampaignRequests() {
             total_goal,
             total_budget,
             notes,
+            vendor_allocations,
             clients (name)
           `)
           .in('id', campaignGroupIds);
+        
+        // Also fetch vendor cost rates
+        const { data: vendorData } = await supabase
+          .from('vendors')
+          .select('id, cost_per_1k_streams')
+          .in('id', vendorIds);
         
         if (groupsError) {
           console.error('Error fetching campaign groups:', groupsError);
@@ -156,6 +163,12 @@ export function useVendorCampaignRequests() {
             acc[sc.campaign_group_id] = sc;
             return acc;
           }, {});
+          
+          // Build vendor cost map
+          const vendorCostMap: Record<string, number> = {};
+          (vendorData || []).forEach((v: any) => {
+            vendorCostMap[v.id] = v.cost_per_1k_streams || 0;
+          });
           
           campaignsMap = campaignGroups.reduce((acc: any, cg: any) => {
             const spotifyCampaign = spotifyCampaignsMap[cg.id];
@@ -175,7 +188,9 @@ export function useVendorCampaignRequests() {
               territory_preferences: [],
               post_types: [],
               stream_goal: cg.total_goal || spotifyCampaign?.goal || 0,
-              creator_count: 0
+              creator_count: 0,
+              vendor_allocations: cg.vendor_allocations || {},
+              vendor_cost_map: vendorCostMap
             };
             return acc;
           }, {});
@@ -201,10 +216,34 @@ export function useVendorCampaignRequests() {
             }
           }
 
+          const campaign = campaignsMap[request.campaign_id];
+          
+          // Extract vendor-specific allocation from campaign.vendor_allocations
+          let vendorAllocatedStreams = 0;
+          let vendorAllocatedBudget = 0;
+          let vendorCostPer1k = 0;
+          
+          if (campaign?.vendor_allocations && request.vendor_id) {
+            const vendorAllocation = campaign.vendor_allocations[request.vendor_id];
+            if (vendorAllocation) {
+              vendorAllocatedStreams = vendorAllocation.allocated_streams || 0;
+              vendorAllocatedBudget = vendorAllocation.allocated_budget || 0;
+            }
+          }
+          
+          // Get vendor's cost per 1k rate
+          if (campaign?.vendor_cost_map && request.vendor_id) {
+            vendorCostPer1k = campaign.vendor_cost_map[request.vendor_id] || 0;
+          }
+
           return { 
             ...request, 
-            campaign: campaignsMap[request.campaign_id],
-            playlists: playlistsForRequest 
+            campaign: campaign,
+            playlists: playlistsForRequest,
+            // Vendor-specific data
+            allocated_streams: vendorAllocatedStreams,
+            allocated_budget: vendorAllocatedBudget,
+            cost_per_1k: vendorCostPer1k
           };
         })
       );
