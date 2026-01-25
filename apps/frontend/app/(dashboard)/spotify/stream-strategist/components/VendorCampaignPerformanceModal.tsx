@@ -63,10 +63,14 @@ export function VendorCampaignPerformanceModal({ campaign, isOpen, onClose }: Ve
     freshCampaign.vendor_allocation?.cost_per_1k_streams || 
     8; // Default rate if nothing is set
   
+  // Calculate pending payout based on ALLOCATED streams (not delivered)
+  // Vendor gets paid for the allocated goal, regardless of over/under delivery
+  const pendingPayoutAmount = (vendorStreamGoal / 1000) * effectiveRate;
+  
   const campaignPayment = existingPayment || {
     campaign_id: freshCampaign.id,
     current_rate_per_1k: effectiveRate,
-    amount_owed: freshCampaign.amount_owed || (currentStreams / 1000) * effectiveRate,
+    amount_owed: freshCampaign.amount_owed || pendingPayoutAmount,
     actual_streams: currentStreams,
     allocated_streams: vendorStreamGoal,
     payment_status: freshCampaign.payment_status || 'unpaid',

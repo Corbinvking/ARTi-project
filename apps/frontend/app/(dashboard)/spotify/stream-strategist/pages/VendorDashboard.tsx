@@ -99,7 +99,11 @@ export default function VendorDashboard() {
     campaigns.forEach(campaign => {
       const vendorPlaylists = campaign.vendor_playlists || [];
       
-      // Sum streams from vendor's playlists
+      // Get vendor's allocated stream goal for this campaign
+      const vendorAllocatedStreams = campaign.vendor_stream_goal || 0;
+      const costPer1kForCampaign = campaign.cost_per_1k_streams || 8;
+      
+      // Sum streams from vendor's playlists (for delivered total)
       vendorPlaylists.forEach((playlist: any) => {
         const streams = playlist.streams_12m || playlist.current_streams || 0;
         totalDeliveredStreams += streams;
@@ -114,21 +118,26 @@ export default function VendorDashboard() {
           playlistPerformance[playlist.name].streams += streams;
         }
 
-        // Calculate payouts
-        const costPer1k = playlist.cost_per_1k_override || campaign.cost_per_1k_streams || 8;
-        const playlistPayout = (streams / 1000) * costPer1k;
-        
-        if (playlist.vendor_paid) {
-          totalPaidOut += playlistPayout;
-        } else {
-          totalPendingPayout += playlistPayout;
-        }
-
+        // Track cost per 1k for average calculation
+        const costPer1k = playlist.cost_per_1k_override || costPer1kForCampaign;
         if (costPer1k > 0) {
           totalCostPer1k += costPer1k;
           costPer1kCount++;
         }
       });
+      
+      // Calculate payout based on ALLOCATED streams (not delivered)
+      // Pending payout = (allocated_streams / 1000) * rate_per_1k
+      const campaignPayout = (vendorAllocatedStreams / 1000) * costPer1kForCampaign;
+      
+      // Check if any playlist in this campaign is marked as paid
+      const isAnythingPaid = vendorPlaylists.some((p: any) => p.vendor_paid);
+      
+      if (isAnythingPaid) {
+        totalPaidOut += campaignPayout;
+      } else {
+        totalPendingPayout += campaignPayout;
+      }
 
       // Calculate on-track status
       const goal = campaign.total_goal || campaign.vendor_stream_goal || 0;
