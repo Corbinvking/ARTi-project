@@ -33,6 +33,67 @@ import { useToast } from '../hooks/use-toast';
 import { useVendors } from '../hooks/useVendors';
 import { useUpdateSubmissionVendors } from '../hooks/useCampaignSubmissions';
 import { PlaylistSelector } from './PlaylistSelector';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../integrations/supabase/client';
+
+// Genre mapping for matching
+const GENRE_MAPPING: Record<string, string[]> = {
+  'phonk': ['phonk', 'drift phonk', 'brazilian phonk', 'dark phonk'],
+  'tech house': ['tech house', 'melodic house', 'deep tech'],
+  'techno': ['techno', 'dark techno', 'industrial techno', 'minimal techno', 'peak time techno', 'hard techno'],
+  'house': ['house', 'deep house', 'future house', 'funky house', 'vocal house', 'uk house', 'chicago house', 'slap house'],
+  'dubstep': ['dubstep', 'brostep', 'riddim dubstep', 'melodic dubstep', 'chillstep'],
+  'trap': ['trap', 'trap edm', 'festival trap', 'hybrid trap'],
+  'melodic bass': ['melodic bass', 'melodic dubstep', 'future bass', 'color bass', 'wave'],
+  'trance': ['trance', 'uplifting trance', 'vocal trance', 'psytrance', 'progressive trance'],
+  'dance': ['dance', 'dance pop', 'edm', 'electro house', 'electronic'],
+  'pop': ['pop', 'dance pop', 'synth-pop', 'electropop', 'indie pop'],
+  'hip-hop': ['hip hop', 'hip-hop', 'rap', 'trap', 'boom bap'],
+  'r&b': ['r&b', 'rnb', 'neo soul', 'soul'],
+  'rock': ['rock', 'classic rock', 'hard rock', 'indie rock'],
+  'chill': ['chill', 'chillout', 'chillwave', 'lo-fi', 'lofi beats', 'chillhop'],
+  'latin': ['latin', 'reggaeton', 'latin pop', 'salsa', 'bachata'],
+  'workout': ['workout', 'gym', 'motivation', 'fitness', 'running'],
+};
+
+// Calculate genre match score
+function calculateGenreMatchScore(campaignGenres: string[], playlistGenres: string[]): number {
+  if (!campaignGenres.length || !playlistGenres.length) return 0;
+  
+  let score = 0;
+  const normalizedPlaylistGenres = playlistGenres.map(g => g.toLowerCase().trim());
+  
+  for (const campaignGenre of campaignGenres) {
+    const normalizedCampaignGenre = campaignGenre.toLowerCase().trim();
+    
+    // Direct match
+    if (normalizedPlaylistGenres.includes(normalizedCampaignGenre)) {
+      score += 3;
+      continue;
+    }
+    
+    // Related genres
+    const relatedGenres = GENRE_MAPPING[normalizedCampaignGenre] || [normalizedCampaignGenre];
+    for (const related of relatedGenres) {
+      if (normalizedPlaylistGenres.some(pg => pg.includes(related) || related.includes(pg))) {
+        score += 2;
+        break;
+      }
+    }
+    
+    // Partial match
+    if (normalizedPlaylistGenres.some(pg => pg.includes(normalizedCampaignGenre) || normalizedCampaignGenre.includes(pg))) {
+      score += 1;
+    }
+  }
+  
+  return score;
+}
+
+// Round to nearest 1000
+function roundToNearest1k(value: number): number {
+  return Math.round(value / 1000) * 1000;
+}
 
 interface VendorAssignment {
   vendor_id: string;
@@ -95,6 +156,28 @@ export function SubmissionDetailModal({
   
   const { data: vendors = [] } = useVendors();
   const updateVendorsMutation = useUpdateSubmissionVendors();
+  
+  // Fetch all playlists with genres for genre-based filtering
+  const { data: allPlaylists = [] } = useQuery({
+    queryKey: ['all-playlists-with-genres'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('playlists')
+        .select(`
+          id,
+          name,
+          vendor_id,
+          genres,
+          avg_daily_streams,
+          vendor:vendors(id, name, cost_per_1k_streams, is_active, max_daily_streams)
+        `)
+        .order('name');
+      
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: open, // Only fetch when modal is open
+  });
 
   // Sync edited assignments when modal opens or submission changes
   useEffect(() => {
@@ -120,15 +203,15 @@ export function SubmissionDetailModal({
     
     // Calculate default allocation based on remaining streams/budget
     const currentAllocatedStreams = editedAssignments.reduce((sum, a) => sum + a.allocated_streams, 0);
-    const currentAllocatedBudget = editedAssignments.reduce((sum, a) => sum + a.allocated_budget, 0);
     const remainingStreams = Math.max(0, submission.stream_goal - currentAllocatedStreams);
-    const remainingBudget = Math.max(0, submission.price_paid - currentAllocatedBudget);
     
     // Split remaining evenly if adding to existing, or take all if first vendor
-    const vendorCount = editedAssignments.length + 1;
-    const defaultStreams = editedAssignments.length === 0 
+    let defaultStreams = editedAssignments.length === 0 
       ? remainingStreams 
       : Math.round(remainingStreams / 2);
+    
+    // Round to nearest 1000 for cleaner numbers
+    defaultStreams = roundToNearest1k(defaultStreams);
     
     // Calculate budget based on vendor's rate or default $8/1k
     const ratePer1k = vendor.cost_per_1k_streams || 8;
@@ -217,10 +300,12 @@ export function SubmissionDetailModal({
     });
   };
 
-  // Auto-suggest vendors based on daily capacity
+  // Auto-suggest vendors based on genre matching and daily capacity
   const handleAutoSuggest = () => {
     console.log('🔧 Auto-suggest started');
     console.log('🔧 Total vendors:', vendors.length);
+    console.log('🔧 Campaign genres:', submission.music_genres);
+    console.log('🔧 Total playlists loaded:', allPlaylists.length);
     
     if (vendors.length === 0) {
       toast({
@@ -231,24 +316,62 @@ export function SubmissionDetailModal({
       return;
     }
     
-    // Get all active vendors
-    const allActiveVendors = vendors.filter(v => v.is_active);
+    const campaignGenres = submission.music_genres || [];
     
-    // Prefer vendors with capacity set, but fallback to all active if none have capacity
-    const vendorsWithCapacity = allActiveVendors
-      .filter(v => (v.max_daily_streams || 0) > 0)
-      .sort((a, b) => (b.max_daily_streams || 0) - (a.max_daily_streams || 0));
+    // If we have campaign genres, filter vendors by genre matching
+    let vendorsToUse: typeof vendors = [];
+    let matchingPlaylistsByVendor: Record<string, any[]> = {};
     
-    // Use vendors with capacity if available, otherwise use all active vendors
-    const useCapacityBasedDistribution = vendorsWithCapacity.length > 0;
-    const activeVendors = useCapacityBasedDistribution ? vendorsWithCapacity : allActiveVendors.slice(0, 5); // Limit to 5 for equal distribution
+    if (campaignGenres.length > 0 && allPlaylists.length > 0) {
+      // Calculate genre match scores for all playlists
+      const playlistsWithScores = allPlaylists.map(playlist => ({
+        ...playlist,
+        genreMatchScore: calculateGenreMatchScore(campaignGenres, playlist.genres || [])
+      }));
+      
+      // Filter to playlists with good genre match (score >= 2)
+      const matchingPlaylists = playlistsWithScores.filter(p => p.genreMatchScore >= 2);
+      console.log('🎵 Playlists with genre match >= 2:', matchingPlaylists.length);
+      
+      // Group matching playlists by vendor
+      matchingPlaylists.forEach(playlist => {
+        if (!playlist.vendor_id) return;
+        if (!matchingPlaylistsByVendor[playlist.vendor_id]) {
+          matchingPlaylistsByVendor[playlist.vendor_id] = [];
+        }
+        matchingPlaylistsByVendor[playlist.vendor_id].push(playlist);
+      });
+      
+      const matchingVendorIds = Object.keys(matchingPlaylistsByVendor);
+      console.log('🔧 Vendors with genre-matching playlists:', matchingVendorIds.length);
+      
+      // Get only vendors who have matching playlists
+      vendorsToUse = vendors.filter(v => 
+        v.is_active && matchingVendorIds.includes(v.id)
+      );
+      
+      if (vendorsToUse.length === 0) {
+        toast({
+          title: "No genre matches found",
+          description: `No vendors have playlists matching genres: ${campaignGenres.join(', ')}. Consider adding more vendor playlists or adjusting campaign genres.`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log('🔧 Genre-matched vendors:', vendorsToUse.map(v => v.name));
+    } else {
+      // No genres specified, fall back to capacity-based distribution
+      console.log('⚠️ No campaign genres specified, using capacity-based distribution');
+      const allActiveVendors = vendors.filter(v => v.is_active);
+      const vendorsWithCapacity = allActiveVendors
+        .filter(v => (v.max_daily_streams || 0) > 0)
+        .sort((a, b) => (b.max_daily_streams || 0) - (a.max_daily_streams || 0));
+      
+      vendorsToUse = vendorsWithCapacity.length > 0 ? vendorsWithCapacity : allActiveVendors.slice(0, 5);
+    }
     
-    console.log('🔧 Active vendors:', activeVendors.map(v => 
-      `${v.name}: ${v.max_daily_streams || 'N/A'}/day @ $${v.cost_per_1k_streams || 8}/1K`
-    ));
-    console.log('🔧 Distribution mode:', useCapacityBasedDistribution ? 'capacity-based' : 'equal distribution');
-    
-    if (activeVendors.length === 0) {
+    if (vendorsToUse.length === 0) {
       toast({
         title: "No active vendors",
         description: "No active vendors available for assignment.",
@@ -258,50 +381,60 @@ export function SubmissionDetailModal({
     }
     
     const campaignDays = submission.duration_days || 90;
-    const dailyStreamsNeeded = submission.stream_goal / campaignDays;
     
-    // Calculate capacity or use equal distribution
+    // Calculate allocation based on matching playlist capacity or vendor max_daily_streams
     let totalDailyCapacity = 0;
-    if (useCapacityBasedDistribution) {
-      totalDailyCapacity = activeVendors.reduce((sum, v) => sum + (v.max_daily_streams || 0), 0);
-    }
+    const vendorCapacities: Record<string, number> = {};
     
-    console.log('🔧 Campaign analysis:', {
-      streamGoal: submission.stream_goal,
-      campaignDays,
-      dailyNeeded: dailyStreamsNeeded.toFixed(0),
-      totalDailyCapacity: useCapacityBasedDistribution ? totalDailyCapacity : 'N/A (equal)',
-      vendorCount: activeVendors.length
+    vendorsToUse.forEach(vendor => {
+      let capacity = 0;
+      if (matchingPlaylistsByVendor[vendor.id]) {
+        // Sum up avg_daily_streams from matching playlists
+        capacity = matchingPlaylistsByVendor[vendor.id].reduce(
+          (sum, p) => sum + (p.avg_daily_streams || 0), 0
+        );
+      }
+      // Fallback to vendor's max_daily_streams if no playlist data
+      if (capacity === 0) {
+        capacity = vendor.max_daily_streams || 10000;
+      }
+      vendorCapacities[vendor.id] = capacity;
+      totalDailyCapacity += capacity;
     });
+    
+    console.log('🔧 Vendor capacities:', vendorCapacities);
+    console.log('🔧 Total daily capacity:', totalDailyCapacity);
     
     const newAssignments: VendorAssignment[] = [];
     let remainingStreams = submission.stream_goal;
     
-    for (let i = 0; i < activeVendors.length; i++) {
-      const vendor = activeVendors[i];
+    for (let i = 0; i < vendorsToUse.length; i++) {
+      const vendor = vendorsToUse[i];
       if (remainingStreams <= 0) break;
       
-      // Calculate proportion based on capacity or equal distribution
-      let proportion: number;
-      if (useCapacityBasedDistribution) {
-        const vendorDailyCapacity = vendor.max_daily_streams || 0;
-        proportion = vendorDailyCapacity / totalDailyCapacity;
-      } else {
-        // Equal distribution among vendors
-        proportion = 1 / activeVendors.length;
-      }
+      // Calculate proportion based on vendor's capacity share
+      const vendorCapacity = vendorCapacities[vendor.id] || 0;
+      const proportion = totalDailyCapacity > 0 
+        ? vendorCapacity / totalDailyCapacity 
+        : 1 / vendorsToUse.length;
       
       // For the last vendor, assign all remaining to avoid rounding errors
-      const isLastVendor = i === activeVendors.length - 1;
-      const allocatedStreams = isLastVendor
+      const isLastVendor = i === vendorsToUse.length - 1;
+      let allocatedStreams = isLastVendor
         ? remainingStreams
         : Math.min(Math.round(submission.stream_goal * proportion), remainingStreams);
+      
+      // Round to nearest 1000 for cleaner numbers (except last vendor)
+      if (!isLastVendor) {
+        allocatedStreams = roundToNearest1k(allocatedStreams);
+      }
       
       // Calculate budget based on vendor's rate
       const ratePer1k = vendor.cost_per_1k_streams || 8;
       const allocatedBudget = (allocatedStreams / 1000) * ratePer1k;
       
-      console.log(`🔧 ${vendor.name}: proportion=${(proportion * 100).toFixed(1)}%, streams=${allocatedStreams}, budget=$${allocatedBudget.toFixed(2)}`);
+      const matchingPlaylistCount = matchingPlaylistsByVendor[vendor.id]?.length || 0;
+      console.log(`🔧 ${vendor.name}: ${matchingPlaylistCount} matching playlists, proportion=${(proportion * 100).toFixed(1)}%, streams=${allocatedStreams.toLocaleString()}, budget=$${allocatedBudget.toFixed(2)}`);
       
       if (allocatedStreams > 0) {
         newAssignments.push({
@@ -317,15 +450,26 @@ export function SubmissionDetailModal({
       }
     }
     
+    // Handle any remaining streams due to rounding (add to first vendor)
+    if (remainingStreams > 0 && newAssignments.length > 0) {
+      newAssignments[0].allocated_streams += remainingStreams;
+      const ratePer1k = newAssignments[0].cost_per_1k || 8;
+      newAssignments[0].allocated_budget = Math.round((newAssignments[0].allocated_streams / 1000) * ratePer1k * 100) / 100;
+    }
+    
     console.log('✅ Auto-suggest complete:', newAssignments.map(a => 
       `${a.vendor_name}: ${a.allocated_streams.toLocaleString()} streams, $${a.allocated_budget.toFixed(2)}`
     ));
     
     setEditedAssignments(newAssignments);
     setIsEditingVendors(true); // Enter edit mode so they can adjust
+    
+    const genreInfo = campaignGenres.length > 0 
+      ? ` matching genres: ${campaignGenres.join(', ')}`
+      : ' (no genre filter applied)';
     toast({
       title: "Vendors auto-suggested",
-      description: `${newAssignments.length} vendors assigned${useCapacityBasedDistribution ? ' based on daily capacity' : ' (equal distribution)'}. Adjust if needed, then Save.`
+      description: `${newAssignments.length} vendors assigned${genreInfo}. Adjust if needed, then Save.`
     });
   };
 
