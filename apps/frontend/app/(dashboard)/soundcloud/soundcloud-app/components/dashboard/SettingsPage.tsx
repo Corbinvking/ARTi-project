@@ -13,7 +13,6 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "../../hooks/use-toast";
-import { useAuth } from "../../contexts/AuthContext";
 import { Loader2, Save, Settings2, Clock, Users, Bell, Plus, Trash2 } from "lucide-react";
 
 const tierSchema = z.object({
@@ -59,7 +58,7 @@ export const SettingsPage = () => {
   const [lastTestMessage, setLastTestMessage] = useState<string | null>(null);
   const [lastTestAt, setLastTestAt] = useState<string | null>(null);
   const { toast } = useToast();
-  const { session } = useAuth();
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
 
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
@@ -88,17 +87,34 @@ export const SettingsPage = () => {
   }, []);
 
   useEffect(() => {
-    if (session?.access_token) {
+    const syncSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSessionToken(data.session?.access_token ?? null);
+    };
+
+    syncSession();
+
+    const { data: authSubscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSessionToken(session?.access_token ?? null);
+    });
+
+    return () => {
+      authSubscription.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (sessionToken) {
       fetchInfluencePlannerSettings();
     }
-  }, [session?.access_token]);
+  }, [sessionToken]);
 
   const fetchInfluencePlannerSettings = async () => {
-    if (!session?.access_token) return;
+    if (!sessionToken) return;
     try {
       const response = await fetch("/api/soundcloud/influenceplanner/settings", {
         headers: {
-          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+          Authorization: sessionToken ? `Bearer ${sessionToken}` : "",
         },
       });
 
@@ -235,7 +251,7 @@ export const SettingsPage = () => {
       throw new Error("InfluencePlanner username is required.");
     }
 
-    if (!session?.access_token) {
+    if (!sessionToken) {
       throw new Error("You must be signed in to save API settings.");
     }
 
@@ -249,7 +265,7 @@ export const SettingsPage = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+        Authorization: sessionToken ? `Bearer ${sessionToken}` : "",
       },
       body: JSON.stringify(payload),
     });
@@ -270,7 +286,7 @@ export const SettingsPage = () => {
     try {
       const response = await fetch("/api/soundcloud/influenceplanner/test", {
         headers: {
-          Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+          Authorization: sessionToken ? `Bearer ${sessionToken}` : "",
         },
       });
 
