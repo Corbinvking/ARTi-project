@@ -60,6 +60,10 @@ export const SettingsPage = () => {
   const [lastTestStatus, setLastTestStatus] = useState<"idle" | "success" | "error">("idle");
   const [lastTestMessage, setLastTestMessage] = useState<string | null>(null);
   const [lastTestAt, setLastTestAt] = useState<string | null>(null);
+  const [membersCheckLoading, setMembersCheckLoading] = useState(false);
+  const [scheduleCheckLoading, setScheduleCheckLoading] = useState(false);
+  const [membersCheckResult, setMembersCheckResult] = useState<string | null>(null);
+  const [scheduleCheckResult, setScheduleCheckResult] = useState<string | null>(null);
   const { toast } = useToast();
   const [sessionToken, setSessionToken] = useState<string | null>(null);
 
@@ -367,6 +371,77 @@ export const SettingsPage = () => {
     }
   };
 
+  const handleCheckMembers = async () => {
+    if (!sessionToken) {
+      toast({
+        title: "Not authenticated",
+        description: "Sign in before testing endpoints.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMembersCheckLoading(true);
+    setMembersCheckResult(null);
+    try {
+      const response = await fetch("/api/soundcloud/influenceplanner/members?limit=1&offset=0", {
+        headers: {
+          Authorization: sessionToken ? `Bearer ${sessionToken}` : "",
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.error || "Members endpoint failed.");
+      }
+
+      setMembersCheckResult("Members endpoint responded successfully.");
+    } catch (error: any) {
+      setMembersCheckResult(error.message || "Members endpoint failed.");
+    } finally {
+      setMembersCheckLoading(false);
+    }
+  };
+
+  const handleCheckSchedule = async () => {
+    if (!sessionToken) {
+      toast({
+        title: "Not authenticated",
+        description: "Sign in before testing endpoints.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setScheduleCheckLoading(true);
+    setScheduleCheckResult(null);
+    try {
+      const response = await fetch("/api/soundcloud/influenceplanner/schedule", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: sessionToken ? `Bearer ${sessionToken}` : "",
+        },
+        body: JSON.stringify({
+          targets: [],
+          medias: [],
+          settings: null,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.status !== 400) {
+        throw new Error("Schedule endpoint did not return validation error as expected.");
+      }
+
+      setScheduleCheckResult(data?.error || "Schedule endpoint validated request.");
+    } catch (error: any) {
+      setScheduleCheckResult(error.message || "Schedule endpoint failed.");
+    } finally {
+      setScheduleCheckLoading(false);
+    }
+  };
+
   const appBaseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   const addTier = () => {
@@ -491,11 +566,53 @@ export const SettingsPage = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-lg border border-dashed p-3 text-sm">
+              <div className="rounded-lg border border-dashed p-3 text-sm space-y-4">
                 <div className="font-medium">Available endpoints</div>
-                <div className="mt-2 space-y-1 text-muted-foreground">
-                  <div>GET {form.watch("ip_base_url") || "https://api.influenceplanner.com/partner/v1/"}network/members</div>
-                  <div>POST {form.watch("ip_base_url") || "https://api.influenceplanner.com/partner/v1/"}schedule/create</div>
+                <div className="space-y-2 text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span>GET {form.watch("ip_base_url") || "https://api.influenceplanner.com/partner/v1/"}network/members</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCheckMembers}
+                      disabled={!ipKeyConfigured || membersCheckLoading}
+                    >
+                      {membersCheckLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                          Testing...
+                        </>
+                      ) : (
+                        "Test members"
+                      )}
+                    </Button>
+                  </div>
+                  {membersCheckResult && (
+                    <div className="text-xs text-muted-foreground">{membersCheckResult}</div>
+                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span>POST {form.watch("ip_base_url") || "https://api.influenceplanner.com/partner/v1/"}schedule/create</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCheckSchedule}
+                      disabled={!ipKeyConfigured || scheduleCheckLoading}
+                    >
+                      {scheduleCheckLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                          Testing...
+                        </>
+                      ) : (
+                        "Test schedule"
+                      )}
+                    </Button>
+                  </div>
+                  {scheduleCheckResult && (
+                    <div className="text-xs text-muted-foreground">{scheduleCheckResult}</div>
+                  )}
                 </div>
                 <div className="mt-3 border-t pt-3">
                   <div className="font-medium">App proxy endpoints</div>
