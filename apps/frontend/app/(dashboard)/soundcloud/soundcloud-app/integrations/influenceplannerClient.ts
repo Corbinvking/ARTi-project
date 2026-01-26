@@ -50,16 +50,23 @@ export const getInfluencePlannerSettings = async (): Promise<InfluencePlannerSet
   const { data, error } = await supabaseAdmin
     .from("soundcloud_settings")
     .select("ip_base_url, ip_username, ip_api_key")
-    .single();
+    .order("updated_at", { ascending: false })
+    .limit(1);
 
-  if (error || !data?.ip_base_url || !data?.ip_username || !data?.ip_api_key) {
+  if (error) {
+    throw new Error("Failed to load InfluencePlanner settings.");
+  }
+
+  const settings = Array.isArray(data) ? data[0] : null;
+
+  if (!settings?.ip_base_url || !settings?.ip_username || !settings?.ip_api_key) {
     throw new Error("InfluencePlanner API credentials are not configured.");
   }
 
   return {
-    ip_base_url: data.ip_base_url,
-    ip_username: data.ip_username,
-    ip_api_key: data.ip_api_key,
+    ip_base_url: settings.ip_base_url,
+    ip_username: settings.ip_username,
+    ip_api_key: settings.ip_api_key,
   };
 };
 

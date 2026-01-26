@@ -16,20 +16,23 @@ export async function GET(request: Request) {
     const { data, error } = await supabaseAdmin
       .from("soundcloud_settings")
       .select("ip_base_url, ip_username, ip_api_key")
-      .single();
+      .order("updated_at", { ascending: false })
+      .limit(1);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    const settings = Array.isArray(data) ? data[0] : null;
+
     const responsePayload: Record<string, any> = {
-      ip_base_url: data?.ip_base_url ?? "https://api.influenceplanner.com/partner/v1/",
-      ip_username: data?.ip_username ?? "",
-      api_key_configured: !!data?.ip_api_key,
+      ip_base_url: settings?.ip_base_url ?? "https://api.influenceplanner.com/partner/v1/",
+      ip_username: settings?.ip_username ?? "",
+      api_key_configured: !!settings?.ip_api_key,
     };
 
     if (reveal) {
-      responsePayload.ip_api_key = data?.ip_api_key ?? "";
+      responsePayload.ip_api_key = settings?.ip_api_key ?? "";
     }
 
     return NextResponse.json(responsePayload);
@@ -67,10 +70,13 @@ export async function POST(request: Request) {
 
   try {
     const supabaseAdmin = createAdminClient();
-    const { data: existing } = await supabaseAdmin
+    const { data: existingRows } = await supabaseAdmin
       .from("soundcloud_settings")
-      .select("id, ip_api_key")
-      .single();
+      .select("id")
+      .order("updated_at", { ascending: false })
+      .limit(1);
+
+    const existing = Array.isArray(existingRows) ? existingRows[0] : null;
 
     const payload: Record<string, any> = {
       ip_base_url,
@@ -88,7 +94,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
     } else {
-      const { error } = await supabaseAdmin.from("soundcloud_settings").insert(payload);
+      const { error } = await supabaseAdmin.from("soundcloud_settings").insert({
+        ...payload,
+        org_id: "00000000-0000-0000-0000-000000000001",
+      });
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }

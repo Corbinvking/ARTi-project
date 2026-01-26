@@ -126,7 +126,8 @@ export const SettingsPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to load InfluencePlanner settings.");
+        const error = await response.json();
+        throw new Error(error?.error || "Failed to load InfluencePlanner settings.");
       }
 
       const data = await response.json();
@@ -138,6 +139,11 @@ export const SettingsPage = () => {
       }
     } catch (error) {
       console.warn("InfluencePlanner settings unavailable:", error);
+      toast({
+        title: "InfluencePlanner settings",
+        description: "Unable to load API key status. Try refreshing.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -155,20 +161,22 @@ export const SettingsPage = () => {
           "decision_sla_hours",
           "size_tier_thresholds",
         ])
-        .single();
+        .order("updated_at", { ascending: false })
+        .limit(1);
 
       if (error && error.code !== "PGRST116") {
         throw error;
       }
 
-      if (data) {
+      const row = Array.isArray(data) ? data[0] : null;
+      if (row) {
         // Handle both old format (T1-T4 object) and new format (array)
         let sizeTiers;
-        if (Array.isArray(data.size_tier_thresholds)) {
-          sizeTiers = data.size_tier_thresholds;
-        } else if (data.size_tier_thresholds) {
+        if (Array.isArray(row.size_tier_thresholds)) {
+          sizeTiers = row.size_tier_thresholds;
+        } else if (row.size_tier_thresholds) {
           // Convert old format to new format
-          const oldFormat = data.size_tier_thresholds as any;
+          const oldFormat = row.size_tier_thresholds as any;
           sizeTiers = [
             { name: "Nano", min: oldFormat.T1?.min || 0, max: oldFormat.T1?.max || 1000 },
             { name: "Micro", min: oldFormat.T2?.min || 1000, max: oldFormat.T2?.max || 10000 },
@@ -185,13 +193,13 @@ export const SettingsPage = () => {
         }
         
         form.reset({
-          slack_enabled: data.slack_enabled || false,
-          slack_channel: data.slack_channel || "#soundcloud-groups",
-          slack_webhook: data.slack_webhook || "",
-          preview_cache_days: data.preview_cache_days || 30,
-          inactivity_days: data.inactivity_days || 90,
-          proof_sla_hours: data.proof_sla_hours || 24,
-          decision_sla_hours: data.decision_sla_hours || 24,
+          slack_enabled: row.slack_enabled || false,
+          slack_channel: row.slack_channel || "#soundcloud-groups",
+          slack_webhook: row.slack_webhook || "",
+          preview_cache_days: row.preview_cache_days || 30,
+          inactivity_days: row.inactivity_days || 90,
+          proof_sla_hours: row.proof_sla_hours || 24,
+          decision_sla_hours: row.decision_sla_hours || 24,
           size_tiers: sizeTiers,
           ip_base_url: form.getValues("ip_base_url"),
           ip_username: form.getValues("ip_username"),
@@ -390,12 +398,13 @@ export const SettingsPage = () => {
         },
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error?.error || "Members endpoint failed.");
+        throw new Error(data?.error || `Members endpoint failed (${response.status}).`);
       }
 
-      setMembersCheckResult("Members endpoint responded successfully.");
+      const preview = JSON.stringify(data).slice(0, 400);
+      setMembersCheckResult(`Status ${response.status}. Response: ${preview}`);
     } catch (error: any) {
       setMembersCheckResult(error.message || "Members endpoint failed.");
     } finally {
@@ -431,10 +440,11 @@ export const SettingsPage = () => {
 
       const data = await response.json();
       if (response.status !== 400) {
-        throw new Error("Schedule endpoint did not return validation error as expected.");
+        throw new Error(`Schedule endpoint returned ${response.status}.`);
       }
 
-      setScheduleCheckResult(data?.error || "Schedule endpoint validated request.");
+      const preview = JSON.stringify(data).slice(0, 400);
+      setScheduleCheckResult(`Status ${response.status}. Response: ${preview}`);
     } catch (error: any) {
       setScheduleCheckResult(error.message || "Schedule endpoint failed.");
     } finally {
