@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
@@ -62,8 +63,22 @@ export const SettingsPage = () => {
   const [lastTestAt, setLastTestAt] = useState<string | null>(null);
   const [membersCheckLoading, setMembersCheckLoading] = useState(false);
   const [scheduleCheckLoading, setScheduleCheckLoading] = useState(false);
-  const [membersCheckResult, setMembersCheckResult] = useState<string | null>(null);
-  const [scheduleCheckResult, setScheduleCheckResult] = useState<string | null>(null);
+  const [memberLogs, setMemberLogs] = useState<Array<Record<string, any>>>([]);
+  const [scheduleLogs, setScheduleLogs] = useState<Array<Record<string, any>>>([]);
+  const [membersParams, setMembersParams] = useState({
+    limit: "1",
+    offset: "0",
+    searchTerm: "",
+    sortBy: "UPDATED",
+    sortDir: "DESC",
+  });
+  const [schedulePayload, setSchedulePayload] = useState({
+    types: "REPOST",
+    medias: "",
+    targets: "",
+    settings: '{"spreadBetweenAccountsMinutes":60,"spreadBetweenTracksMinutes":60}',
+    comment: "",
+  });
   const { toast } = useToast();
   const [sessionToken, setSessionToken] = useState<string | null>(null);
 
@@ -390,23 +405,40 @@ export const SettingsPage = () => {
     }
 
     setMembersCheckLoading(true);
-    setMembersCheckResult(null);
     try {
-      const response = await fetch("/api/soundcloud/influenceplanner/members?limit=1&offset=0", {
+      const searchParams = new URLSearchParams();
+      if (membersParams.limit) searchParams.set("limit", membersParams.limit);
+      if (membersParams.offset) searchParams.set("offset", membersParams.offset);
+      if (membersParams.searchTerm) searchParams.set("searchTerm", membersParams.searchTerm);
+      if (membersParams.sortBy) searchParams.set("sortBy", membersParams.sortBy);
+      if (membersParams.sortDir) searchParams.set("sortDir", membersParams.sortDir);
+
+      const response = await fetch(`/api/soundcloud/influenceplanner/members?${searchParams.toString()}`, {
         headers: {
           Authorization: sessionToken ? `Bearer ${sessionToken}` : "",
         },
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error || `Members endpoint failed (${response.status}).`);
-      }
-
-      const preview = JSON.stringify(data).slice(0, 400);
-      setMembersCheckResult(`Status ${response.status}. Response: ${preview}`);
+      setMemberLogs((prev) => [
+        {
+          timestamp: new Date().toLocaleString(),
+          status: response.status,
+          headers: data?.headers || {},
+          body: data?.body ?? data,
+        },
+        ...prev,
+      ].slice(0, 5));
     } catch (error: any) {
-      setMembersCheckResult(error.message || "Members endpoint failed.");
+      setMemberLogs((prev) => [
+        {
+          timestamp: new Date().toLocaleString(),
+          status: "error",
+          headers: {},
+          body: { error: error.message || "Members endpoint failed." },
+        },
+        ...prev,
+      ].slice(0, 5));
     } finally {
       setMembersCheckLoading(false);
     }
@@ -423,32 +455,78 @@ export const SettingsPage = () => {
     }
 
     setScheduleCheckLoading(true);
-    setScheduleCheckResult(null);
     try {
+      let settingsValue: any = null;
+      try {
+        settingsValue = schedulePayload.settings ? JSON.parse(schedulePayload.settings) : null;
+      } catch {
+        settingsValue = null;
+      }
+
+      const payload = {
+        types: schedulePayload.types
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean),
+        medias: schedulePayload.medias
+          .split("\n")
+          .map((value) => value.trim())
+          .filter(Boolean),
+        targets: schedulePayload.targets
+          .split("\n")
+          .map((value) => value.trim())
+          .filter(Boolean),
+        settings: settingsValue,
+        comment: schedulePayload.comment ? schedulePayload.comment : null,
+      };
+
       const response = await fetch("/api/soundcloud/influenceplanner/schedule", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: sessionToken ? `Bearer ${sessionToken}` : "",
         },
-        body: JSON.stringify({
-          targets: [],
-          medias: [],
-          settings: null,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
-      if (response.status !== 400) {
-        throw new Error(`Schedule endpoint returned ${response.status}.`);
-      }
-
-      const preview = JSON.stringify(data).slice(0, 400);
-      setScheduleCheckResult(`Status ${response.status}. Response: ${preview}`);
+      setScheduleLogs((prev) => [
+        {
+          timestamp: new Date().toLocaleString(),
+          status: response.status,
+          headers: data?.headers || {},
+          body: data?.body ?? data,
+        },
+        ...prev,
+      ].slice(0, 5));
     } catch (error: any) {
-      setScheduleCheckResult(error.message || "Schedule endpoint failed.");
+      setScheduleLogs((prev) => [
+        {
+          timestamp: new Date().toLocaleString(),
+          status: "error",
+          headers: {},
+          body: { error: error.message || "Schedule endpoint failed." },
+        },
+        ...prev,
+      ].slice(0, 5));
     } finally {
       setScheduleCheckLoading(false);
+    }
+  };
+
+  const handleCopyLog = async (entry: Record<string, any>) => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(entry, null, 2));
+      toast({
+        title: "Copied",
+        description: "Log entry copied to clipboard.",
+      });
+    } catch {
+      toast({
+        title: "Copy failed",
+        description: "Unable to copy log entry.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -632,6 +710,145 @@ export const SettingsPage = () => {
                     <div>GET {appBaseUrl}/api/soundcloud/influenceplanner/settings</div>
                     <div>POST {appBaseUrl}/api/soundcloud/influenceplanner/settings</div>
                     <div>GET {appBaseUrl}/api/soundcloud/influenceplanner/test</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-dashed p-3 text-sm space-y-3">
+                <div className="font-medium">Members test inputs</div>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                  <div className="space-y-1">
+                    <FormLabel>Limit</FormLabel>
+                    <Input
+                      value={membersParams.limit}
+                      onChange={(event) => setMembersParams((prev) => ({ ...prev, limit: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <FormLabel>Offset</FormLabel>
+                    <Input
+                      value={membersParams.offset}
+                      onChange={(event) => setMembersParams((prev) => ({ ...prev, offset: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <FormLabel>Search term</FormLabel>
+                    <Input
+                      value={membersParams.searchTerm}
+                      onChange={(event) => setMembersParams((prev) => ({ ...prev, searchTerm: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <FormLabel>Sort</FormLabel>
+                    <Select
+                      value={`${membersParams.sortBy}:${membersParams.sortDir}`}
+                      onValueChange={(value) => {
+                        const [sortBy, sortDir] = value.split(":");
+                        setMembersParams((prev) => ({ ...prev, sortBy, sortDir }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="UPDATED:DESC">Updated (desc)</SelectItem>
+                        <SelectItem value="UPDATED:ASC">Updated (asc)</SelectItem>
+                        <SelectItem value="FOLLOWERS:DESC">Followers (desc)</SelectItem>
+                        <SelectItem value="FOLLOWERS:ASC">Followers (asc)</SelectItem>
+                        <SelectItem value="CREATED:DESC">Created (desc)</SelectItem>
+                        <SelectItem value="CREATED:ASC">Created (asc)</SelectItem>
+                        <SelectItem value="STATUS:DESC">Status (desc)</SelectItem>
+                        <SelectItem value="STATUS:ASC">Status (asc)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-dashed p-3 text-sm space-y-3">
+                <div className="font-medium">Schedule test payload</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <FormLabel>Types (comma separated)</FormLabel>
+                    <Input
+                      value={schedulePayload.types}
+                      onChange={(event) => setSchedulePayload((prev) => ({ ...prev, types: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <FormLabel>Comment (optional)</FormLabel>
+                    <Input
+                      value={schedulePayload.comment}
+                      onChange={(event) => setSchedulePayload((prev) => ({ ...prev, comment: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <FormLabel>Medias (one URL per line)</FormLabel>
+                    <Textarea
+                      value={schedulePayload.medias}
+                      onChange={(event) => setSchedulePayload((prev) => ({ ...prev, medias: event.target.value }))}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <FormLabel>Targets (one user ID per line)</FormLabel>
+                    <Textarea
+                      value={schedulePayload.targets}
+                      onChange={(event) => setSchedulePayload((prev) => ({ ...prev, targets: event.target.value }))}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <FormLabel>Settings JSON</FormLabel>
+                  <Textarea
+                    value={schedulePayload.settings}
+                    onChange={(event) => setSchedulePayload((prev) => ({ ...prev, settings: event.target.value }))}
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-dashed p-3 text-sm space-y-3">
+                <div className="font-medium">Test logs</div>
+                <div className="space-y-3">
+                  <div>
+                    <div className="font-medium text-xs mb-2">Members</div>
+                    {memberLogs.length === 0 ? (
+                      <div className="text-xs text-muted-foreground">No members tests yet.</div>
+                    ) : (
+                      memberLogs.map((entry, index) => (
+                        <div key={`members-log-${index}`} className="rounded border p-2 space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span>{entry.timestamp}</span>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => handleCopyLog(entry)}>
+                              Copy
+                            </Button>
+                          </div>
+                          <div className="text-xs">Status: {entry.status}</div>
+                          <pre className="text-xs whitespace-pre-wrap break-all">{JSON.stringify(entry, null, 2)}</pre>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-medium text-xs mb-2">Schedule</div>
+                    {scheduleLogs.length === 0 ? (
+                      <div className="text-xs text-muted-foreground">No schedule tests yet.</div>
+                    ) : (
+                      scheduleLogs.map((entry, index) => (
+                        <div key={`schedule-log-${index}`} className="rounded border p-2 space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span>{entry.timestamp}</span>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => handleCopyLog(entry)}>
+                              Copy
+                            </Button>
+                          </div>
+                          <div className="text-xs">Status: {entry.status}</div>
+                          <pre className="text-xs whitespace-pre-wrap break-all">{JSON.stringify(entry, null, 2)}</pre>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>

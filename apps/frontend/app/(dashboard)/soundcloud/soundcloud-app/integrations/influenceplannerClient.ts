@@ -114,13 +114,13 @@ const requestWithRetry = async (url: string, options: RequestInit, retries = 3) 
   return fetch(url, options);
 };
 
-export const influencePlannerRequest = async <T>({
+export const influencePlannerFetch = async <T>({
   method,
   path,
   query,
   body,
   authToken,
-}: RequestOptions): Promise<{ data: T; status: number }> => {
+}: RequestOptions): Promise<{ data: T; status: number; headers: Record<string, string>; ok: boolean }> => {
   const { ip_base_url, ip_username, ip_api_key } = await getInfluencePlannerSettings(authToken);
   const url = new URL(path.replace(/^\//, ""), ip_base_url.endsWith("/") ? ip_base_url : `${ip_base_url}/`);
 
@@ -151,14 +151,26 @@ export const influencePlannerRequest = async <T>({
     }
   }
 
+  const headers = Object.fromEntries(response.headers.entries());
+  return {
+    data: json as T,
+    status: response.status,
+    headers,
+    ok: response.ok,
+  };
+};
+
+export const influencePlannerRequest = async <T>(options: RequestOptions): Promise<{ data: T; status: number }> => {
+  const response = await influencePlannerFetch<T>(options);
   if (!response.ok) {
+    const text = response.data ? JSON.stringify(response.data) : "";
     const message =
-      json?.message ||
-      json?.error ||
+      (response.data as any)?.message ||
+      (response.data as any)?.error ||
       (text ? text.slice(0, 300) : null) ||
       `InfluencePlanner API error (${response.status})`;
     throw new Error(message);
   }
 
-  return { data: json as T, status: response.status };
+  return { data: response.data, status: response.status };
 };
