@@ -54,6 +54,9 @@ export const SettingsPage = () => {
   const [saving, setSaving] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [ipKeyConfigured, setIpKeyConfigured] = useState(false);
+  const [ipKeyLocked, setIpKeyLocked] = useState(true);
+  const [revealedApiKey, setRevealedApiKey] = useState<string | null>(null);
+  const [revealingKey, setRevealingKey] = useState(false);
   const [lastTestStatus, setLastTestStatus] = useState<"idle" | "success" | "error">("idle");
   const [lastTestMessage, setLastTestMessage] = useState<string | null>(null);
   const [lastTestAt, setLastTestAt] = useState<string | null>(null);
@@ -126,6 +129,9 @@ export const SettingsPage = () => {
       form.setValue("ip_base_url", data.ip_base_url || "https://api.influenceplanner.com/partner/v1/");
       form.setValue("ip_username", data.ip_username || "");
       setIpKeyConfigured(!!data.api_key_configured);
+      if (!data.api_key_configured) {
+        setIpKeyLocked(false);
+      }
     } catch (error) {
       console.warn("InfluencePlanner settings unavailable:", error);
     }
@@ -134,7 +140,7 @@ export const SettingsPage = () => {
   const fetchSettings = async () => {
     try {
       const { data, error } = await supabase
-        .from("settings")
+        .from("soundcloud_settings")
         .select([
           "slack_enabled",
           "slack_channel",
@@ -219,7 +225,7 @@ export const SettingsPage = () => {
 
       // Try to update existing settings, if none exist, insert new ones
       const { error: upsertError } = await supabase
-        .from("settings")
+        .from("soundcloud_settings")
         .upsert(settingsData, { onConflict: "id" });
 
       if (upsertError) {
@@ -277,8 +283,53 @@ export const SettingsPage = () => {
 
     if (data.ip_api_key) {
       setIpKeyConfigured(true);
+      setIpKeyLocked(true);
+      setRevealedApiKey(null);
       form.setValue("ip_api_key", "");
     }
+  };
+
+  const handleRevealApiKey = async () => {
+    if (!sessionToken) {
+      toast({
+        title: "Not authenticated",
+        description: "Sign in before revealing the API key.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setRevealingKey(true);
+    try {
+      const response = await fetch("/api/soundcloud/influenceplanner/settings?reveal=true", {
+        headers: {
+          Authorization: sessionToken ? `Bearer ${sessionToken}` : "",
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.error || "Failed to reveal API key.");
+      }
+
+      const data = await response.json();
+      setRevealedApiKey(data.ip_api_key || "");
+      setIpKeyLocked(false);
+    } catch (error: any) {
+      toast({
+        title: "Reveal failed",
+        description: error.message || "Unable to fetch API key.",
+        variant: "destructive",
+      });
+    } finally {
+      setRevealingKey(false);
+    }
+  };
+
+  const handleLockApiKey = () => {
+    setIpKeyLocked(true);
+    setRevealedApiKey(null);
+    form.setValue("ip_api_key", "");
   };
 
   const handleTestConnection = async () => {
@@ -504,6 +555,12 @@ export const SettingsPage = () => {
                       <Input
                         {...field}
                         type="password"
+                        disabled={ipKeyConfigured && ipKeyLocked}
+                        value={ipKeyLocked ? field.value : (revealedApiKey ?? field.value)}
+                        onChange={(event) => {
+                          setRevealedApiKey(null);
+                          field.onChange(event);
+                        }}
                         placeholder={ipKeyConfigured ? "•••••••• (saved)" : "Enter API key"}
                       />
                     </FormControl>
@@ -514,6 +571,35 @@ export const SettingsPage = () => {
                   </FormItem>
                 )}
               />
+              {ipKeyConfigured && (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRevealApiKey}
+                    disabled={revealingKey || !ipKeyLocked}
+                  >
+                    {revealingKey ? (
+                      <>
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        Revealing...
+                      </>
+                    ) : (
+                      "Reveal key"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLockApiKey}
+                    disabled={ipKeyLocked}
+                  >
+                    Lock key
+                  </Button>
+                </div>
+              )}
 
               <div className="flex flex-wrap items-center gap-3">
                 <Button

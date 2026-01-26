@@ -11,8 +11,10 @@ export async function GET(request: Request) {
 
   try {
     const supabaseAdmin = createAdminClient();
+    const url = new URL(request.url);
+    const reveal = url.searchParams.get("reveal") === "true";
     const { data, error } = await supabaseAdmin
-      .from("settings")
+      .from("soundcloud_settings")
       .select("ip_base_url, ip_username, ip_api_key")
       .single();
 
@@ -20,11 +22,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({
+    const responsePayload: Record<string, any> = {
       ip_base_url: data?.ip_base_url ?? "https://api.influenceplanner.com/partner/v1/",
       ip_username: data?.ip_username ?? "",
       api_key_configured: !!data?.ip_api_key,
-    });
+    };
+
+    if (reveal) {
+      responsePayload.ip_api_key = data?.ip_api_key ?? "";
+    }
+
+    return NextResponse.json(responsePayload);
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || "Failed to load InfluencePlanner settings" },
@@ -60,7 +68,7 @@ export async function POST(request: Request) {
   try {
     const supabaseAdmin = createAdminClient();
     const { data: existing } = await supabaseAdmin
-      .from("settings")
+      .from("soundcloud_settings")
       .select("id, ip_api_key")
       .single();
 
@@ -75,12 +83,12 @@ export async function POST(request: Request) {
     }
 
     if (existing?.id) {
-      const { error } = await supabaseAdmin.from("settings").update(payload).eq("id", existing.id);
+      const { error } = await supabaseAdmin.from("soundcloud_settings").update(payload).eq("id", existing.id);
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
     } else {
-      const { error } = await supabaseAdmin.from("settings").insert(payload);
+      const { error } = await supabaseAdmin.from("soundcloud_settings").insert(payload);
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
