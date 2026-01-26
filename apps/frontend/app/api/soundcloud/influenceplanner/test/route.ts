@@ -15,6 +15,7 @@ export async function GET(request: Request) {
       method: "GET",
       path: "/network/members",
       query: { limit: 1, offset: 0 },
+      authToken: auth.token,
     });
 
     return NextResponse.json({ status: "ok", sample: data });

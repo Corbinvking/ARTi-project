@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       method: "POST",
       path: "/schedule/create",
       body,
+      authToken: auth.token,
     });
 
     return NextResponse.json(data);

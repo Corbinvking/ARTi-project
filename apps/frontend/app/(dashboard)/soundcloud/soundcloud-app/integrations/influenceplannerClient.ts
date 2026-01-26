@@ -13,6 +13,7 @@ type RequestOptions = {
   path: string;
   query?: Record<string, string | number | boolean | undefined>;
   body?: unknown;
+  authToken?: string;
 };
 
 const MIN_REQUEST_INTERVAL_MS = 2000;
@@ -29,24 +30,43 @@ const enforceRateLimit = async () => {
   lastRequestAt = Date.now();
 };
 
-const createAdminClient = () => {
+const createAdminClient = (authToken?: string) => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl) {
+    throw new Error("Missing Supabase URL configuration.");
+  }
+
+  const keyToUse = serviceRoleKey || anonKey;
+  if (!keyToUse) {
+    throw new Error("Missing Supabase API key configuration.");
+  }
+
+  if (!serviceRoleKey && !authToken) {
     throw new Error("Missing Supabase service role configuration.");
   }
 
-  return createClient(supabaseUrl, serviceRoleKey, {
+  return createClient(supabaseUrl, keyToUse, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
+    global: authToken
+      ? {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      : undefined,
   });
 };
 
-export const getInfluencePlannerSettings = async (): Promise<InfluencePlannerSettings> => {
-  const supabaseAdmin = createAdminClient();
+export const getInfluencePlannerSettings = async (
+  authToken?: string
+): Promise<InfluencePlannerSettings> => {
+  const supabaseAdmin = createAdminClient(authToken);
   const { data, error } = await supabaseAdmin
     .from("soundcloud_settings")
     .select("ip_base_url, ip_username, ip_api_key")
@@ -99,8 +119,9 @@ export const influencePlannerRequest = async <T>({
   path,
   query,
   body,
+  authToken,
 }: RequestOptions): Promise<{ data: T; status: number }> => {
-  const { ip_base_url, ip_username, ip_api_key } = await getInfluencePlannerSettings();
+  const { ip_base_url, ip_username, ip_api_key } = await getInfluencePlannerSettings(authToken);
   const url = new URL(path.replace(/^\//, ""), ip_base_url.endsWith("/") ? ip_base_url : `${ip_base_url}/`);
 
   if (query) {

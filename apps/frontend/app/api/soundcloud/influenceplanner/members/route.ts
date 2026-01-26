@@ -28,6 +28,7 @@ export async function GET(request: Request) {
         sortBy: sortBy || undefined,
         sortDir: sortDir || undefined,
       },
+      authToken: auth.token,
     });
 
     return NextResponse.json(data);

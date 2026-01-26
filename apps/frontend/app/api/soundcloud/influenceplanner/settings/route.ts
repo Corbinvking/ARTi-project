@@ -6,15 +6,13 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const reveal = url.searchParams.get("reveal") === "true";
-  if (reveal) {
-    const auth = await getAuthorizedUser(request);
-    if ("error" in auth) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status });
-    }
+  const auth = await getAuthorizedUser(request);
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   try {
-    const supabaseAdmin = createAdminClient();
+    const supabaseAdmin = createAdminClient(auth.token);
     const { data, error } = await supabaseAdmin
       .from("soundcloud_settings")
       .select("ip_base_url, ip_username, ip_api_key")
@@ -71,7 +69,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const supabaseAdmin = createAdminClient();
+    const supabaseAdmin = createAdminClient(auth.token);
     const { data: existingRows } = await supabaseAdmin
       .from("soundcloud_settings")
       .select("id")
