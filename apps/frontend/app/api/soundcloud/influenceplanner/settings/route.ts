@@ -4,15 +4,17 @@ import { createAdminClient, getAuthorizedUser } from "../utils";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const auth = await getAuthorizedUser(request);
-  if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const url = new URL(request.url);
+  const reveal = url.searchParams.get("reveal") === "true";
+  if (reveal) {
+    const auth = await getAuthorizedUser(request);
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
   }
 
   try {
     const supabaseAdmin = createAdminClient();
-    const url = new URL(request.url);
-    const reveal = url.searchParams.get("reveal") === "true";
     const { data, error } = await supabaseAdmin
       .from("soundcloud_settings")
       .select("ip_base_url, ip_username, ip_api_key")
