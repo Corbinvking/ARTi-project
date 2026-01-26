@@ -676,9 +676,6 @@ export const SettingsPage = () => {
                       )}
                     </Button>
                   </div>
-                  {membersCheckResult && (
-                    <div className="text-xs text-muted-foreground">{membersCheckResult}</div>
-                  )}
                   <div className="flex flex-wrap items-center gap-2">
                     <span>POST {form.watch("ip_base_url") || "https://api.influenceplanner.com/partner/v1/"}schedule/create</span>
                     <Button
@@ -698,9 +695,6 @@ export const SettingsPage = () => {
                       )}
                     </Button>
                   </div>
-                  {scheduleCheckResult && (
-                    <div className="text-xs text-muted-foreground">{scheduleCheckResult}</div>
-                  )}
                 </div>
                 <div className="mt-3 border-t pt-3">
                   <div className="font-medium">App proxy endpoints</div>
