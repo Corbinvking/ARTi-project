@@ -345,6 +345,33 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                                   : 'Daily streams unknown'}
                               </div>
                             </div>
+                            {isSelected ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  togglePlaylistSelection(playlist.id);
+                                }}
+                                className="h-7 text-xs text-destructive hover:text-destructive"
+                              >
+                                Remove
+                              </Button>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  togglePlaylistSelection(playlist.id);
+                                }}
+                                className="h-7 text-xs"
+                              >
+                                Add
+                              </Button>
+                            )}
                           </label>
                         );
                       })}
@@ -370,12 +397,13 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                                   {playlist.avg_daily_streams.toLocaleString()} daily
                                 </span>
                                 <Button
+                                  type="button"
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => setSelectedPlaylistIds(prev => prev.filter(pid => pid !== id))}
-                                  className="h-6 w-6 p-0 opacity-50 hover:opacity-100 hover:text-destructive"
+                                  className="h-7 px-2 text-xs text-destructive opacity-80 hover:opacity-100"
                                 >
-                                  <X className="h-3 w-3" />
+                                  Remove
                                 </Button>
                               </div>
                             </div>
