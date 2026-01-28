@@ -77,6 +77,11 @@ export interface RespondToRequestData {
   playlist_ids?: string[];
 }
 
+export interface UpdateRequestPlaylistsData {
+  requestId: string;
+  playlist_ids: string[];
+}
+
 // Hook to fetch vendor campaign requests for current vendor
 export function useVendorCampaignRequests() {
   const { user, loading } = useAuth();
@@ -502,6 +507,51 @@ export function useRespondToVendorRequest() {
         variant: 'destructive',
       });
       console.error('Error responding to request:', error);
+    },
+  });
+}
+
+// Hook to update playlist selections without changing status
+export function useUpdateVendorRequestPlaylists() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ requestId, playlist_ids }: UpdateRequestPlaylistsData) => {
+      const playlistsToUse = Array.isArray(playlist_ids) ? playlist_ids : [];
+
+      const { data, error } = await supabase
+        .from('campaign_vendor_requests')
+        .update({
+          playlist_ids: playlistsToUse,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', requestId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      console.log('✅ vendor request playlists updated:', {
+        requestId,
+        playlistCount: playlistsToUse.length,
+      });
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendor-campaign-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-vendor-responses'] });
+      toast({
+        title: 'Playlists Updated',
+        description: 'Your playlist selections were saved.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to save playlists',
+        description: (error as Error)?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }

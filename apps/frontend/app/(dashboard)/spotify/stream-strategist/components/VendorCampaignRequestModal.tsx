@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle, Clock, Music, DollarSign, Calendar, Target, ExternalLink, X, CheckSquare, Square } from 'lucide-react';
-import { useRespondToVendorRequest } from '../hooks/useVendorCampaignRequests';
+import { useRespondToVendorRequest, useUpdateVendorRequestPlaylists } from '../hooks/useVendorCampaignRequests';
 import { useMyPlaylists } from '../hooks/useVendorPlaylists';
 import { formatDistanceToNow } from 'date-fns';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   const [playlistSearch, setPlaylistSearch] = useState('');
   
   const respondToRequest = useRespondToVendorRequest();
+  const updateRequestPlaylists = useUpdateVendorRequestPlaylists();
   const { data: myPlaylists } = useMyPlaylists();
   const safePlaylists = Array.isArray(myPlaylists) ? myPlaylists : [];
   const requestPlaylists = Array.isArray(request?.playlists) ? request.playlists : [];
@@ -79,6 +80,19 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
       onClose();
     } catch (error) {
       console.error('Error submitting response:', error);
+    }
+  };
+
+  const savePlaylistChanges = async () => {
+    if (!request?.id) return;
+    try {
+      await updateRequestPlaylists.mutateAsync({
+        requestId: request.id,
+        playlist_ids: safeSelectedIds,
+      });
+      setIsEditingPlaylists(false);
+    } catch (error) {
+      console.error('Error saving playlists:', error);
     }
   };
 
@@ -493,6 +507,16 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
         <DialogFooter>
           {!isResponding && request.status === 'pending' ? (
             <div className="flex gap-2 w-full">
+              {isEditingPlaylists && (
+                <Button
+                  variant="outline"
+                  onClick={savePlaylistChanges}
+                  disabled={updateRequestPlaylists.isPending}
+                  className="flex-1"
+                >
+                  {updateRequestPlaylists.isPending ? 'Saving...' : 'Save Playlist Changes'}
+                </Button>
+              )}
               <Button
                 onClick={() => handleRespond('approved')}
                 className="bg-green-600 hover:bg-green-700 flex-1"
