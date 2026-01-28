@@ -33,6 +33,15 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   const campaignData = request?.campaign || {};
   const campaignGenres = Array.isArray(campaignData.music_genres) ? campaignData.music_genres : [];
   const debugMode = typeof window !== 'undefined' && window.location.search.includes('debugVendorRequest=1');
+  const playlistNameOptions = safePlaylists
+    .map((p: any) => (typeof p?.name === 'string' ? p.name : ''))
+    .filter((name: string) => name.length > 0);
+  const selectedPlaylistNames = safeSelectedIds
+    .map((id) => {
+      const playlist = safePlaylists.find(p => p.id === id);
+      return typeof playlist?.name === 'string' ? playlist.name : '';
+    })
+    .filter((name) => name.length > 0);
 
   // Initialize selected playlists when request changes
   useEffect(() => {
@@ -253,11 +262,8 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                   Select which playlists to include. You can approve with no playlists and add them later.
                 </div>
                 <MultiSelect
-                  options={safePlaylists.map(p => p.name) || []}
-                  selected={safeSelectedIds.map(id => {
-                    const playlist = safePlaylists.find(p => p.id === id);
-                    return playlist?.name || id;
-                  }).filter(Boolean)}
+                  options={playlistNameOptions}
+                  selected={selectedPlaylistNames}
                   onChange={(selectedNames) => {
                     const ids = selectedNames.map(name => {
                       const playlist = safePlaylists.find(p => p.name === name);

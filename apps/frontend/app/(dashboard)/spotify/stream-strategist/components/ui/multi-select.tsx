@@ -37,8 +37,12 @@ export function MultiSelect({
   className,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
-  const safeOptions = Array.isArray(options) ? options : [];
-  const safeSelected = Array.isArray(selected) ? selected : [];
+  const safeOptions = Array.isArray(options)
+    ? options.filter((option) => typeof option === "string" && option.length > 0)
+    : [];
+  const safeSelected = Array.isArray(selected)
+    ? selected.filter((option) => typeof option === "string" && option.length > 0)
+    : [];
 
   const handleSelect = (value: string) => {
     if (safeSelected.includes(value)) {
