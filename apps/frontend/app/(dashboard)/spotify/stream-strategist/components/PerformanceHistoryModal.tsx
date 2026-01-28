@@ -29,7 +29,18 @@ interface CurrentStreamData {
   streams_7d: number;
   streams_12m: number;
   last_scraped: string | null;
+  campaign_id?: string | number | null;
   campaign_name?: string;
+}
+
+interface CampaignStreamSummary {
+  campaign_id: string | number | null;
+  campaign_name: string;
+  entries_count: number;
+  avg_24h: number;
+  avg_7d: number;
+  avg_12m: number;
+  last_scraped: string | null;
 }
 
 interface PlaylistOverview {
@@ -50,7 +61,7 @@ export default function PerformanceHistoryModal({
   
   const { data: queryResult, isLoading } = useQuery({
     queryKey: ["performance-entries", playlistId],
-    queryFn: async (): Promise<{ entries: PerformanceEntry[]; currentData: CurrentStreamData[]; playlistOverview: PlaylistOverview | null }> => {
+    queryFn: async (): Promise<{ entries: PerformanceEntry[]; currentData: CurrentStreamData[]; playlistOverview: PlaylistOverview | null; campaignSummaries: CampaignStreamSummary[] }> => {
       // First, get the playlist's own data from the playlists table
       const { data: playlistData, error: playlistError } = await supabase
         .from("playlists")
@@ -60,7 +71,7 @@ export default function PerformanceHistoryModal({
       
       if (playlistError) {
         console.warn("Could not find playlist:", playlistError);
-        return { entries: [], currentData: [], playlistOverview: null };
+        return { entries: [], currentData: [], playlistOverview: null, campaignSummaries: [] };
       }
       
       // Build playlist overview from the playlists table (this is the playlist's own data)
@@ -101,7 +112,7 @@ export default function PerformanceHistoryModal({
       if (campaignPlaylists.length === 0) {
         console.log("No campaign_playlists found for playlist:", playlistData?.name);
         // Still return the playlist overview even if no campaign data
-        return { entries: [], currentData: [], playlistOverview };
+        return { entries: [], currentData: [], playlistOverview, campaignSummaries: [] };
       }
       
       const campaignPlaylistIds = campaignPlaylists.map(cp => cp.id);
@@ -112,7 +123,52 @@ export default function PerformanceHistoryModal({
         streams_7d: cp.streams_7d || 0,
         streams_12m: cp.streams_12m || 0,
         last_scraped: cp.last_scraped,
+        campaign_id: cp.campaign_id,
       }));
+
+      const campaignIds = Array.from(new Set(campaignPlaylists.map(cp => cp.campaign_id).filter(Boolean)));
+      let campaignNameById: Record<string, string> = {};
+      if (campaignIds.length > 0) {
+        const { data: campaignsData } = await supabase
+          .from("spotify_campaigns")
+          .select("id, campaign")
+          .in("id", campaignIds);
+        if (campaignsData) {
+          campaignNameById = campaignsData.reduce((acc: Record<string, string>, campaign) => {
+            acc[String(campaign.id)] = campaign.campaign || `Campaign ${campaign.id}`;
+            return acc;
+          }, {});
+        }
+      }
+
+      const groupedByCampaign = currentData.reduce((acc: Record<string, CurrentStreamData[]>, item) => {
+        const key = item.campaign_id ? String(item.campaign_id) : "unknown";
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(item);
+        return acc;
+      }, {});
+
+      const campaignSummaries: CampaignStreamSummary[] = Object.entries(groupedByCampaign).map(([campaignId, items]) => {
+        const entries_count = items.length;
+        const avg_24h = Math.round(items.reduce((sum, d) => sum + (d.streams_24h || 0), 0) / entries_count);
+        const avg_7d = Math.round(items.reduce((sum, d) => sum + (d.streams_7d || 0), 0) / entries_count);
+        const avg_12m = Math.round(items.reduce((sum, d) => sum + (d.streams_12m || 0), 0) / entries_count);
+        const last_scraped = items
+          .map((d) => d.last_scraped)
+          .filter(Boolean)
+          .sort()
+          .slice(-1)[0] || null;
+
+        return {
+          campaign_id: campaignId === "unknown" ? null : campaignId,
+          campaign_name: campaignId === "unknown" ? "Unknown Campaign" : (campaignNameById[campaignId] || `Campaign ${campaignId}`),
+          entries_count,
+          avg_24h,
+          avg_7d,
+          avg_12m,
+          last_scraped,
+        };
+      });
       
       // Now fetch performance_entries for all matching campaign_playlists
       const { data, error } = await supabase
@@ -124,7 +180,7 @@ export default function PerformanceHistoryModal({
       if (error) throw error;
       
       console.log(`Found ${data?.length || 0} performance entries for playlist ${playlistData?.name}`);
-      return { entries: data as PerformanceEntry[], currentData, playlistOverview };
+      return { entries: data as PerformanceEntry[], currentData, playlistOverview, campaignSummaries };
     },
     enabled: open
   });
@@ -132,12 +188,13 @@ export default function PerformanceHistoryModal({
   const entries = queryResult?.entries || [];
   const currentData = queryResult?.currentData || [];
   const playlistOverview = queryResult?.playlistOverview || null;
+  const campaignSummaries = queryResult?.campaignSummaries || [];
   
   // Check if playlist appears inactive (all zeros across all time ranges - campaign specific)
-  const totalCurrentStreams = currentData.reduce((sum, d) => 
-    sum + (d.streams_24h || 0) + (d.streams_7d || 0) + (d.streams_12m || 0), 0
+  const totalCurrentStreams = campaignSummaries.reduce((sum, d) => 
+    sum + d.avg_24h + d.avg_7d + d.avg_12m, 0
   );
-  const isInactivePlaylist = currentData.length > 0 && totalCurrentStreams === 0;
+  const isInactivePlaylist = campaignSummaries.length > 0 && totalCurrentStreams === 0;
 
   const handleDeleteEntry = async (entryId: string) => {
     try {
@@ -252,33 +309,63 @@ export default function PerformanceHistoryModal({
                 
                 {/* Track-Specific Stream Data from campaign_playlists */}
                 <div className={`p-4 rounded-lg border ${isInactivePlaylist ? 'bg-muted/30 border-muted' : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'}`}>
-                  <p className="text-sm font-medium mb-3">Campaign Track Streams (from last scrape)</p>
+                  <p className="text-sm font-medium mb-3">Campaign Track Streams (average per campaign)</p>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center">
                       <div className={`text-2xl font-bold ${isInactivePlaylist ? 'text-muted-foreground' : ''}`}>
-                        {currentData.reduce((sum, d) => sum + d.streams_24h, 0).toLocaleString()}
+                        {campaignSummaries.length > 0
+                          ? Math.round(campaignSummaries.reduce((sum, d) => sum + d.avg_24h, 0) / campaignSummaries.length).toLocaleString()
+                          : "0"}
                       </div>
                       <div className="text-xs text-muted-foreground">Last 24h</div>
                     </div>
                     <div className="text-center">
                       <div className={`text-2xl font-bold ${isInactivePlaylist ? 'text-muted-foreground' : ''}`}>
-                        {currentData.reduce((sum, d) => sum + d.streams_7d, 0).toLocaleString()}
+                        {campaignSummaries.length > 0
+                          ? Math.round(campaignSummaries.reduce((sum, d) => sum + d.avg_7d, 0) / campaignSummaries.length).toLocaleString()
+                          : "0"}
                       </div>
                       <div className="text-xs text-muted-foreground">Last 7 days</div>
                     </div>
                     <div className="text-center">
                       <div className={`text-2xl font-bold ${isInactivePlaylist ? 'text-muted-foreground' : ''}`}>
-                        {currentData.reduce((sum, d) => sum + d.streams_12m, 0).toLocaleString()}
+                        {campaignSummaries.length > 0
+                          ? Math.round(campaignSummaries.reduce((sum, d) => sum + d.avg_12m, 0) / campaignSummaries.length).toLocaleString()
+                          : "0"}
                       </div>
                       <div className="text-xs text-muted-foreground">Last 12 months</div>
                     </div>
                   </div>
-                  {currentData[0]?.last_scraped && (
+                  {campaignSummaries[0]?.last_scraped && (
                     <p className="text-xs text-muted-foreground mt-3 text-center">
-                      Last scraped: {format(new Date(currentData[0].last_scraped), "MMM dd, yyyy 'at' h:mm a")}
+                      Last scraped: {format(new Date(campaignSummaries[0].last_scraped as string), "MMM dd, yyyy 'at' h:mm a")}
                     </p>
                   )}
                 </div>
+
+                {campaignSummaries.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Campaign Breakdown (averages)</p>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {campaignSummaries.map((summary) => (
+                        <div key={`${summary.campaign_id}-${summary.campaign_name}`} className="flex items-center justify-between p-2 rounded-lg border bg-card">
+                          <div className="space-y-1">
+                            <div className="text-sm font-medium">{summary.campaign_name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {summary.entries_count} track{summary.entries_count !== 1 ? "s" : ""} ·
+                              {summary.last_scraped ? ` Last scraped ${format(new Date(summary.last_scraped), "MMM dd, yyyy")}` : " No scrape date"}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs">
+                            <Badge variant="secondary">24h {summary.avg_24h.toLocaleString()}</Badge>
+                            <Badge variant="secondary">7d {summary.avg_7d.toLocaleString()}</Badge>
+                            <Badge variant="secondary">12m {summary.avg_12m.toLocaleString()}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
             
