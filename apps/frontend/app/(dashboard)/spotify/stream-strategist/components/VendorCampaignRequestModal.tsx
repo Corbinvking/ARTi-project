@@ -28,13 +28,15 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   const respondToRequest = useRespondToVendorRequest();
   const { data: myPlaylists } = useMyPlaylists();
   const safePlaylists = Array.isArray(myPlaylists) ? myPlaylists : [];
+  const requestPlaylists = Array.isArray(request?.playlists) ? request.playlists : [];
+  const safeSelectedIds = Array.isArray(selectedPlaylistIds) ? selectedPlaylistIds : [];
 
   // Initialize selected playlists when request changes
   useEffect(() => {
-    if (request?.playlists) {
-      setSelectedPlaylistIds(request.playlists.map((p: any) => p.id));
+    if (requestPlaylists.length > 0) {
+      setSelectedPlaylistIds(requestPlaylists.map((p: any) => p.id));
     }
-  }, [request]);
+  }, [requestPlaylists.length]);
 
   const handleRespond = (status: 'approved' | 'rejected') => {
     setResponseType(status);
@@ -184,7 +186,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                 <span className="font-medium">Playlist Selection</span>
                 {isSelectingPlaylists && (
                   <Badge variant="outline" className="text-xs">
-                    {selectedPlaylistIds.length} selected
+                    {safeSelectedIds.length} selected
                   </Badge>
                 )}
               </div>
@@ -218,8 +220,8 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                     className="text-xs h-7"
                     onClick={() => {
                       setIsEditingPlaylists(true);
-                      if (selectedPlaylistIds.length === 0 && request?.playlists?.length) {
-                        setSelectedPlaylistIds(request.playlists.map((p: any) => p.id));
+                      if (safeSelectedIds.length === 0 && requestPlaylists.length > 0) {
+                        setSelectedPlaylistIds(requestPlaylists.map((p: any) => p.id));
                       }
                     }}
                   >
@@ -232,7 +234,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                       className="text-xs h-7"
                       onClick={() => {
                         setIsEditingPlaylists(false);
-                        setSelectedPlaylistIds(request?.playlists?.map((p: any) => p.id) || []);
+                        setSelectedPlaylistIds(requestPlaylists.map((p: any) => p.id));
                       }}
                     >
                       Done
@@ -249,7 +251,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                 </div>
                 <MultiSelect
                   options={safePlaylists.map(p => p.name) || []}
-                  selected={selectedPlaylistIds.map(id => {
+                  selected={safeSelectedIds.map(id => {
                     const playlist = safePlaylists.find(p => p.id === id);
                     return playlist?.name || id;
                   }).filter(Boolean)}
@@ -263,15 +265,15 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                   placeholder="Search and select playlists..."
                 />
                 <div className="space-y-2">
-                  {selectedPlaylistIds.length === 0 ? (
+                  {safeSelectedIds.length === 0 ? (
                     <div className="py-3 px-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md text-sm text-amber-800 dark:text-amber-200">
                       <strong>No playlists selected.</strong> You can approve now and assign playlists later from your active campaigns.
                     </div>
                   ) : (
                     <>
-                      <div className="text-sm font-medium">Selected Playlists ({selectedPlaylistIds.length}):</div>
+                      <div className="text-sm font-medium">Selected Playlists ({safeSelectedIds.length}):</div>
                       <div className="max-h-48 overflow-y-auto space-y-1">
-                        {selectedPlaylistIds.map(id => {
+                        {safeSelectedIds.map(id => {
                           const playlist = safePlaylists.find(p => p.id === id);
                           return playlist ? (
                             <div key={id} className="flex justify-between items-center py-2 px-3 bg-muted/20 rounded-md text-sm group">
@@ -299,7 +301,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
               </div>
             ) : (
               <div className="space-y-2">
-                {request.playlists?.map((playlist: any) => (
+                {requestPlaylists.map((playlist: any) => (
                   <div key={playlist.id} className="flex justify-between items-center py-2 px-3 bg-muted/20 rounded-md">
                     <span className="font-medium">{playlist.name}</span>
                     <span className="text-sm text-muted-foreground">
@@ -307,7 +309,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                     </span>
                   </div>
                 ))}
-                {(!request.playlists || request.playlists.length === 0) && (
+                {requestPlaylists.length === 0 && (
                   <div className="text-center py-4 text-muted-foreground">
                     No specific playlists requested
                   </div>
