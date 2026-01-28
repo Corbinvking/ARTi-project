@@ -43,7 +43,7 @@ export function useMyPlaylists() {
       console.log('📦 Vendor mappings:', mappings, 'Error:', vendorError);
 
       if (vendorError) throw vendorError;
-      const rows = (mappings as any[]) || [];
+      const rows = Array.isArray(mappings) ? (mappings as any[]) : [];
       if (rows.length === 0) {
         console.log('⚠️ No vendor mappings found');
         return [];

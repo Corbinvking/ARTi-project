@@ -30,6 +30,9 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   const safePlaylists = Array.isArray(myPlaylists) ? myPlaylists : [];
   const requestPlaylists = Array.isArray(request?.playlists) ? request.playlists : [];
   const safeSelectedIds = Array.isArray(selectedPlaylistIds) ? selectedPlaylistIds : [];
+  const campaignData = request?.campaign || {};
+  const campaignGenres = Array.isArray(campaignData.music_genres) ? campaignData.music_genres : [];
+  const debugMode = typeof window !== 'undefined' && window.location.search.includes('debugVendorRequest=1');
 
   // Initialize selected playlists when request changes
   useEffect(() => {
@@ -102,9 +105,9 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
         <DialogHeader>
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <DialogTitle className="text-xl">{request.campaign?.name || 'Campaign Request'}</DialogTitle>
+              <DialogTitle className="text-xl">{campaignData?.name || 'Campaign Request'}</DialogTitle>
               <DialogDescription>
-                Brand: {request.campaign?.brand_name} • Requested {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
+                Brand: {campaignData?.brand_name} • Requested {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
               </DialogDescription>
             </div>
             <Badge variant={getStatusColor(request.status) as any} className="flex items-center gap-1">
@@ -125,8 +128,8 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
               <div className="text-lg font-semibold text-primary">
                 {request.allocated_streams && request.allocated_streams > 0
                   ? roundToNearest1k(request.allocated_streams).toLocaleString()
-                  : request.campaign?.stream_goal
-                    ? roundToNearest1k(request.campaign.stream_goal).toLocaleString()
+                  : campaignData?.stream_goal
+                    ? roundToNearest1k(campaignData.stream_goal).toLocaleString()
                     : 'TBD'}
               </div>
             </div>
@@ -145,7 +148,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                 <span className="font-medium">Start Date</span>
               </div>
               <div className="text-lg font-semibold">
-                {request.campaign?.start_date ? new Date(request.campaign.start_date).toLocaleDateString() : 'TBD'}
+                {campaignData?.start_date ? new Date(campaignData.start_date).toLocaleDateString() : 'TBD'}
               </div>
             </div>
             <div className="p-3 border rounded-lg">
@@ -153,12 +156,12 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                 <Clock className="h-4 w-4" />
                 <span className="font-medium">Duration</span>
               </div>
-              <div className="text-lg font-semibold">{request.campaign?.duration_days || 0} days</div>
+              <div className="text-lg font-semibold">{campaignData?.duration_days || 0} days</div>
             </div>
           </div>
 
           {/* Track Details */}
-          {request.campaign?.track_url && (
+          {campaignData?.track_url && (
             <div className="p-4 border rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Music className="h-4 w-4" />
@@ -166,13 +169,13 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
               </div>
               <div className="text-sm text-muted-foreground">
                 <a 
-                  href={request.campaign.track_url} 
+                  href={campaignData.track_url} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-primary hover:underline flex items-center gap-1"
                 >
                   <ExternalLink className="h-3 w-3" />
-                  {request.campaign.track_name || request.campaign.track_url}
+                  {campaignData.track_name || campaignData.track_url}
                 </a>
               </div>
             </div>
@@ -319,16 +322,26 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
           </div>
 
           {/* Music Genres */}
-          {request.campaign?.music_genres && request.campaign.music_genres.length > 0 && (
+          {campaignGenres.length > 0 && (
             <div className="border rounded-lg p-4">
               <div className="font-medium mb-2">Music Genres</div>
               <div className="flex flex-wrap gap-1">
-                {request.campaign.music_genres.map((genre: string, idx: number) => (
+                {campaignGenres.map((genre: string, idx: number) => (
                   <Badge key={idx} variant="outline">
                     {genre}
                   </Badge>
                 ))}
               </div>
+            </div>
+          )}
+
+          {debugMode && (
+            <div className="border rounded-lg p-4 space-y-2 text-xs text-muted-foreground">
+              <div className="font-medium">Debug</div>
+              <div>requestPlaylists length: {requestPlaylists.length}</div>
+              <div>safePlaylists length: {safePlaylists.length}</div>
+              <div>safeSelectedIds length: {safeSelectedIds.length}</div>
+              <div>campaignData keys: {Object.keys(campaignData || {}).join(', ') || 'none'}</div>
             </div>
           )}
 

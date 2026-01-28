@@ -405,7 +405,11 @@ export function useRespondToVendorRequest() {
       if (requestError) throw requestError;
 
       // Determine which playlist IDs to use (provided ones or original ones)
-      const playlistsToUse = playlist_ids || request.playlist_ids;
+      const playlistsToUse = Array.isArray(playlist_ids)
+        ? playlist_ids
+        : Array.isArray(request.playlist_ids)
+          ? request.playlist_ids
+          : [];
 
       // Update the request status and playlist selection
       const { data, error } = await supabase
@@ -422,6 +426,12 @@ export function useRespondToVendorRequest() {
         .single();
 
       if (error) throw error;
+      console.log('✅ vendor request updated:', {
+        requestId,
+        status,
+        playlistCount: playlistsToUse.length,
+        responseNotes: response_notes,
+      });
 
       // If approved, update campaign_playlists to mark vendor's playlists as accepted
       // campaign_id now references campaign_groups.id, so we need to find the spotify_campaign
