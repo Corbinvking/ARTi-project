@@ -37,18 +37,20 @@ export function MultiSelect({
   className,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
+  const safeOptions = Array.isArray(options) ? options : [];
+  const safeSelected = Array.isArray(selected) ? selected : [];
 
   const handleSelect = (value: string) => {
-    if (selected.includes(value)) {
-      onChange(selected.filter((item) => item !== value));
+    if (safeSelected.includes(value)) {
+      onChange(safeSelected.filter((item) => item !== value));
     } else {
-      if (max && selected.length >= max) return;
-      onChange([...selected, value]);
+      if (max && safeSelected.length >= max) return;
+      onChange([...safeSelected, value]);
     }
   };
 
   const handleRemove = (value: string) => {
-    onChange(selected.filter((item) => item !== value));
+    onChange(safeSelected.filter((item) => item !== value));
   };
 
   return (
@@ -61,11 +63,11 @@ export function MultiSelect({
             aria-expanded={open}
             className="w-full justify-between"
           >
-            {selected.length === 0 ? (
+            {safeSelected.length === 0 ? (
               placeholder
             ) : (
               <span className="text-muted-foreground">
-                {selected.length} selected
+                {safeSelected.length} selected
                 {max && ` (max ${max})`}
               </span>
             )}
@@ -78,7 +80,7 @@ export function MultiSelect({
             <CommandList>
               <CommandEmpty>No options found.</CommandEmpty>
               <CommandGroup>
-                {options.map((option) => (
+                {safeOptions.map((option) => (
                   <CommandItem
                     key={option}
                     value={option}
@@ -88,7 +90,7 @@ export function MultiSelect({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        selected.includes(option) ? "opacity-100" : "opacity-0"
+                        safeSelected.includes(option) ? "opacity-100" : "opacity-0"
                       )}
                     />
                     {option}
@@ -100,9 +102,9 @@ export function MultiSelect({
         </PopoverContent>
       </Popover>
 
-      {selected.length > 0 && (
+      {safeSelected.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {selected.map((item) => (
+          {safeSelected.map((item) => (
             <Badge key={item} variant="secondary" className="text-xs">
               {item}
               <Button
