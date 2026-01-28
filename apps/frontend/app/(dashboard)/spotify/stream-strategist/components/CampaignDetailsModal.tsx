@@ -1306,6 +1306,15 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         .eq('id', campaignGroupId);
 
       if (error) throw error;
+
+      // Update local campaignData immediately so UI reflects the change
+      setCampaignData((prev: any) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          vendor_allocations: updatedAllocations,
+        };
+      });
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['campaign-playlists', campaign.id] });
