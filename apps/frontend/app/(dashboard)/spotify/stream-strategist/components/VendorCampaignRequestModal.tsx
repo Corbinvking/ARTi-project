@@ -277,6 +277,47 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                     placeholder="Search and select playlists..."
                   />
                 </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedPlaylistIds(safePlaylists.map(p => p.id))}
+                    className="text-xs h-7"
+                  >
+                    Select All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedPlaylistIds([])}
+                    className="text-xs h-7"
+                  >
+                    Clear All
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const ids = filteredPlaylists.map(p => p.id).filter(Boolean) as string[];
+                      if (ids.length === 0) return;
+                      setSelectedPlaylistIds((prev) => Array.from(new Set([...prev, ...ids])));
+                    }}
+                    className="text-xs h-7"
+                  >
+                    Add All Filtered
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const idsToRemove = new Set(filteredPlaylists.map(p => p.id).filter(Boolean));
+                      setSelectedPlaylistIds((prev) => prev.filter((id) => !idsToRemove.has(id)));
+                    }}
+                    className="text-xs h-7"
+                  >
+                    Remove Filtered
+                  </Button>
+                </div>
                 <div className="border rounded-md max-h-56 overflow-y-auto">
                   {filteredPlaylists.length === 0 ? (
                     <div className="py-3 px-4 text-sm text-muted-foreground">
