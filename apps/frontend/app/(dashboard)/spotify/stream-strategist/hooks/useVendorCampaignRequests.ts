@@ -181,7 +181,7 @@ export function useVendorCampaignRequests() {
               budget: cg.total_budget || 0,
               start_date: cg.start_date,
               duration_days: cg.end_date && cg.start_date 
-                ? Math.ceil((new Date(cg.end_date).getTime() - new Date(cg.start_date).getTime()) / (1000 * 60 * 60 * 24))
+                ? Math.ceil((new Date(cg.end_date).getTime() - new Date(cg.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1
                 : 30,
               music_genres: [],
               content_types: [],

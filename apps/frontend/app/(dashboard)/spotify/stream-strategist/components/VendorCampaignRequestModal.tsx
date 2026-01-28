@@ -83,6 +83,11 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
     }).format(amount);
   };
 
+  const roundToNearest1k = (value: number) => {
+    if (!Number.isFinite(value)) return 0;
+    return Math.round(value / 1000) * 1000;
+  };
+
   if (!request) return null;
 
   return (
@@ -112,7 +117,11 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                 <span className="font-medium">Your Streams</span>
               </div>
               <div className="text-lg font-semibold text-primary">
-                {request.allocated_streams ? request.allocated_streams.toLocaleString() : 'TBD'}
+                {request.allocated_streams && request.allocated_streams > 0
+                  ? roundToNearest1k(request.allocated_streams).toLocaleString()
+                  : request.campaign?.stream_goal
+                    ? roundToNearest1k(request.campaign.stream_goal).toLocaleString()
+                    : 'TBD'}
               </div>
             </div>
             <div className="p-3 border rounded-lg bg-primary/5">
