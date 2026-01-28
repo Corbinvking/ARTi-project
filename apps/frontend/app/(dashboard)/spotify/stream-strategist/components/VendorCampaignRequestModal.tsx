@@ -27,6 +27,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   
   const respondToRequest = useRespondToVendorRequest();
   const { data: myPlaylists } = useMyPlaylists();
+  const safePlaylists = Array.isArray(myPlaylists) ? myPlaylists : [];
 
   // Initialize selected playlists when request changes
   useEffect(() => {
@@ -187,12 +188,12 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                   </Badge>
                 )}
               </div>
-              {isSelectingPlaylists && myPlaylists && myPlaylists.length > 0 && (
+              {isSelectingPlaylists && safePlaylists.length > 0 && (
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedPlaylistIds(myPlaylists.map(p => p.id))}
+                    onClick={() => setSelectedPlaylistIds(safePlaylists.map(p => p.id))}
                     className="text-xs h-7"
                   >
                     <CheckSquare className="h-3 w-3 mr-1" />
@@ -209,7 +210,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                   </Button>
                 </div>
               )}
-              {!isResponding && myPlaylists && myPlaylists.length > 0 && (
+              {!isResponding && safePlaylists.length > 0 && (
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -247,14 +248,14 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                   Select which playlists to include. You can approve with no playlists and add them later.
                 </div>
                 <MultiSelect
-                  options={myPlaylists?.map(p => p.name) || []}
+                  options={safePlaylists.map(p => p.name) || []}
                   selected={selectedPlaylistIds.map(id => {
-                    const playlist = myPlaylists?.find(p => p.id === id);
+                    const playlist = safePlaylists.find(p => p.id === id);
                     return playlist?.name || id;
                   }).filter(Boolean)}
                   onChange={(selectedNames) => {
                     const ids = selectedNames.map(name => {
-                      const playlist = myPlaylists?.find(p => p.name === name);
+                      const playlist = safePlaylists.find(p => p.name === name);
                       return playlist?.id;
                     }).filter(Boolean) as string[];
                     setSelectedPlaylistIds(ids);
@@ -271,7 +272,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                       <div className="text-sm font-medium">Selected Playlists ({selectedPlaylistIds.length}):</div>
                       <div className="max-h-48 overflow-y-auto space-y-1">
                         {selectedPlaylistIds.map(id => {
-                          const playlist = myPlaylists?.find(p => p.id === id);
+                          const playlist = safePlaylists.find(p => p.id === id);
                           return playlist ? (
                             <div key={id} className="flex justify-between items-center py-2 px-3 bg-muted/20 rounded-md text-sm group">
                               <span className="font-medium">{playlist.name}</span>
