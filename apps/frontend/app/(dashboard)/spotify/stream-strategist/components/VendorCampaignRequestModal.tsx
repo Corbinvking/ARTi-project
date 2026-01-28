@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle, Clock, Music, DollarSign, Calendar, Target, ExternalLink, X, CheckSquare, Square } from 'lucide-react';
 import { useRespondToVendorRequest } from '../hooks/useVendorCampaignRequests';
 import { useMyPlaylists } from '../hooks/useVendorPlaylists';
-import { MultiSelect } from '@/components/ui/multi-select';
 import { formatDistanceToNow } from 'date-fns';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface VendorCampaignRequestModalProps {
   request: any;
@@ -24,6 +25,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   const [isResponding, setIsResponding] = useState(false);
   const [selectedPlaylistIds, setSelectedPlaylistIds] = useState<string[]>([]);
   const [isEditingPlaylists, setIsEditingPlaylists] = useState(false);
+  const [playlistSearch, setPlaylistSearch] = useState('');
   
   const respondToRequest = useRespondToVendorRequest();
   const { data: myPlaylists } = useMyPlaylists();
@@ -33,15 +35,13 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   const campaignData = request?.campaign || {};
   const campaignGenres = Array.isArray(campaignData.music_genres) ? campaignData.music_genres : [];
   const debugMode = typeof window !== 'undefined' && window.location.search.includes('debugVendorRequest=1');
-  const playlistNameOptions = safePlaylists
-    .map((p: any) => (typeof p?.name === 'string' ? p.name : ''))
-    .filter((name: string) => name.length > 0);
-  const selectedPlaylistNames = safeSelectedIds
-    .map((id) => {
-      const playlist = safePlaylists.find(p => p.id === id);
-      return typeof playlist?.name === 'string' ? playlist.name : '';
-    })
-    .filter((name) => name.length > 0);
+  const playlistSearchValue = playlistSearch.trim().toLowerCase();
+  const filteredPlaylists = safePlaylists.filter((playlist) => {
+    const name = typeof playlist?.name === 'string' ? playlist.name : '';
+    if (!name) return false;
+    if (!playlistSearchValue) return true;
+    return name.toLowerCase().includes(playlistSearchValue);
+  });
 
   // Initialize selected playlists when request changes
   useEffect(() => {
@@ -53,6 +53,14 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   const handleRespond = (status: 'approved' | 'rejected') => {
     setResponseType(status);
     setIsResponding(true);
+  };
+
+  const togglePlaylistSelection = (playlistId: string) => {
+    setSelectedPlaylistIds((prev) => (
+      prev.includes(playlistId)
+        ? prev.filter((id) => id !== playlistId)
+        : [...prev, playlistId]
+    ));
   };
 
   const submitResponse = async () => {
@@ -261,18 +269,47 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                 <div className="text-sm text-muted-foreground">
                   Select which playlists to include. You can approve with no playlists and add them later.
                 </div>
-                <MultiSelect
-                  options={playlistNameOptions}
-                  selected={selectedPlaylistNames}
-                  onChange={(selectedNames) => {
-                    const ids = selectedNames.map(name => {
-                      const playlist = safePlaylists.find(p => p.name === name);
-                      return playlist?.id;
-                    }).filter(Boolean) as string[];
-                    setSelectedPlaylistIds(ids);
-                  }}
-                  placeholder="Search and select playlists..."
-                />
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Search playlists</Label>
+                  <Input
+                    value={playlistSearch}
+                    onChange={(e) => setPlaylistSearch(e.target.value)}
+                    placeholder="Search and select playlists..."
+                  />
+                </div>
+                <div className="border rounded-md max-h-56 overflow-y-auto">
+                  {filteredPlaylists.length === 0 ? (
+                    <div className="py-3 px-4 text-sm text-muted-foreground">
+                      No playlists match your search.
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {filteredPlaylists.map((playlist) => {
+                        if (!playlist?.id) return null;
+                        const isSelected = safeSelectedIds.includes(playlist.id);
+                        return (
+                          <label
+                            key={playlist.id}
+                            className="flex items-center gap-3 px-3 py-2 text-sm cursor-pointer hover:bg-muted/20"
+                          >
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => togglePlaylistSelection(playlist.id)}
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium">{playlist.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {Number.isFinite(playlist.avg_daily_streams)
+                                  ? `${playlist.avg_daily_streams.toLocaleString()} daily`
+                                  : 'Daily streams unknown'}
+                              </div>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
                 <div className="space-y-2">
                   {safeSelectedIds.length === 0 ? (
                     <div className="py-3 px-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md text-sm text-amber-800 dark:text-amber-200">
