@@ -23,6 +23,7 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   const [responseNotes, setResponseNotes] = useState('');
   const [isResponding, setIsResponding] = useState(false);
   const [selectedPlaylistIds, setSelectedPlaylistIds] = useState<string[]>([]);
+  const [isEditingPlaylists, setIsEditingPlaylists] = useState(false);
   
   const respondToRequest = useRespondToVendorRequest();
   const { data: myPlaylists } = useMyPlaylists();
@@ -89,6 +90,8 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
   };
 
   if (!request) return null;
+
+  const isSelectingPlaylists = isResponding || isEditingPlaylists;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -178,13 +181,13 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
               <div className="flex items-center gap-2">
                 <Music className="h-4 w-4" />
                 <span className="font-medium">Playlist Selection</span>
-                {isResponding && (
+                {isSelectingPlaylists && (
                   <Badge variant="outline" className="text-xs">
                     {selectedPlaylistIds.length} selected
                   </Badge>
                 )}
               </div>
-              {isResponding && myPlaylists && myPlaylists.length > 0 && (
+              {isSelectingPlaylists && myPlaylists && myPlaylists.length > 0 && (
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -206,9 +209,39 @@ export function VendorCampaignRequestModal({ request, isOpen, onClose }: VendorC
                   </Button>
                 </div>
               )}
+              {!isResponding && myPlaylists && myPlaylists.length > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7"
+                    onClick={() => {
+                      setIsEditingPlaylists(true);
+                      if (selectedPlaylistIds.length === 0 && request?.playlists?.length) {
+                        setSelectedPlaylistIds(request.playlists.map((p: any) => p.id));
+                      }
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  {isEditingPlaylists && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => {
+                        setIsEditingPlaylists(false);
+                        setSelectedPlaylistIds(request?.playlists?.map((p: any) => p.id) || []);
+                      }}
+                    >
+                      Done
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
             
-            {isResponding ? (
+            {isSelectingPlaylists ? (
               <div className="space-y-3">
                 <div className="text-sm text-muted-foreground">
                   Select which playlists to include. You can approve with no playlists and add them later.
