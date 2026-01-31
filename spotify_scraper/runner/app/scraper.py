@@ -290,6 +290,36 @@ class SpotifyArtistsScraper:
                         wait_until='domcontentloaded'
                     )
                     await asyncio.sleep(3)
+                    # Fill username and advance if needed
+                    username_input = self.page.locator(
+                        'input#login-username, input[name="username"], input[type="email"]'
+                    )
+                    if await username_input.count() > 0:
+                        await username_input.first.fill(email)
+                        await asyncio.sleep(1)
+                        password_input = self.page.locator(
+                            'input[type="password"], input[name="password"], input[id="login-password"], input[placeholder*="password" i]'
+                        )
+                        password_visible = False
+                        if await password_input.count() > 0:
+                            password_visible = await password_input.first.is_visible()
+                        if not password_visible:
+                            method_continue_selectors = [
+                                'button:has-text("Continue")',
+                                'button:has-text("Next")',
+                                'button[type="submit"]',
+                                'button[data-testid="login-button"]'
+                            ]
+                            for selector in method_continue_selectors:
+                                try:
+                                    method_continue = self.page.locator(selector)
+                                    if await method_continue.count() > 0:
+                                        await method_continue.first.click()
+                                        print(f"  Accounts Continue clicked using selector: {selector}")
+                                        await asyncio.sleep(3)
+                                        break
+                                except:
+                                    continue
                 except Exception as e:
                     print(f"  Could not navigate to accounts login: {e}")
             

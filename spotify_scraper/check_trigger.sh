@@ -7,6 +7,9 @@ TRIGGER_FILE="/root/arti-marketing-ops/spotify_scraper/trigger_manual_run.flag"
 LOCK_FILE="/root/arti-marketing-ops/spotify_scraper/scraper.lock"
 SCRIPT_DIR="/root/arti-marketing-ops/spotify_scraper"
 LOG_FILE="$SCRIPT_DIR/logs/trigger.log"
+CONTAINER_NAME="arti-api-prod"
+CONTAINER_TRIGGER_FILE="/app/scraper_data/trigger_manual_run.flag"
+CONTAINER_TRIGGER_DETECTED=0
 # Max age for lock file in seconds (4 hours = 14400 seconds)
 MAX_LOCK_AGE=14400
 
@@ -15,6 +18,17 @@ mkdir -p "$SCRIPT_DIR/logs"
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
 }
+
+# Mirror trigger flag from the API container if it exists
+if command -v docker >/dev/null 2>&1; then
+    if docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME" >/dev/null 2>&1; then
+        if docker exec "$CONTAINER_NAME" sh -c "test -f $CONTAINER_TRIGGER_FILE"; then
+            log "Container trigger detected"
+            CONTAINER_TRIGGER_DETECTED=1
+            docker exec "$CONTAINER_NAME" sh -c "rm -f $CONTAINER_TRIGGER_FILE" || true
+        fi
+    fi
+fi
 
 # Function to check if a PID is still running
 is_pid_running() {
@@ -51,7 +65,7 @@ if [ -f "$LOCK_FILE" ]; then
 fi
 
 # Check for trigger file
-if [ -f "$TRIGGER_FILE" ]; then
+if [ -f "$TRIGGER_FILE" ] || [ "$CONTAINER_TRIGGER_DETECTED" -eq 1 ]; then
     log "Manual trigger detected! Starting scraper..."
     
     # Remove trigger file immediately to prevent re-runs

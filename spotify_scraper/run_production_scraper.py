@@ -377,6 +377,20 @@ async def login_to_spotify(page, force_fresh=False):
             if await username_input.count() > 0:
                 await username_input.first.fill(SPOTIFY_EMAIL)
                 await asyncio.sleep(1)
+                # Some accounts flows require an extra Continue click before password
+                password_input = page.locator(
+                    'input[type="password"], input[name="password"], input#login-password, input[placeholder*="password" i]'
+                )
+                password_visible = False
+                if await password_input.count() > 0:
+                    password_visible = await password_input.first.is_visible()
+                if not password_visible:
+                    continue_btn = page.locator(
+                        'button:has-text("Continue"), button:has-text("Next"), button[type="submit"], button[data-testid="login-button"]'
+                    )
+                    if await continue_btn.count() > 0:
+                        await continue_btn.first.click()
+                        await asyncio.sleep(3)
         except Exception as e:
             logger.warning(f"  Could not navigate to accounts login: {e}")
     
