@@ -198,7 +198,10 @@ class SpotifyArtistsScraper:
             print(f"  Current URL: {current_url}")
             
             # Check if password field is already visible (single-page login)
-            password_input_exists = await self.page.locator('input[type="password"]').count() > 0
+            password_input = self.page.locator('input[type="password"]')
+            password_input_exists = False
+            if await password_input.count() > 0:
+                password_input_exists = await password_input.first.is_visible()
             if password_input_exists:
                 print("  Password field found on same page - single-page login flow")
             
@@ -217,16 +220,21 @@ class SpotifyArtistsScraper:
                 print(f"  Debug info failed: {e}")
             
             password_option_selectors = [
+                'button:has-text("Log in with a password")',
                 'button:has-text("Log in with password")',
+                'button:has-text("Use password instead")',
+                'button:has-text("Continue with password")',
                 'button:has-text("Use password")',
                 'button:has-text("Password")',
                 'button:has-text("password")',
                 'a:has-text("password")',
+                'a:has-text("Log in with a password")',
                 'a:has-text("Log in with password")',
                 'div:has-text("Password") button',
                 '[data-testid="login-password-button"]',
                 '[data-testid="login-password"]',
-                'button[data-testid*="password"]'
+                'button[data-testid*="password"]',
+                '[role="button"]:has-text("password")'
             ]
             
             password_option_clicked = False
@@ -245,29 +253,56 @@ class SpotifyArtistsScraper:
             # If no password option found, maybe we're already on password page
             if not password_option_clicked:
                 print("  No explicit password option found, proceeding...")
+
+            # If password input is still not visible, try clicking a secondary Continue/Next
+            password_input = self.page.locator('input[type="password"]')
+            password_input_visible = False
+            if await password_input.count() > 0:
+                password_input_visible = await password_input.first.is_visible()
+            if not password_input_visible:
+                print("  Password input not visible yet - trying Continue/Next...")
+                method_continue_selectors = [
+                    'button:has-text("Continue")',
+                    'button:has-text("Next")',
+                    'button[type="submit"]'
+                ]
+                for selector in method_continue_selectors:
+                    try:
+                        method_continue = self.page.locator(selector)
+                        if await method_continue.count() > 0:
+                            await method_continue.first.click()
+                            print(f"  Method Continue clicked using selector: {selector}")
+                            await asyncio.sleep(3)
+                            break
+                    except:
+                        continue
+
+            # Fallback: go directly to Spotify accounts login if still no password input
+            password_input = self.page.locator('input[type="password"]')
+            password_input_visible = False
+            if await password_input.count() > 0:
+                password_input_visible = await password_input.first.is_visible()
+            if not password_input_visible:
+                print("  No password input after method selection - trying direct accounts login...")
+                try:
+                    await self.page.goto(
+                        'https://accounts.spotify.com/en/login?continue=https%3A%2F%2Fartists.spotify.com%2F',
+                        wait_until='domcontentloaded'
+                    )
+                    await asyncio.sleep(3)
+                except Exception as e:
+                    print(f"  Could not navigate to accounts login: {e}")
             
             # Step 4: Enter password
             print("Step 4: Entering password...")
-            password_selectors = [
-                'input[id="login-password"]',
-                'input[name="password"]',
-                'input[type="password"]',
-                'input[placeholder*="password" i]'
-            ]
-            
-            password_filled = False
-            for selector in password_selectors:
-                try:
-                    password_input = self.page.locator(selector)
-                    if await password_input.count() > 0:
-                        await password_input.fill(password)
-                        print(f"  Password entered using selector: {selector}")
-                        password_filled = True
-                        break
-                except:
-                    continue
-            
-            if not password_filled:
+            password_input = self.page.locator(
+                'input[type="password"], input[name="password"], input[id="login-password"], input[placeholder*="password" i]'
+            )
+            try:
+                await password_input.first.wait_for(timeout=15000)
+                await password_input.first.fill(password)
+                print("  Password entered")
+            except Exception:
                 print("  ERROR: Could not find password input field!")
                 return False
             

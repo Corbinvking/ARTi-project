@@ -305,12 +305,28 @@ async def login_to_spotify(page, force_fresh=False):
     
     # Check if password input is already visible (some flows skip the method selection)
     password_input = page.locator('input[type="password"]')
+    password_input_visible = False
     if await password_input.count() > 0:
+        password_input_visible = await password_input.first.is_visible()
+    if password_input_visible:
         logger.info("  Password input already visible - skipping method selection")
     else:
         # Click "Log in with a password" if present
         logger.info("  Looking for 'Log in with a password' option...")
-        password_option = page.locator('button:has-text("Log in with a password"), button:has-text("Log in with password"), a:has-text("Log in with a password")')
+        password_option = page.locator(
+            'button:has-text("Log in with a password"), '
+            'button:has-text("Log in with password"), '
+            'button:has-text("Use password"), '
+            'button:has-text("Use password instead"), '
+            'button:has-text("Continue with password"), '
+            'a:has-text("Log in with a password"), '
+            'a:has-text("Log in with password"), '
+            'a:has-text("Use password"), '
+            '[data-testid="login-password-button"], '
+            '[data-testid="login-password"], '
+            'button[data-testid*="password"], '
+            '[role="button"]:has-text("password")'
+        )
         password_option_count = await password_option.count()
         logger.info(f"  Found {password_option_count} password option button(s)")
         
@@ -328,14 +344,51 @@ async def login_to_spotify(page, force_fresh=False):
                 logger.info(f"  Visible buttons on page: {buttons[:10]}")
             except Exception as e:
                 logger.warning(f"  Could not log debug info: {e}")
+        
+        # If still no password input, try clicking a secondary Continue/Next
+        password_input = page.locator('input[type="password"]')
+        password_input_visible = False
+        if await password_input.count() > 0:
+            password_input_visible = await password_input.first.is_visible()
+        if not password_input_visible:
+            logger.info("  Password input not visible yet - trying Continue/Next...")
+            method_continue = page.locator('button:has-text("Continue"), button:has-text("Next"), button[type="submit"]')
+            if await method_continue.count() > 0:
+                await method_continue.first.click()
+                await asyncio.sleep(3)
+
+    # Fallback: if password input still not visible, go directly to accounts login
+    password_input = page.locator('input[type="password"]')
+    password_input_visible = False
+    if await password_input.count() > 0:
+        password_input_visible = await password_input.first.is_visible()
+    if not password_input_visible:
+        logger.warning("  No password input after method selection - trying direct accounts login...")
+        try:
+            await page.goto(
+                'https://accounts.spotify.com/en/login?continue=https%3A%2F%2Fartists.spotify.com%2F',
+                wait_until='domcontentloaded'
+            )
+            await asyncio.sleep(3)
+            await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_step_accounts.png')
+            logger.info("  Screenshot saved: login_step_accounts.png")
+            # Fill username if present on accounts page
+            username_input = page.locator('input#login-username, input[name="username"], input[type="email"]')
+            if await username_input.count() > 0:
+                await username_input.first.fill(SPOTIFY_EMAIL)
+                await asyncio.sleep(1)
+        except Exception as e:
+            logger.warning(f"  Could not navigate to accounts login: {e}")
     
     # Wait for password input and enter password
     logger.info("  Waiting for password input...")
     try:
-        password_input = page.locator('input[type="password"]')
-        await password_input.wait_for(timeout=15000)
+        password_input = page.locator(
+            'input[type="password"], input[name="password"], input#login-password, input[placeholder*="password" i]'
+        )
+        await password_input.first.wait_for(timeout=15000)
         logger.info("  Entering password...")
-        await password_input.fill(SPOTIFY_PASSWORD)
+        await password_input.first.fill(SPOTIFY_PASSWORD)
         await asyncio.sleep(1)
     except Exception as e:
         logger.error(f"  Failed to find password input: {e}")
@@ -344,8 +397,9 @@ async def login_to_spotify(page, force_fresh=False):
     
     # Click final Log in button
     logger.info("  Clicking Log in button...")
-    login_submit = page.locator('button[data-testid="login-button"]')
-    await login_submit.click()
+    login_submit = page.locator('button[data-testid="login-button"], button#login-button, button:has-text("Log in")')
+    if await login_submit.count() > 0:
+        await login_submit.first.click()
     await asyncio.sleep(10)
     
     # Dismiss welcome modal if present
