@@ -1009,8 +1009,28 @@ def clear_browser_data_if_needed(user_data_dir, max_size_mb=500):
         return False
 
 
+def clear_browser_profile_locks(user_data_dir):
+    """Remove stale Chromium singleton lock files if present"""
+    lock_files = [
+        os.path.join(user_data_dir, 'SingletonLock'),
+        os.path.join(user_data_dir, 'SingletonSocket'),
+        os.path.join(user_data_dir, 'SingletonCookie'),
+    ]
+    removed = False
+    for lock_path in lock_files:
+        try:
+            if os.path.exists(lock_path):
+                os.remove(lock_path)
+                removed = True
+        except Exception as e:
+            logger.warning(f"⚠️  Could not remove lock file {lock_path}: {e}")
+    if removed:
+        logger.info("🧹 Removed stale Chromium profile lock files")
+
+
 async def launch_browser_context(playwright, user_data_dir, headless):
     """Launch a fresh browser context with all stability args"""
+    clear_browser_profile_locks(user_data_dir)
     # Launch with persistent context (maintains session across runs)
     context = await playwright.chromium.launch_persistent_context(
         user_data_dir=user_data_dir,
