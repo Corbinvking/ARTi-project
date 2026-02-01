@@ -232,16 +232,10 @@ async def check_if_logged_in(page):
         if 'artists.spotify.com/c/' in current_url or 'artists.spotify.com/home' in current_url or 'artists.spotify.com/roster' in current_url:
             logger.info("✓ Existing session found! Already logged in.")
             
-            # Verify we have sp_dc cookie
-            cookies = await page.context.cookies()
-            has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
-            
-            if has_sp_dc:
-                logger.info("✓ Authentication cookie verified")
-                return True
-            else:
-                logger.warning("⚠ On dashboard but no sp_dc cookie - session may be expired")
-                return False
+            # If we're on the dashboard URL (not redirected to login), session is valid
+            # The sp_dc cookie may not be visible to Playwright but session still works
+            logger.info("✓ On S4A dashboard - session is valid")
+            return True
         else:
             logger.info("No existing session - need to login")
             return False
