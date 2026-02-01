@@ -4,10 +4,11 @@ import { createClient } from '@supabase/supabase-js'
 export interface User {
   id: string
   email: string
-  role: "admin" | "manager" | "sales" | "vendor"
+  role: "admin" | "manager" | "sales" | "vendor" | "member"
   tenantId: string
   name: string
   permissions?: Permission[]
+  isMember?: boolean  // Flag for SoundCloud members
 }
 
 export interface Permission {
@@ -69,13 +70,17 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
         let permissions: Permission[] = []
         console.log('ℹ️ Using role-based permissions for:', session.user.email)
         
+        const userRole = (profile?.role || session.user.user_metadata?.role || 'creator') as User['role']
+        const isMember = session.user.user_metadata?.is_member === true || userRole === 'member'
+        
         const user: User = {
           id: session.user.id,
           email: session.user.email!,
-          role: (profile?.role || session.user.user_metadata?.role || 'creator') as User['role'],
+          role: userRole,
           tenantId: profile?.org_id || session.user.user_metadata?.org_id || '00000000-0000-0000-0000-000000000001',
           name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-          permissions: permissions
+          permissions: permissions,
+          isMember: isMember
         }
         
         callback(user)
@@ -91,11 +96,12 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
 }
 
 // Role permissions (legacy - now using database permissions)
-const ROLE_PERMISSIONS = {
+const ROLE_PERMISSIONS: Record<string, string[]> = {
   admin: ["read", "write", "delete", "manage_users", "manage_settings"],
   manager: ["read", "write", "manage_campaigns"],
   sales: ["read", "write", "create_campaigns"],
   vendor: ["read", "create_content"],
+  member: ["read", "submit_tracks"],  // SoundCloud members
 }
 
 // Function to refresh permissions for current user (no-op - using role-based)
@@ -129,6 +135,7 @@ export const authService = {
       const metadata = data.user.user_metadata || {}
       const role = metadata.role || 'creator'
       const fullName = metadata.full_name || data.user.email?.split('@')[0] || 'User'
+      const isMember = metadata.is_member === true || role === 'member'
       
       // Permissions will be loaded separately via onAuthStateChange
       let permissions: Permission[] = []
@@ -139,7 +146,8 @@ export const authService = {
         role: role as User['role'],
         tenantId: metadata.org_id || '00000000-0000-0000-0000-000000000001',
         name: fullName,
-        permissions: permissions
+        permissions: permissions,
+        isMember: isMember
       }
       
       console.log('👤 Created user object:', user)
@@ -206,13 +214,15 @@ export const authService = {
       const metadata = session.user.user_metadata || {}
       const role = metadata.role || 'creator'
       const fullName = metadata.full_name || session.user.email?.split('@')[0] || 'User'
+      const isMember = metadata.is_member === true || role === 'member'
       
       const user: User = {
         id: session.user.id,
         email: session.user.email!,
         role: role as User['role'],
         tenantId: metadata.org_id || '00000000-0000-0000-0000-000000000001',
-        name: fullName
+        name: fullName,
+        isMember: isMember
       }
       
       return user
@@ -252,6 +262,8 @@ export const authService = {
         return ["dashboard", "spotify", "youtube", "instagram"].includes(platform)
       case "vendor":
         return ["dashboard", "spotify", "soundcloud"].includes(platform)
+      case "member":
+        return ["soundcloud"].includes(platform) // Members only access SoundCloud portal
       default:
         return false
     }

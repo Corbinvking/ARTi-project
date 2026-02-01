@@ -25,11 +25,14 @@ export function LoginForm() {
       const user = await signIn(email, password)
       
       // Redirect based on user role
-      if (user?.role === 'member') {
-        // Members go to SoundCloud portal
+      if (user?.role === 'member' || user?.isMember) {
+        // SoundCloud members go to member portal
         router.push("/soundcloud/portal")
+      } else if (user?.role === 'vendor') {
+        // Spotify vendors go to vendor dashboard
+        router.push("/spotify/stream-strategist/vendor")
       } else {
-        // Admin, manager, vendor go to main dashboard
+        // Admin, manager, sales go to main dashboard
         router.push("/dashboard")
       }
     } catch (err) {

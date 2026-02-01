@@ -40,10 +40,10 @@ export const useMemberSubmissions = () => {
     try {
       // Fetch all submissions for the member
       const { data: submissions, error } = await supabase
-        .from('submissions')
-        .select('id, track_url, artist_name, status, submitted_at')
+        .from('soundcloud_submissions')
+        .select('id, track_url, artist_name, status, submitted_at, created_at')
         .eq('member_id', member.id)
-        .order('submitted_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -53,15 +53,19 @@ export const useMemberSubmissions = () => {
 
       const newStats = {
         totalSubmissions: submissions.length,
-        thisMonthSubmissions: submissions.filter(s => 
-          new Date(s.submitted_at) >= startOfMonth
-        ).length,
+        thisMonthSubmissions: submissions.filter(s => {
+          const date = s.submitted_at || s.created_at;
+          return date && new Date(date) >= startOfMonth;
+        }).length,
         pendingSubmissions: submissions.filter(s => 
           ['new', 'pending', 'qa_flag'].includes(s.status)
         ).length,
         approvedSubmissions: submissions.filter(s => s.status === 'approved').length,
         rejectedSubmissions: submissions.filter(s => s.status === 'rejected').length,
-        recentSubmissions: submissions.slice(0, 5),
+        recentSubmissions: submissions.slice(0, 5).map(s => ({
+          ...s,
+          submitted_at: s.submitted_at || s.created_at
+        })),
       };
 
       setStats(newStats);
