@@ -5,8 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CampaignTableEnhanced } from "../components/dashboard/CampaignTableEnhanced";
 import { Button } from "@/components/ui/button";
-import { Plus, RefreshCw, Download } from "lucide-react";
+import { Plus, RefreshCw, Download, Upload } from "lucide-react";
 import { CreateCampaignModal } from "../components/campaigns/CreateCampaignModal";
+import { CampaignImportModal } from "../components/CampaignImportModal";
 import { useCampaigns } from "../hooks/useCampaigns";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "../contexts/AuthContext";
@@ -14,6 +15,7 @@ import { useAuth } from "../contexts/AuthContext";
 export default function Campaigns() {
   const [searchParams] = useSearchParams();
   const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const { refreshData, campaigns, loading } = useCampaigns();
   const { toast } = useToast();
@@ -91,6 +93,12 @@ export default function Campaigns() {
             Export
           </Button>
           {(isAdmin || isManager) && (
+            <Button variant="outline" size="sm" onClick={() => setImportModalOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import
+            </Button>
+          )}
+          {(isAdmin || isManager) && (
             <Button onClick={() => setCreateCampaignOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               New Campaign
@@ -115,6 +123,11 @@ export default function Campaigns() {
       <CreateCampaignModal
         isOpen={createCampaignOpen}
         onClose={() => setCreateCampaignOpen(false)}
+      />
+
+      <CampaignImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
       />
     </div>
   );

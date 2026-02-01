@@ -33,8 +33,10 @@ import {
   Mail,
   Eye,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Upload
 } from "lucide-react";
+import { CampaignImportModal } from "./CampaignImportModal";
 import { 
   Select,
   SelectContent,
@@ -78,6 +80,7 @@ export default function CampaignsPage() {
   const [sortBy, setSortBy] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const { toast } = useToast();
@@ -398,13 +401,18 @@ export default function CampaignsPage() {
           <h1 className="text-3xl font-bold text-foreground">Campaigns</h1>
           <p className="text-muted-foreground">Manage and track SoundCloud promotional campaigns</p>
         </div>
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Campaign
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setShowImportModal(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import
+          </Button>
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Campaign
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create New Campaign</DialogTitle>
@@ -419,10 +427,18 @@ export default function CampaignsPage() {
               }} 
             />
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
-          {/* Filters */}
+      {/* Import Modal */}
+      <CampaignImportModal
+        open={showImportModal}
+        onOpenChange={setShowImportModal}
+        onImportComplete={fetchCampaigns}
+      />
+
+      {/* Filters */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Filters</CardTitle>

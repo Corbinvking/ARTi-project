@@ -10,7 +10,8 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check, Instagram, Loader2, RefreshCw, Users, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check, Instagram, Loader2, RefreshCw, Users, CheckCircle, Clock, AlertCircle, Upload } from "lucide-react";
+import { CampaignImportModal } from "./components/CampaignImportModal";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
@@ -88,6 +89,7 @@ export default function InstagramCampaignsPage() {
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [modalTab, setModalTab] = useState("details");
   const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -505,12 +507,18 @@ export default function InstagramCampaignsPage() {
             View and manage all Instagram campaigns
           </p>
         </div>
-        <Link href="/instagram/campaign-builder">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            New Campaign
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setImportModalOpen(true)}>
+            <Upload className="mr-2 h-4 w-4" />
+            Import
           </Button>
-        </Link>
+          <Link href="/instagram/campaign-builder">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              New Campaign
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* KPI Metrics */}
@@ -1613,6 +1621,12 @@ export default function InstagramCampaignsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Import Modal */}
+      <CampaignImportModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+      />
     </div>
   );
 }
