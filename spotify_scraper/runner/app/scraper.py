@@ -62,32 +62,40 @@ class SpotifyArtistsScraper:
         try:
             print("Starting automatic login...")
             
-            # First check if already logged in by navigating to the home page
-            print("Checking if already logged in...")
-            await self.page.goto('https://artists.spotify.com/home', wait_until='domcontentloaded', timeout=30000)
-            await asyncio.sleep(3)
-            
-            # If we're on the home page and not redirected to login, check cookies
+            # Check current URL - we might already be on the login page
             current_url = self.page.url
-            if 'artists.spotify.com' in current_url and 'login' not in current_url:
-                # Verify we have the critical sp_dc cookie
-                cookies = await self.context.cookies()
-                has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+            print(f"Current URL before login: {current_url}")
+            
+            # If already on login page, skip navigation and go straight to email entry
+            if 'accounts.spotify.com' in current_url or 'login' in current_url.lower():
+                print("Already on login page - proceeding directly to email entry...")
+            else:
+                # First check if already logged in by navigating to the home page
+                print("Checking if already logged in...")
+                await self.page.goto('https://artists.spotify.com/home', wait_until='domcontentloaded', timeout=30000)
+                await asyncio.sleep(3)
                 
-                if has_sp_dc:
-                    print("[OK] Already logged in! Session is valid (sp_dc cookie found).")
-                    return True
-                else:
-                    print("[WARNING] On home page but missing sp_dc cookie - login incomplete!")
-                    print("          Will attempt full login...")
+                # If we're on the home page and not redirected to login, check cookies
+                current_url = self.page.url
+                if 'artists.spotify.com' in current_url and 'login' not in current_url and 'accounts.spotify.com' not in current_url:
+                    # Verify we have the critical sp_dc cookie
+                    cookies = await self.context.cookies()
+                    has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+                    
+                    if has_sp_dc:
+                        print("[OK] Already logged in! Session is valid (sp_dc cookie found).")
+                        return True
+                    else:
+                        print("[WARNING] On home page but missing sp_dc cookie - login incomplete!")
+                        print("          Will attempt full login...")
+                
+                print("Not logged in, proceeding with login flow...")
+                
+                # Navigate to Spotify for Artists (not generic login page)
+                await self.page.goto('https://artists.spotify.com', wait_until='domcontentloaded', timeout=30000)
+                await asyncio.sleep(3)
             
-            print("Not logged in, proceeding with login flow...")
-            
-            # Navigate to Spotify for Artists (not generic login page)
-            await self.page.goto('https://artists.spotify.com', wait_until='domcontentloaded', timeout=30000)
-            await asyncio.sleep(3)
-            
-            # Check if we landed on the home page (need to click Login button)
+            # Get current URL after navigation
             current_url = self.page.url
             print(f"Landed on: {current_url}")
             
@@ -219,22 +227,30 @@ class SpotifyArtistsScraper:
             except Exception as e:
                 print(f"  Debug info failed: {e}")
             
+            # Updated for Spotify's 2025+ login flow - now defaults to "login code" with password as link below
             password_option_selectors = [
-                'button:has-text("Log in with a password")',
+                # Primary: links that appear below the login code section
+                'a:has-text("Log in with password")',
+                'a:has-text("Log in with a password")',
+                'a:has-text("Use password")',
+                'a:has-text("Use password instead")',
+                # Button variants
                 'button:has-text("Log in with password")',
+                'button:has-text("Log in with a password")',
                 'button:has-text("Use password instead")',
                 'button:has-text("Continue with password")',
                 'button:has-text("Use password")',
-                'button:has-text("Password")',
-                'button:has-text("password")',
-                'a:has-text("password")',
-                'a:has-text("Log in with a password")',
-                'a:has-text("Log in with password")',
-                'div:has-text("Password") button',
+                # Span-based links
+                'span:has-text("Log in with password")',
+                '[role="link"]:has-text("password")',
+                # Data-testid selectors
                 '[data-testid="login-password-button"]',
                 '[data-testid="login-password"]',
+                '[data-testid*="password-login"]',
                 'button[data-testid*="password"]',
-                '[role="button"]:has-text("password")'
+                # Legacy selectors
+                '[role="button"]:has-text("password")',
+                '[class*="link"]:has-text("password")',
             ]
             
             password_option_clicked = False
@@ -292,10 +308,13 @@ class SpotifyArtistsScraper:
                     await asyncio.sleep(3)
                     # Fill username and advance if needed
                     username_input = self.page.locator(
-                        'input#login-username, input[name="username"], input[type="email"]'
+                        'input#login-username, input[name="username"], input[type="email"], input[type="text"]'
                     )
-                    if await username_input.count() > 0:
+                    username_count = await username_input.count()
+                    print(f"  Accounts page username inputs found: {username_count}")
+                    if username_count > 0:
                         await username_input.first.fill(email)
+                        print("  Filled email on accounts page")
                         await asyncio.sleep(1)
                         password_input = self.page.locator(
                             'input[type="password"], input[name="password"], input[id="login-password"], input[placeholder*="password" i]'
@@ -303,6 +322,7 @@ class SpotifyArtistsScraper:
                         password_visible = False
                         if await password_input.count() > 0:
                             password_visible = await password_input.first.is_visible()
+                        print(f"  Password visible after email fill: {password_visible}")
                         if not password_visible:
                             method_continue_selectors = [
                                 'button:has-text("Continue")',
@@ -316,10 +336,12 @@ class SpotifyArtistsScraper:
                                     if await method_continue.count() > 0:
                                         await method_continue.first.click()
                                         print(f"  Accounts Continue clicked using selector: {selector}")
-                                        await asyncio.sleep(3)
+                                        await asyncio.sleep(5)
                                         break
                                 except:
                                     continue
+                    else:
+                        print("  No username input found on accounts page")
                 except Exception as e:
                     print(f"  Could not navigate to accounts login: {e}")
             
@@ -504,17 +526,15 @@ class SpotifyArtistsScraper:
         try:
             print("Verifying login status...")
             
-            # Try to navigate to home page with longer timeout
+            # Try to navigate to home page with shorter timeout (don't wait for networkidle)
             try:
-                await self.page.goto('https://artists.spotify.com/home', wait_until='networkidle', timeout=60000)
+                await self.page.goto('https://artists.spotify.com/home', wait_until='domcontentloaded', timeout=30000)
             except Exception as e:
                 print(f"Navigation to home failed: {e}")
-                # Try direct login page instead
-                await self.page.goto('https://artists.spotify.com/', wait_until='networkidle', timeout=60000)
             
-            await asyncio.sleep(3)  # Give more time for page to fully load
+            await asyncio.sleep(5)  # Give time for redirects to complete
             
-            # Debug: Print current URL and page title
+            # Get current URL after any redirects
             current_url = self.page.url
             try:
                 page_title = await self.page.title()
@@ -523,27 +543,65 @@ class SpotifyArtistsScraper:
             except:
                 pass
             
-            # Check if we're redirected to login page
+            # FIRST: Check if we're on the login page (most important check)
             if 'login' in current_url.lower() or 'accounts.spotify.com' in current_url:
                 print("Redirected to login page - not logged in")
                 return False
             
-            # Check for dashboard element or any indicator we're logged in
+            # SECOND: Check for login form elements (email input = not logged in)
+            try:
+                email_input = self.page.locator('input[type="text"], input[type="email"], input[name="username"], input#login-username')
+                if await email_input.count() > 0:
+                    is_visible = await email_input.first.is_visible()
+                    if is_visible:
+                        print("Login form detected - not logged in")
+                        return False
+            except:
+                pass
+            
+            # THIRD: Check for "Welcome back" or "Log in" text which indicates login page
+            try:
+                login_indicators = self.page.locator('text="Welcome back", text="Log in to Spotify", text="Email or username"')
+                if await login_indicators.count() > 0:
+                    print("Login page text detected - not logged in")
+                    return False
+            except:
+                pass
+            
+            # Check if we're on a valid S4A path (indicates logged in)
+            if 'artists.spotify.com' in current_url:
+                # Check for sp_dc cookie as definitive login proof
+                try:
+                    cookies = await self.context.cookies()
+                    has_sp_dc = any(c['name'] == 'sp_dc' for c in cookies)
+                    if has_sp_dc:
+                        print("Login session verified (sp_dc cookie found)!")
+                        return True
+                except:
+                    pass
+                
+                # Check if we're on the dashboard path
+                if '/c/' in current_url or '/home' in current_url or '/roster' in current_url:
+                    # Additional check - make sure we're not on login page
+                    if 'login' not in current_url.lower():
+                        print(f"Login session verified (on S4A path: {current_url})!")
+                        return True
+            
+            # Check for dashboard elements that confirm we're logged in
             try:
                 await self.page.wait_for_selector('[data-testid="dashboard-header"]', timeout=5000)
                 print("Login session verified!")
                 return True
             except:
-                # Try alternative selectors for logged in state
+                # Try alternative selectors for logged in state (more specific ones)
                 alt_selectors = [
-                    'text=Home', 
-                    'text=Music', 
-                    'text=Audience', 
-                    '.artist-name',
                     '[data-testid="menu-item"]',
                     'nav[role="navigation"]',
-                    'a[href*="/home"]',
-                    'a[href*="/music"]'
+                    '[id="navigation"]',
+                    'a[href*="/music/releases"]',
+                    'a[href*="/audience"]',
+                    '[data-testid="artists-list"]',
+                    '[data-testid="app-chrome-navigation"]',
                 ]
                 
                 for selector in alt_selectors:
@@ -553,16 +611,6 @@ class SpotifyArtistsScraper:
                             return True
                     except:
                         continue
-                
-                # Last resort: check for any navigation elements that indicate we're logged in
-                try:
-                    # Look for common Spotify for Artists navigation
-                    page_content = await self.page.content()
-                    if any(text in page_content.lower() for text in ['home', 'music', 'audience', 'dashboard']):
-                        print("Login session verified (content check)!")
-                        return True
-                except:
-                    pass
                 
                 print("No login indicators found")
                 return False

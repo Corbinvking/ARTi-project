@@ -205,13 +205,31 @@ async def check_if_logged_in(page):
     """Check if already logged in from previous session"""
     try:
         logger.info("Checking for existing session...")
-        await page.goto('https://artists.spotify.com', timeout=30000, wait_until='networkidle')
-        await asyncio.sleep(3)
+        await page.goto('https://artists.spotify.com', timeout=30000, wait_until='domcontentloaded')
+        await asyncio.sleep(5)  # Give time for redirects
         
-        # Check if we're already on the dashboard
+        # Check current URL after redirects
         current_url = page.url
+        logger.info(f"Current URL: {current_url}")
         
-        if 'artists.spotify.com/c/' in current_url or 'artists.spotify.com/home' in current_url:
+        # FIRST: Check if we're on the login page (definitely not logged in)
+        if 'accounts.spotify.com' in current_url or 'login' in current_url.lower():
+            logger.info("Redirected to login page - not logged in")
+            return False
+        
+        # SECOND: Check for login form elements (email input = not logged in)
+        try:
+            email_input = page.locator('input[type="text"], input[type="email"], input[name="username"]')
+            if await email_input.count() > 0:
+                is_visible = await email_input.first.is_visible()
+                if is_visible:
+                    logger.info("Login form detected - not logged in")
+                    return False
+        except:
+            pass
+        
+        # Check if we're on the dashboard
+        if 'artists.spotify.com/c/' in current_url or 'artists.spotify.com/home' in current_url or 'artists.spotify.com/roster' in current_url:
             logger.info("✓ Existing session found! Already logged in.")
             
             # Verify we have sp_dc cookie
@@ -222,8 +240,6 @@ async def check_if_logged_in(page):
                 logger.info("✓ Authentication cookie verified")
                 return True
             else:
-                # When sp_dc is missing we force full login. That's why you only see this
-                # when something cleared cookies / session expired; normally we skip login.
                 logger.warning("⚠ On dashboard but no sp_dc cookie - session may be expired")
                 return False
         else:
@@ -244,9 +260,14 @@ async def login_to_spotify(page, force_fresh=False):
     else:
         logger.info("Starting login to Spotify for Artists...")
     
-    # Navigate to landing page
-    await page.goto('https://artists.spotify.com', wait_until='domcontentloaded')
-    await asyncio.sleep(3)
+    # Check if we're already on the login page
+    current_url = page.url
+    if 'accounts.spotify.com' in current_url or 'login' in current_url.lower():
+        logger.info("Already on login page - proceeding directly to email entry...")
+    else:
+        # Navigate to landing page
+        await page.goto('https://artists.spotify.com', wait_until='domcontentloaded')
+        await asyncio.sleep(3)
     
     # Take screenshot for debugging
     try:
@@ -317,54 +338,101 @@ async def login_to_spotify(page, force_fresh=False):
     if password_input_visible:
         logger.info("  Password input already visible - skipping method selection")
     else:
-        # Many flows show only a Continue button here; clicking it reveals the password box.
-        # Try Continue first so we don't rely on "Log in with a password" being present.
-        logger.info("  Clicking Continue to reveal password field...")
-        method_continue = page.locator('button:has-text("Continue"), button:has-text("Next"), button[type="submit"], button[data-testid="login-button"]')
-        if await method_continue.count() > 0:
-            await method_continue.first.click()
-            await asyncio.sleep(4)
-        # Re-check password visibility after Continue
+        # Spotify's new login flow (2025+): After email + Continue, shows "login code" page by default.
+        # The "Log in with password" link appears BELOW the code input section.
+        # We need to find and click this link to switch to password mode.
+        
+        logger.info("  Looking for 'Log in with password' link (new login code flow)...")
+        
+        # Extended selectors for the password option - Spotify now shows it as a link
+        password_option_selectors = [
+            # New login code flow - password option as link below code section
+            'a:has-text("Log in with password")',
+            'a:has-text("Log in with a password")',
+            'button:has-text("Log in with password")',
+            'button:has-text("Log in with a password")',
+            # Alternative text variations
+            'a:has-text("Use password")',
+            'a:has-text("Use password instead")',
+            'button:has-text("Use password")',
+            'button:has-text("Use password instead")',
+            # Span/div based links
+            'span:has-text("Log in with password")',
+            '[role="link"]:has-text("password")',
+            # Data-testid selectors
+            '[data-testid="login-password-button"]',
+            '[data-testid="login-password"]',
+            '[data-testid*="password-login"]',
+            # Generic clickable elements with password text
+            '[class*="link"]:has-text("password")',
+        ]
+        
+        password_option_clicked = False
+        for selector in password_option_selectors:
+            try:
+                password_option = page.locator(selector)
+                count = await password_option.count()
+                if count > 0:
+                    # Check if it's visible
+                    is_visible = await password_option.first.is_visible()
+                    if is_visible:
+                        await password_option.first.click()
+                        logger.info(f"  Found and clicked password option: {selector}")
+                        password_option_clicked = True
+                        await asyncio.sleep(3)
+                        break
+            except Exception as e:
+                logger.debug(f"  Selector {selector} failed: {e}")
+                continue
+        
+        if not password_option_clicked:
+            logger.info(f"  Found {await password_option.count() if 'password_option' in dir() else 0} password option button(s)")
+            logger.warning("  Could not find password option button!")
+            
+            # Take screenshot and log page state for debugging
+            try:
+                await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_error_no_password_option.png')
+                
+                # Log all visible buttons
+                buttons = await page.locator('button').all_text_contents()
+                logger.info(f"  Visible buttons on page: {[b.strip() for b in buttons if b.strip()][:10]}")
+                
+                # Log all visible links
+                links = await page.locator('a').all_text_contents()
+                logger.info(f"  Visible links on page: {[l.strip() for l in links if l.strip()][:15]}")
+                
+                # Log any clickable elements with "password" text
+                pwd_elements = page.locator('*:has-text("password")')
+                pwd_count = await pwd_elements.count()
+                logger.info(f"  Elements containing 'password' text: {pwd_count}")
+                
+            except Exception as e:
+                logger.warning(f"  Debug info failed: {e}")
+        
+        # Re-check password visibility after clicking password option
         password_input = page.locator('input[type="password"]')
         if await password_input.count() > 0:
             password_input_visible = await password_input.first.is_visible()
+        
         if not password_input_visible:
-            # Fallback: click "Log in with a password" if present (some flows show this link)
-            logger.info("  Looking for 'Log in with a password' option...")
-            password_option = page.locator(
-                'button:has-text("Log in with a password"), '
-                'button:has-text("Log in with password"), '
-                'button:has-text("Use password"), '
-                'a:has-text("Log in with a password"), '
-                'a:has-text("Log in with password"), '
-                'a:has-text("Use password"), '
-                '[data-testid="login-password-button"], '
-                '[data-testid="login-password"]'
-            )
-            password_option_count = await password_option.count()
-            if password_option_count > 0:
-                await password_option.first.click()
-                await asyncio.sleep(3)
-            else:
-                # Last resort: any clickable with "password" but not "Forgot"
+            # Try clicking Continue again in case password field appears after
+            logger.info("  Password input not visible yet - trying Continue/Next...")
+            method_continue = page.locator('button:has-text("Continue"), button:has-text("Next"), button[type="submit"], button[data-testid="login-button"]')
+            if await method_continue.count() > 0:
+                await method_continue.first.click()
+                await asyncio.sleep(4)
+            
+            # Check again for password option after Continue
+            for selector in password_option_selectors[:6]:  # Try top selectors again
                 try:
-                    clickable = page.locator('a, button, [role="button"]').filter(
-                        has_text=re.compile(r'password', re.I)
-                    ).filter(has_not_text=re.compile(r'forgot', re.I)).first
-                    await clickable.click(timeout=5000)
-                    logger.info("  Clicked password option (broad match)")
-                    await asyncio.sleep(3)
+                    password_option = page.locator(selector)
+                    if await password_option.count() > 0 and await password_option.first.is_visible():
+                        await password_option.first.click()
+                        logger.info(f"  Clicked password option after Continue: {selector}")
+                        await asyncio.sleep(3)
+                        break
                 except Exception:
-                    pass
-                pwd_loc = page.locator('input[type="password"]')
-                if await pwd_loc.count() == 0 or not await pwd_loc.first.is_visible():
-                    logger.warning("  Could not find password option - check login_error_no_password_option.png")
-                    try:
-                        await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_error_no_password_option.png')
-                        links = await page.locator('a').all_text_contents()
-                        logger.info(f"  Visible links: {[l.strip() for l in links if l.strip()][:15]}")
-                    except Exception:
-                        pass
+                    continue
 
     # Fallback: if password input still not visible, go directly to accounts login
     password_input = page.locator('input[type="password"]')
@@ -410,28 +478,39 @@ async def login_to_spotify(page, force_fresh=False):
                         await page.screenshot(path='/root/arti-marketing-ops/spotify_scraper/logs/login_step_accounts_after_continue.png')
                         logger.info("  Screenshot saved: login_step_accounts_after_continue.png")
                         await asyncio.sleep(3)  # Let method selection render
-                        # Try same password-option selectors as main flow
-                        password_option = page.locator(
-                            'button:has-text("Log in with a password"), '
-                            'button:has-text("Log in with password"), '
-                            'button:has-text("Use password"), '
-                            'button:has-text("Sign in with password"), '
-                            'a:has-text("Log in with a password"), '
-                            'a:has-text("Log in with password"), '
-                            'a:has-text("Use password"), '
-                            'a:has-text("Sign in with password"), '
-                            'a:has-text("password")'
-                        )
-                        pwd_opt_count = await password_option.count()
-                        logger.info(f"  Password option buttons after Continue: {pwd_opt_count}")
-                        if pwd_opt_count > 0:
-                            await password_option.first.click()
-                            logger.info("  Clicked password option")
-                            await asyncio.sleep(3)
-                        else:
+                        # Try same password-option selectors as main flow (updated for 2025+ login code flow)
+                        password_option_selectors = [
+                            'a:has-text("Log in with password")',
+                            'a:has-text("Log in with a password")',
+                            'button:has-text("Log in with password")',
+                            'button:has-text("Log in with a password")',
+                            'a:has-text("Use password")',
+                            'a:has-text("Use password instead")',
+                            'button:has-text("Use password")',
+                            'span:has-text("Log in with password")',
+                            '[data-testid="login-password-button"]',
+                            '[data-testid*="password-login"]',
+                        ]
+                        
+                        password_option_clicked = False
+                        for selector in password_option_selectors:
+                            try:
+                                password_option = page.locator(selector)
+                                if await password_option.count() > 0:
+                                    is_visible = await password_option.first.is_visible()
+                                    if is_visible:
+                                        await password_option.first.click()
+                                        logger.info(f"  Clicked password option on accounts page: {selector}")
+                                        password_option_clicked = True
+                                        await asyncio.sleep(3)
+                                        break
+                            except Exception:
+                                continue
+                        
+                        if not password_option_clicked:
                             # Broad fallback: any clickable with "password" but not "Forgot"
                             try:
-                                clickable = page.locator('a, button, [role="button"]').filter(
+                                clickable = page.locator('a, button, [role="button"], span').filter(
                                     has_text=re.compile(r'password', re.I)
                                 ).filter(has_not_text=re.compile(r'forgot', re.I)).first
                                 await clickable.click(timeout=5000)
@@ -439,9 +518,10 @@ async def login_to_spotify(page, force_fresh=False):
                                 await asyncio.sleep(3)
                             except Exception as e:
                                 logger.debug(f"  Broad password-option click: {e}")
+                                
                         try:
                             buttons = await page.locator('button').all_text_contents()
-                            logger.info(f"  Buttons after accounts Continue: {buttons[:10]}")
+                            logger.info(f"  Buttons after accounts Continue: {[b.strip() for b in buttons if b.strip()][:10]}")
                             links = await page.locator('a').all_text_contents()
                             logger.info(f"  Links after accounts Continue: {[l.strip() for l in links if l.strip()][:15]}")
                         except Exception as e:
