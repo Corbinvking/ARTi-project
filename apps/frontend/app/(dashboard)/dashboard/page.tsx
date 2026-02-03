@@ -42,9 +42,14 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">Overview of your marketing operations across all platforms</p>
         </div>
-        <Button asChild>
-          <Link href="/campaign-intake">Open Unified Intake</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link href="/ops-queue">Open Ops Queue</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/campaign-intake">Open Unified Intake</Link>
+          </Button>
+        </div>
       </div>
 
       <UnifiedCampaignIntake />

@@ -117,6 +117,9 @@ export function UnifiedCampaignIntake() {
     Array<{ id: string; name: string; email: string | null }>
   >([])
 
+  const opsOwner = user?.email || user?.name || ""
+  const opsOwnerId = user?.id || null
+
   useEffect(() => {
     if (!shared.salesperson && user?.email) {
       setShared((prev) => ({ ...prev, salesperson: user.email || "" }))
@@ -230,7 +233,13 @@ export function UnifiedCampaignIntake() {
       }
 
       if (selectedServices.includes("spotify")) {
-        if (spotifyData.clientMode === "existing" && !spotifyData.clientId) {
+        if (!opsOwner) {
+          results.push({
+            service: "spotify",
+            success: false,
+            message: "Unable to determine ops owner for Spotify.",
+          })
+        } else if (spotifyData.clientMode === "existing" && !spotifyData.clientId) {
           results.push({
             service: "spotify",
             success: false,
@@ -274,7 +283,7 @@ export function UnifiedCampaignIntake() {
               track_url: spotifyData.trackUrl,
               sfa_url: spotifyData.sfaUrl || null,
               notes: shared.notes,
-              salesperson: shared.salesperson || user?.email || "",
+              salesperson: shared.salesperson || opsOwner,
               music_genres: parseEmailList(spotifyData.genres),
               territory_preferences: parseEmailList(spotifyData.territories),
             })
@@ -294,7 +303,13 @@ export function UnifiedCampaignIntake() {
       }
 
       if (selectedServices.includes("soundcloud")) {
-        if (
+        if (!opsOwnerId) {
+          results.push({
+            service: "soundcloud",
+            success: false,
+            message: "Unable to determine ops owner for SoundCloud.",
+          })
+        } else if (
           !soundcloudData.trackUrl ||
           !soundcloudData.artistName ||
           !soundcloudData.trackName ||
@@ -329,6 +344,7 @@ export function UnifiedCampaignIntake() {
               org_id: "00000000-0000-0000-0000-000000000001",
               client_id: clientId,
               member_id: null,
+              owner_id: opsOwnerId,
               track_url: soundcloudData.trackUrl,
               artist_name: soundcloudData.artistName,
               track_name: soundcloudData.trackName,
@@ -366,7 +382,13 @@ export function UnifiedCampaignIntake() {
       }
 
       if (selectedServices.includes("youtube")) {
-        if (!youtubeData.youtubeUrl) {
+        if (!opsOwner) {
+          results.push({
+            service: "youtube",
+            success: false,
+            message: "Unable to determine ops owner for YouTube.",
+          })
+        } else if (!youtubeData.youtubeUrl) {
           results.push({
             service: "youtube",
             success: false,
@@ -403,6 +425,11 @@ export function UnifiedCampaignIntake() {
               0,
             )
 
+            const ownershipNote = `OpsOwner:${opsOwner};AdsOwner:${opsOwner};CampaignOwner:${opsOwner}`
+            const customServiceType = [shared.notes?.trim(), ownershipNote]
+              .filter(Boolean)
+              .join(" | ")
+
             const { error } = await youtube.createCampaign({
               campaign_name: shared.campaignName,
               youtube_url: youtubeData.youtubeUrl,
@@ -421,7 +448,7 @@ export function UnifiedCampaignIntake() {
               salesperson_id: youtubeData.salespersonId || null,
               status: "pending",
               technical_setup_complete: false,
-              custom_service_type: shared.notes || null,
+              custom_service_type: customServiceType || null,
             })
 
             if (error) throw error
@@ -443,6 +470,9 @@ export function UnifiedCampaignIntake() {
 
       if (selectedServices.includes("instagram")) {
         try {
+          if (!opsOwner) {
+            throw new Error("Unable to determine ops owner for Instagram.")
+          }
           await instagramMutations.createCampaignAsync({
             campaign: shared.campaignName,
             clients: spotifyData.clientName || spotifyData.clientEmails || "Unknown Client",
@@ -450,7 +480,8 @@ export function UnifiedCampaignIntake() {
             price: shared.budget,
             sound_url: instagramData.soundUrl || undefined,
             status: "Draft",
-            salespeople: shared.salesperson || undefined,
+            salespeople: shared.salesperson || opsOwner,
+            paid_ops: opsOwner,
             report_notes: shared.notes || undefined,
           })
           results.push({
@@ -591,6 +622,9 @@ export function UnifiedCampaignIntake() {
             <div className="space-y-4">
               <div className="space-y-3">
                 <Label>Spotify Client *</Label>
+                <p className="text-xs text-muted-foreground">
+                  Select an existing Spotify client or create a new one for this campaign.
+                </p>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -717,6 +751,9 @@ export function UnifiedCampaignIntake() {
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <Label>SoundCloud Client *</Label>
+                <p className="text-xs text-muted-foreground">
+                  Choose an existing SoundCloud client or add a new one below.
+                </p>
                 <select
                   className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={soundcloudData.clientId}
