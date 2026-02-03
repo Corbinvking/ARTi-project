@@ -27,13 +27,14 @@ load_dotenv(env_path)
 
 # Add runner to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'runner'))
-from app.pages.spotify_artists import SpotifyArtistsPage
+from app.pages.spotify_artists import SpotifyArtistsPage, SessionExpiredError
 
 # Configuration
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://api.artistinfluence.com')
 SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
 SPOTIFY_EMAIL = os.getenv('SPOTIFY_EMAIL')
 SPOTIFY_PASSWORD = os.getenv('SPOTIFY_PASSWORD')
+MANUAL_LOGIN_TIMEOUT_MINUTES = int(os.getenv('MANUAL_LOGIN_TIMEOUT_MINUTES', '10'))
 
 # Setup logging
 logging.basicConfig(
@@ -202,7 +203,15 @@ def log_scraper_run(status, campaigns_total=0, campaigns_success=0, campaigns_fa
 
 
 async def check_if_logged_in(page):
-    """Check if already logged in from previous session"""
+    """Check if already logged in from previous session.
+    
+    IMPORTANT: This function TRUSTS the URL-based detection.
+    If we're on the dashboard, we're logged in - period.
+    We do NOT check for sp_dc cookie because:
+    1. The cookie may be HttpOnly and not visible to Playwright
+    2. Session can be valid even without visible cookie
+    3. Forcing re-login triggers bot detection
+    """
     try:
         logger.info("Checking for existing session...")
         await page.goto('https://artists.spotify.com', timeout=30000, wait_until='domcontentloaded')
@@ -217,28 +226,60 @@ async def check_if_logged_in(page):
             logger.info("Redirected to login page - not logged in")
             return False
         
-        # SECOND: Check for login form elements (email input = not logged in)
+        # SECOND: Check if we're on the dashboard - TRUST THE URL COMPLETELY
+        # Dashboard URLs like /c/roster, /home, /c/artist etc. mean we're logged in
+        # DO NOT check for cookies - this causes bot detection when we try to re-login
+        dashboard_patterns = [
+            'artists.spotify.com/c/',
+            'artists.spotify.com/home',
+            'artists.spotify.com/roster',
+            'artists.spotify.com/team',
+            'artists.spotify.com/profile',
+        ]
+        
+        for pattern in dashboard_patterns:
+            if pattern in current_url:
+                logger.info("✓ Existing session found! Already logged in.")
+                logger.info(f"✓ On S4A dashboard ({pattern}) - session is valid")
+                # Verify session by attempting to access an authenticated route
+                try:
+                    await page.goto('https://artists.spotify.com/c/roster', timeout=15000, wait_until='domcontentloaded')
+                    await asyncio.sleep(2)
+                    if 'accounts.spotify.com' in page.url or 'login' in page.url.lower():
+                        logger.warning("Session check failed: redirected to login from /c/roster")
+                        return False
+                except Exception as e:
+                    logger.warning(f"Session check encountered an error: {e}")
+                return True
+        
+        # THIRD: Check if we got redirected to any artists.spotify.com page that's not login
+        if 'artists.spotify.com' in current_url and 'login' not in current_url.lower():
+            # Check if there's a login button visible (indicates landing page, not logged in)
+            try:
+                login_btn = page.locator('button:has-text("Log in"), a:has-text("Log in")')
+                if await login_btn.count() > 0 and await login_btn.first.is_visible():
+                    logger.info("On landing page with login button - not logged in")
+                    return False
+            except:
+                pass
+            
+            # If no login button, we might be logged in
+            logger.info("✓ On S4A site without login prompt - assuming logged in")
+            return True
+        
+        # FOURTH: Only check for login form if we're on an ambiguous URL
         try:
-            email_input = page.locator('input[type="text"], input[type="email"], input[name="username"]')
-            if await email_input.count() > 0:
-                is_visible = await email_input.first.is_visible()
+            login_form = page.locator('form[action*="login"], input[id="login-username"], input[autocomplete="username"]')
+            if await login_form.count() > 0:
+                is_visible = await login_form.first.is_visible()
                 if is_visible:
                     logger.info("Login form detected - not logged in")
                     return False
         except:
             pass
         
-        # Check if we're on the dashboard
-        if 'artists.spotify.com/c/' in current_url or 'artists.spotify.com/home' in current_url or 'artists.spotify.com/roster' in current_url:
-            logger.info("✓ Existing session found! Already logged in.")
-            
-            # If we're on the dashboard URL (not redirected to login), session is valid
-            # The sp_dc cookie may not be visible to Playwright but session still works
-            logger.info("✓ On S4A dashboard - session is valid")
-            return True
-        else:
-            logger.info("No existing session - need to login")
-            return False
+        logger.info("No existing session - need to login")
+        return False
             
     except Exception as e:
         logger.warning(f"Could not verify existing session: {e}")
@@ -694,6 +735,41 @@ async def scrape_campaign(page, spotify_page, campaign):
         import traceback
         traceback.print_exc()
         return None
+
+
+async def wait_for_manual_login(page, timeout_seconds=600):
+    """Wait for manual login via VNC to complete."""
+    logger.warning(f"Waiting up to {timeout_seconds // 60} minutes for manual login via VNC...")
+    start_time = asyncio.get_event_loop().time()
+    last_log = 0
+    while True:
+        elapsed = asyncio.get_event_loop().time() - start_time
+        if elapsed > timeout_seconds:
+            return False
+        try:
+            current_url = page.url
+            if 'accounts.spotify.com' in current_url or 'login' in current_url.lower():
+                if elapsed - last_log > 15:
+                    logger.info("Still on login page - waiting for manual login...")
+                    last_log = elapsed
+            elif 'artists.spotify.com' in current_url:
+                logger.info(f"Login complete - current URL: {current_url}")
+                return True
+            else:
+                # Nudge to artists.spotify.com to confirm session
+                await page.goto('https://artists.spotify.com', timeout=15000, wait_until='domcontentloaded')
+                await asyncio.sleep(2)
+        except Exception:
+            pass
+        await asyncio.sleep(5)
+
+
+async def handle_session_expired(page):
+    """Handle session expiry with a manual login wait."""
+    logger.error("❌ Session expired - redirected to login")
+    logger.error("⚠️  Automated re-login is DISABLED. Please login via VNC to continue.")
+    logger.error(f"Waiting for manual login (timeout: {MANUAL_LOGIN_TIMEOUT_MINUTES} minutes)...")
+    return await wait_for_manual_login(page, timeout_seconds=MANUAL_LOGIN_TIMEOUT_MINUTES * 60)
 
 
 async def update_campaign_in_database(campaign_id, data):
@@ -1174,45 +1250,130 @@ def clear_browser_profile_locks(user_data_dir):
 
 
 async def launch_browser_context(playwright, user_data_dir, headless):
-    """Launch a fresh browser context with all stability args"""
+    """Launch a fresh browser context with all stability and stealth args"""
     clear_browser_profile_locks(user_data_dir)
+    
+    # STEALTH MODE: Enhanced args to hide automation detection
+    # This prevents "Chrome is being controlled by automated test software" detection
+    stealth_args = [
+        # Core automation hiding
+        '--disable-blink-features=AutomationControlled',
+        '--disable-infobars',  # Removes the automation info bar
+        '--disable-automation',  # Disables automation extension
+        '--disable-browser-side-navigation',
+        '--disable-web-security',
+        
+        # Memory/stability args
+        '--disable-dev-shm-usage',
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+        '--disable-extensions',
+        '--disable-background-networking',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-breakpad',
+        '--disable-component-extensions-with-background-pages',
+        '--disable-features=TranslateUI',
+        '--disable-ipc-flooding-protection',
+        '--disable-renderer-backgrounding',
+        '--force-color-profile=srgb',
+        '--metrics-recording-only',
+        '--no-first-run',
+        '--password-store=basic',
+        '--use-mock-keychain',
+        '--disable-hang-monitor',
+        '--single-process',
+        '--disable-features=site-per-process',
+        
+        # Additional stealth flags
+        '--excludeSwitches=enable-automation',
+        '--useAutomationExtension=false',
+    ]
+    
     # Launch with persistent context (maintains session across runs)
     context = await playwright.chromium.launch_persistent_context(
         user_data_dir=user_data_dir,
         headless=headless,
-        args=[
-            '--disable-blink-features=AutomationControlled',
-            '--disable-dev-shm-usage',  # Prevents running out of shared memory
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-gpu',
-            '--disable-software-rasterizer',
-            '--disable-extensions',
-            '--disable-background-networking',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-breakpad',
-            '--disable-component-extensions-with-background-pages',
-            '--disable-features=TranslateUI',
-            '--disable-ipc-flooding-protection',
-            '--disable-renderer-backgrounding',
-            '--force-color-profile=srgb',
-            '--metrics-recording-only',
-            '--no-first-run',
-            '--password-store=basic',
-            '--use-mock-keychain',
-            '--disable-hang-monitor',  # Prevent browser from self-terminating
-            '--single-process',  # Use single process to reduce memory
-            '--disable-features=site-per-process',  # Reduce process spawning
-        ],
+        args=stealth_args,
         # Add timeout to prevent hanging
-        timeout=60000
+        timeout=60000,
+        # Additional stealth: Set realistic viewport and user agent
+        viewport={'width': 1920, 'height': 1080},
+        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+        # Ignore HTTPS errors to avoid SSL issues
+        ignore_https_errors=True,
     )
+    
+    # CRITICAL: Inject stealth scripts to hide webdriver property
+    for page in context.pages:
+        await apply_stealth_scripts(page)
+    
+    # Hook into new pages to apply stealth scripts
+    context.on('page', lambda page: asyncio.create_task(apply_stealth_scripts(page)))
+    
     return context
 
 
+async def apply_stealth_scripts(page):
+    """Apply JavaScript patches to hide automation detection"""
+    try:
+        # Remove webdriver property
+        await page.add_init_script("""
+            // Overwrite navigator.webdriver
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+            
+            // Remove automation indicators from window
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+            
+            // Overwrite chrome runtime to hide automation
+            if (window.chrome) {
+                window.chrome.runtime = {
+                    connect: () => {},
+                    sendMessage: () => {},
+                    onMessage: { addListener: () => {} }
+                };
+            }
+            
+            // Override permissions query to always return 'granted' for notifications
+            const originalQuery = window.navigator.permissions.query;
+            window.navigator.permissions.query = (parameters) => (
+                parameters.name === 'notifications' ?
+                    Promise.resolve({ state: Notification.permission }) :
+                    originalQuery(parameters)
+            );
+            
+            // Make plugins array look realistic
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [
+                    { name: 'Chrome PDF Viewer', filename: 'internal-pdf-viewer' },
+                    { name: 'Chrome PDF Plugin', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai' },
+                    { name: 'Native Client', filename: 'internal-nacl-plugin' }
+                ]
+            });
+            
+            // Make languages array realistic
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en']
+            });
+        """)
+        logger.debug("Applied stealth scripts to page")
+    except Exception as e:
+        logger.warning(f"Could not apply stealth scripts: {e}")
+
+
 async def process_batch(campaigns, batch_num, total_batches, user_data_dir, headless):
-    """Process a batch of campaigns with a fresh browser instance"""
+    """Process a batch of campaigns with a fresh browser instance.
+    
+    IMPORTANT: This function now operates in SESSION-ONLY mode.
+    It requires a valid session established via manual VNC login.
+    Automated login is disabled because it triggers bot detection.
+    """
     logger.info("")
     logger.info("="*60)
     logger.info(f"BATCH {batch_num}/{total_batches} - Processing {len(campaigns)} campaigns")
@@ -1220,6 +1381,7 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
     
     success_count = 0
     failure_count = 0
+    session_expired = False
     
     # Launch fresh browser for this batch
     playwright = await async_playwright().start()
@@ -1228,25 +1390,40 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
         context = await launch_browser_context(playwright, user_data_dir, headless)
         page = context.pages[0] if context.pages else await context.new_page()
         
+        # Apply stealth scripts to the page
+        await apply_stealth_scripts(page)
+        
         # Check if we already have a valid session
         already_logged_in = await check_if_logged_in(page)
         
         if not already_logged_in:
-            # Need to perform fresh login
-            logger.info("Performing fresh login for this batch...")
-            login_success = await login_to_spotify(page, force_fresh=True)
-            
-            if not login_success:
-                logger.error("✗ Login failed for this batch")
-                return 0, len(campaigns)  # All campaigns in batch failed
+            # SESSION-ONLY MODE: Do not attempt automated login
+            # Automated login triggers bot detection every time
+            logger.error("="*60)
+            logger.error("❌ NO VALID SESSION FOUND")
+            logger.error("="*60)
+            logger.error("Automated login is DISABLED because it triggers bot detection.")
+            logger.error("Please log in manually via VNC and run the scraper again:")
+            logger.error("  1. Connect to VNC: artistinfluence:99")
+            logger.error("  2. Run: cd /root/arti-marketing-ops/spotify_scraper && python3 manual_login_prod.py")
+            logger.error("  3. Complete the login manually (including CAPTCHA if needed)")
+            logger.error("  4. Run the scraper again")
+            logger.error("="*60)
+            return 0, len(campaigns)  # All campaigns in batch failed
         
-        logger.info("✓ Authentication verified, ready to scrape batch")
+        logger.info("✓ Valid session found - proceeding with scraping")
+        logger.info("  (Automated re-login is disabled to avoid bot detection)")
         
         # Create Spotify page helper
         spotify_page = SpotifyArtistsPage(page)
         
         # Scrape each campaign in this batch
         for i, campaign in enumerate(campaigns, 1):
+            # Skip remaining campaigns if session expired
+            if session_expired:
+                failure_count += 1
+                continue
+                
             logger.info(f"[Batch {batch_num}: {i}/{len(campaigns)}] Processing campaign {campaign['id']}")
             
             # CRITICAL: Check if browser is still alive before each campaign
@@ -1261,38 +1438,77 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
                     raise Exception("No pages in browser context")
             except Exception as browser_check_error:
                 logger.error(f"❌ Browser health check failed: {browser_check_error}")
-                # Log remaining campaigns in batch as failed
                 failure_count += len(campaigns) - i + 1
                 break
             
-            # Scrape data with automatic re-login on session expiry
+            # Scrape data - NO re-login attempts
             data = None
-            retry_count = 0
-            max_retries = 2
-            
-            while retry_count < max_retries and not data:
-                try:
-                    data = await scrape_campaign(page, spotify_page, campaign)
-                    
-                    if not data:
-                        current_url = page.url
-                        if 'login' in current_url.lower() or 'challenge' in current_url.lower():
-                            logger.warning(f"[{campaign['id']}] Session expired, attempting re-login...")
-                            retry_count += 1
-                            if await login_to_spotify(page, force_fresh=True):
+            try:
+                data = await scrape_campaign(page, spotify_page, campaign)
+                
+                if not data:
+                    # Check if we got redirected to login
+                    current_url = page.url
+                    if 'login' in current_url.lower() or 'accounts.spotify.com' in current_url:
+                        if await handle_session_expired(page):
+                            # Retry once after manual login
+                            try:
+                                data = await scrape_campaign(page, spotify_page, campaign)
+                            except Exception as retry_error:
+                                logger.error(f"[{campaign['id']}] Retry failed: {retry_error}")
+                                session_expired = True
+                                failure_count += 1
                                 continue
-                            else:
-                                break
                         else:
-                            break
-                            
-                except Exception as e:
-                    logger.error(f"[{campaign['id']}] Error during scrape: {e}")
-                    retry_count += 1
-                    if retry_count < max_retries:
-                        await asyncio.sleep(5)
+                            session_expired = True
+                            failure_count += 1
+                            continue
+                    elif 'challenge' in current_url.lower():
+                        logger.error(f"[{campaign['id']}] ❌ CAPTCHA challenge detected")
+                        logger.error("⚠️  Please solve CAPTCHA via VNC and restart scraper.")
+                        session_expired = True
+                        failure_count += 1
+                        continue
+                        
+            except SessionExpiredError as e:
+                logger.error(f"[{campaign['id']}] Error during scrape: {e}")
+                if await handle_session_expired(page):
+                    # Retry once after manual login
+                    try:
+                        data = await scrape_campaign(page, spotify_page, campaign)
+                    except Exception as retry_error:
+                        logger.error(f"[{campaign['id']}] Retry failed: {retry_error}")
+                        session_expired = True
+                        failure_count += 1
+                        continue
+                else:
+                    session_expired = True
+                    failure_count += 1
+                    continue
+            except Exception as e:
+                error_msg = str(e)
+                logger.error(f"[{campaign['id']}] Error during scrape: {e}")
+                
+                # Check if this is a session expiry error
+                if 'SESSION_EXPIRED' in error_msg or 'login' in error_msg.lower():
+                    if await handle_session_expired(page):
+                        # Retry once after manual login
+                        try:
+                            data = await scrape_campaign(page, spotify_page, campaign)
+                        except Exception as retry_error:
+                            logger.error(f"[{campaign['id']}] Retry failed: {retry_error}")
+                            session_expired = True
+                            failure_count += 1
+                            continue
                     else:
-                        break
+                        session_expired = True
+                        failure_count += 1
+                        continue
+                else:
+                    # Other error - try to continue with next campaign
+                    failure_count += 1
+                    await asyncio.sleep(3)
+                    continue
             
             if data:
                 if await update_campaign_in_database(campaign['id'], data):
@@ -1319,6 +1535,12 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
         except:
             pass
         await playwright.stop()
+    
+    if session_expired:
+        logger.warning("="*60)
+        logger.warning("⚠️  BATCH INCOMPLETE - Session expired during scraping")
+        logger.warning("Please login via VNC and run the scraper again to continue.")
+        logger.warning("="*60)
     
     logger.info(f"Batch {batch_num} complete: {success_count} success, {failure_count} failed")
     return success_count, failure_count

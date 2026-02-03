@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { MetricCard } from "@/components/dashboard/metric-card"
+import { UnifiedCampaignIntake } from "@/components/campaign-intake/UnifiedCampaignIntake"
 import { PlatformOverview } from "@/components/dashboard/platform-overview"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { AnalyticsChart } from "@/components/dashboard/analytics-chart"
@@ -38,6 +39,8 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">Overview of your marketing operations across all platforms</p>
       </div>
+
+      <UnifiedCampaignIntake />
 
       {/* Metrics Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

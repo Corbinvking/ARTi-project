@@ -3,6 +3,11 @@ from typing import Dict, Any, List
 import re
 import asyncio
 
+
+class SessionExpiredError(Exception):
+    """Raised when Spotify session is no longer valid."""
+    pass
+
 class SpotifyArtistsPage:
     def __init__(self, page: Page):
         self.page = page
@@ -24,6 +29,13 @@ class SpotifyArtistsPage:
         # Human-like delay after navigation
         await asyncio.sleep(2.5 + (0.5 * asyncio.get_event_loop().time()) % 1.5)
         
+        # CRITICAL: Check if we were redirected to login page
+        current_url = self.page.url
+        if 'accounts.spotify.com' in current_url or 'login' in current_url.lower():
+            print(f"⚠️ Redirected to login page: {current_url}")
+            # Raise a specific exception that the caller can catch
+            raise SessionExpiredError("SESSION_EXPIRED: Redirected to login page when accessing song")
+        
         # Check for error messages first
         await self.check_for_errors()
         
@@ -35,6 +47,10 @@ class SpotifyArtistsPage:
             try:
                 await self.page.wait_for_selector('h1', timeout=10000)
             except:
+                # Final check - if we're still on login page, raise session expired
+                current_url = self.page.url
+                if 'accounts.spotify.com' in current_url or 'login' in current_url.lower():
+                    raise SessionExpiredError("SESSION_EXPIRED: Still on login page")
                 await self.page.wait_for_selector('.song-title, [class*="title"]', timeout=10000)
         
         # Ensure we're on the Playlists tab to see the data
@@ -43,30 +59,32 @@ class SpotifyArtistsPage:
     async def check_for_errors(self) -> None:
         """Check for error messages on the page"""
         try:
-            # Look for common error messages
+            # Look for common error messages - only text-based selectors to avoid false positives
             error_selectors = [
                 'text="Something went wrong"',
                 'text="There\'s a problem on our end"',
                 'text="You can\'t see stats for this"',
-                '[role="alert"]',
-                '.error-message',
-                '.alert-error'
+                'text="This song is not part of your catalog"',
+                'text="Access denied"',
             ]
             
             for selector in error_selectors:
                 try:
                     if await self.page.locator(selector).count() > 0:
                         error_text = await self.page.locator(selector).text_content()
-                        print(f"⚠️  Warning: Error detected on page: {error_text}")
-                        
-                        # If it's a "not part of catalog" error, try to continue anyway
-                        if "not part of your catalog" in error_text.lower():
-                            print("   Continuing anyway, might be able to get some data...")
-                            return
-                        
-                        # For other errors, raise an exception
-                        raise Exception(f"Page error: {error_text}")
-                except:
+                        # Only log if we actually have error text
+                        if error_text and error_text.strip():
+                            print(f"⚠️  Warning: Error detected on page: {error_text}")
+                            
+                            # If it's a "not part of catalog" error, try to continue anyway
+                            if "not part of your catalog" in error_text.lower():
+                                print("   Continuing anyway, might be able to get some data...")
+                                return
+                            
+                            # For other errors, raise an exception
+                            raise Exception(f"Page error: {error_text}")
+                except Exception as e:
+                    # Don't let individual selector errors stop the process
                     continue
         except Exception as e:
             print(f"Error checking for page errors: {e}")
@@ -76,6 +94,12 @@ class SpotifyArtistsPage:
         """Navigate to the Playlists tab if not already there"""
         try:
             print("Ensuring we're on the Playlists tab...")
+            
+            # Check if we're already on the playlists tab via URL
+            current_url = self.page.url
+            if '/playlists' in current_url:
+                print(f"Already on Playlists tab (URL: {current_url})")
+                return
             
             # Human-like delay before interaction
             await asyncio.sleep(1 + (0.3 * asyncio.get_event_loop().time()) % 0.7)
@@ -88,10 +112,10 @@ class SpotifyArtistsPage:
             playlist_tab_selectors = [
                 '[data-testid="tab-playlists"]',  # Most specific selector
                 'a[href*="/playlists"]',  # Link to playlists URL
-                'text="Playlists"',
                 '[role="tab"]:has-text("Playlists")',
                 'button:has-text("Playlists")',
-                'a:has-text("Playlists")'
+                'a:has-text("Playlists")',
+                'text="Playlists"',  # Move to end as it's more generic
             ]
             
             for selector in playlist_tab_selectors:
@@ -113,20 +137,38 @@ class SpotifyArtistsPage:
             # If click methods fail, try JavaScript click as last resort
             try:
                 result = await self.page.evaluate('''() => {
-                    const tab = document.querySelector('[data-testid="tab-playlists"]') 
-                             || document.querySelector('a[href*="/playlists"]');
-                    if (tab) {
-                        tab.click();
-                        return true;
+                    // Look for any tab-like element with Playlists text
+                    const tabs = document.querySelectorAll('[role="tab"], a, button');
+                    for (const tab of tabs) {
+                        if (tab.textContent && tab.textContent.trim() === 'Playlists') {
+                            tab.click();
+                            return tab.textContent;
+                        }
                     }
-                    return false;
+                    // Also try finding by href
+                    const playlistLink = document.querySelector('a[href*="/playlists"]');
+                    if (playlistLink) {
+                        playlistLink.click();
+                        return 'href-based';
+                    }
+                    return null;
                 }''')
                 if result:
-                    print("Clicked Playlists tab via JavaScript")
+                    print(f"Clicked Playlists tab via JavaScript: {result}")
                     await asyncio.sleep(2)
                     return
             except Exception as e:
                 print(f"JavaScript click failed: {e}")
+            
+            # Debug: show what tabs are available
+            try:
+                visible_tabs = await self.page.evaluate('''() => {
+                    const tabs = document.querySelectorAll('[role="tab"], nav a, [class*="tab"]');
+                    return Array.from(tabs).map(t => t.textContent?.trim()).filter(t => t);
+                }''')
+                print(f"  Available tabs on page: {visible_tabs}")
+            except:
+                pass
             
             print("Could not find Playlists tab, might already be there")
             
@@ -182,23 +224,43 @@ class SpotifyArtistsPage:
         try:
             playlists = []
             
+            # Debug: Check current URL and page state
+            current_url = self.page.url
+            if 'accounts.spotify.com' in current_url or 'login' in current_url:
+                print(f"  WARNING: Page redirected to login: {current_url}")
+                stats['playlists'] = []
+                return stats
+            
             # Look for table rows with playlist data
             table_selectors = [
+                'tbody tr',  # Most specific for table body rows
                 'table tr',
                 '[role="row"]',
                 '.playlist-table tr',
-                'tbody tr'
+                '[data-testid*="playlist"] tr',
             ]
             
             rows = []
             for selector in table_selectors:
                 try:
                     found_rows = await self.page.query_selector_all(selector)
-                    if found_rows and len(found_rows) > 1:  # Skip header row
-                        rows = found_rows[1:]  # Skip the first row (header)
-                        break
-                except:
+                    if found_rows:
+                        print(f"  Table selector '{selector}': found {len(found_rows)} rows")
+                        if len(found_rows) > 1:  # Skip header row
+                            rows = found_rows[1:]  # Skip the first row (header)
+                            break
+                except Exception as e:
+                    print(f"  Table selector '{selector}': error - {e}")
                     continue
+            
+            if not rows:
+                print("  No table rows found, attempting fallback detection...")
+                # Try to find any table-like structure
+                try:
+                    html_tables = await self.page.query_selector_all('table')
+                    print(f"  Found {len(html_tables)} <table> elements")
+                except:
+                    pass
             
             for row in rows:
                 try:
@@ -325,17 +387,32 @@ class SpotifyArtistsPage:
             # Human-like delay before starting
             await asyncio.sleep(1.5 + (0.5 * asyncio.get_event_loop().time()) % 1)
             
+            # Take a debug screenshot if dropdown not found (will be overwritten on success)
+            try:
+                await self.page.screenshot(path='./logs/debug_before_dropdown.png')
+            except:
+                pass
+            
             # Look for the dropdown button - it shows current selection like "Last 7 days", "Last 28 days"
-            # From the screenshot, we can see there's a dropdown in the top right
+            # From the screenshot, we can see there's a dropdown in the top right showing "Last 28 days ∨"
             dropdown_selectors = [
                 'button:has-text("Last 28 days")',  # Current selection in screenshot
                 'button:has-text("Last 7 days")',
+                'button:has-text("Last 24 hours")',
+                'button:has-text("Last 12 months")',
                 'button:has-text("Last")',  # Generic "Last" text
+                # Try various attribute-based selectors
+                '[data-testid*="time"]',
+                '[data-testid*="dropdown"]',
+                '[data-testid*="range"]',
+                '[aria-haspopup="listbox"]',
+                '[aria-haspopup="menu"]',
+                # Role-based selectors
                 '[role="button"]:has-text("days")',
                 '[role="button"]:has-text("months")',
-                'button[aria-haspopup="listbox"]',
-                '.dropdown-trigger',
-                'div:has-text("Last") >> button'  # Button within div containing "Last"
+                '[role="combobox"]',
+                # Look for SVG chevron inside button (dropdown indicator)
+                'button:has(svg)',
             ]
             
             dropdown_clicked = False
@@ -354,7 +431,42 @@ class SpotifyArtistsPage:
             
             if not dropdown_clicked:
                 print("Could not find dropdown button")
-                return
+                # Debug: list all buttons on page
+                try:
+                    all_buttons = await self.page.locator('button').all_text_contents()
+                    print(f"  Available buttons: {all_buttons[:15]}")  # First 15 buttons
+                except:
+                    pass
+                
+                # Try JavaScript-based approach as last resort
+                try:
+                    result = await self.page.evaluate('''() => {
+                        // Look for any element that might be a time dropdown
+                        const possibleDropdowns = document.querySelectorAll('[class*="dropdown"], [class*="select"], button');
+                        for (const el of possibleDropdowns) {
+                            const text = el.textContent || '';
+                            if (text.includes('Last') && (text.includes('days') || text.includes('months'))) {
+                                el.click();
+                                return el.textContent;
+                            }
+                        }
+                        return null;
+                    }''')
+                    if result:
+                        print(f"Clicked dropdown via JavaScript: {result}")
+                        dropdown_clicked = True
+                        await asyncio.sleep(1.5)
+                except Exception as e:
+                    print(f"JavaScript dropdown click failed: {e}")
+                
+                if not dropdown_clicked:
+                    # Take debug screenshot
+                    try:
+                        await self.page.screenshot(path='./logs/debug_dropdown_not_found.png')
+                        print("  Debug screenshot saved to ./logs/debug_dropdown_not_found.png")
+                    except:
+                        pass
+                    return
             
             # Wait for dropdown to open with human-like delay
             await asyncio.sleep(1.2 + (0.3 * asyncio.get_event_loop().time()) % 0.8)

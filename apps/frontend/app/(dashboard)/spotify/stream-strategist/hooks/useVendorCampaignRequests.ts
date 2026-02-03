@@ -467,7 +467,6 @@ export function useRespondToVendorRequest() {
               vendor_id: playlist.vendor_id,
               playlist_curator: (playlist as any).vendor?.name || null,
               is_algorithmic: false,
-              vendor_accepted: true, // Mark as vendor accepted
               org_id: '00000000-0000-0000-0000-000000000001'
             }));
 
