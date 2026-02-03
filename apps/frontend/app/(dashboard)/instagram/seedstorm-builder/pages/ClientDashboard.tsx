@@ -87,6 +87,18 @@ const ClientDashboard = () => {
         </div>
 
         {/* Key Metrics Grid */}
+        {campaign.client_notes && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Client Notes</CardTitle>
+              <CardDescription>Updates from your ops team</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm whitespace-pre-wrap">{campaign.client_notes}</p>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-4">

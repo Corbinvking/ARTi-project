@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '../hooks/use-toast';
+import { useAuth } from '../hooks/useAuth';
 import { useVendors } from '../hooks/useVendors';
 import { useUpdateSubmissionVendors } from '../hooks/useCampaignSubmissions';
 import { PlaylistSelector } from './PlaylistSelector';
@@ -120,6 +121,8 @@ interface Submission {
   music_genres?: string[];
   territory_preferences?: string[];
   notes?: string;
+  internal_notes?: string;
+  client_notes?: string;
   status: string;
   vendor_assignments?: VendorAssignment[];
   rejection_reason?: string;
@@ -153,6 +156,10 @@ export function SubmissionDetailModal({
   const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
   const [playlistSelectorVendorId, setPlaylistSelectorVendorId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [internalNotes, setInternalNotes] = useState('');
+  const [clientNotes, setClientNotes] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
   
   const { data: vendors = [] } = useVendors();
   const updateVendorsMutation = useUpdateSubmissionVendors();
@@ -188,6 +195,68 @@ export function SubmissionDetailModal({
     }
     setIsEditingVendors(false);
   }, [submission?.id, open]);
+
+  useEffect(() => {
+    if (submission) {
+      setInternalNotes(submission.internal_notes || submission.notes || '');
+      setClientNotes(submission.client_notes || '');
+    }
+  }, [submission]);
+
+  const addNoteHistory = async (noteType: 'internal' | 'client', content: string) => {
+    if (!content.trim()) return;
+    await (supabase as any).from('campaign_note_history').insert({
+      org_id: user?.org_id || '00000000-0000-0000-0000-000000000001',
+      service: 'spotify',
+      campaign_id: submission?.id || '',
+      note_type: noteType,
+      content,
+      created_by: user?.id || null,
+    });
+  };
+
+  const handleSaveNotes = async () => {
+    if (!submission) return;
+    const internalChanged =
+      internalNotes.trim() !== (submission.internal_notes || submission.notes || '').trim();
+    const clientChanged = clientNotes.trim() !== (submission.client_notes || '').trim();
+
+    if (!internalChanged && !clientChanged) {
+      toast({ title: 'No changes', description: 'Notes are unchanged.' });
+      return;
+    }
+
+    setSavingNotes(true);
+    try {
+      const { error } = await supabase
+        .from('campaign_submissions')
+        .update({
+          internal_notes: internalNotes.trim() || null,
+          client_notes: clientNotes.trim() || null,
+          notes: internalNotes.trim() || null,
+        })
+        .eq('id', submission.id);
+
+      if (error) throw error;
+
+      if (internalChanged) {
+        await addNoteHistory('internal', internalNotes);
+      }
+      if (clientChanged) {
+        await addNoteHistory('client', clientNotes);
+      }
+
+      toast({ title: 'Notes saved', description: 'Notes updated successfully.' });
+    } catch (error: any) {
+      toast({
+        title: 'Save failed',
+        description: error?.message || 'Failed to save notes.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingNotes(false);
+    }
+  };
 
   if (!submission) return null;
   
@@ -988,16 +1057,37 @@ export function SubmissionDetailModal({
                 </Card>
               )}
 
-              {submission.notes && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Notes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm whitespace-pre-wrap">{submission.notes}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Notes</CardTitle>
+                  <CardDescription>Internal notes are ops-only. Client notes are visible to clients.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Internal Notes (Ops Only)</Label>
+                    <Textarea
+                      value={internalNotes}
+                      onChange={(e) => setInternalNotes(e.target.value)}
+                      rows={3}
+                      placeholder="Add internal notes..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Client Notes (Visible to Clients)</Label>
+                    <Textarea
+                      value={clientNotes}
+                      onChange={(e) => setClientNotes(e.target.value)}
+                      rows={3}
+                      placeholder="Add client notes..."
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <Button onClick={handleSaveNotes} disabled={savingNotes}>
+                      {savingNotes ? 'Saving...' : 'Save Notes'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
               {submission.rejection_reason && (
                 <Card className="border-destructive">

@@ -12,10 +12,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { LIKE_SERVER_OPTIONS, COMMENT_SERVER_OPTIONS } from "../../lib/constants";
 import type { Database } from "../../integrations/supabase/types";
+import { supabase } from "../../integrations/supabase/client";
+import { useAuth } from "../../contexts/AuthContext";
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'] & {
   clients?: { id: string; name: string; email: string | null; company: string | null } | null;
   salespersons?: { id: string; name: string; email: string | null } | null;
+  internal_notes?: string | null;
+  client_notes?: string | null;
+  org_id?: string | null;
 };
 
 interface CampaignSetupModalProps {
@@ -27,6 +32,7 @@ interface CampaignSetupModalProps {
 export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupModalProps) => {
   const { toast } = useToast();
   const { clients, salespersons, updateCampaign } = useCampaigns();
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     artist_tier: '',
@@ -36,7 +42,9 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
     wait_time_seconds: '',
     desired_daily: '',
     client_id: '',
-    salesperson_id: ''
+    salesperson_id: '',
+    internal_notes: '',
+    client_notes: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -61,10 +69,24 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
         wait_time_seconds: campaign.wait_time_seconds?.toString() || '',
         desired_daily: campaign.desired_daily?.toString() || '',
         client_id: campaign.client_id || '',
-        salesperson_id: campaign.salesperson_id || ''
+        salesperson_id: campaign.salesperson_id || '',
+        internal_notes: campaign.internal_notes || '',
+        client_notes: campaign.client_notes || ''
       });
     }
   }, [campaign]);
+
+  const addNoteHistory = async (noteType: 'internal' | 'client', content: string) => {
+    if (!content.trim() || !campaign) return;
+    await (supabase as any).from('campaign_note_history').insert({
+      org_id: campaign.org_id || '00000000-0000-0000-0000-000000000001',
+      service: 'youtube',
+      campaign_id: campaign.id,
+      note_type: noteType,
+      content,
+      created_by: user?.id || null,
+    });
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -92,8 +114,15 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
         desired_daily: formData.desired_daily ? parseInt(formData.desired_daily) : 0,
         client_id: formData.client_id || null,
         salesperson_id: formData.salesperson_id || null,
-        technical_setup_complete: Boolean(isSetupComplete())
+        technical_setup_complete: Boolean(isSetupComplete()),
+        internal_notes: formData.internal_notes || null,
+        client_notes: formData.client_notes || null
       });
+
+      const internalChanged = formData.internal_notes.trim() !== (campaign.internal_notes || '').trim();
+      const clientChanged = formData.client_notes.trim() !== (campaign.client_notes || '').trim();
+      if (internalChanged) await addNoteHistory('internal', formData.internal_notes);
+      if (clientChanged) await addNoteHistory('client', formData.client_notes);
 
       toast({
         title: "Setup Saved",
@@ -129,7 +158,15 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
         salesperson_id: formData.salesperson_id || null,
         technical_setup_complete: true,
         status: 'active'
+        ,
+        internal_notes: formData.internal_notes || null,
+        client_notes: formData.client_notes || null
       });
+
+      const internalChanged = formData.internal_notes.trim() !== (campaign.internal_notes || '').trim();
+      const clientChanged = formData.client_notes.trim() !== (campaign.client_notes || '').trim();
+      if (internalChanged) await addNoteHistory('internal', formData.internal_notes);
+      if (clientChanged) await addNoteHistory('client', formData.client_notes);
 
       toast({
         title: "Campaign Activated",
@@ -211,6 +248,35 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
                   <p className="text-sm">{intakeData.notes}</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <AlertTriangle className="h-4 w-4" />
+                Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Internal Notes (Ops Only)</Label>
+                <Textarea
+                  value={formData.internal_notes}
+                  onChange={(e) => handleInputChange('internal_notes', e.target.value)}
+                  rows={3}
+                  placeholder="Add internal notes..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Client Notes (Visible to Clients)</Label>
+                <Textarea
+                  value={formData.client_notes}
+                  onChange={(e) => handleInputChange('client_notes', e.target.value)}
+                  rows={3}
+                  placeholder="Add client notes..."
+                />
+              </div>
             </CardContent>
           </Card>
 

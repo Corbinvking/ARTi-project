@@ -12,6 +12,7 @@ export interface PublicCampaignData {
   creator_count: number;
   posts_live: number;
   total_posts: number;
+  client_notes?: string | null;
   metrics: {
     total_views: number;
     total_comments: number;
@@ -104,6 +105,7 @@ export const usePublicCampaign = (token: string | undefined) => {
           creator_count: totalCreators,
           posts_live: postsLive,
           total_posts: totalPosts,
+          client_notes: campaignData.client_notes || null,
           metrics: {
             total_views: totalViews,
             total_comments: totalComments,

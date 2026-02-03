@@ -18,6 +18,7 @@ import { useCampaigns as useYouTubeCampaigns } from "@/app/(dashboard)/youtube/v
 import { MultiServiceTypeSelector } from "@/app/(dashboard)/youtube/vidi-health-flow/components/campaigns/MultiServiceTypeSelector"
 import type { Database } from "@/app/(dashboard)/youtube/vidi-health-flow/integrations/supabase/types"
 import { useInstagramCampaignMutations } from "@/app/(dashboard)/instagram/seedstorm-builder/hooks/useInstagramCampaignMutations"
+import { supabase as coreSupabase } from "@/lib/auth"
 
 type ServiceKey = "spotify" | "soundcloud" | "youtube" | "instagram"
 type ServiceType = Database["public"]["Enums"]["service_type"]
@@ -70,7 +71,8 @@ export function UnifiedCampaignIntake() {
     budget: "",
     startDate: "",
     endDate: "",
-    notes: "",
+    internalNotes: "",
+    clientNotes: "",
     salesperson: "",
   })
 
@@ -119,6 +121,29 @@ export function UnifiedCampaignIntake() {
 
   const opsOwner = user?.email || user?.name || ""
   const opsOwnerId = user?.id || null
+  const orgId = user?.tenantId || "00000000-0000-0000-0000-000000000001"
+
+  const addNoteHistory = async ({
+    service,
+    campaignId,
+    noteType,
+    content,
+  }: {
+    service: string
+    campaignId: string
+    noteType: "internal" | "client"
+    content: string
+  }) => {
+    if (!content.trim()) return
+    await coreSupabase.from("campaign_note_history").insert({
+      org_id: orgId,
+      service,
+      campaign_id: campaignId,
+      note_type: noteType,
+      content,
+      created_by: opsOwnerId,
+    })
+  }
 
   useEffect(() => {
     if (!shared.salesperson && user?.email) {
@@ -271,7 +296,7 @@ export function UnifiedCampaignIntake() {
           })
         } else {
           try {
-            await createSpotifySubmission.mutateAsync({
+            const submission = await createSpotifySubmission.mutateAsync({
               client_id: sharedClient?.id || null,
               client_name: spotifyData.clientName || sharedClient?.name || "",
               client_emails: parseEmailList(spotifyData.clientEmails),
@@ -282,11 +307,27 @@ export function UnifiedCampaignIntake() {
               duration_days: Number(spotifyData.durationDays || 90),
               track_url: spotifyData.trackUrl,
               sfa_url: spotifyData.sfaUrl || null,
-              notes: shared.notes,
+              notes: shared.internalNotes,
+              internal_notes: shared.internalNotes || null,
+              client_notes: shared.clientNotes || null,
               salesperson: shared.salesperson || opsOwner,
               music_genres: parseEmailList(spotifyData.genres),
               territory_preferences: parseEmailList(spotifyData.territories),
             })
+            if (submission?.id) {
+              await addNoteHistory({
+                service: "spotify",
+                campaignId: submission.id,
+                noteType: "internal",
+                content: shared.internalNotes,
+              })
+              await addNoteHistory({
+                service: "spotify",
+                campaignId: submission.id,
+                noteType: "client",
+                content: shared.clientNotes,
+              })
+            }
             results.push({
               service: "spotify",
               success: true,
@@ -351,7 +392,9 @@ export function UnifiedCampaignIntake() {
               status: "new",
               expected_reach_planned: Number(soundcloudData.expectedReach) || 0,
               support_date: soundcloudData.supportDate || shared.startDate || null,
-              notes: shared.notes || null,
+              notes: shared.internalNotes || null,
+              internal_notes: shared.internalNotes || null,
+              client_notes: shared.clientNotes || null,
               qa_flag: false,
               need_live_link: false,
               suggested_supporters: [],
@@ -361,10 +404,26 @@ export function UnifiedCampaignIntake() {
               created_at: new Date().toISOString(),
             }
 
-            const { error } = await soundcloudSupabase
+            const { error, data } = await soundcloudSupabase
               .from("soundcloud_submissions")
               .insert(submissionData)
+              .select()
+              .single()
             if (error) throw error
+            if (data?.id) {
+              await addNoteHistory({
+                service: "soundcloud",
+                campaignId: data.id,
+                noteType: "internal",
+                content: shared.internalNotes,
+              })
+              await addNoteHistory({
+                service: "soundcloud",
+                campaignId: data.id,
+                noteType: "client",
+                content: shared.clientNotes,
+              })
+            }
 
             results.push({
               service: "soundcloud",
@@ -426,11 +485,11 @@ export function UnifiedCampaignIntake() {
             )
 
             const ownershipNote = `OpsOwner:${opsOwner};AdsOwner:${opsOwner};CampaignOwner:${opsOwner}`
-            const customServiceType = [shared.notes?.trim(), ownershipNote]
+            const customServiceType = [shared.internalNotes?.trim(), ownershipNote]
               .filter(Boolean)
               .join(" | ")
 
-            const { error } = await youtube.createCampaign({
+            const { error, data } = await youtube.createCampaign({
               campaign_name: shared.campaignName,
               youtube_url: youtubeData.youtubeUrl,
               video_id: extractYouTubeVideoId(youtubeData.youtubeUrl) || null,
@@ -449,9 +508,25 @@ export function UnifiedCampaignIntake() {
               status: "pending",
               technical_setup_complete: false,
               custom_service_type: customServiceType || null,
+              internal_notes: shared.internalNotes || null,
+              client_notes: shared.clientNotes || null,
             })
 
             if (error) throw error
+            if (data?.id) {
+              await addNoteHistory({
+                service: "youtube",
+                campaignId: data.id,
+                noteType: "internal",
+                content: shared.internalNotes,
+              })
+              await addNoteHistory({
+                service: "youtube",
+                campaignId: data.id,
+                noteType: "client",
+                content: shared.clientNotes,
+              })
+            }
 
             results.push({
               service: "youtube",
@@ -473,7 +548,7 @@ export function UnifiedCampaignIntake() {
           if (!opsOwner) {
             throw new Error("Unable to determine ops owner for Instagram.")
           }
-          await instagramMutations.createCampaignAsync({
+          const campaign = await instagramMutations.createCampaignAsync({
             campaign: shared.campaignName,
             clients: spotifyData.clientName || spotifyData.clientEmails || "Unknown Client",
             start_date: shared.startDate,
@@ -482,8 +557,23 @@ export function UnifiedCampaignIntake() {
             status: "Draft",
             salespeople: shared.salesperson || opsOwner,
             paid_ops: opsOwner,
-            report_notes: shared.notes || undefined,
+            report_notes: shared.internalNotes || undefined,
+            client_notes: shared.clientNotes || undefined,
           })
+          if (campaign?.id) {
+            await addNoteHistory({
+              service: "instagram",
+              campaignId: String(campaign.id),
+              noteType: "internal",
+              content: shared.internalNotes,
+            })
+            await addNoteHistory({
+              service: "instagram",
+              campaignId: String(campaign.id),
+              noteType: "client",
+              content: shared.clientNotes,
+            })
+          }
           results.push({
             service: "instagram",
             success: true,
@@ -593,12 +683,25 @@ export function UnifiedCampaignIntake() {
           </div>
 
           <div>
-            <Label>Notes</Label>
+            <Label>Internal Notes (Ops Only)</Label>
             <Textarea
               rows={3}
-              value={shared.notes}
-              onChange={(event) => setShared((prev) => ({ ...prev, notes: event.target.value }))}
-              placeholder="Additional instructions for all services..."
+              value={shared.internalNotes}
+              onChange={(event) =>
+                setShared((prev) => ({ ...prev, internalNotes: event.target.value }))
+              }
+              placeholder="Internal ops notes..."
+            />
+          </div>
+          <div>
+            <Label>Client Notes (Visible to Clients)</Label>
+            <Textarea
+              rows={3}
+              value={shared.clientNotes}
+              onChange={(event) =>
+                setShared((prev) => ({ ...prev, clientNotes: event.target.value }))
+              }
+              placeholder="Client-facing notes..."
             />
           </div>
         </div>

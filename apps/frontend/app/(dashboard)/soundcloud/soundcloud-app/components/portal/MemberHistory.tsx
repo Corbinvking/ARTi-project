@@ -212,9 +212,9 @@ export const MemberHistory = () => {
                   )}
 
                   {/* Notes */}
-                  {submission.notes && (
+                  {submission.client_notes && (
                     <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-sm">{submission.notes}</p>
+                      <p className="text-sm">{submission.client_notes}</p>
                     </div>
                   )}
                 </div>

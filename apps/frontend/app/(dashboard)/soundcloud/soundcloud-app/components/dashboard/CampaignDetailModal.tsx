@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { supabase } from "../../integrations/supabase/client";
 import { useToast } from "../../hooks/use-toast";
@@ -15,6 +16,7 @@ import { useWeeklyCampaignReports } from "../../hooks/useWeeklyCampaignReports";
 import { ReceiptLinksManager } from "./ReceiptLinksManager";
 import { Mail, TrendingUp, TrendingDown, ExternalLink, BarChart3 } from "lucide-react";
 import { formatFollowerCount } from "../../utils/creditCalculations";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Campaign {
   id: string;
@@ -31,6 +33,8 @@ interface Campaign {
   submission_date: string;
   weekly_reporting_enabled?: boolean;
   notes: string;
+  internal_notes?: string;
+  client_notes?: string;
   client: {
     name: string;
     email: string;
@@ -48,10 +52,72 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
   const [weeklyReporting, setWeeklyReporting] = useState(campaign?.weekly_reporting_enabled || false);
   const [sendingReport, setSendingReport] = useState(false);
   const [totalReceiptsReach, setTotalReceiptsReach] = useState(0);
+  const [internalNotes, setInternalNotes] = useState(campaign?.internal_notes || campaign?.notes || '');
+  const [clientNotes, setClientNotes] = useState(campaign?.client_notes || '');
+  const [savingNotes, setSavingNotes] = useState(false);
   const { toast } = useToast();
   const { fetchCampaignWeeklyReport } = useWeeklyCampaignReports();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (campaign) {
+      setInternalNotes(campaign.internal_notes || campaign.notes || '');
+      setClientNotes(campaign.client_notes || '');
+    }
+  }, [campaign?.id]);
 
   if (!campaign) return null;
+
+  const addNoteHistory = async (noteType: 'internal' | 'client', content: string) => {
+    if (!content.trim()) return;
+    await (supabase as any).from('campaign_note_history').insert({
+      org_id: user?.tenantId || '00000000-0000-0000-0000-000000000001',
+      service: 'soundcloud',
+      campaign_id: campaign.id,
+      note_type: noteType,
+      content,
+      created_by: user?.id || null,
+    });
+  };
+
+  const handleSaveNotes = async () => {
+    const internalChanged =
+      internalNotes.trim() !== (campaign.internal_notes || campaign.notes || '').trim();
+    const clientChanged = clientNotes.trim() !== (campaign.client_notes || '').trim();
+
+    if (!internalChanged && !clientChanged) {
+      toast({ title: "No changes", description: "Notes are unchanged." });
+      return;
+    }
+
+    setSavingNotes(true);
+    try {
+      const { error } = await supabase
+        .from('soundcloud_submissions')
+        .update({
+          internal_notes: internalNotes.trim() || null,
+          client_notes: clientNotes.trim() || null,
+          notes: internalNotes.trim() || null,
+        })
+        .eq('id', campaign.id);
+
+      if (error) throw error;
+
+      if (internalChanged) await addNoteHistory('internal', internalNotes);
+      if (clientChanged) await addNoteHistory('client', clientNotes);
+
+      toast({ title: "Notes saved", description: "Notes updated successfully." });
+      onCampaignUpdate();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to save notes.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingNotes(false);
+    }
+  };
 
   const handleToggleWeeklyReporting = async (enabled: boolean) => {
     try {
@@ -192,6 +258,38 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
             campaignId={campaign.id}
             onReachUpdate={handleReachUpdate}
           />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Notes</CardTitle>
+            <CardDescription>Internal notes are ops-only. Client notes are visible to clients.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Internal Notes (Ops Only)</Label>
+              <Textarea
+                value={internalNotes}
+                onChange={(e) => setInternalNotes(e.target.value)}
+                rows={3}
+                placeholder="Add internal notes..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Client Notes (Visible to Clients)</Label>
+              <Textarea
+                value={clientNotes}
+                onChange={(e) => setClientNotes(e.target.value)}
+                rows={3}
+                placeholder="Add client notes..."
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleSaveNotes} disabled={savingNotes}>
+                {savingNotes ? "Saving..." : "Save Notes"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
           {/* Streaming Metrics Chart */}
           <Card>

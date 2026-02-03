@@ -24,6 +24,8 @@ interface CampaignSubmission {
   rejection_reason?: string;
   music_genres: string[];
   territory_preferences: string[];
+  internal_notes?: string | null;
+  client_notes?: string | null;
 }
 
 interface CreateSubmissionData {
@@ -41,6 +43,8 @@ interface CreateSubmissionData {
   salesperson: string;
   music_genres: string[];
   territory_preferences: string[];
+  internal_notes?: string | null;
+  client_notes?: string | null;
   vendor_assignments?: Array<{
     vendor_id: string;
     vendor_name: string;
@@ -265,7 +269,7 @@ export function useCreateCampaignSubmission() {
         });
         throw error;
       }
-      return true;
+      return data?.[0] ?? null;
     },
     onSuccess: () => {
       // Don't show toast here - let the component handle the success UI

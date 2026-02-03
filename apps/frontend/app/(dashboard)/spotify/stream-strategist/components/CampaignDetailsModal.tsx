@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Textarea } from './ui/textarea';
 import {
   Collapsible,
   CollapsibleContent,
@@ -126,6 +127,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const [editingSfaUrl, setEditingSfaUrl] = useState(false);
   const [sfaUrlInput, setSfaUrlInput] = useState('');
   const [savingSfaUrl, setSavingSfaUrl] = useState(false);
+  const [internalNotes, setInternalNotes] = useState('');
+  const [clientNotes, setClientNotes] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
   const [editingPlaylist, setEditingPlaylist] = useState<any>(null);
   const [editingVendorCost, setEditingVendorCost] = useState<{ vendorId: string; vendorName: string; currentCost: number } | null>(null);
   const [vendorCostInput, setVendorCostInput] = useState<string>('');
@@ -140,13 +144,82 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   console.log('🔧 [v1.0.1-DEBUG] About to call useCampaignVendorResponses with ID:', campaign?.id);
   const { data: vendorResponses = [], isLoading: vendorResponsesLoading } = useCampaignVendorResponses(campaign?.id);
   const { data: isVendorManager = false } = useIsVendorManager();
-  const { hasRole } = useAuth();
+  const { hasRole, user } = useAuth();
   const { data: salespeople = [] } = useSalespeople();
   const { data: payments = [] } = useVendorPaymentData();
   
   // Fetch performance data for admin view
   const { data: performanceData, isLoading: performanceLoading } = useCampaignPerformanceData(campaign?.id);
   const { data: overallPerformance } = useCampaignOverallPerformance(campaign?.id);
+
+  useEffect(() => {
+    if (campaignData) {
+      setInternalNotes(campaignData.internal_notes || campaignData.notes || '');
+      setClientNotes(campaignData.client_notes || '');
+    }
+  }, [campaignData?.id]);
+
+  const addNoteHistory = async (noteType: 'internal' | 'client', content: string) => {
+    if (!content.trim()) return;
+    await (supabase as any).from('campaign_note_history').insert({
+      org_id: user?.org_id || '00000000-0000-0000-0000-000000000001',
+      service: 'spotify',
+      campaign_id: campaignData?.id || '',
+      note_type: noteType,
+      content,
+      created_by: user?.id || null,
+    });
+  };
+
+  const handleSaveNotes = async () => {
+    if (!campaignData) return;
+    const internalChanged = internalNotes.trim() !== (campaignData.internal_notes || campaignData.notes || '').trim();
+    const clientChanged = clientNotes.trim() !== (campaignData.client_notes || '').trim();
+    if (!internalChanged && !clientChanged) {
+      toast({ title: 'No changes', description: 'Notes are unchanged.' });
+      return;
+    }
+
+    const isSpotifyCampaign = typeof campaignData.id === 'number' ||
+      (typeof campaignData.id === 'string' && !campaignData.id.includes('-')) ||
+      campaignData.campaign !== undefined;
+    const tableName = isSpotifyCampaign ? 'spotify_campaigns' : 'campaign_groups';
+
+    setSavingNotes(true);
+    try {
+    const { error } = await (supabase as any)
+      .from(tableName as string)
+        .update({
+          internal_notes: internalNotes.trim() || null,
+          client_notes: clientNotes.trim() || null,
+          notes: internalNotes.trim() || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', campaignData.id);
+
+      if (error) throw error;
+
+      setCampaignData((prev: any) => ({
+        ...prev,
+        internal_notes: internalNotes.trim(),
+        client_notes: clientNotes.trim(),
+        notes: internalNotes.trim(),
+      }));
+
+      if (internalChanged) await addNoteHistory('internal', internalNotes);
+      if (clientChanged) await addNoteHistory('client', clientNotes);
+
+      toast({ title: 'Notes saved', description: 'Notes updated successfully.' });
+    } catch (error: any) {
+      toast({
+        title: 'Save failed',
+        description: error?.message || 'Failed to save notes.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingNotes(false);
+    }
+  };
   
   // Fetch campaign playlists (real scraped data) - separated into vendor and algorithmic
   const { data: campaignPlaylistsData = { vendor: [], algorithmic: [], unassigned: [] }, isLoading: playlistsLoading } = useQuery({
@@ -1661,6 +1734,38 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               </div>
             </div>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Notes</CardTitle>
+              <CardDescription>Internal notes are ops-only. Client notes are visible to clients.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Internal Notes (Ops Only)</Label>
+                <Textarea
+                  value={internalNotes}
+                  onChange={(e) => setInternalNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Add internal notes..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Client Notes (Visible to Clients)</Label>
+                <Textarea
+                  value={clientNotes}
+                  onChange={(e) => setClientNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Add client notes..."
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleSaveNotes} disabled={savingNotes || !canEditCampaign}>
+                  {savingNotes ? 'Saving...' : 'Save Notes'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
           
           {/* Vendor Responses/Status */}
           {vendorResponses.length > 0 && (

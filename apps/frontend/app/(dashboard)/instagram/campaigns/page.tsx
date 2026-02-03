@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { supabase } from "@/lib/auth";
+import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInstagramCampaignMutations } from "../seedstorm-builder/hooks/useInstagramCampaignMutations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -93,7 +94,8 @@ export default function InstagramCampaignsPage() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { updateCampaign, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
+  const { updateCampaignAsync, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
+  const { user } = useAuth();
 
   // Fetch campaign creators when a campaign is selected
   const { data: campaignCreators = [], isLoading: loadingCreators, refetch: refetchCreators } = useQuery({
@@ -293,11 +295,36 @@ export default function InstagramCampaignsPage() {
     setIsEditMode(false);
   };
 
-  const handleSaveEdit = () => {
-    updateCampaign({
+  const addNoteHistory = async (noteType: 'internal' | 'client', content: string) => {
+    if (!content.trim()) return;
+    await supabase.from('campaign_note_history').insert({
+      org_id: user?.tenantId || '00000000-0000-0000-0000-000000000001',
+      service: 'instagram',
+      campaign_id: String(selectedCampaign?.id || ''),
+      note_type: noteType,
+      content,
+      created_by: user?.id || null,
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    const internalChanged =
+      (editForm?.report_notes || '').trim() !== (selectedCampaign?.report_notes || '').trim();
+    const clientChanged =
+      (editForm?.client_notes || '').trim() !== (selectedCampaign?.client_notes || '').trim();
+
+    await updateCampaignAsync({
       id: selectedCampaign.id,
       updates: editForm
     });
+
+    if (internalChanged) {
+      await addNoteHistory('internal', editForm?.report_notes || '');
+    }
+    if (clientChanged) {
+      await addNoteHistory('client', editForm?.client_notes || '');
+    }
+
     setIsEditMode(false);
     setIsDetailsOpen(false);
   };
@@ -1280,7 +1307,7 @@ export default function InstagramCampaignsPage() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Report Notes:</p>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Internal Notes (Ops Only):</p>
                       {isEditMode ? (
                         <Textarea
                           value={editForm.report_notes || ''}
@@ -1293,7 +1320,7 @@ export default function InstagramCampaignsPage() {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Client Notes:</p>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Client Notes (Visible to Clients):</p>
                       {isEditMode ? (
                         <Textarea
                           value={editForm.client_notes || ''}
