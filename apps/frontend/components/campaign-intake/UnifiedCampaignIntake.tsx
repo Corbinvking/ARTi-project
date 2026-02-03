@@ -72,13 +72,13 @@ export function UnifiedCampaignIntake() {
     endDate: "",
     notes: "",
     salesperson: "",
+  })
+
+  const [spotifyData, setSpotifyData] = useState({
     clientMode: "existing" as "existing" | "new",
     clientId: "",
     clientName: "",
     clientEmails: "",
-  })
-
-  const [spotifyData, setSpotifyData] = useState({
     trackUrl: "",
     sfaUrl: "",
     streamGoal: "",
@@ -88,12 +88,14 @@ export function UnifiedCampaignIntake() {
   })
 
   const [soundcloudData, setSoundcloudData] = useState({
-    trackInfo: "",
+    clientId: "",
+    newClientName: "",
+    newClientEmail: "",
+    artistName: "",
+    trackName: "",
     trackUrl: "",
-    goalReposts: "",
-    salesPrice: "",
-    invoiceStatus: "pending",
-    dateRequested: "",
+    expectedReach: "",
+    supportDate: "",
   })
 
   const [youtubeData, setYoutubeData] = useState({
@@ -111,6 +113,10 @@ export function UnifiedCampaignIntake() {
     soundUrl: "",
   })
 
+  const [soundcloudClients, setSoundcloudClients] = useState<
+    Array<{ id: string; name: string; email: string | null }>
+  >([])
+
   useEffect(() => {
     if (!shared.salesperson && user?.email) {
       setShared((prev) => ({ ...prev, salesperson: user.email || "" }))
@@ -118,17 +124,34 @@ export function UnifiedCampaignIntake() {
   }, [shared.salesperson, user?.email])
 
   useEffect(() => {
-    if (shared.clientId) {
-      const selected = clients.find((client) => client.id === shared.clientId)
+    if (spotifyData.clientMode === "existing" && spotifyData.clientId) {
+      const selected = clients.find((client) => client.id === spotifyData.clientId)
       if (selected) {
-        setShared((prev) => ({
+        setSpotifyData((prev) => ({
           ...prev,
           clientName: selected.name,
           clientEmails: (selected.emails || []).join(", "),
         }))
       }
     }
-  }, [clients, shared.clientId])
+  }, [clients, spotifyData.clientId, spotifyData.clientMode])
+
+  useEffect(() => {
+    let mounted = true
+    const loadClients = async () => {
+      const { data } = await soundcloudSupabase
+        .from("soundcloud_clients")
+        .select("id, name, email")
+        .order("name")
+      if (mounted && data) {
+        setSoundcloudClients(data)
+      }
+    }
+    loadClients()
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   useEffect(() => {
     if (selectedServices.length > 0 && !selectedServices.includes(activeService)) {
@@ -153,19 +176,19 @@ export function UnifiedCampaignIntake() {
     [selectedServices],
   )
 
-  const ensureSharedClient = async () => {
-    if (shared.clientMode === "existing") {
-      const selected = clients.find((client) => client.id === shared.clientId)
+  const ensureSpotifyClient = async () => {
+    if (spotifyData.clientMode === "existing") {
+      const selected = clients.find((client) => client.id === spotifyData.clientId)
       return selected || null
     }
 
-    if (!shared.clientName.trim()) {
+    if (!spotifyData.clientName.trim()) {
       return null
     }
 
-    const emails = parseEmailList(shared.clientEmails)
+    const emails = parseEmailList(spotifyData.clientEmails)
     const newClient = await createClient.mutateAsync({
-      name: shared.clientName.trim(),
+      name: spotifyData.clientName.trim(),
       emails,
       credit_balance: 0,
     })
@@ -185,20 +208,6 @@ export function UnifiedCampaignIntake() {
     if (!shared.startDate) {
       return "Start date is required."
     }
-    if (
-      (selectedServices.includes("spotify") || selectedServices.includes("soundcloud")) &&
-      shared.clientMode === "existing" &&
-      !shared.clientId
-    ) {
-      return "Select a client for Spotify/SoundCloud campaigns."
-    }
-    if (
-      (selectedServices.includes("spotify") || selectedServices.includes("soundcloud")) &&
-      shared.clientMode === "new" &&
-      !shared.clientName.trim()
-    ) {
-      return "Client name is required for new Spotify/SoundCloud clients."
-    }
     return null
   }
 
@@ -214,22 +223,38 @@ export function UnifiedCampaignIntake() {
     const results: Array<{ service: ServiceKey; success: boolean; message: string }> = []
 
     try {
-      const needsSharedClient =
-        selectedServices.includes("spotify") || selectedServices.includes("soundcloud")
-      const sharedClient = needsSharedClient ? await ensureSharedClient() : null
+      const sharedClient = selectedServices.includes("spotify") ? await ensureSpotifyClient() : null
 
-      if (needsSharedClient && !sharedClient) {
-        throw new Error("Unable to resolve shared client details for Spotify/SoundCloud.")
+      if (selectedServices.includes("spotify") && !sharedClient) {
+        throw new Error("Unable to resolve Spotify client details.")
       }
 
       if (selectedServices.includes("spotify")) {
-        if (!spotifyData.trackUrl || !spotifyData.streamGoal) {
+        if (spotifyData.clientMode === "existing" && !spotifyData.clientId) {
+          results.push({
+            service: "spotify",
+            success: false,
+            message: "Select an existing Spotify client.",
+          })
+        } else if (spotifyData.clientMode === "new" && !spotifyData.clientName.trim()) {
+          results.push({
+            service: "spotify",
+            success: false,
+            message: "Enter a new Spotify client name.",
+          })
+        } else if (spotifyData.clientMode === "new" && !spotifyData.clientEmails.trim()) {
+          results.push({
+            service: "spotify",
+            success: false,
+            message: "Enter at least one Spotify client email.",
+          })
+        } else if (!spotifyData.trackUrl || !spotifyData.streamGoal) {
           results.push({
             service: "spotify",
             success: false,
             message: "Spotify track URL and stream goal are required.",
           })
-        } else if (parseEmailList(shared.clientEmails).length === 0) {
+        } else if (parseEmailList(spotifyData.clientEmails).length === 0) {
           results.push({
             service: "spotify",
             success: false,
@@ -239,8 +264,8 @@ export function UnifiedCampaignIntake() {
           try {
             await createSpotifySubmission.mutateAsync({
               client_id: sharedClient?.id || null,
-              client_name: shared.clientName || sharedClient?.name || "",
-              client_emails: parseEmailList(shared.clientEmails),
+              client_name: spotifyData.clientName || sharedClient?.name || "",
+              client_emails: parseEmailList(spotifyData.clientEmails),
               campaign_name: shared.campaignName,
               price_paid: Number(shared.budget),
               stream_goal: Number(spotifyData.streamGoal),
@@ -269,43 +294,66 @@ export function UnifiedCampaignIntake() {
       }
 
       if (selectedServices.includes("soundcloud")) {
-        if (!soundcloudData.trackInfo || !soundcloudData.trackUrl || !soundcloudData.goalReposts) {
+        if (
+          !soundcloudData.trackUrl ||
+          !soundcloudData.artistName ||
+          !soundcloudData.trackName ||
+          !soundcloudData.expectedReach
+        ) {
           results.push({
             service: "soundcloud",
             success: false,
-            message: "SoundCloud requires track info, URL, and goal.",
+            message: "SoundCloud requires artist, track, URL, and expected reach.",
           })
         } else {
           try {
-            const [artist_name, track_name] = soundcloudData.trackInfo
-              .split(" - ")
-              .map((segment) => segment.trim())
-
-            if (!artist_name || !track_name) {
-              throw new Error("SoundCloud track info must be 'Artist - Song'.")
+            let clientId = soundcloudData.clientId
+            if (!clientId && soundcloudData.newClientName.trim()) {
+              const { data: newClient, error: clientError } = await soundcloudSupabase
+                .from("soundcloud_clients")
+                .insert({
+                  name: soundcloudData.newClientName.trim(),
+                  email: soundcloudData.newClientEmail.trim() || null,
+                })
+                .select()
+                .single()
+              if (clientError) throw clientError
+              clientId = newClient?.id || ""
             }
 
-            const campaignData = {
-              artist_name,
-              track_name,
+            if (!clientId) {
+              throw new Error("SoundCloud client is required.")
+            }
+
+            const submissionData = {
+              org_id: "00000000-0000-0000-0000-000000000001",
+              client_id: clientId,
+              member_id: null,
               track_url: soundcloudData.trackUrl,
-              client_id: sharedClient?.id || "",
-              goal_reposts: Number(soundcloudData.goalReposts) * 1000000,
-              price_usd: Number(soundcloudData.salesPrice || shared.budget),
-              salesperson_id: null,
-              invoice_status: soundcloudData.invoiceStatus,
-              submission_date: new Date().toISOString().split("T")[0],
-              date_requested: soundcloudData.dateRequested || null,
-              status: "intake" as const,
+              artist_name: soundcloudData.artistName,
+              track_name: soundcloudData.trackName,
+              status: "new",
+              expected_reach_planned: Number(soundcloudData.expectedReach) || 0,
+              support_date: soundcloudData.supportDate || shared.startDate || null,
+              notes: shared.notes || null,
+              qa_flag: false,
+              need_live_link: false,
+              suggested_supporters: [],
+              expected_reach_min: 0,
+              expected_reach_max: 0,
+              submitted_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
             }
 
-            const { error } = await soundcloudSupabase.from("campaigns").insert([campaignData])
+            const { error } = await soundcloudSupabase
+              .from("soundcloud_submissions")
+              .insert(submissionData)
             if (error) throw error
 
             results.push({
               service: "soundcloud",
               success: true,
-              message: "SoundCloud campaign intake created.",
+              message: "SoundCloud submission created.",
             })
           } catch (error: any) {
             results.push({
@@ -340,10 +388,10 @@ export function UnifiedCampaignIntake() {
             }
 
             let youtubeClientId = youtubeData.clientId
-            if (!youtubeClientId && shared.clientName) {
+            if (!youtubeClientId && spotifyData.clientName) {
               const clientResult = await youtube.createClient({
-                name: shared.clientName,
-                email: parseEmailList(shared.clientEmails)[0] || "",
+                name: spotifyData.clientName,
+                email: parseEmailList(spotifyData.clientEmails)[0] || "",
                 company: "",
               })
               if (clientResult.error) throw clientResult.error
@@ -397,7 +445,7 @@ export function UnifiedCampaignIntake() {
         try {
           await instagramMutations.createCampaignAsync({
             campaign: shared.campaignName,
-            clients: shared.clientName || shared.clientEmails || "Unknown Client",
+            clients: spotifyData.clientName || spotifyData.clientEmails || "Unknown Client",
             start_date: shared.startDate,
             price: shared.budget,
             sound_url: instagramData.soundUrl || undefined,
@@ -513,53 +561,6 @@ export function UnifiedCampaignIntake() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label>Client (Spotify/SoundCloud)</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant={shared.clientMode === "existing" ? "default" : "outline"}
-                onClick={() => setShared((prev) => ({ ...prev, clientMode: "existing" }))}
-              >
-                Existing
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={shared.clientMode === "new" ? "default" : "outline"}
-                onClick={() => setShared((prev) => ({ ...prev, clientMode: "new" }))}
-              >
-                New
-              </Button>
-            </div>
-
-            {shared.clientMode === "existing" ? (
-              <ClientSelector
-                value={shared.clientId}
-                onChange={(clientId) => setShared((prev) => ({ ...prev, clientId }))}
-                placeholder="Search clients..."
-              />
-            ) : (
-              <div className="grid gap-3 md:grid-cols-2">
-                <Input
-                  placeholder="Client name"
-                  value={shared.clientName}
-                  onChange={(event) =>
-                    setShared((prev) => ({ ...prev, clientName: event.target.value }))
-                  }
-                />
-                <Input
-                  placeholder="Client emails (comma-separated)"
-                  value={shared.clientEmails}
-                  onChange={(event) =>
-                    setShared((prev) => ({ ...prev, clientEmails: event.target.value }))
-                  }
-                />
-              </div>
-            )}
-          </div>
-
           <div>
             <Label>Notes</Label>
             <Textarea
@@ -587,68 +588,127 @@ export function UnifiedCampaignIntake() {
           )}
 
           <TabsContent value="spotify" className="pt-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label>Spotify Track URL *</Label>
-                <Input
-                  value={spotifyData.trackUrl}
-                  onChange={(event) =>
-                    setSpotifyData((prev) => ({ ...prev, trackUrl: event.target.value }))
-                  }
-                  placeholder="https://open.spotify.com/track/..."
-                />
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <Label>Spotify Client *</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={spotifyData.clientMode === "existing" ? "default" : "outline"}
+                    onClick={() =>
+                      setSpotifyData((prev) => ({ ...prev, clientMode: "existing" }))
+                    }
+                  >
+                    Existing
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={spotifyData.clientMode === "new" ? "default" : "outline"}
+                    onClick={() => setSpotifyData((prev) => ({ ...prev, clientMode: "new" }))}
+                  >
+                    New
+                  </Button>
+                </div>
+
+                {spotifyData.clientMode === "existing" ? (
+                  <ClientSelector
+                    value={spotifyData.clientId}
+                    onChange={(clientId) =>
+                      setSpotifyData((prev) => ({ ...prev, clientId }))
+                    }
+                    placeholder="Search clients..."
+                  />
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <Input
+                      placeholder="Client name"
+                      value={spotifyData.clientName}
+                      onChange={(event) =>
+                        setSpotifyData((prev) => ({
+                          ...prev,
+                          clientName: event.target.value,
+                        }))
+                      }
+                    />
+                    <Input
+                      placeholder="Client emails (comma-separated)"
+                      value={spotifyData.clientEmails}
+                      onChange={(event) =>
+                        setSpotifyData((prev) => ({
+                          ...prev,
+                          clientEmails: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
               </div>
-              <div>
-                <Label>Spotify for Artists URL</Label>
-                <Input
-                  value={spotifyData.sfaUrl}
-                  onChange={(event) =>
-                    setSpotifyData((prev) => ({ ...prev, sfaUrl: event.target.value }))
-                  }
-                  placeholder="https://artists.spotify.com/..."
-                />
-              </div>
-              <div>
-                <Label>Stream Goal *</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={spotifyData.streamGoal}
-                  onChange={(event) =>
-                    setSpotifyData((prev) => ({ ...prev, streamGoal: event.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <Label>Duration (days)</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={spotifyData.durationDays}
-                  onChange={(event) =>
-                    setSpotifyData((prev) => ({ ...prev, durationDays: event.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <Label>Genres (comma-separated)</Label>
-                <Input
-                  value={spotifyData.genres}
-                  onChange={(event) =>
-                    setSpotifyData((prev) => ({ ...prev, genres: event.target.value }))
-                  }
-                  placeholder="pop, hip-hop"
-                />
-              </div>
-              <div>
-                <Label>Territory Preferences</Label>
-                <Input
-                  value={spotifyData.territories}
-                  onChange={(event) =>
-                    setSpotifyData((prev) => ({ ...prev, territories: event.target.value }))
-                  }
-                  placeholder="United States, Europe"
-                />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label>Spotify Track URL *</Label>
+                  <Input
+                    value={spotifyData.trackUrl}
+                    onChange={(event) =>
+                      setSpotifyData((prev) => ({ ...prev, trackUrl: event.target.value }))
+                    }
+                    placeholder="https://open.spotify.com/track/..."
+                  />
+                </div>
+                <div>
+                  <Label>Spotify for Artists URL</Label>
+                  <Input
+                    value={spotifyData.sfaUrl}
+                    onChange={(event) =>
+                      setSpotifyData((prev) => ({ ...prev, sfaUrl: event.target.value }))
+                    }
+                    placeholder="https://artists.spotify.com/..."
+                  />
+                </div>
+                <div>
+                  <Label>Stream Goal *</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={spotifyData.streamGoal}
+                    onChange={(event) =>
+                      setSpotifyData((prev) => ({ ...prev, streamGoal: event.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Duration (days)</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={spotifyData.durationDays}
+                    onChange={(event) =>
+                      setSpotifyData((prev) => ({ ...prev, durationDays: event.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Genres (comma-separated)</Label>
+                  <Input
+                    value={spotifyData.genres}
+                    onChange={(event) =>
+                      setSpotifyData((prev) => ({ ...prev, genres: event.target.value }))
+                    }
+                    placeholder="pop, hip-hop"
+                  />
+                </div>
+                <div>
+                  <Label>Territory Preferences</Label>
+                  <Input
+                    value={spotifyData.territories}
+                    onChange={(event) =>
+                      setSpotifyData((prev) => ({ ...prev, territories: event.target.value }))
+                    }
+                    placeholder="United States, Europe"
+                  />
+                </div>
               </div>
             </div>
           </TabsContent>
@@ -656,11 +716,72 @@ export function UnifiedCampaignIntake() {
           <TabsContent value="soundcloud" className="pt-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <Label>Track Info (Artist - Song) *</Label>
-                <Input
-                  value={soundcloudData.trackInfo}
+                <Label>SoundCloud Client *</Label>
+                <select
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={soundcloudData.clientId}
                   onChange={(event) =>
-                    setSoundcloudData((prev) => ({ ...prev, trackInfo: event.target.value }))
+                    setSoundcloudData((prev) => ({
+                      ...prev,
+                      clientId: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">Select existing client</option>
+                  {soundcloudClients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label>New Client (optional)</Label>
+                <Input
+                  value={soundcloudData.newClientName}
+                  onChange={(event) =>
+                    setSoundcloudData((prev) => ({
+                      ...prev,
+                      newClientName: event.target.value,
+                    }))
+                  }
+                  placeholder="Create a new client"
+                />
+              </div>
+              <div>
+                <Label>New Client Email</Label>
+                <Input
+                  type="email"
+                  value={soundcloudData.newClientEmail}
+                  onChange={(event) =>
+                    setSoundcloudData((prev) => ({
+                      ...prev,
+                      newClientEmail: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <Label>Artist Name *</Label>
+                <Input
+                  value={soundcloudData.artistName}
+                  onChange={(event) =>
+                    setSoundcloudData((prev) => ({
+                      ...prev,
+                      artistName: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <Label>Track Name *</Label>
+                <Input
+                  value={soundcloudData.trackName}
+                  onChange={(event) =>
+                    setSoundcloudData((prev) => ({
+                      ...prev,
+                      trackName: event.target.value,
+                    }))
                   }
                 />
               </div>
@@ -675,45 +796,29 @@ export function UnifiedCampaignIntake() {
                 />
               </div>
               <div>
-                <Label>Goal (Millions of Reach) *</Label>
+                <Label>Expected Reach Planned *</Label>
                 <Input
                   type="number"
                   min="1"
-                  value={soundcloudData.goalReposts}
+                  value={soundcloudData.expectedReach}
                   onChange={(event) =>
-                    setSoundcloudData((prev) => ({ ...prev, goalReposts: event.target.value }))
+                    setSoundcloudData((prev) => ({
+                      ...prev,
+                      expectedReach: event.target.value,
+                    }))
                   }
                 />
               </div>
               <div>
-                <Label>Sale Price (USD)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={soundcloudData.salesPrice}
-                  onChange={(event) =>
-                    setSoundcloudData((prev) => ({ ...prev, salesPrice: event.target.value }))
-                  }
-                  placeholder={shared.budget || "500"}
-                />
-              </div>
-              <div>
-                <Label>Invoice Status</Label>
-                <Input
-                  value={soundcloudData.invoiceStatus}
-                  onChange={(event) =>
-                    setSoundcloudData((prev) => ({ ...prev, invoiceStatus: event.target.value }))
-                  }
-                  placeholder="pending"
-                />
-              </div>
-              <div>
-                <Label>Date Requested (optional)</Label>
+                <Label>Support Date</Label>
                 <Input
                   type="date"
-                  value={soundcloudData.dateRequested}
+                  value={soundcloudData.supportDate}
                   onChange={(event) =>
-                    setSoundcloudData((prev) => ({ ...prev, dateRequested: event.target.value }))
+                    setSoundcloudData((prev) => ({
+                      ...prev,
+                      supportDate: event.target.value,
+                    }))
                   }
                 />
               </div>
@@ -763,10 +868,27 @@ export function UnifiedCampaignIntake() {
                       setYoutubeData((prev) => ({ ...prev, clientId: event.target.value }))
                     }
                   >
-                    <option value="">Use shared client</option>
+                    <option value="">Use Spotify client</option>
                     {youtube.clients?.map((client) => (
                       <option key={client.id} value={client.id}>
                         {client.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label>Salesperson</Label>
+                  <select
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={youtubeData.salespersonId}
+                    onChange={(event) =>
+                      setYoutubeData((prev) => ({ ...prev, salespersonId: event.target.value }))
+                    }
+                  >
+                    <option value="">Unassigned</option>
+                    {youtube.salespersons?.map((person) => (
+                      <option key={person.id} value={person.id}>
+                        {person.name}
                       </option>
                     ))}
                   </select>

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { MetricCard } from "@/components/dashboard/metric-card"
 import { UnifiedCampaignIntake } from "@/components/campaign-intake/UnifiedCampaignIntake"
 import { PlatformOverview } from "@/components/dashboard/platform-overview"
@@ -9,6 +10,7 @@ import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { AnalyticsChart } from "@/components/dashboard/analytics-chart"
 import { Users, TrendingUp, MessageSquare, Eye, Calendar, Target } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { Button } from "@/components/ui/button"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -35,9 +37,14 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your marketing operations across all platforms</p>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Overview of your marketing operations across all platforms</p>
+        </div>
+        <Button asChild>
+          <Link href="/campaign-intake">Open Unified Intake</Link>
+        </Button>
       </div>
 
       <UnifiedCampaignIntake />
