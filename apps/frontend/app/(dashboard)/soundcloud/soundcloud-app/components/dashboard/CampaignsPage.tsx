@@ -60,6 +60,7 @@ interface Campaign {
   remaining_metrics: number;
   sales_price: number;
   invoice_status: string;
+  source_invoice_id?: string;
   start_date: string;
   submission_date: string;
   client_id: string;
@@ -186,7 +187,8 @@ export default function CampaignsPage() {
           goals: submission.expected_reach_planned || 0, // Map to expected field name
           remaining_metrics: 0,
           sales_price: 0,
-          invoice_status: 'pending',
+          invoice_status: submission.invoice_status || 'pending',
+          source_invoice_id: submission.source_invoice_id || undefined,
           start_date: submission.support_date,
           submission_date: submission.submitted_at,
           notes: submission.notes || '',

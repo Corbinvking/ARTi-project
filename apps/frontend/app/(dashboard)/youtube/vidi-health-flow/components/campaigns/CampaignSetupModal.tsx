@@ -14,6 +14,7 @@ import { LIKE_SERVER_OPTIONS, COMMENT_SERVER_OPTIONS } from "../../lib/constants
 import type { Database } from "../../integrations/supabase/types";
 import { supabase } from "../../integrations/supabase/client";
 import { useAuth } from "../../contexts/AuthContext";
+import { saveOverride } from "@/lib/overrides";
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'] & {
   clients?: { id: string; name: string; email: string | null; company: string | null } | null;
@@ -21,6 +22,8 @@ type Campaign = Database['public']['Tables']['campaigns']['Row'] & {
   internal_notes?: string | null;
   client_notes?: string | null;
   org_id?: string | null;
+  source_invoice_id?: string | null;
+  invoice_status?: string | null;
 };
 
 interface CampaignSetupModalProps {
@@ -123,6 +126,30 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
       const clientChanged = formData.client_notes.trim() !== (campaign.client_notes || '').trim();
       if (internalChanged) await addNoteHistory('internal', formData.internal_notes);
       if (clientChanged) await addNoteHistory('client', formData.client_notes);
+      if (internalChanged) {
+        await saveOverride({
+          service: 'youtube',
+          campaignId: campaign.id,
+          fieldKey: 'internal_notes',
+          originalValue: campaign.internal_notes || '',
+          overrideValue: formData.internal_notes,
+          overrideReason: 'Manual override',
+          orgId: campaign.org_id || '00000000-0000-0000-0000-000000000001',
+          overriddenBy: user?.id || null,
+        });
+      }
+      if (clientChanged) {
+        await saveOverride({
+          service: 'youtube',
+          campaignId: campaign.id,
+          fieldKey: 'client_notes',
+          originalValue: campaign.client_notes || '',
+          overrideValue: formData.client_notes,
+          overrideReason: 'Manual override',
+          orgId: campaign.org_id || '00000000-0000-0000-0000-000000000001',
+          overriddenBy: user?.id || null,
+        });
+      }
 
       toast({
         title: "Setup Saved",
@@ -167,6 +194,30 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
       const clientChanged = formData.client_notes.trim() !== (campaign.client_notes || '').trim();
       if (internalChanged) await addNoteHistory('internal', formData.internal_notes);
       if (clientChanged) await addNoteHistory('client', formData.client_notes);
+      if (internalChanged) {
+        await saveOverride({
+          service: 'youtube',
+          campaignId: campaign.id,
+          fieldKey: 'internal_notes',
+          originalValue: campaign.internal_notes || '',
+          overrideValue: formData.internal_notes,
+          overrideReason: 'Manual override',
+          orgId: campaign.org_id || '00000000-0000-0000-0000-000000000001',
+          overriddenBy: user?.id || null,
+        });
+      }
+      if (clientChanged) {
+        await saveOverride({
+          service: 'youtube',
+          campaignId: campaign.id,
+          fieldKey: 'client_notes',
+          originalValue: campaign.client_notes || '',
+          overrideValue: formData.client_notes,
+          overrideReason: 'Manual override',
+          orgId: campaign.org_id || '00000000-0000-0000-0000-000000000001',
+          overriddenBy: user?.id || null,
+        });
+      }
 
       toast({
         title: "Campaign Activated",
@@ -226,6 +277,22 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
                   <p className="text-sm">${campaign.sale_price?.toLocaleString()}</p>
                 </div>
               </div>
+              {(campaign.invoice_status || campaign.source_invoice_id) && (
+                <div className="grid grid-cols-2 gap-4">
+                  {campaign.invoice_status && (
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Invoice Status</Label>
+                      <p className="text-sm">{campaign.invoice_status}</p>
+                    </div>
+                  )}
+                  {campaign.source_invoice_id && (
+                    <div>
+                      <Label className="text-sm font-medium text-muted-foreground">Invoice ID</Label>
+                      <p className="text-sm">{campaign.source_invoice_id}</p>
+                    </div>
+                  )}
+                </div>
+              )}
               
               {intakeData.salesperson_name && (
                 <div>

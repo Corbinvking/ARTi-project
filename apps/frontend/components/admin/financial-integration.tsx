@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DollarSign, TrendingUp, Calendar, AlertCircle, CheckCircle, Settings } from "lucide-react"
+import { UnifiedCampaignIntake } from "@/components/campaign-intake/UnifiedCampaignIntake"
 
 export function FinancialIntegration() {
   // Mock data - will be replaced with real QuickBooks API data
@@ -96,6 +97,15 @@ export function FinancialIntegration() {
               {financialData.isConnected ? "Outstanding" : "No Data"}
             </Badge>
           </div>
+        </div>
+
+        {/* Invoice Intake */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold uppercase text-muted-foreground">Invoice Intake</h3>
+          <p className="text-sm text-muted-foreground">
+            Create an internal invoice and instantly generate campaigns for selected services.
+          </p>
+          <UnifiedCampaignIntake mode="invoice" />
         </div>
 
         {/* Quick Actions */}

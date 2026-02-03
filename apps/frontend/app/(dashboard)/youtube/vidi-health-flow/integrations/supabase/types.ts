@@ -142,6 +142,7 @@ export type Database = {
           payment_calculation_date: string | null
           sale_price: number | null
           salesperson_id: string | null
+          source_invoice_id: string | null
           service_type: Database["public"]["Enums"]["service_type"]
           service_types: Json | null
           sheet_tier: string | null
@@ -200,6 +201,7 @@ export type Database = {
           payment_calculation_date?: string | null
           sale_price?: number | null
           salesperson_id?: string | null
+          source_invoice_id?: string | null
           service_type: Database["public"]["Enums"]["service_type"]
           service_types?: Json | null
           sheet_tier?: string | null
@@ -258,6 +260,7 @@ export type Database = {
           payment_calculation_date?: string | null
           sale_price?: number | null
           salesperson_id?: string | null
+          source_invoice_id?: string | null
           service_type?: Database["public"]["Enums"]["service_type"]
           service_types?: Json | null
           sheet_tier?: string | null

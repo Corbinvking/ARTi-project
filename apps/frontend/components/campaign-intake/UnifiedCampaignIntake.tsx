@@ -19,6 +19,8 @@ import { MultiServiceTypeSelector } from "@/app/(dashboard)/youtube/vidi-health-
 import type { Database } from "@/app/(dashboard)/youtube/vidi-health-flow/integrations/supabase/types"
 import { useInstagramCampaignMutations } from "@/app/(dashboard)/instagram/seedstorm-builder/hooks/useInstagramCampaignMutations"
 import { supabase as coreSupabase } from "@/lib/auth"
+import { saveOverride } from "@/lib/overrides"
+import { OverrideField } from "@/components/overrides/OverrideField"
 
 type ServiceKey = "spotify" | "soundcloud" | "youtube" | "instagram"
 type ServiceType = Database["public"]["Enums"]["service_type"]
@@ -50,7 +52,7 @@ const extractYouTubeVideoId = (url: string) => {
   return match?.[1] || ""
 }
 
-export function UnifiedCampaignIntake() {
+export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard" | "invoice" }) {
   const { toast } = useToast()
   const { user } = useAuth()
   const { data: clients = [] } = useClients()
@@ -76,6 +78,15 @@ export function UnifiedCampaignIntake() {
     salesperson: "",
   })
 
+  const [invoice, setInvoice] = useState({
+    invoiceNumber: "",
+    amount: "",
+    dueDate: "",
+    clientName: "",
+    clientEmail: "",
+    notes: "",
+  })
+
   const [spotifyData, setSpotifyData] = useState({
     clientMode: "existing" as "existing" | "new",
     clientId: "",
@@ -98,6 +109,7 @@ export function UnifiedCampaignIntake() {
     trackUrl: "",
     expectedReach: "",
     supportDate: "",
+    ownerId: "",
   })
 
   const [youtubeData, setYoutubeData] = useState({
@@ -106,6 +118,9 @@ export function UnifiedCampaignIntake() {
     salePrice: "",
     salespersonId: "",
     clientId: "",
+    opsOwner: "",
+    adsOwner: "",
+    campaignOwner: "",
   })
   const [youtubeServiceTypes, setYoutubeServiceTypes] = useState<ServiceTypeGoal[]>([
     { id: "1", service_type: "" as ServiceType, goal_views: 0 },
@@ -113,15 +128,37 @@ export function UnifiedCampaignIntake() {
 
   const [instagramData, setInstagramData] = useState({
     soundUrl: "",
+    paidOps: "",
+    salespeople: "",
   })
 
   const [soundcloudClients, setSoundcloudClients] = useState<
     Array<{ id: string; name: string; email: string | null }>
   >([])
 
+  const [intakeOverrides, setIntakeOverrides] = useState<
+    Record<string, { overridden: boolean; original?: string; reason?: string }>
+  >({})
+
   const opsOwner = user?.email || user?.name || ""
   const opsOwnerId = user?.id || null
   const orgId = user?.tenantId || "00000000-0000-0000-0000-000000000001"
+
+  const isOverridden = (fieldKey: string) => Boolean(intakeOverrides[fieldKey]?.overridden)
+
+  const recordOverride = (fieldKey: string, originalValue: string, reason?: string) => {
+    setIntakeOverrides((prev) => ({
+      ...prev,
+      [fieldKey]: { overridden: true, original: originalValue, reason },
+    }))
+  }
+
+  const clearOverride = (fieldKey: string) => {
+    setIntakeOverrides((prev) => ({
+      ...prev,
+      [fieldKey]: { overridden: false, original: prev[fieldKey]?.original, reason: undefined },
+    }))
+  }
 
   const addNoteHistory = async ({
     service,
@@ -145,11 +182,42 @@ export function UnifiedCampaignIntake() {
     })
   }
 
+  const persistOverrides = async ({
+    service,
+    campaignId,
+    entries,
+  }: {
+    service: ServiceKey
+    campaignId: string
+    entries: Array<{ fieldKey: string; value: unknown; originalValue?: unknown }>
+  }) => {
+    for (const entry of entries) {
+      const override = intakeOverrides[entry.fieldKey]
+      if (!override?.overridden) continue
+      await saveOverride({
+        service,
+        campaignId,
+        fieldKey: entry.fieldKey,
+        originalValue: override.original ?? entry.originalValue,
+        overrideValue: entry.value,
+        overrideReason: override.reason,
+        orgId,
+        overriddenBy: opsOwnerId,
+      })
+    }
+  }
+
   useEffect(() => {
-    if (!shared.salesperson && user?.email) {
+    if (!shared.salesperson && user?.email && !isOverridden("salesperson")) {
       setShared((prev) => ({ ...prev, salesperson: user.email || "" }))
     }
-  }, [shared.salesperson, user?.email])
+  }, [shared.salesperson, user?.email, intakeOverrides])
+
+  useEffect(() => {
+    if (mode === "invoice" && invoice.amount && !shared.budget) {
+      setShared((prev) => ({ ...prev, budget: invoice.amount }))
+    }
+  }, [mode, invoice.amount, shared.budget])
 
   useEffect(() => {
     if (spotifyData.clientMode === "existing" && spotifyData.clientId) {
@@ -157,12 +225,44 @@ export function UnifiedCampaignIntake() {
       if (selected) {
         setSpotifyData((prev) => ({
           ...prev,
-          clientName: selected.name,
-          clientEmails: (selected.emails || []).join(", "),
+          clientName: isOverridden("client_name") ? prev.clientName : selected.name,
+          clientEmails: isOverridden("client_emails")
+            ? prev.clientEmails
+            : (selected.emails || []).join(", "),
         }))
       }
     }
-  }, [clients, spotifyData.clientId, spotifyData.clientMode])
+  }, [clients, spotifyData.clientId, spotifyData.clientMode, intakeOverrides])
+
+  useEffect(() => {
+    if (!opsOwner) return
+    setYoutubeData((prev) => ({
+      ...prev,
+      opsOwner: isOverridden("ops_owner") ? prev.opsOwner : prev.opsOwner || opsOwner,
+      adsOwner: isOverridden("ads_owner") ? prev.adsOwner : prev.adsOwner || opsOwner,
+      campaignOwner: isOverridden("campaign_owner") ? prev.campaignOwner : prev.campaignOwner || opsOwner,
+    }))
+  }, [opsOwner, intakeOverrides])
+
+  useEffect(() => {
+    if (!opsOwner) return
+    setInstagramData((prev) => ({
+      ...prev,
+      paidOps: isOverridden("paid_ops") ? prev.paidOps : prev.paidOps || opsOwner,
+      salespeople: isOverridden("salespeople")
+        ? prev.salespeople
+        : prev.salespeople || shared.salesperson || opsOwner,
+    }))
+  }, [opsOwner, shared.salesperson, intakeOverrides])
+
+  useEffect(() => {
+    if (opsOwnerId && !isOverridden("owner_id")) {
+      setSoundcloudData((prev) => ({
+        ...prev,
+        ownerId: prev.ownerId || opsOwnerId,
+      }))
+    }
+  }, [opsOwnerId, intakeOverrides])
 
   useEffect(() => {
     let mounted = true
@@ -204,6 +304,11 @@ export function UnifiedCampaignIntake() {
     [selectedServices],
   )
 
+  const selectedSpotifyClient = useMemo(
+    () => clients.find((client) => client.id === spotifyData.clientId),
+    [clients, spotifyData.clientId],
+  )
+
   const ensureSpotifyClient = async () => {
     if (spotifyData.clientMode === "existing") {
       const selected = clients.find((client) => client.id === spotifyData.clientId)
@@ -236,6 +341,20 @@ export function UnifiedCampaignIntake() {
     if (!shared.startDate) {
       return "Start date is required."
     }
+    if (mode === "invoice") {
+      if (!invoice.invoiceNumber.trim()) {
+        return "Invoice number is required."
+      }
+      if (!invoice.amount || Number(invoice.amount) <= 0) {
+        return "Invoice amount must be greater than $0."
+      }
+      if (!invoice.clientName.trim()) {
+        return "Invoice client name is required."
+      }
+      if (!invoice.clientEmail.trim()) {
+        return "Invoice client email is required."
+      }
+    }
     return null
   }
 
@@ -251,6 +370,40 @@ export function UnifiedCampaignIntake() {
     const results: Array<{ service: ServiceKey; success: boolean; message: string }> = []
 
     try {
+      let sourceInvoiceId: string | null = null
+      if (mode === "invoice") {
+        const invoicePayload = {
+          org_id: orgId,
+          campaign_id: null,
+          invoice_number: invoice.invoiceNumber.trim(),
+          amount: Number(invoice.amount),
+          status: "pending",
+          issued_date: new Date().toISOString().slice(0, 10),
+          due_date: invoice.dueDate || null,
+          notes: invoice.notes || null,
+          client_name: invoice.clientName.trim(),
+          client_email: invoice.clientEmail.trim(),
+          services_selected: selectedServices,
+          intake_payload: {
+            invoice,
+            shared,
+            spotifyData,
+            soundcloudData,
+            youtubeData,
+            youtubeServiceTypes,
+            instagramData,
+          },
+        }
+
+        const { data: invoiceRecord, error: invoiceError } = await coreSupabase
+          .from("campaign_invoices")
+          .insert(invoicePayload)
+          .select("id")
+          .single()
+        if (invoiceError) throw invoiceError
+        sourceInvoiceId = invoiceRecord?.id || null
+      }
+
       const sharedClient = selectedServices.includes("spotify") ? await ensureSpotifyClient() : null
 
       if (selectedServices.includes("spotify") && !sharedClient) {
@@ -258,7 +411,7 @@ export function UnifiedCampaignIntake() {
       }
 
       if (selectedServices.includes("spotify")) {
-        if (!opsOwner) {
+        if (!shared.salesperson && !opsOwner) {
           results.push({
             service: "spotify",
             success: false,
@@ -310,6 +463,8 @@ export function UnifiedCampaignIntake() {
               notes: shared.internalNotes,
               internal_notes: shared.internalNotes || null,
               client_notes: shared.clientNotes || null,
+              source_invoice_id: sourceInvoiceId,
+              invoice_status: mode === "invoice" ? "pending" : undefined,
               salesperson: shared.salesperson || opsOwner,
               music_genres: parseEmailList(spotifyData.genres),
               territory_preferences: parseEmailList(spotifyData.territories),
@@ -326,6 +481,27 @@ export function UnifiedCampaignIntake() {
                 campaignId: submission.id,
                 noteType: "client",
                 content: shared.clientNotes,
+              })
+              await persistOverrides({
+                service: "spotify",
+                campaignId: submission.id,
+                entries: [
+                  {
+                    fieldKey: "salesperson",
+                    value: shared.salesperson,
+                    originalValue: opsOwner,
+                  },
+                  {
+                    fieldKey: "client_name",
+                    value: spotifyData.clientName,
+                    originalValue: selectedSpotifyClient?.name || "",
+                  },
+                  {
+                    fieldKey: "client_emails",
+                    value: spotifyData.clientEmails,
+                    originalValue: (selectedSpotifyClient?.emails || []).join(", "),
+                  },
+                ],
               })
             }
             results.push({
@@ -344,7 +520,7 @@ export function UnifiedCampaignIntake() {
       }
 
       if (selectedServices.includes("soundcloud")) {
-        if (!opsOwnerId) {
+          if (!soundcloudData.ownerId && !opsOwnerId) {
           results.push({
             service: "soundcloud",
             success: false,
@@ -385,7 +561,7 @@ export function UnifiedCampaignIntake() {
               org_id: "00000000-0000-0000-0000-000000000001",
               client_id: clientId,
               member_id: null,
-              owner_id: opsOwnerId,
+              owner_id: soundcloudData.ownerId || opsOwnerId,
               track_url: soundcloudData.trackUrl,
               artist_name: soundcloudData.artistName,
               track_name: soundcloudData.trackName,
@@ -395,6 +571,8 @@ export function UnifiedCampaignIntake() {
               notes: shared.internalNotes || null,
               internal_notes: shared.internalNotes || null,
               client_notes: shared.clientNotes || null,
+              source_invoice_id: sourceInvoiceId,
+              invoice_status: mode === "invoice" ? "pending" : undefined,
               qa_flag: false,
               need_live_link: false,
               suggested_supporters: [],
@@ -423,6 +601,17 @@ export function UnifiedCampaignIntake() {
                 noteType: "client",
                 content: shared.clientNotes,
               })
+              await persistOverrides({
+                service: "soundcloud",
+                campaignId: data.id,
+                entries: [
+                  {
+                    fieldKey: "owner_id",
+                    value: soundcloudData.ownerId || opsOwnerId,
+                    originalValue: opsOwnerId,
+                  },
+                ],
+              })
             }
 
             results.push({
@@ -441,7 +630,7 @@ export function UnifiedCampaignIntake() {
       }
 
       if (selectedServices.includes("youtube")) {
-        if (!opsOwner) {
+          if (!youtubeData.opsOwner && !opsOwner) {
           results.push({
             service: "youtube",
             success: false,
@@ -484,7 +673,7 @@ export function UnifiedCampaignIntake() {
               0,
             )
 
-            const ownershipNote = `OpsOwner:${opsOwner};AdsOwner:${opsOwner};CampaignOwner:${opsOwner}`
+            const ownershipNote = `OpsOwner:${youtubeData.opsOwner || opsOwner};AdsOwner:${youtubeData.adsOwner || opsOwner};CampaignOwner:${youtubeData.campaignOwner || opsOwner}`
             const customServiceType = [shared.internalNotes?.trim(), ownershipNote]
               .filter(Boolean)
               .join(" | ")
@@ -510,6 +699,8 @@ export function UnifiedCampaignIntake() {
               custom_service_type: customServiceType || null,
               internal_notes: shared.internalNotes || null,
               client_notes: shared.clientNotes || null,
+              source_invoice_id: sourceInvoiceId,
+              invoice_status: mode === "invoice" ? "sent" : undefined,
             })
 
             if (error) throw error
@@ -525,6 +716,27 @@ export function UnifiedCampaignIntake() {
                 campaignId: data.id,
                 noteType: "client",
                 content: shared.clientNotes,
+              })
+              await persistOverrides({
+                service: "youtube",
+                campaignId: data.id,
+                entries: [
+                  {
+                    fieldKey: "ops_owner",
+                    value: youtubeData.opsOwner || opsOwner,
+                    originalValue: opsOwner,
+                  },
+                  {
+                    fieldKey: "ads_owner",
+                    value: youtubeData.adsOwner || opsOwner,
+                    originalValue: opsOwner,
+                  },
+                  {
+                    fieldKey: "campaign_owner",
+                    value: youtubeData.campaignOwner || opsOwner,
+                    originalValue: opsOwner,
+                  },
+                ],
               })
             }
 
@@ -545,7 +757,7 @@ export function UnifiedCampaignIntake() {
 
       if (selectedServices.includes("instagram")) {
         try {
-          if (!opsOwner) {
+          if (!instagramData.paidOps && !opsOwner) {
             throw new Error("Unable to determine ops owner for Instagram.")
           }
           const campaign = await instagramMutations.createCampaignAsync({
@@ -555,10 +767,12 @@ export function UnifiedCampaignIntake() {
             price: shared.budget,
             sound_url: instagramData.soundUrl || undefined,
             status: "Draft",
-            salespeople: shared.salesperson || opsOwner,
-            paid_ops: opsOwner,
+            salespeople: instagramData.salespeople || shared.salesperson || opsOwner,
+            paid_ops: instagramData.paidOps || opsOwner,
             report_notes: shared.internalNotes || undefined,
             client_notes: shared.clientNotes || undefined,
+            source_invoice_id: sourceInvoiceId || undefined,
+            invoice_status: mode === "invoice" ? "pending" : undefined,
           })
           if (campaign?.id) {
             await addNoteHistory({
@@ -572,6 +786,22 @@ export function UnifiedCampaignIntake() {
               campaignId: String(campaign.id),
               noteType: "client",
               content: shared.clientNotes,
+            })
+            await persistOverrides({
+              service: "instagram",
+              campaignId: String(campaign.id),
+              entries: [
+                {
+                  fieldKey: "paid_ops",
+                  value: instagramData.paidOps || opsOwner,
+                  originalValue: opsOwner,
+                },
+                {
+                  fieldKey: "salespeople",
+                  value: instagramData.salespeople || shared.salesperson || opsOwner,
+                  originalValue: shared.salesperson || opsOwner,
+                },
+              ],
             })
           }
           results.push({
@@ -625,6 +855,76 @@ export function UnifiedCampaignIntake() {
           </div>
         </div>
 
+        {mode === "invoice" && (
+          <div className="space-y-4 border rounded-lg p-4">
+            <h3 className="text-sm font-semibold uppercase text-muted-foreground">Invoice Details</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label>Invoice Number *</Label>
+                <Input
+                  value={invoice.invoiceNumber}
+                  onChange={(event) =>
+                    setInvoice((prev) => ({ ...prev, invoiceNumber: event.target.value }))
+                  }
+                  placeholder="INV-10023"
+                />
+              </div>
+              <div>
+                <Label>Invoice Amount (USD) *</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={invoice.amount}
+                  onChange={(event) =>
+                    setInvoice((prev) => ({ ...prev, amount: event.target.value }))
+                  }
+                  placeholder="5000"
+                />
+              </div>
+              <div>
+                <Label>Invoice Due Date</Label>
+                <Input
+                  type="date"
+                  value={invoice.dueDate}
+                  onChange={(event) =>
+                    setInvoice((prev) => ({ ...prev, dueDate: event.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <Label>Client Name *</Label>
+                <Input
+                  value={invoice.clientName}
+                  onChange={(event) =>
+                    setInvoice((prev) => ({ ...prev, clientName: event.target.value }))
+                  }
+                  placeholder="Client or Brand Name"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Client Email *</Label>
+                <Input
+                  type="email"
+                  value={invoice.clientEmail}
+                  onChange={(event) =>
+                    setInvoice((prev) => ({ ...prev, clientEmail: event.target.value }))
+                  }
+                  placeholder="billing@client.com"
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Invoice Notes</Label>
+              <Textarea
+                rows={3}
+                value={invoice.notes}
+                onChange={(event) => setInvoice((prev) => ({ ...prev, notes: event.target.value }))}
+                placeholder="Payment terms or invoice notes..."
+              />
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4 border rounded-lg p-4">
           <h3 className="text-sm font-semibold uppercase text-muted-foreground">Shared Details</h3>
           <div className="grid gap-4 md:grid-cols-2">
@@ -671,13 +971,20 @@ export function UnifiedCampaignIntake() {
               />
             </div>
             <div>
-              <Label>Salesperson (email/name)</Label>
-              <Input
+              <OverrideField
+                label="Salesperson (email/name)"
                 value={shared.salesperson}
-                onChange={(event) =>
-                  setShared((prev) => ({ ...prev, salesperson: event.target.value }))
-                }
+                suggestedValue={opsOwner}
+                overridden={isOverridden("salesperson")}
                 placeholder="sales@artistinfluence.com"
+                onOverride={(value, reason) => {
+                  setShared((prev) => ({ ...prev, salesperson: value }))
+                  recordOverride("salesperson", opsOwner, reason)
+                }}
+                onRevert={() => {
+                  setShared((prev) => ({ ...prev, salesperson: opsOwner }))
+                  clearOverride("salesperson")
+                }}
               />
             </div>
           </div>
@@ -750,6 +1057,7 @@ export function UnifiedCampaignIntake() {
                 </div>
 
                 {spotifyData.clientMode === "existing" ? (
+                <div className="space-y-3">
                   <ClientSelector
                     value={spotifyData.clientId}
                     onChange={(clientId) =>
@@ -757,6 +1065,48 @@ export function UnifiedCampaignIntake() {
                     }
                     placeholder="Search clients..."
                   />
+                  {selectedSpotifyClient && (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <OverrideField
+                        label="Client name (override)"
+                        value={spotifyData.clientName}
+                        suggestedValue={selectedSpotifyClient.name}
+                        overridden={isOverridden("client_name")}
+                        placeholder="Client name"
+                        onOverride={(value, reason) => {
+                          setSpotifyData((prev) => ({ ...prev, clientName: value }))
+                          recordOverride("client_name", selectedSpotifyClient.name, reason)
+                        }}
+                        onRevert={() => {
+                          setSpotifyData((prev) => ({ ...prev, clientName: selectedSpotifyClient.name }))
+                          clearOverride("client_name")
+                        }}
+                      />
+                      <OverrideField
+                        label="Client emails (override)"
+                        value={spotifyData.clientEmails}
+                        suggestedValue={(selectedSpotifyClient.emails || []).join(", ")}
+                        overridden={isOverridden("client_emails")}
+                        placeholder="Client emails (comma-separated)"
+                        onOverride={(value, reason) => {
+                          setSpotifyData((prev) => ({ ...prev, clientEmails: value }))
+                          recordOverride(
+                            "client_emails",
+                            (selectedSpotifyClient.emails || []).join(", "),
+                            reason,
+                          )
+                        }}
+                        onRevert={() => {
+                          setSpotifyData((prev) => ({
+                            ...prev,
+                            clientEmails: (selectedSpotifyClient.emails || []).join(", "),
+                          }))
+                          clearOverride("client_emails")
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
                 ) : (
                   <div className="grid gap-3 md:grid-cols-2">
                     <Input
@@ -902,6 +1252,26 @@ export function UnifiedCampaignIntake() {
                 />
               </div>
               <div>
+                <OverrideField
+                  label="Ops Owner ID (override)"
+                  value={soundcloudData.ownerId}
+                  suggestedValue={opsOwnerId || ""}
+                  overridden={isOverridden("owner_id")}
+                  placeholder="Ops owner user id"
+                  onOverride={(value, reason) => {
+                    setSoundcloudData((prev) => ({ ...prev, ownerId: value }))
+                    recordOverride("owner_id", String(opsOwnerId || ""), reason)
+                  }}
+                  onRevert={() => {
+                    setSoundcloudData((prev) => ({ ...prev, ownerId: opsOwnerId || "" }))
+                    clearOverride("owner_id")
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Defaults to your user id. Override only if needed.
+                </p>
+              </div>
+              <div>
                 <Label>Artist Name *</Label>
                 <Input
                   value={soundcloudData.artistName}
@@ -1033,6 +1403,51 @@ export function UnifiedCampaignIntake() {
                     ))}
                   </select>
                 </div>
+                <OverrideField
+                  label="Ops Owner (override)"
+                  value={youtubeData.opsOwner}
+                  suggestedValue={opsOwner}
+                  overridden={isOverridden("ops_owner")}
+                  placeholder="ops@artistinfluence.com"
+                  onOverride={(value, reason) => {
+                    setYoutubeData((prev) => ({ ...prev, opsOwner: value }))
+                    recordOverride("ops_owner", opsOwner, reason)
+                  }}
+                  onRevert={() => {
+                    setYoutubeData((prev) => ({ ...prev, opsOwner: opsOwner }))
+                    clearOverride("ops_owner")
+                  }}
+                />
+                <OverrideField
+                  label="Ads Owner (override)"
+                  value={youtubeData.adsOwner}
+                  suggestedValue={opsOwner}
+                  overridden={isOverridden("ads_owner")}
+                  placeholder="ads@artistinfluence.com"
+                  onOverride={(value, reason) => {
+                    setYoutubeData((prev) => ({ ...prev, adsOwner: value }))
+                    recordOverride("ads_owner", opsOwner, reason)
+                  }}
+                  onRevert={() => {
+                    setYoutubeData((prev) => ({ ...prev, adsOwner: opsOwner }))
+                    clearOverride("ads_owner")
+                  }}
+                />
+                <OverrideField
+                  label="Campaign Owner (override)"
+                  value={youtubeData.campaignOwner}
+                  suggestedValue={opsOwner}
+                  overridden={isOverridden("campaign_owner")}
+                  placeholder="campaign@artistinfluence.com"
+                  onOverride={(value, reason) => {
+                    setYoutubeData((prev) => ({ ...prev, campaignOwner: value }))
+                    recordOverride("campaign_owner", opsOwner, reason)
+                  }}
+                  onRevert={() => {
+                    setYoutubeData((prev) => ({ ...prev, campaignOwner: opsOwner }))
+                    clearOverride("campaign_owner")
+                  }}
+                />
               </div>
 
               <MultiServiceTypeSelector
@@ -1054,6 +1469,39 @@ export function UnifiedCampaignIntake() {
                   placeholder="https://..."
                 />
               </div>
+              <OverrideField
+                label="Paid Ops (override)"
+                value={instagramData.paidOps}
+                suggestedValue={opsOwner}
+                overridden={isOverridden("paid_ops")}
+                placeholder="ops@artistinfluence.com"
+                onOverride={(value, reason) => {
+                  setInstagramData((prev) => ({ ...prev, paidOps: value }))
+                  recordOverride("paid_ops", opsOwner, reason)
+                }}
+                onRevert={() => {
+                  setInstagramData((prev) => ({ ...prev, paidOps: opsOwner }))
+                  clearOverride("paid_ops")
+                }}
+              />
+              <OverrideField
+                label="Salespeople (override)"
+                value={instagramData.salespeople}
+                suggestedValue={shared.salesperson || opsOwner}
+                overridden={isOverridden("salespeople")}
+                placeholder="sales@artistinfluence.com"
+                onOverride={(value, reason) => {
+                  setInstagramData((prev) => ({ ...prev, salespeople: value }))
+                  recordOverride("salespeople", shared.salesperson || opsOwner, reason)
+                }}
+                onRevert={() => {
+                  setInstagramData((prev) => ({
+                    ...prev,
+                    salespeople: shared.salesperson || opsOwner,
+                  }))
+                  clearOverride("salespeople")
+                }}
+              />
             </div>
           </TabsContent>
         </Tabs>

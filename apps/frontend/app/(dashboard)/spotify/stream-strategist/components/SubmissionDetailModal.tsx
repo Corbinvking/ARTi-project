@@ -36,6 +36,8 @@ import { useUpdateSubmissionVendors } from '../hooks/useCampaignSubmissions';
 import { PlaylistSelector } from './PlaylistSelector';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
+import { OverrideField } from '@/components/overrides/OverrideField';
+import { saveOverride, revertOverride } from '@/lib/overrides';
 
 // Genre mapping for matching
 const GENRE_MAPPING: Record<string, string[]> = {
@@ -123,6 +125,8 @@ interface Submission {
   notes?: string;
   internal_notes?: string;
   client_notes?: string;
+  source_invoice_id?: string;
+  invoice_status?: string;
   status: string;
   vendor_assignments?: VendorAssignment[];
   rejection_reason?: string;
@@ -160,6 +164,8 @@ export function SubmissionDetailModal({
   const [internalNotes, setInternalNotes] = useState('');
   const [clientNotes, setClientNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [suggestedInternalNotes, setSuggestedInternalNotes] = useState('');
+  const [suggestedClientNotes, setSuggestedClientNotes] = useState('');
   
   const { data: vendors = [] } = useVendors();
   const updateVendorsMutation = useUpdateSubmissionVendors();
@@ -200,6 +206,8 @@ export function SubmissionDetailModal({
     if (submission) {
       setInternalNotes(submission.internal_notes || submission.notes || '');
       setClientNotes(submission.client_notes || '');
+      setSuggestedInternalNotes(submission.internal_notes || submission.notes || '');
+      setSuggestedClientNotes(submission.client_notes || '');
     }
   }, [submission]);
 
@@ -215,42 +223,91 @@ export function SubmissionDetailModal({
     });
   };
 
-  const handleSaveNotes = async () => {
+  const saveNoteOverride = async (
+    fieldKey: 'internal_notes' | 'client_notes',
+    value: string,
+    reason?: string,
+  ) => {
     if (!submission) return;
-    const internalChanged =
-      internalNotes.trim() !== (submission.internal_notes || submission.notes || '').trim();
-    const clientChanged = clientNotes.trim() !== (submission.client_notes || '').trim();
-
-    if (!internalChanged && !clientChanged) {
-      toast({ title: 'No changes', description: 'Notes are unchanged.' });
-      return;
-    }
-
     setSavingNotes(true);
     try {
+      const updatePayload =
+        fieldKey === 'internal_notes'
+          ? { internal_notes: value.trim() || null, notes: value.trim() || null }
+          : { client_notes: value.trim() || null };
+
       const { error } = await supabase
         .from('campaign_submissions')
-        .update({
-          internal_notes: internalNotes.trim() || null,
-          client_notes: clientNotes.trim() || null,
-          notes: internalNotes.trim() || null,
-        })
+        .update(updatePayload)
         .eq('id', submission.id);
 
       if (error) throw error;
 
-      if (internalChanged) {
-        await addNoteHistory('internal', internalNotes);
-      }
-      if (clientChanged) {
-        await addNoteHistory('client', clientNotes);
+      if (fieldKey === 'internal_notes') {
+        setInternalNotes(value);
+        await addNoteHistory('internal', value);
+      } else {
+        setClientNotes(value);
+        await addNoteHistory('client', value);
       }
 
-      toast({ title: 'Notes saved', description: 'Notes updated successfully.' });
+      await saveOverride({
+        service: 'spotify',
+        campaignId: submission.id,
+        fieldKey,
+        originalValue: fieldKey === 'internal_notes' ? suggestedInternalNotes : suggestedClientNotes,
+        overrideValue: value,
+        overrideReason: reason,
+        orgId: user?.org_id || '00000000-0000-0000-0000-000000000001',
+        overriddenBy: user?.id || null,
+      });
+
+      toast({ title: 'Override saved', description: 'Override stored successfully.' });
     } catch (error: any) {
       toast({
         title: 'Save failed',
-        description: error?.message || 'Failed to save notes.',
+        description: error?.message || 'Failed to save override.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
+  const revertNoteOverride = async (fieldKey: 'internal_notes' | 'client_notes') => {
+    if (!submission) return;
+    const suggested = fieldKey === 'internal_notes' ? suggestedInternalNotes : suggestedClientNotes;
+    setSavingNotes(true);
+    try {
+      const updatePayload =
+        fieldKey === 'internal_notes'
+          ? { internal_notes: suggested || null, notes: suggested || null }
+          : { client_notes: suggested || null };
+
+      const { error } = await supabase
+        .from('campaign_submissions')
+        .update(updatePayload)
+        .eq('id', submission.id);
+
+      if (error) throw error;
+
+      await revertOverride({
+        service: 'spotify',
+        campaignId: submission.id,
+        fieldKey,
+      });
+
+      if (fieldKey === 'internal_notes') {
+        setInternalNotes(suggested);
+      } else {
+        setClientNotes(suggested);
+      }
+
+      toast({ title: 'Override reverted', description: 'Reverted to suggested value.' });
+    } catch (error: any) {
+      toast({
+        title: 'Revert failed',
+        description: error?.message || 'Failed to revert override.',
         variant: 'destructive',
       });
     } finally {
@@ -603,6 +660,12 @@ export function SubmissionDetailModal({
               <Badge variant={submission.status === 'pending_approval' ? 'default' : 'secondary'}>
                 {submission.status === 'pending_approval' ? 'Pending Approval' : submission.status}
               </Badge>
+              {submission.invoice_status && (
+                <Badge variant="outline">Invoice: {submission.invoice_status}</Badge>
+              )}
+              {submission.source_invoice_id && (
+                <Badge variant="secondary">Invoice ID: {submission.source_invoice_id}</Badge>
+              )}
               <span className="text-muted-foreground">
                 Submitted {format(new Date(submission.created_at), 'PPp')}
               </span>
@@ -1063,29 +1126,28 @@ export function SubmissionDetailModal({
                   <CardDescription>Internal notes are ops-only. Client notes are visible to clients.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Internal Notes (Ops Only)</Label>
-                    <Textarea
-                      value={internalNotes}
-                      onChange={(e) => setInternalNotes(e.target.value)}
-                      rows={3}
-                      placeholder="Add internal notes..."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Client Notes (Visible to Clients)</Label>
-                    <Textarea
-                      value={clientNotes}
-                      onChange={(e) => setClientNotes(e.target.value)}
-                      rows={3}
-                      placeholder="Add client notes..."
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <Button onClick={handleSaveNotes} disabled={savingNotes}>
-                      {savingNotes ? 'Saving...' : 'Save Notes'}
-                    </Button>
-                  </div>
+                  <OverrideField
+                    label="Internal Notes (Ops Only)"
+                    value={internalNotes}
+                    suggestedValue={suggestedInternalNotes}
+                    overridden={internalNotes.trim() !== suggestedInternalNotes.trim()}
+                    inputType="textarea"
+                    rows={3}
+                    placeholder="Add internal notes..."
+                    onOverride={(value, reason) => saveNoteOverride('internal_notes', value, reason)}
+                    onRevert={() => revertNoteOverride('internal_notes')}
+                  />
+                  <OverrideField
+                    label="Client Notes (Visible to Clients)"
+                    value={clientNotes}
+                    suggestedValue={suggestedClientNotes}
+                    overridden={clientNotes.trim() !== suggestedClientNotes.trim()}
+                    inputType="textarea"
+                    rows={3}
+                    placeholder="Add client notes..."
+                    onOverride={(value, reason) => saveNoteOverride('client_notes', value, reason)}
+                    onRevert={() => revertNoteOverride('client_notes')}
+                  />
                 </CardContent>
               </Card>
 

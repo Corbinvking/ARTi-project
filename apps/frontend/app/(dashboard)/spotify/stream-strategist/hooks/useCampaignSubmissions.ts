@@ -26,6 +26,8 @@ interface CampaignSubmission {
   territory_preferences: string[];
   internal_notes?: string | null;
   client_notes?: string | null;
+  source_invoice_id?: string | null;
+  invoice_status?: string | null;
 }
 
 interface CreateSubmissionData {
@@ -45,6 +47,8 @@ interface CreateSubmissionData {
   territory_preferences: string[];
   internal_notes?: string | null;
   client_notes?: string | null;
+  source_invoice_id?: string | null;
+  invoice_status?: string | null;
   vendor_assignments?: Array<{
     vendor_id: string;
     vendor_name: string;

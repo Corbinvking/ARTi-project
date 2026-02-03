@@ -17,6 +17,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 import { supabase } from "@/lib/auth";
 import { useAuth } from "@/hooks/use-auth";
+import { saveOverride } from "@/lib/overrides";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInstagramCampaignMutations } from "../seedstorm-builder/hooks/useInstagramCampaignMutations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -320,9 +321,29 @@ export default function InstagramCampaignsPage() {
 
     if (internalChanged) {
       await addNoteHistory('internal', editForm?.report_notes || '');
+      await saveOverride({
+        service: 'instagram',
+        campaignId: String(selectedCampaign?.id || ''),
+        fieldKey: 'report_notes',
+        originalValue: selectedCampaign?.report_notes || '',
+        overrideValue: editForm?.report_notes || '',
+        overrideReason: 'Manual override',
+        orgId: user?.tenantId || '00000000-0000-0000-0000-000000000001',
+        overriddenBy: user?.id || null,
+      });
     }
     if (clientChanged) {
       await addNoteHistory('client', editForm?.client_notes || '');
+      await saveOverride({
+        service: 'instagram',
+        campaignId: String(selectedCampaign?.id || ''),
+        fieldKey: 'client_notes',
+        originalValue: selectedCampaign?.client_notes || '',
+        overrideValue: editForm?.client_notes || '',
+        overrideReason: 'Manual override',
+        orgId: user?.tenantId || '00000000-0000-0000-0000-000000000001',
+        overriddenBy: user?.id || null,
+      });
     }
 
     setIsEditMode(false);
@@ -1097,8 +1118,14 @@ export default function InstagramCampaignsPage() {
                         placeholder="N/A"
                       />
                     ) : (
-                      <p className="text-lg font-medium">{selectedCampaign.invoice || 'N/A'}</p>
+                      <p className="text-lg font-medium">
+                        {selectedCampaign.invoice_status || selectedCampaign.invoice || 'N/A'}
+                      </p>
                     )}
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Invoice ID</p>
+                    <p className="text-lg font-medium">{selectedCampaign.source_invoice_id || 'N/A'}</p>
                   </div>
                 </CardContent>
               </Card>

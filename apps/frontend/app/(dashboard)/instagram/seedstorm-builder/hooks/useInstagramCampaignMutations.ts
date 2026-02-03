@@ -20,6 +20,8 @@ export interface CampaignInput {
   report_notes?: string;
   client_notes?: string;
   paid_ops?: string;
+  source_invoice_id?: string;
+  invoice_status?: string;
 }
 
 export function useInstagramCampaignMutations() {
