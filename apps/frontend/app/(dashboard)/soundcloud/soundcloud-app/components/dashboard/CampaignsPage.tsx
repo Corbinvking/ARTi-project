@@ -48,6 +48,8 @@ import { CampaignForm } from "./CampaignForm";
 import { CampaignDetailModal } from "./CampaignDetailModal";
 import { useCampaignReachData } from "../../hooks/useCampaignReachData";
 import { formatReachPerformance, calculateReachProgress } from "../../utils/numberFormatting";
+import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Campaign {
   id: string;
@@ -85,6 +87,7 @@ export default function CampaignsPage() {
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
   const { getTotalReach, loading: reachLoading } = useCampaignReachData();
 
   // Helper function to extract clean track name from SoundCloud URL
@@ -159,10 +162,14 @@ export default function CampaignsPage() {
       // Transform submissions to match campaign structure
       // Map database status values to UI display values
       const displayStatusMap: Record<string, string> = {
-        'new': 'Pending',
-        'approved': 'Active',
-        'rejected': 'Cancelled',
-        'complete': 'Complete',
+        pending: 'Pending',
+        ready: 'Ready',
+        active: 'Active',
+        complete: 'Complete',
+        on_hold: 'On Hold',
+        new: 'Pending',
+        approved: 'Active',
+        rejected: 'On Hold',
       };
       
       const transformedData = ((data || []) as any[]).map((submission: any, idx: number) => {
@@ -309,7 +316,8 @@ export default function CampaignsPage() {
       case 'Active': return 'bg-green-500';
       case 'Complete': return 'bg-blue-500';
       case 'Pending': return 'bg-yellow-500';
-      case 'Cancelled': return 'bg-red-500';
+      case 'Ready': return 'bg-blue-500';
+      case 'On Hold': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
@@ -317,10 +325,14 @@ export default function CampaignsPage() {
   // Map database status to UI display status
   const getDisplayStatus = (dbStatus: string): string => {
     const displayMap: Record<string, string> = {
-      'new': 'Pending',
-      'approved': 'Active',
-      'rejected': 'Cancelled',
-      'complete': 'Complete',
+      pending: 'Pending',
+      ready: 'Ready',
+      active: 'Active',
+      complete: 'Complete',
+      on_hold: 'On Hold',
+      new: 'Pending',
+      approved: 'Active',
+      rejected: 'On Hold',
     };
     return displayMap[dbStatus] || dbStatus;
   };
@@ -328,10 +340,12 @@ export default function CampaignsPage() {
   // Map UI status to database status
   const getDbStatus = (uiStatus: string): string => {
     const dbMap: Record<string, string> = {
-      'Pending': 'new',
-      'Active': 'approved',
+      'Pending': 'pending',
+      'Ready': 'ready',
+      'Active': 'active',
       'Complete': 'complete',
-      'Cancelled': 'rejected',
+      'On Hold': 'on_hold',
+      'Cancelled': 'on_hold',
     };
     return dbMap[uiStatus] || uiStatus;
   };
@@ -359,6 +373,12 @@ export default function CampaignsPage() {
       toast({
         title: "Success",
         description: `Campaign status updated to ${newStatus}`,
+      });
+      await notifyOpsStatusChange({
+        service: "soundcloud",
+        campaignId,
+        status: dbStatus,
+        actorEmail: user?.email || null,
       });
       fetchCampaigns();
     } catch (error: any) {
@@ -464,10 +484,11 @@ export default function CampaignsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Ready">Ready</SelectItem>
                     <SelectItem value="Active">Active</SelectItem>
                     <SelectItem value="Complete">Complete</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    <SelectItem value="On Hold">On Hold</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -586,10 +607,11 @@ export default function CampaignsPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="Pending">Pending</SelectItem>
+                            <SelectItem value="Ready">Ready</SelectItem>
                             <SelectItem value="Active">Active</SelectItem>
                             <SelectItem value="Complete">Complete</SelectItem>
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            <SelectItem value="On Hold">On Hold</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>

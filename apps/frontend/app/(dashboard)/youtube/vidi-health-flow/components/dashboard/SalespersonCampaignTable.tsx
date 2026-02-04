@@ -109,8 +109,9 @@ const calculateHealthScore = (campaign: Campaign): number => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'active': return 'default';
+    case 'ready': return 'secondary';
     case 'pending': return 'secondary';
-    case 'paused': return 'outline';
+    case 'on_hold': return 'outline';
     case 'complete': return 'default';
     default: return 'secondary';
   }

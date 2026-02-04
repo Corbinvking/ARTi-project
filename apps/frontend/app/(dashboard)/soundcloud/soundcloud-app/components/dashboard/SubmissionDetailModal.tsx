@@ -17,6 +17,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../integrations/supabase/client';
+import { OverrideDateField } from '@/components/overrides';
+import { saveOverride, revertOverride } from '@/lib/overrides';
 import { useQueueAssignments } from '../../hooks/useQueueAssignments';
 import { estimateReach } from '../ui/soundcloud-reach-estimator';
 import { ReceiptLinksManager } from './ReceiptLinksManager';
@@ -36,7 +38,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 
-type SubmissionStatus = 'new' | 'pending' | 'approved' | 'rejected' | 'qa_flag';
+type SubmissionStatus = 'pending' | 'ready' | 'active' | 'complete' | 'on_hold' | 'qa_flag';
 
 interface Submission {
   id: string;
@@ -85,6 +87,7 @@ export const SubmissionDetailModal: React.FC<SubmissionDetailModalProps> = ({
   const [status, setStatus] = useState<SubmissionStatus>('new');
   const [family, setFamily] = useState('');
   const [supportDate, setSupportDate] = useState<Date | undefined>(undefined);
+  const [suggestedSupportDate, setSuggestedSupportDate] = useState<Date | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const [classifying, setClassifying] = useState(false);
 
@@ -97,8 +100,13 @@ export const SubmissionDetailModal: React.FC<SubmissionDetailModalProps> = ({
       setQaReason(submission.qa_reason || '');
       setStatus(submission.status as SubmissionStatus);
       setFamily(submission.family || 'none');
-      // Set support date to tomorrow as default for new approvals
-      setSupportDate(status === 'approved' ? new Date(Date.now() + 24 * 60 * 60 * 1000) : undefined);
+      
+      // Set support date from submission or default to tomorrow for ready submissions
+      const existingDate = submission.support_date ? new Date(submission.support_date) : undefined;
+      const defaultDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // Tomorrow
+      
+      setSupportDate(existingDate || (status === 'ready' ? defaultDate : undefined));
+      setSuggestedSupportDate(existingDate || defaultDate);
     }
   }, [submission, status]);
 
@@ -156,6 +164,46 @@ export const SubmissionDetailModal: React.FC<SubmissionDetailModalProps> = ({
       });
     } finally {
       setClassifying(false);
+    }
+  };
+
+  // Override handlers for support date
+  const handleSupportDateOverride = async (date: Date | undefined, reason?: string) => {
+    if (!submission || !date) return;
+    
+    setSupportDate(date);
+    
+    if (suggestedSupportDate && date.getTime() !== suggestedSupportDate.getTime()) {
+      try {
+        await saveOverride({
+          service: 'soundcloud',
+          campaignId: submission.id,
+          fieldKey: 'support_date',
+          originalValue: suggestedSupportDate?.toISOString(),
+          overrideValue: date.toISOString(),
+          overrideReason: reason,
+          orgId: '', // SoundCloud submissions may not have org_id
+          overriddenBy: null,
+        });
+      } catch (error) {
+        console.error('Failed to save support date override:', error);
+      }
+    }
+  };
+
+  const handleSupportDateRevert = async () => {
+    if (!submission) return;
+    
+    setSupportDate(suggestedSupportDate);
+    
+    try {
+      await revertOverride({
+        service: 'soundcloud',
+        campaignId: submission.id,
+        fieldKey: 'support_date',
+      });
+    } catch (error) {
+      console.error('Failed to revert support date override:', error);
     }
   };
 
@@ -454,42 +502,25 @@ export const SubmissionDetailModal: React.FC<SubmissionDetailModalProps> = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="ready">Ready</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="complete">Complete</SelectItem>
+                    <SelectItem value="on_hold">On Hold</SelectItem>
                     <SelectItem value="qa_flag">QA Flag</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {status === 'approved' && (
-                <div>
-                  <Label className="text-sm font-medium">
-                    Support Date <span className="text-red-500">*</span>
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal mt-1"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {supportDate ? format(supportDate, 'PPP') : 'Pick a date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={supportDate}
-                        onSelect={setSupportDate}
-                        initialFocus
-                        className="pointer-events-auto"
-                        disabled={(date) => date < new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+              {status === 'ready' && (
+                <OverrideDateField
+                  label="Support Date *"
+                  value={supportDate}
+                  suggestedValue={suggestedSupportDate}
+                  onSelect={handleSupportDateOverride}
+                  onRevert={handleSupportDateRevert}
+                  disabledDates={(date) => date < new Date()}
+                />
               )}
             </div>
 

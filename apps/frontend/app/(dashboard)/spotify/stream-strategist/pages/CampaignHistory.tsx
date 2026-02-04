@@ -14,6 +14,8 @@ import { useToast } from "../hooks/use-toast";
 import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_SOURCE_INTAKE, APP_CAMPAIGN_TYPE } from "../lib/constants";
 import { StatusBadge } from "../components/ui/status-badge";
 import { InteractiveStatusBadge } from "../components/ui/interactive-status-badge";
+import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Table,
   TableBody,
@@ -273,6 +275,7 @@ export default function CampaignHistory() {
   const [detailsModal, setDetailsModal] = useState<{ open: boolean; campaign?: Campaign }>({ open: false });
   const [editModal, setEditModal] = useState<{ open: boolean; campaign?: Campaign }>({ open: false });
   const [draftReviewModal, setDraftReviewModal] = useState<{ open: boolean; campaign?: Campaign }>({ open: false });
+  const { user } = useAuth();
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
   const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set());
@@ -613,10 +616,11 @@ export default function CampaignHistory() {
 
   // Status aliases for filtering
   const statusAliases: Record<string, string[]> = {
-    'active': ['active', 'in_progress', 'running'],
-    'draft': ['draft', 'pending', 'pending_approval'],
-    'paused': ['paused', 'on_hold'],
-    'completed': ['completed', 'done', 'finished']
+    pending: ['pending', 'pending_approval', 'draft', 'new'],
+    ready: ['ready', 'approved'],
+    active: ['active', 'in_progress', 'running'],
+    on_hold: ['on_hold', 'paused', 'rejected', 'cancelled'],
+    complete: ['complete', 'completed', 'done', 'finished'],
   };
 
   // Sort and filter campaigns
@@ -721,10 +725,11 @@ export default function CampaignHistory() {
     
     // Map common status variations to match database values
     const statusAliases: Record<string, string[]> = {
-      'active': ['active', 'in_progress', 'running'],
-      'draft': ['draft', 'pending', 'pending_approval'],
-      'paused': ['paused', 'on_hold'],
-      'completed': ['completed', 'done', 'finished']
+      pending: ['pending', 'pending_approval', 'draft', 'new'],
+      ready: ['ready', 'approved'],
+      active: ['active', 'in_progress', 'running'],
+      on_hold: ['on_hold', 'paused', 'rejected', 'cancelled'],
+      complete: ['complete', 'completed', 'done', 'finished'],
     };
     
     const targetStatuses = statusAliases[status.toLowerCase()] || [status.toLowerCase()];
@@ -765,6 +770,13 @@ export default function CampaignHistory() {
     toast({
       title: "Status Updated",
       description: `Campaign status changed to ${newStatus}.`,
+    });
+
+    notifyOpsStatusChange({
+      service: "spotify",
+      campaignId,
+      status: newStatus,
+      actorEmail: user?.email || null,
     });
   };
 
@@ -944,9 +956,10 @@ export default function CampaignHistory() {
   const getStatusVariant = (status: Campaign['status']) => {
     switch (status) {
       case 'active': return 'default';
-      case 'completed': return 'secondary';
-      case 'paused': return 'outline';
-      case 'draft': return 'outline';
+      case 'complete': return 'secondary';
+      case 'on_hold': return 'destructive';
+      case 'pending': return 'outline';
+      case 'ready': return 'outline';
       default: return 'outline';
     }
   };
@@ -954,9 +967,10 @@ export default function CampaignHistory() {
   const getStatusColor = (status: Campaign['status']) => {
     switch (status) {
       case 'active': return 'text-accent';
-      case 'completed': return 'text-muted-foreground';
-      case 'paused': return 'text-destructive';
-      case 'draft': return 'text-muted-foreground';
+      case 'complete': return 'text-muted-foreground';
+      case 'on_hold': return 'text-destructive';
+      case 'pending': return 'text-muted-foreground';
+      case 'ready': return 'text-blue-400';
       default: return 'text-muted-foreground';
     }
   };
@@ -1097,28 +1111,34 @@ export default function CampaignHistory() {
                       
                       {/* By Status */}
                       <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Status</div>
+                      <SelectItem value="pending|all|all">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                          Pending ({getStatusCount('pending')})
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="ready|all|all">
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-blue-500" />
+                          Ready ({getStatusCount('ready')})
+                        </span>
+                      </SelectItem>
                       <SelectItem value="active|all|all">
                         <span className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-green-500" />
                           Active ({getStatusCount('active')})
                         </span>
                       </SelectItem>
-                      <SelectItem value="draft|all|all">
+                      <SelectItem value="on_hold|all|all">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                          Pending ({getStatusCount('draft')})
+                          <span className="w-2 h-2 rounded-full bg-red-500" />
+                          On Hold ({getStatusCount('on_hold')})
                         </span>
                       </SelectItem>
-                      <SelectItem value="paused|all|all">
-                        <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-gray-400" />
-                          Paused ({getStatusCount('paused')})
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="completed|all|all">
+                      <SelectItem value="complete|all|all">
                         <span className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-blue-500" />
-                          Completed ({getStatusCount('completed')})
+                          Complete ({getStatusCount('complete')})
                         </span>
                       </SelectItem>
 

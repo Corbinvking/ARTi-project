@@ -213,7 +213,7 @@ export const AdvancedSubmitTrack = () => {
         family: formData.family || null,
         need_live_link: formData.need_live_link,
         notes: formData.notes || null,
-        status: 'new' as const,
+        status: 'pending' as const,
         subgenres: [],
         // Enhanced fields
         expected_reach_planned: trackAnalysis?.estimatedReach || 0,
@@ -309,7 +309,7 @@ export const AdvancedSubmitTrack = () => {
         track_url: sub.track_url || null,
         artist_name: sub.artist_name,
         family: sub.family || null,
-        status: 'new' as const,
+        status: 'pending' as const,
         subgenres: [],
       }));
 

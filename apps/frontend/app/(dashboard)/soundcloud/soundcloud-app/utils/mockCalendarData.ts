@@ -56,7 +56,7 @@ export const generateMockCalendarEvents = (): CalendarEventData[] => {
       trackName: 'Forest Sounds',
       trackUrl: 'https://soundcloud.com/example/forest-sounds',
       date: format(addDays(today, 1), 'yyyy-MM-dd'),
-      status: 'new',
+      status: 'pending',
       creditsAllocated: 2,
       reachTarget: 300,
       submittedAt: format(today, 'yyyy-MM-dd\'T\'HH:mm:ss'),

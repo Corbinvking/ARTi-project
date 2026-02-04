@@ -17,7 +17,7 @@ import { estimateReach } from '../ui/soundcloud-reach-estimator';
 
 export const QueuePage = () => {
   const { stats } = useSubmissions();
-  const [activeTab, setActiveTab] = useState('new');
+  const [activeTab, setActiveTab] = useState('pending');
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
@@ -34,7 +34,7 @@ export const QueuePage = () => {
   };
 
   const handleReject = async (submissionId: string) => {
-    await updateSubmissionStatus(submissionId, 'rejected');
+    await updateSubmissionStatus(submissionId, 'on_hold');
   };
 
   const handleViewDetails = (submission: any) => {
@@ -44,7 +44,7 @@ export const QueuePage = () => {
 
   const handleArtistAssignmentConfirm = async (selectedArtists: string[]) => {
     if (submissionForAssignment) {
-      await updateSubmissionStatus(submissionForAssignment.id, 'approved', selectedArtists);
+      await updateSubmissionStatus(submissionForAssignment.id, 'ready', selectedArtists);
       setSubmissionForAssignment(null);
     }
   };
@@ -176,7 +176,7 @@ export const QueuePage = () => {
               </TableCell>
                <TableCell>
                  <div className="flex items-center gap-1">
-                   {activeTab === 'new' && (
+                   {activeTab === 'pending' && (
                      <>
                        <Button 
                          size="sm" 
@@ -238,11 +238,11 @@ export const QueuePage = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Submissions</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
             <Inbox className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.new}</div>
+            <div className="text-2xl font-bold">{stats.pending}</div>
             <p className="text-xs text-muted-foreground">
               Awaiting review
             </p>
@@ -251,13 +251,13 @@ export const QueuePage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved Today</CardTitle>
+            <CardTitle className="text-sm font-medium">Ready</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.approved}</div>
+            <div className="text-2xl font-bold">{stats.ready}</div>
             <p className="text-xs text-muted-foreground">
-              Today's approvals
+              Ready to schedule
             </p>
           </CardContent>
         </Card>
@@ -277,13 +277,13 @@ export const QueuePage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+            <CardTitle className="text-sm font-medium">On Hold</CardTitle>
             <XCircle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.rejected}</div>
+            <div className="text-2xl font-bold">{stats.on_hold}</div>
             <p className="text-xs text-muted-foreground">
-              Total rejected
+              Total on hold
             </p>
           </CardContent>
         </Card>
@@ -292,28 +292,28 @@ export const QueuePage = () => {
       {/* Submissions Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="new" className="flex items-center gap-2">
-            <Inbox className="h-4 w-4" />
-            New ({stats.new})
-          </TabsTrigger>
-          <TabsTrigger value="approved" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            Approved ({stats.approved})
-          </TabsTrigger>
           <TabsTrigger value="pending" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
+            <Inbox className="h-4 w-4" />
             Pending ({stats.pending})
           </TabsTrigger>
-          <TabsTrigger value="rejected" className="flex items-center gap-2">
+          <TabsTrigger value="ready" className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Ready ({stats.ready})
+          </TabsTrigger>
+          <TabsTrigger value="active" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Active ({stats.active})
+          </TabsTrigger>
+          <TabsTrigger value="on_hold" className="flex items-center gap-2">
             <XCircle className="h-4 w-4" />
-            Rejected ({stats.rejected})
+            On Hold ({stats.on_hold})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="new" className="space-y-4">
+        <TabsContent value="pending" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>New Submissions</CardTitle>
+              <CardTitle>Pending Submissions</CardTitle>
               <CardDescription>
                 Review and approve/reject submissions
               </CardDescription>
@@ -324,10 +324,10 @@ export const QueuePage = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="approved">
+        <TabsContent value="ready">
           <Card>
             <CardHeader>
-              <CardTitle>Approved Submissions</CardTitle>
+              <CardTitle>Ready Submissions</CardTitle>
               <CardDescription>
                 Submissions ready for scheduling
               </CardDescription>
@@ -338,12 +338,12 @@ export const QueuePage = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="pending">
+        <TabsContent value="active">
           <Card>
             <CardHeader>
-              <CardTitle>Pending Submissions</CardTitle>
+              <CardTitle>Active Submissions</CardTitle>
               <CardDescription>
-                Submissions awaiting scheduling
+                Submissions in progress
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -352,12 +352,12 @@ export const QueuePage = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="rejected">
+        <TabsContent value="on_hold">
           <Card>
             <CardHeader>
-              <CardTitle>Rejected Submissions</CardTitle>
+              <CardTitle>On Hold Submissions</CardTitle>
               <CardDescription>
-                Submissions that were not approved
+                Submissions on hold
               </CardDescription>
             </CardHeader>
             <CardContent>

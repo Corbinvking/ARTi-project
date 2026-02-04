@@ -38,10 +38,11 @@ export const useCalendarEvents = (viewDate: Date) => {
 
       if (submissionsError) throw submissionsError;
 
-      // Transform campaigns to calendar events
+      // Transform campaigns to calendar events (all campaigns are paid)
       const campaignEvents: CalendarEventData[] = (campaigns || []).map(campaign => ({
         id: campaign.id,
         type: 'campaign' as const,
+        campaignType: 'paid' as const, // Campaigns from campaigns table are always paid
         title: `${campaign.artist_name} - ${campaign.track_name}`,
         artistName: campaign.artist_name,
         trackName: campaign.track_name,
@@ -54,9 +55,11 @@ export const useCalendarEvents = (viewDate: Date) => {
       }));
 
       // Transform submissions to calendar events
+      // campaign_type field determines if it's paid or free
       const submissionEvents: CalendarEventData[] = (submissions || []).map(submission => ({
         id: submission.id,
         type: 'submission' as const,
+        campaignType: (submission.campaign_type as 'paid' | 'free') || 'free', // Default to free for member submissions
         title: submission.artist_name || 'Unknown Artist',
         artistName: submission.artist_name || 'Unknown Artist',
         trackName: submission.track_name || undefined,
@@ -67,6 +70,9 @@ export const useCalendarEvents = (viewDate: Date) => {
         submittedAt: submission.submitted_at,
         notes: submission.notes || undefined,
         reachTarget: submission.expected_reach_planned || undefined,
+        playlistRequired: submission.playlist_required || false,
+        playlistReceived: submission.playlist_received || false,
+        isOverride: submission.date_is_override || false,
       }));
 
       const allEvents = [...campaignEvents, ...submissionEvents];

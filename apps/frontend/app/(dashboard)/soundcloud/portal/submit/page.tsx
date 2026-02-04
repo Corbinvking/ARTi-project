@@ -104,7 +104,7 @@ export default function SubmitTrackPage() {
           track_url: trackUrl.trim(),
           artist_name: artistName.trim() || null,
           notes: notes.trim() || null,
-          status: 'new',
+          status: 'pending',
           submitted_at: new Date().toISOString()
         });
 

@@ -4,10 +4,11 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface SubmissionStats {
   total: number;
-  new: number;
   pending: number;
-  approved: number;
-  rejected: number;
+  ready: number;
+  active: number;
+  complete: number;
+  on_hold: number;
   qa_flag: number;
 }
 
@@ -15,10 +16,11 @@ export const useSubmissions = () => {
   const { toast } = useToast();
   const [stats, setStats] = useState<SubmissionStats>({
     total: 0,
-    new: 0,
     pending: 0,
-    approved: 0,
-    rejected: 0,
+    ready: 0,
+    active: 0,
+    complete: 0,
+    on_hold: 0,
     qa_flag: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -33,10 +35,11 @@ export const useSubmissions = () => {
 
       const newStats = {
         total: data.length,
-        new: data.filter(s => s.status === 'new').length,
         pending: data.filter(s => (s.status as string) === 'pending').length,
-        approved: data.filter(s => s.status === 'approved').length,
-        rejected: data.filter(s => s.status === 'rejected').length,
+        ready: data.filter(s => (s.status as string) === 'ready').length,
+        active: data.filter(s => (s.status as string) === 'active').length,
+        complete: data.filter(s => (s.status as string) === 'complete').length,
+        on_hold: data.filter(s => (s.status as string) === 'on_hold').length,
         qa_flag: data.filter(s => (s.status as string) === 'qa_flag').length,
       };
 

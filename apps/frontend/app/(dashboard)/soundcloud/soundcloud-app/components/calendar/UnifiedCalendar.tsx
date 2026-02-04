@@ -1,15 +1,18 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { format, isSameMonth, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { DollarSign, Gift } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { CalendarEvent } from './CalendarEvent';
 import { EventDetailsModal } from './EventDetailsModal';
 import { useCalendarEvents } from '../../hooks/useCalendarEvents';
 import type { CalendarEventData } from '../../types/calendar';
+
+type CampaignTypeFilter = 'all' | 'paid' | 'free';
 
 interface UnifiedCalendarProps {
   selectedDate?: Date;
@@ -24,16 +27,21 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
 }) => {
   const [viewDate, setViewDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventData | null>(null);
-  const [eventFilter, setEventFilter] = useState<'all' | 'campaigns' | 'submissions'>('all');
+  const [campaignTypeFilter, setCampaignTypeFilter] = useState<CampaignTypeFilter>('all');
   
   const { events, isLoading, error } = useCalendarEvents(viewDate);
 
-  const filteredEvents = events.filter(event => {
-    if (eventFilter === 'all') return true;
-    if (eventFilter === 'campaigns') return event.type === 'campaign';
-    if (eventFilter === 'submissions') return event.type === 'submission';
-    return true;
-  });
+  // Filter events by paid/free campaign type
+  const filteredEvents = useMemo(() => {
+    return events.filter(event => {
+      if (campaignTypeFilter === 'all') return true;
+      return event.campaignType === campaignTypeFilter;
+    });
+  }, [events, campaignTypeFilter]);
+
+  // Calculate counts for filter badges
+  const paidCount = useMemo(() => events.filter(e => e.campaignType === 'paid').length, [events]);
+  const freeCount = useMemo(() => events.filter(e => e.campaignType === 'free').length, [events]);
 
   const getEventsForDate = (date: Date) => {
     return filteredEvents.filter(event => isSameDay(new Date(event.date), date));
@@ -117,25 +125,37 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
             {showFilters && (
               <div className="flex gap-2">
                 <Badge
-                  variant={eventFilter === 'all' ? 'default' : 'outline'}
+                  variant={campaignTypeFilter === 'all' ? 'default' : 'outline'}
                   className="cursor-pointer"
-                  onClick={() => setEventFilter('all')}
+                  onClick={() => setCampaignTypeFilter('all')}
                 >
-                  All Events
+                  All Events ({events.length})
                 </Badge>
                 <Badge
-                  variant={eventFilter === 'campaigns' ? 'default' : 'outline'}
-                  className="cursor-pointer"
-                  onClick={() => setEventFilter('campaigns')}
+                  variant={campaignTypeFilter === 'paid' ? 'default' : 'outline'}
+                  className={cn(
+                    "cursor-pointer",
+                    campaignTypeFilter === 'paid' 
+                      ? "bg-amber-600 hover:bg-amber-700" 
+                      : "border-amber-400 text-amber-700 hover:bg-amber-50"
+                  )}
+                  onClick={() => setCampaignTypeFilter('paid')}
                 >
-                  Paid Campaigns
+                  <DollarSign className="h-3 w-3 mr-1" />
+                  Paid ({paidCount})
                 </Badge>
                 <Badge
-                  variant={eventFilter === 'submissions' ? 'default' : 'outline'}
-                  className="cursor-pointer"
-                  onClick={() => setEventFilter('submissions')}
+                  variant={campaignTypeFilter === 'free' ? 'default' : 'outline'}
+                  className={cn(
+                    "cursor-pointer",
+                    campaignTypeFilter === 'free' 
+                      ? "bg-teal-600 hover:bg-teal-700" 
+                      : "border-teal-400 text-teal-700 hover:bg-teal-50"
+                  )}
+                  onClick={() => setCampaignTypeFilter('free')}
                 >
-                  Free Queue
+                  <Gift className="h-3 w-3 mr-1" />
+                  Free ({freeCount})
                 </Badge>
               </div>
             )}

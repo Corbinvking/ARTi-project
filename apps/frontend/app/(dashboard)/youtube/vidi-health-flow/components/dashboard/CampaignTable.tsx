@@ -25,6 +25,8 @@ import {
   Sliders
 } from "lucide-react";
 import { useCampaigns } from "../../hooks/useCampaigns";
+import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { useAuth } from "../../contexts/AuthContext";
 import { RatioFixerModal } from "../campaigns/RatioFixerModal";
 import { CampaignSettingsModal } from "../campaigns/CampaignSettingsModal";
 import { getCanonicalYouTubeUrl } from "../../lib/youtube";
@@ -82,8 +84,9 @@ const calculateHealthScore = (campaign: Campaign): number => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'active': return 'default';
+    case 'ready': return 'secondary';
     case 'pending': return 'secondary';
-    case 'paused': return 'outline';
+    case 'on_hold': return 'outline';
     case 'complete': return 'default';
     default: return 'secondary';
   }
@@ -98,9 +101,18 @@ export const CampaignTable = ({ onConfigureTable }: CampaignTableProps) => {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [ratioModalOpen, setRatioModalOpen] = useState(false);
   const [campaignSettingsOpen, setCampaignSettingsOpen] = useState(false);
+  const { user } = useAuth();
 
   const handleStatusChange = async (campaignId: string, newStatus: string) => {
+    const previousStatus = campaigns.find(c => c.id === campaignId)?.status;
     await updateCampaign(campaignId, { status: newStatus as any });
+    await notifyOpsStatusChange({
+      service: "youtube",
+      campaignId,
+      status: newStatus,
+      previousStatus: previousStatus || null,
+      actorEmail: user?.email || null,
+    });
   };
 
   const handleRatioFixerClick = (campaign: Campaign) => {
@@ -204,21 +216,25 @@ export const CampaignTable = ({ onConfigureTable }: CampaignTableProps) => {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
+                      {campaign.status === "pending" && <Clock className="h-4 w-4 text-muted-foreground" />}
+                      {campaign.status === "ready" && <CheckCircle2 className="h-4 w-4 text-blue-500" />}
                       {campaign.status === "active" && <Play className="h-4 w-4 text-success" />}
-                      {campaign.status === "paused" && <Pause className="h-4 w-4 text-warning" />}
+                      {campaign.status === "on_hold" && <Pause className="h-4 w-4 text-warning" />}
                       {campaign.status === "complete" && <CheckCircle2 className="h-4 w-4 text-success" />}
-                      <span className="capitalize text-foreground">{campaign.status}</span>
+                      <span className="text-foreground">
+                        {campaign.status.replace('_', ' ')}
+                      </span>
                       {campaign.status === 'active' && (
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-6 w-6 p-0 ml-1"
-                          onClick={() => handleStatusChange(campaign.id, 'paused')}
+                          onClick={() => handleStatusChange(campaign.id, 'on_hold')}
                         >
                           <Pause className="h-3 w-3" />
                         </Button>
                       )}
-                      {campaign.status === 'paused' && (
+                      {campaign.status === 'on_hold' && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -229,6 +245,16 @@ export const CampaignTable = ({ onConfigureTable }: CampaignTableProps) => {
                         </Button>
                       )}
                       {campaign.status === 'pending' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 ml-1"
+                          onClick={() => handleStatusChange(campaign.id, 'ready')}
+                        >
+                          <CheckCircle2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                      {campaign.status === 'ready' && (
                         <Button
                           variant="ghost"
                           size="sm"

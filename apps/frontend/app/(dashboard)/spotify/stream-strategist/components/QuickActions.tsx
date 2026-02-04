@@ -57,9 +57,9 @@ export function QuickActions() {
       // Case-insensitive status matching
       const normalizeStatus = (status: string | null) => (status || '').toLowerCase().trim();
       
-      const pendingStatuses = ['draft', 'pending', 'pending_approval'];
+      const pendingStatuses = ['draft', 'pending'];
       const activeStatuses = ['active', 'in_progress', 'running'];
-      const completedStatuses = ['completed', 'done', 'finished'];
+      const completedStatuses = ['complete', 'completed', 'done', 'finished'];
 
       return {
         pendingCampaigns: campaigns.filter(c => pendingStatuses.includes(normalizeStatus(c.status))).length,

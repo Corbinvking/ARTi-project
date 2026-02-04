@@ -73,6 +73,8 @@ export default function Campaigns() {
 
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
   const pendingCampaigns = campaigns.filter(c => c.status === 'pending').length;
+  const readyCampaigns = campaigns.filter(c => c.status === 'ready').length;
+  const onHoldCampaigns = campaigns.filter(c => c.status === 'on_hold').length;
 
   return (
     <div className="space-y-6">
@@ -80,7 +82,7 @@ export default function Campaigns() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Campaigns</h1>
           <p className="text-muted-foreground">
-            Managing {campaigns.length} campaigns with {activeCampaigns} active and {pendingCampaigns} pending.
+            Managing {campaigns.length} campaigns with {activeCampaigns} active, {readyCampaigns} ready, {pendingCampaigns} pending, and {onHoldCampaigns} on hold.
           </p>
         </div>
         <div className="flex items-center gap-2">

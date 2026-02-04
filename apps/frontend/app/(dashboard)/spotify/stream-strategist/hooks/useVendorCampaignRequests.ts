@@ -282,7 +282,7 @@ export function usePendingSubmissionsForVendor() {
       const { data: submissions, error: submissionsError } = await supabase
         .from('campaign_submissions')
         .select('*')
-        .eq('status', 'pending_approval')
+        .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (submissionsError) {

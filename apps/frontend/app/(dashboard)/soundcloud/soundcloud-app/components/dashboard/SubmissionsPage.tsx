@@ -26,7 +26,7 @@ import {
 import { format } from 'date-fns';
 import '../../utils/generateQueueAssignments'; // Generate missing queue assignments
 
-type SubmissionStatus = 'new' | 'pending' | 'approved' | 'rejected' | 'qa_flag';
+type SubmissionStatus = 'pending' | 'ready' | 'active' | 'complete' | 'on_hold' | 'qa_flag';
 
 interface Submission {
   id: string;
@@ -59,17 +59,18 @@ export const SubmissionsPage = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('active');
+  const [statusFilter, setStatusFilter] = useState('pending');
   const [sortBy, setSortBy] = useState('submitted_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
   const statusConfig = {
-    new: { label: 'New', color: 'bg-primary', icon: FileText },
     pending: { label: 'Pending', color: 'bg-yellow-500', icon: Clock },
-    approved: { label: 'Approved', color: 'bg-green-500', icon: CheckCircle },
-    rejected: { label: 'Rejected', color: 'bg-red-500', icon: XCircle },
+    ready: { label: 'Ready', color: 'bg-blue-500', icon: CheckCircle },
+    active: { label: 'Active', color: 'bg-green-500', icon: CheckCircle },
+    complete: { label: 'Complete', color: 'bg-blue-500', icon: CheckCircle },
+    on_hold: { label: 'On Hold', color: 'bg-red-500', icon: XCircle },
     qa_flag: { label: 'QA Flag', color: 'bg-orange-500', icon: AlertTriangle },
   };
 
@@ -91,9 +92,9 @@ export const SubmissionsPage = () => {
         .order(sortBy, { ascending: sortDirection === 'asc' });
 
       if (statusFilter === 'active') {
-        query = query.in('status', ['new', 'pending', 'rejected', 'qa_flag']);
-      } else if (statusFilter === 'completed') {
-        query = query.eq('status', 'approved');
+        query = query.eq('status', 'active');
+      } else if (statusFilter === 'complete') {
+        query = query.eq('status', 'complete');
       } else if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter as SubmissionStatus);
       }
@@ -128,26 +129,26 @@ export const SubmissionsPage = () => {
       if (error) throw error;
 
       // Send email notification for status changes
-      if (newStatus === 'approved' || newStatus === 'rejected') {
+      if (newStatus === 'ready' || newStatus === 'on_hold') {
         const submission = submissions.find(s => s.id === submissionId);
         if (submission?.members) {
           try {
             const { error: emailError } = await supabase.functions.invoke('send-notification-email', {
               body: {
                 to: submission.members.primary_email,
-                template: newStatus === 'approved' ? 'support-confirmation' : 'submission-rejected',
+                template: newStatus === 'ready' ? 'support-confirmation' : 'submission-rejected',
                 data: {
                   firstName: submission.members.name.split(' ')[0],
                   songName: submission.artist_name || 'Your Track',
-                  confirmDate: newStatus === 'approved' ? 'TBD' : undefined
+                  confirmDate: newStatus === 'ready' ? 'TBD' : undefined
                 },
                 userId: submission.member_id,
                 notificationData: {
-                  title: newStatus === 'approved' ? 'Submission Approved' : 'Submission Not Approved',
-                  message: newStatus === 'approved' 
+                  title: newStatus === 'ready' ? 'Submission Ready' : 'Submission On Hold',
+                  message: newStatus === 'ready' 
                     ? 'Your track has been approved for support' 
                     : 'Your track submission was not approved this time.',
-                  type: newStatus === 'approved' ? 'success' : 'warning'
+                  type: newStatus === 'ready' ? 'success' : 'warning'
                 },
                 relatedObjectType: 'submission',
                 relatedObjectId: submissionId
@@ -262,11 +263,11 @@ export const SubmissionsPage = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="new">New</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="ready">Ready</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="complete">Complete</SelectItem>
+                <SelectItem value="on_hold">On Hold</SelectItem>
                 <SelectItem value="qa_flag">QA Flag</SelectItem>
                 <SelectItem value="all">All Status</SelectItem>
               </SelectContent>
@@ -409,11 +410,11 @@ export const SubmissionsPage = () => {
                             <Eye className="w-3 h-3 mr-1" />
                             View
                           </Button>
-                          {submission.status === 'new' && (
+                          {submission.status === 'pending' && (
                             <>
                               <Button
                                 size="sm"
-                                onClick={() => updateSubmissionStatus(submission.id, 'approved')}
+                                onClick={() => updateSubmissionStatus(submission.id, 'ready')}
                                 className="bg-green-600 hover:bg-green-700"
                               >
                                 Approve
@@ -421,17 +422,17 @@ export const SubmissionsPage = () => {
                               <Button
                                 size="sm"
                                 variant="destructive"
-                                onClick={() => updateSubmissionStatus(submission.id, 'rejected')}
+                                onClick={() => updateSubmissionStatus(submission.id, 'on_hold')}
                               >
                                 Reject
                               </Button>
                             </>
                           )}
-                          {submission.status !== 'new' && (
+                          {submission.status !== 'pending' && (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => updateSubmissionStatus(submission.id, 'new')}
+                              onClick={() => updateSubmissionStatus(submission.id, 'pending')}
                             >
                               Reset
                             </Button>

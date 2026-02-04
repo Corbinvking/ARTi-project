@@ -16,10 +16,11 @@ interface InteractiveStatusBadgeProps {
 }
 
 const STATUS_OPTIONS = [
+  { value: 'pending', label: 'Pending', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' },
+  { value: 'ready', label: 'Ready', color: 'bg-blue-500/10 text-blue-400 border-blue-500/30' },
   { value: 'active', label: 'Active', color: 'bg-green-500/10 text-green-400 border-green-500/30' },
-  { value: 'draft', label: 'Draft', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' },
-  { value: 'paused', label: 'Paused', color: 'bg-blue-500/10 text-blue-400 border-blue-500/30' },
-  { value: 'completed', label: 'Completed', color: 'bg-gray-500/10 text-gray-400 border-gray-500/30' },
+  { value: 'on_hold', label: 'On Hold', color: 'bg-red-500/10 text-red-400 border-red-500/30' },
+  { value: 'complete', label: 'Complete', color: 'bg-gray-500/10 text-gray-400 border-gray-500/30' },
 ];
 
 export function InteractiveStatusBadge({ status, onStatusChange, disabled }: InteractiveStatusBadgeProps) {

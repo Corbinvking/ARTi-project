@@ -69,7 +69,7 @@ export const DashboardOverview = () => {
       title: "New submission from BeatMaker_X",
       description: "Electronic - Deep House track submitted",
       time: "2 minutes ago",
-      status: "new",
+      status: "pending",
     },
     {
       id: 2,

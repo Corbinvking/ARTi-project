@@ -73,18 +73,22 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending_approval': return 'default';
-      case 'approved': return 'success';
-      case 'rejected': return 'destructive';
+      case 'pending': return 'default';
+      case 'ready': return 'success';
+      case 'active': return 'success';
+      case 'complete': return 'secondary';
+      case 'on_hold': return 'destructive';
       default: return 'secondary';
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending_approval': return 'Pending Approval';
-      case 'approved': return 'Approved';
-      case 'rejected': return 'Rejected';
+      case 'pending': return 'Pending';
+      case 'ready': return 'Ready';
+      case 'active': return 'Active';
+      case 'complete': return 'Complete';
+      case 'on_hold': return 'On Hold';
       default: return status;
     }
   };
@@ -104,7 +108,7 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
         </div>
         <div className="flex gap-2">
           <Badge variant="outline">
-            {submissions.filter(s => s.status === 'pending_approval').length} Pending Review
+            {submissions.filter(s => s.status === 'pending').length} Pending
           </Badge>
           {campaignsAwaitingVendor.length > 0 && (
             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -190,15 +194,15 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
                       <span className="font-medium">{campaign.pending_count} Pending</span>
                     </div>
                     {campaign.approved_count > 0 && (
-                      <div className="flex items-center gap-1 text-green-600">
+                      <div className="flex items-center gap-1 text-blue-600">
                         <CheckCircle2 className="h-3 w-3" />
-                        <span className="font-medium">{campaign.approved_count} Accepted</span>
+                        <span className="font-medium">{campaign.approved_count} Ready</span>
                       </div>
                     )}
                     {campaign.rejected_count > 0 && (
                       <div className="flex items-center gap-1 text-red-600">
                         <XCircle className="h-3 w-3" />
-                        <span className="font-medium">{campaign.rejected_count} Rejected</span>
+                        <span className="font-medium">{campaign.rejected_count} On Hold</span>
                       </div>
                     )}
                   </div>
@@ -323,14 +327,14 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
                   )}
 
                   {/* Rejection Reason - Compact */}
-                  {submission.status === 'rejected' && submission.rejection_reason && (
+                  {submission.status === 'on_hold' && submission.rejection_reason && (
                     <div className="text-xs p-2 bg-destructive/10 rounded">
                       <span className="font-medium text-destructive">Rejected:</span> {submission.rejection_reason}
                     </div>
                   )}
 
                   {/* Inline Action Buttons */}
-                  {submission.status === 'pending_approval' && (
+                  {submission.status === 'pending' && (
                     <div className="flex gap-2 pt-1">
                        <Button
                          onClick={() => {
@@ -350,7 +354,7 @@ export function CampaignSubmissionsManager({ highlightSubmissionId }: CampaignSu
             );
           })}
 
-          {submissions.filter(s => s.status === 'pending_approval').length === 0 && (
+          {submissions.filter(s => s.status === 'pending').length === 0 && (
             <Card>
               <CardContent className="text-center py-12">
                 <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

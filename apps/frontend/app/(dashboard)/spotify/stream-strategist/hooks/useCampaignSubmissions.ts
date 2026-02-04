@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_SOURCE_INTAKE, APP_CAMPAIGN_TYPE } from '../lib/constants';
+import { notifyOpsStatusChange } from '@/lib/status-notify';
 
 interface CampaignSubmission {
   id: string;
@@ -67,7 +68,7 @@ export function useCampaignSubmissions() {
       const { data, error } = await supabase
         .from('campaign_submissions')
         .select('*')
-        .in('status', ['pending_approval', 'rejected'])
+        .in('status', ['pending', 'ready', 'on_hold'])
         .order('created_at', { ascending: false })
         .limit(50); // Add limit for better performance
 
@@ -129,8 +130,8 @@ export function useCampaignsAwaitingVendor() {
       if (pendingRequests && pendingRequests.length > 0) {
         console.log('📊 Request breakdown:', {
           pending: pendingRequests.filter(r => r.status === 'pending').length,
-          approved: pendingRequests.filter(r => r.status === 'approved').length,
-          rejected: pendingRequests.filter(r => r.status === 'rejected').length,
+          approved: pendingRequests.filter(r => r.status === 'ready').length,
+          rejected: pendingRequests.filter(r => r.status === 'on_hold').length,
           vendors: pendingRequests.map(r => ({ vendor: (r.vendors as any)?.name, status: r.status }))
         });
       }
@@ -222,8 +223,8 @@ export function useCampaignsAwaitingVendor() {
           pending_vendors: pendingVendors,
           total_vendors: requests.length,
           pending_count: requests.filter(r => r.status === 'pending').length,
-          approved_count: requests.filter(r => r.status === 'approved').length,
-          rejected_count: requests.filter(r => r.status === 'rejected').length
+          approved_count: requests.filter(r => r.status === 'ready').length,
+          rejected_count: requests.filter(r => r.status === 'on_hold').length
         };
       });
 
@@ -250,7 +251,7 @@ export function useCreateCampaignSubmission() {
         vendor_assignments: submissionData.vendor_assignments || [],
         music_genres: submissionData.music_genres || [],
         territory_preferences: submissionData.territory_preferences || [],
-        status: 'pending_approval',
+        status: 'pending',
         org_id: '00000000-0000-0000-0000-000000000001' // Add default org_id for RLS
       };
       
@@ -367,7 +368,7 @@ export function useApproveCampaignSubmission() {
         total_budget: submission.price_paid,
         start_date: submission.start_date,
         end_date: endDate.toISOString().split('T')[0],
-        status: 'Active',
+        status: 'ready',
         salesperson: submission.salesperson || null,
         notes: submission.notes || null
       };
@@ -397,7 +398,7 @@ export function useApproveCampaignSubmission() {
         daily: 0,
         weekly: 0,
         url: submission.track_url,
-        status: 'Active',
+        status: 'ready',
         curator_status: 'Pending',
         playlists: (submission as any).vendor_assignments?.flatMap((va: any) => va.playlist_ids || []) || [],
         notes: `Created from submission approval. ${submission.music_genres ? `Genres: ${submission.music_genres.join(', ')}` : ''}`,
@@ -513,12 +514,12 @@ export function useApproveCampaignSubmission() {
         console.log('⚠️ No vendor assignments found, skipping vendor requests');
       }
 
-      // Update submission status to approved
-      console.log('✅ Updating submission status to approved...');
+      // Update submission status to ready
+      console.log('✅ Updating submission status to ready...');
       const { error: updateError } = await supabase
         .from('campaign_submissions')
         .update({ 
-          status: 'approved',
+          status: 'ready',
           approved_at: new Date().toISOString()
           // Note: approved_by requires a UUID, would need user context to set properly
         })
@@ -530,12 +531,17 @@ export function useApproveCampaignSubmission() {
       }
       
       console.log('🎉 Approval process completed successfully');
+      await notifyOpsStatusChange({
+        service: 'spotify',
+        campaignId: submissionId,
+        status: 'ready',
+      });
       return submission;
     },
     onSuccess: () => {
       toast({
-        title: "Campaign Approved & Active",
-        description: "Campaign has been approved and is now active! Vendor requests have been sent.",
+        title: "Campaign Approved",
+        description: "Campaign is ready. Vendor requests have been sent.",
       });
       queryClient.invalidateQueries({ queryKey: ['campaign-submissions'] });
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
@@ -579,12 +585,17 @@ export function useRejectCampaignSubmission() {
       const { error } = await supabase
         .from('campaign_submissions')
         .update({ 
-          status: 'rejected',
+          status: 'on_hold',
           rejection_reason: reason
         })
         .eq('id', submissionId);
 
       if (error) throw error;
+      await notifyOpsStatusChange({
+        service: 'spotify',
+        campaignId: submissionId,
+        status: 'on_hold',
+      });
     },
     onSuccess: () => {
       toast({

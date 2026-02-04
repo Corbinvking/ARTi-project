@@ -71,7 +71,7 @@ export const HealthDashboard: React.FC = () => {
       ).length || 0;
 
       const totalSubmissions = submissions?.length || 0;
-      const pendingSubmissions = submissions?.filter(s => s.status === 'new').length || 0;
+      const pendingSubmissions = submissions?.filter(s => s.status === 'pending').length || 0;
       
       const avgSubmissionsPerMember = totalMembers > 0 ? totalSubmissions / totalMembers : 0;
       const avgCreditsPerMember = totalMembers > 0 

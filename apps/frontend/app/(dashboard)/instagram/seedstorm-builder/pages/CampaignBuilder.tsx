@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { TagInput } from "@/components/ui/tag-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, ArrowRight, Download, Save, Users, DollarSign, Eye, Target, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, Save, Users, DollarSign, Eye, Target, Plus, X, ChevronUp, ChevronDown, Ban, CheckCircle, AlertTriangle, GripVertical } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Creator, Campaign, CampaignForm, MUSIC_GENRES, POST_TYPES, TERRITORY_PREFERENCES } from "../lib/types";
 import { generateCampaign, generateUUID } from "../lib/campaignAlgorithm";
@@ -56,6 +56,10 @@ const CampaignBuilder = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const { tags: allTags, refreshTags } = useTagSync();
+  
+  // Page selection approval state
+  const [pageSelectionApproved, setPageSelectionApproved] = useState(false);
+  const [doNotUsePages, setDoNotUsePages] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -454,6 +458,139 @@ const CampaignBuilder = () => {
     });
   };
 
+  // Move page up in the list
+  const handleMovePageUp = (creatorId: string) => {
+    if (!campaignResults) return;
+    
+    setCampaignResults(prev => {
+      if (!prev) return prev;
+      
+      const currentIndex = prev.selectedCreators.findIndex(c => c.id === creatorId);
+      if (currentIndex <= 0) return prev; // Already at top
+      
+      const newSelectedCreators = [...prev.selectedCreators];
+      // Swap with previous element
+      [newSelectedCreators[currentIndex - 1], newSelectedCreators[currentIndex]] = 
+        [newSelectedCreators[currentIndex], newSelectedCreators[currentIndex - 1]];
+      
+      // Update sort_order values
+      const updatedCreators = newSelectedCreators.map((c, idx) => ({
+        ...c,
+        sort_order: idx
+      }));
+      
+      return {
+        ...prev,
+        selectedCreators: updatedCreators
+      };
+    });
+  };
+
+  // Move page down in the list
+  const handleMovePageDown = (creatorId: string) => {
+    if (!campaignResults) return;
+    
+    setCampaignResults(prev => {
+      if (!prev) return prev;
+      
+      const currentIndex = prev.selectedCreators.findIndex(c => c.id === creatorId);
+      if (currentIndex < 0 || currentIndex >= prev.selectedCreators.length - 1) return prev; // Already at bottom
+      
+      const newSelectedCreators = [...prev.selectedCreators];
+      // Swap with next element
+      [newSelectedCreators[currentIndex], newSelectedCreators[currentIndex + 1]] = 
+        [newSelectedCreators[currentIndex + 1], newSelectedCreators[currentIndex]];
+      
+      // Update sort_order values
+      const updatedCreators = newSelectedCreators.map((c, idx) => ({
+        ...c,
+        sort_order: idx
+      }));
+      
+      return {
+        ...prev,
+        selectedCreators: updatedCreators
+      };
+    });
+  };
+
+  // Mark page as do-not-use and remove from selection
+  const handleMarkDoNotUse = (creatorId: string) => {
+    if (!campaignResults) return;
+    
+    const creator = campaignResults.selectedCreators.find(c => c.id === creatorId) ||
+                   campaignResults.eligible.find(c => c.id === creatorId);
+    
+    if (creator) {
+      setDoNotUsePages(prev => [...prev, creator.instagram_handle]);
+      
+      // Remove from selected creators
+      setCampaignResults(prev => {
+        if (!prev) return prev;
+        
+        const newSelectedCreators = prev.selectedCreators.filter(c => c.id !== creatorId);
+        
+        // Recalculate totals
+        const totalPosts = newSelectedCreators.reduce((sum, c) => sum + (c.posts_count || 1), 0);
+        const totalCost = newSelectedCreators.reduce((sum, c) => sum + ((c.selected_rate || 0) * (c.posts_count || 1)), 0);
+        
+        const newTotals = {
+          total_creators: newSelectedCreators.length,
+          total_posts: totalPosts,
+          total_cost: totalCost,
+          total_followers: newSelectedCreators.reduce((sum, c) => sum + c.followers, 0),
+          total_median_views: newSelectedCreators.reduce((sum, c) => sum + (c.median_views_per_video * (c.posts_count || 1)), 0),
+          average_cpv: newSelectedCreators.length > 0 
+            ? newSelectedCreators.reduce((sum, c) => sum + (c.cpv || 0), 0) / newSelectedCreators.length 
+            : 0,
+          budget_remaining: formData.total_budget - totalCost
+        };
+        
+        return {
+          ...prev,
+          selectedCreators: newSelectedCreators,
+          totals: newTotals
+        };
+      });
+      
+      toast({
+        title: "Page Marked Do-Not-Use",
+        description: `@${creator.instagram_handle} has been added to the do-not-use list`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Remove page from do-not-use list
+  const handleRemoveFromDoNotUse = (handle: string) => {
+    setDoNotUsePages(prev => prev.filter(h => h !== handle));
+    toast({
+      title: "Page Restored",
+      description: `@${handle} has been removed from the do-not-use list`,
+    });
+  };
+
+  // Approve page selection
+  const handleApprovePageSelection = () => {
+    if (!campaignResults || campaignResults.selectedCreators.length === 0) {
+      toast({
+        title: "No Pages Selected",
+        description: "Please select at least one page before approving",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setPageSelectionApproved(true);
+    toast({
+      title: "Page Selection Approved",
+      description: `${campaignResults.selectedCreators.length} pages approved for this campaign`,
+    });
+  };
+
+  // Check if a page is in do-not-use list
+  const isDoNotUse = (handle: string) => doNotUsePages.includes(handle);
+
   if (step === 1) {
     return (
       <div className="min-h-screen bg-background">
@@ -783,13 +920,84 @@ const CampaignBuilder = () => {
             </CardContent>
           </Card>
 
+          {/* Do-Not-Use Pages Warning */}
+          {doNotUsePages.length > 0 && (
+            <Card className="mb-6 border-orange-500/30 bg-orange-500/5">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2 text-orange-600">
+                  <AlertTriangle className="h-5 w-5" />
+                  Do-Not-Use Pages ({doNotUsePages.length})
+                </CardTitle>
+                <CardDescription>These pages have been marked as do-not-use for this campaign</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {doNotUsePages.map(handle => (
+                    <Badge key={handle} variant="outline" className="border-orange-500/50 text-orange-600">
+                      @{handle}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 ml-1 hover:bg-orange-200"
+                        onClick={() => handleRemoveFromDoNotUse(handle)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Page Selection Approval Status */}
+          <Card className={`mb-6 ${pageSelectionApproved ? 'border-green-500/30 bg-green-500/5' : 'border-yellow-500/30 bg-yellow-500/5'}`}>
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {pageSelectionApproved ? (
+                    <>
+                      <CheckCircle className="h-6 w-6 text-green-600" />
+                      <div>
+                        <p className="font-medium text-green-600">Page Selection Approved</p>
+                        <p className="text-sm text-muted-foreground">
+                          {campaignResults.selectedCreators.length} pages approved for this campaign
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-6 w-6 text-yellow-600" />
+                      <div>
+                        <p className="font-medium text-yellow-600">Page Selection Pending Approval</p>
+                        <p className="text-sm text-muted-foreground">
+                          Review and reorder pages, then approve the selection before proceeding
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+                {!pageSelectionApproved && (
+                  <Button 
+                    onClick={handleApprovePageSelection}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={campaignResults.selectedCreators.length === 0}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Approve Page Selection
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Creator Selection Table */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle>Selected Creators ({campaignResults.selectedCreators.length} of {campaignResults.eligible.length} eligible)</CardTitle>
-                  <CardDescription>Toggle creators to add or remove from your campaign</CardDescription>
+                  <CardTitle>Selected Pages ({campaignResults.selectedCreators.length} of {campaignResults.eligible.length} eligible)</CardTitle>
+                  <CardDescription>Reorder pages, mark do-not-use, or toggle selection. Pages at top have priority.</CardDescription>
                 </div>
                 <div className="flex gap-2">
                   {campaignResults.selectedCreators.length > 0 && (
@@ -808,7 +1016,7 @@ const CampaignBuilder = () => {
                     className="font-bebas"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    ADD MORE CREATORS
+                    ADD MORE PAGES
                   </Button>
                 </div>
               </div>
@@ -818,53 +1026,138 @@ const CampaignBuilder = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-16">ORDER</TableHead>
                       <TableHead>SELECT</TableHead>
                       <TableHead>HANDLE</TableHead>
+                      <TableHead>SOURCE</TableHead>
                       <TableHead>FOLLOWERS</TableHead>
                       <TableHead>MEDIAN VIEWS</TableHead>
-                      <TableHead>ENGAGEMENT</TableHead>
                       <TableHead>FIT SCORE</TableHead>
-                      <TableHead>POST TYPE</TableHead>
                       <TableHead>POSTS</TableHead>
                       <TableHead>COST</TableHead>
-                      <TableHead>CPV</TableHead>
+                      <TableHead className="w-20">ACTIONS</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {campaignResults.eligible.map((creator) => (
-                      <TableRow key={creator.id} className={isSelected(creator.id) ? 'bg-primary/5' : ''}>
+                    {/* Show selected creators first (sorted by order) */}
+                    {campaignResults.selectedCreators.map((creator, index) => (
+                      <TableRow 
+                        key={creator.id} 
+                        className={`bg-primary/5 ${isDoNotUse(creator.instagram_handle) ? 'opacity-50 bg-orange-50' : ''}`}
+                      >
+                        <TableCell>
+                          <div className="flex flex-col gap-0.5">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => handleMovePageUp(creator.id)}
+                              disabled={index === 0}
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </Button>
+                            <span className="text-xs text-center text-muted-foreground">{index + 1}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => handleMovePageDown(creator.id)}
+                              disabled={index === campaignResults.selectedCreators.length - 1}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <Switch
-                            checked={isSelected(creator.id)}
+                            checked={true}
                             onCheckedChange={() => toggleCreatorSelection(creator.id)}
                           />
                         </TableCell>
-                        <TableCell className="font-medium">@{creator.instagram_handle}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-1">
+                            <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                            @{creator.instagram_handle}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={creator.manually_added ? 'default' : 'secondary'} className="text-xs">
+                            {creator.manually_added ? 'Manual' : 'Auto'}
+                          </Badge>
+                        </TableCell>
                         <TableCell>{formatNumber(creator.followers)}</TableCell>
                         <TableCell>{formatNumber(creator.median_views_per_video)}</TableCell>
-                        <TableCell>{creator.engagement_rate}%</TableCell>
                         <TableCell>
                           <Badge variant={creator.campaignFitScore && creator.campaignFitScore > 80 ? 'default' : 'secondary'}>
                             {creator.campaignFitScore?.toFixed(1) || 0}
                           </Badge>
                         </TableCell>
-                        <TableCell>{creator.selected_post_type || 'N/A'}</TableCell>
                         <TableCell>
-                          {isSelected(creator.id) ? (
-                            <Input
-                              type="number"
-                              min="1"
-                              max="10"
-                              value={creator.posts_count || 1}
-                              onChange={(e) => handlePostsCountChange(creator.id, parseInt(e.target.value) || 1)}
-                              className="w-16 h-8"
-                            />
-                          ) : (
-                            <span>1</span>
-                          )}
+                          <Input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={creator.posts_count || 1}
+                            onChange={(e) => handlePostsCountChange(creator.id, parseInt(e.target.value) || 1)}
+                            className="w-16 h-8"
+                          />
                         </TableCell>
                         <TableCell>{formatCurrency((creator.selected_rate || 0) * (creator.posts_count || 1))}</TableCell>
-                        <TableCell>${(creator.cpv || 0).toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-100"
+                            onClick={() => handleMarkDoNotUse(creator.id)}
+                            title="Mark as Do-Not-Use"
+                          >
+                            <Ban className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {/* Show non-selected eligible creators */}
+                    {campaignResults.eligible
+                      .filter(c => !isSelected(c.id) && !isDoNotUse(c.instagram_handle))
+                      .map((creator) => (
+                      <TableRow key={creator.id} className="opacity-60">
+                        <TableCell>
+                          <span className="text-xs text-muted-foreground">-</span>
+                        </TableCell>
+                        <TableCell>
+                          <Switch
+                            checked={false}
+                            onCheckedChange={() => toggleCreatorSelection(creator.id)}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">@{creator.instagram_handle}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            Eligible
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatNumber(creator.followers)}</TableCell>
+                        <TableCell>{formatNumber(creator.median_views_per_video)}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {creator.campaignFitScore?.toFixed(1) || 0}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-muted-foreground">1</span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{formatCurrency(creator.selected_rate || 0)}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-100"
+                            onClick={() => handleMarkDoNotUse(creator.id)}
+                            title="Mark as Do-Not-Use"
+                          >
+                            <Ban className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -878,10 +1171,27 @@ const CampaignBuilder = () => {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <Button onClick={handleNext} variant="gradient" size="lg">
-              Finalize Campaign
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
+            <div className="flex gap-3">
+              {!pageSelectionApproved && campaignResults.selectedCreators.length > 0 && (
+                <Button 
+                  onClick={handleApprovePageSelection}
+                  variant="outline"
+                  className="border-green-500 text-green-600 hover:bg-green-50"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approve Pages First
+                </Button>
+              )}
+              <Button 
+                onClick={handleNext} 
+                variant="gradient" 
+                size="lg"
+                disabled={!pageSelectionApproved && campaignResults.selectedCreators.length > 0}
+              >
+                Finalize Campaign
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
           </div>
 
           {/* Creator Search Modal */}

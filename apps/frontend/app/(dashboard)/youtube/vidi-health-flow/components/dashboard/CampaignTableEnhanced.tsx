@@ -58,7 +58,8 @@ import {
   MailCheck,
   Info,
   Edit2,
-  RotateCcw
+  RotateCcw,
+  CheckCircle
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { 
@@ -68,6 +69,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCampaigns } from "../../hooks/useCampaigns";
+import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { useAuth } from "../../contexts/AuthContext";
 import { CampaignSettingsModal } from "../campaigns/CampaignSettingsModal";
 
 import type { Database } from "../../integrations/supabase/types";
@@ -168,8 +171,9 @@ const calculateHealthScore = (campaign: Campaign, manualOverride?: number): numb
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'active': return 'default';
+    case 'ready': return 'secondary';
     case 'pending': return 'secondary';
-    case 'paused': return 'outline';
+    case 'on_hold': return 'destructive';
     case 'complete': return 'default';
     default: return 'secondary';
   }
@@ -193,6 +197,7 @@ interface CampaignTableEnhancedProps {
 export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter }: CampaignTableEnhancedProps = {}) => {
   const { campaigns, loading, updateCampaign, deleteCampaign } = useCampaigns();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]);
   const [campaignSettingsOpen, setCampaignSettingsOpen] = useState(false);
@@ -399,13 +404,17 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
       switch (filterType) {
         case 'pending':
           return campaign.status === 'pending';
+        case 'ready':
+          return campaign.status === 'ready';
         case 'active':
           return campaign.status === 'active';
+        case 'on_hold':
+          return campaign.status === 'on_hold';
         case 'stalling':
           return campaign.views_stalled === true;
         case 'upcoming':
           return campaign.start_date && new Date(campaign.start_date) > new Date();
-        case 'completed':
+        case 'complete':
           return campaign.status === 'complete';
         case 'no_comment_csv':
           return !campaign.comments_sheet_url;
@@ -547,10 +556,12 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                 <SelectContent>
                   <SelectItem value="all">All Campaigns</SelectItem>
                   <SelectItem value="pending">Pending Campaigns</SelectItem>
+                  <SelectItem value="ready">Ready Campaigns</SelectItem>
                   <SelectItem value="active">Active Campaigns</SelectItem>
+                  <SelectItem value="on_hold">On Hold Campaigns</SelectItem>
                   <SelectItem value="stalling">Stalling Campaigns</SelectItem>
                   <SelectItem value="upcoming">Upcoming Campaigns</SelectItem>
-                  <SelectItem value="completed">Completed Campaigns</SelectItem>
+                  <SelectItem value="complete">Complete Campaigns</SelectItem>
                   <SelectItem value="no_comment_csv">No Comment CSV</SelectItem>
                 </SelectContent>
               </Select>
@@ -775,27 +786,39 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                     </TableCell>
                      <TableCell>
                        <div className="flex flex-col gap-1">
-                         <Select
-                           value={campaign.status}
-                           onValueChange={(value) => updateCampaign(campaign.id, { status: value as Campaign['status'] })}
-                         >
+                        <Select
+                          value={campaign.status}
+                          onValueChange={async (value) => {
+                            const previousStatus = campaign.status;
+                            await updateCampaign(campaign.id, { status: value as Campaign['status'] });
+                            await notifyOpsStatusChange({
+                              service: "youtube",
+                              campaignId: campaign.id,
+                              status: value,
+                              previousStatus,
+                              actorEmail: user?.email || null,
+                            });
+                          }}
+                        >
                            <SelectTrigger 
                              className="w-[120px]" 
                              onClick={(e) => e.stopPropagation()}
                            >
                               <div className="flex items-center gap-2">
-                                {campaign.status === "pending" && <Clock className="h-4 w-4 text-muted-foreground" />}
-                                {campaign.status === "active" && <Play className="h-4 w-4 text-success" />}
-                                {campaign.status === "paused" && <Pause className="h-4 w-4 text-warning" />}
-                                {campaign.status === "complete" && <CheckCircle2 className="h-4 w-4 text-success" />}
+                               {campaign.status === "pending" && <Clock className="h-4 w-4 text-muted-foreground" />}
+                               {campaign.status === "ready" && <CheckCircle className="h-4 w-4 text-blue-500" />}
+                               {campaign.status === "active" && <Play className="h-4 w-4 text-success" />}
+                               {campaign.status === "on_hold" && <Pause className="h-4 w-4 text-warning" />}
+                               {campaign.status === "complete" && <CheckCircle2 className="h-4 w-4 text-success" />}
                                <SelectValue />
                              </div>
                            </SelectTrigger>
                            <SelectContent>
-                             <SelectItem value="pending">Pending</SelectItem>
-                             <SelectItem value="active">Active</SelectItem>
-                             <SelectItem value="paused">Paused</SelectItem>
-                             <SelectItem value="complete">Complete</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="ready">Ready</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="on_hold">On Hold</SelectItem>
+                            <SelectItem value="complete">Complete</SelectItem>
                            </SelectContent>
                          </Select>
                            {campaign.views_stalled && (

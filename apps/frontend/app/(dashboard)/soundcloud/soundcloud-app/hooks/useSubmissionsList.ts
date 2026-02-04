@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { notifyOpsStatusChange } from '@/lib/status-notify';
 
 export interface SubmissionWithMember {
   id: string;
@@ -118,7 +119,13 @@ export const useSubmissionsList = (status?: string | 'all') => {
 
       toast({
         title: "Success",
-        description: `Submission ${newStatus === 'approved' ? 'approved' : 'updated'} successfully`,
+        description: `Submission status updated to ${newStatus}`,
+      });
+
+      await notifyOpsStatusChange({
+        service: 'soundcloud',
+        campaignId: submissionId,
+        status: newStatus,
       });
 
       return { success: true };

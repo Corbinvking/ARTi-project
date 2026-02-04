@@ -194,7 +194,7 @@ export function MemberSubmissionForm({ open, onOpenChange, onSuccess }: MemberSu
         release_date: formData.release_date?.toISOString().split('T')[0] || null,
         secondary_email: formData.secondary_email || null,
         family: formData.group || null,
-        status: 'new' as const,
+        status: 'pending' as const,
       };
 
       const { error } = await supabase

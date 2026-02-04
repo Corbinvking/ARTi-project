@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check, Instagram, Loader2, RefreshCw, Users, CheckCircle, Clock, AlertCircle, Upload } from "lucide-react";
 import { CampaignImportModal } from "./components/CampaignImportModal";
+import { ReportingScheduleCard } from "./components/ReportingScheduleCard";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
@@ -20,6 +21,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { saveOverride } from "@/lib/overrides";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInstagramCampaignMutations } from "../seedstorm-builder/hooks/useInstagramCampaignMutations";
+import { notifyOpsStatusChange } from "@/lib/status-notify";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,6 +31,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 type PaymentStatus = 'unpaid' | 'pending' | 'paid';
 type PostStatus = 'not_posted' | 'scheduled' | 'posted';
 type ApprovalStatus = 'pending' | 'approved' | 'revision_requested' | 'rejected';
+type PageStatus = 'proposed' | 'approved' | 'paid' | 'ready' | 'posted' | 'complete';
 
 interface CampaignCreator {
   id: string;
@@ -42,6 +45,12 @@ interface CampaignCreator {
   approval_status: ApprovalStatus;
   payment_notes?: string;
   approval_notes?: string;
+  // New fields for seeding workflow
+  budget_allocation?: number;
+  sort_order?: number;
+  is_auto_selected?: boolean;
+  do_not_use?: boolean;
+  page_status?: PageStatus;
 }
 
 // Status Indicator Component
@@ -148,6 +157,7 @@ export default function InstagramCampaignsPage() {
   // State for adding post URLs
   const [newPostUrl, setNewPostUrl] = useState("");
   const [addingPost, setAddingPost] = useState(false);
+  const [selectedCreatorForPost, setSelectedCreatorForPost] = useState<string>("");
 
   // Fetch campaign posts
   const { data: campaignPosts = [], isLoading: loadingPosts, refetch: refetchPosts } = useQuery({
@@ -174,19 +184,37 @@ export default function InstagramCampaignsPage() {
       const urlMatch = newPostUrl.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
       const postType = newPostUrl.includes('/reel/') ? 'reel' : newPostUrl.includes('/p/') ? 'post' : 'other';
       
+      // Find the selected creator to get their handle
+      const linkedCreator = selectedCreatorForPost 
+        ? campaignCreators.find(c => c.id === selectedCreatorForPost)
+        : null;
+      
       const { error } = await supabase
         .from('campaign_posts')
         .insert({
           campaign_id: selectedCampaign.id,
+          creator_id: selectedCreatorForPost || null,
           post_url: newPostUrl.trim(),
           post_type: postType,
-          instagram_handle: 'pending',
+          instagram_handle: linkedCreator?.instagram_handle || 'pending',
           status: 'live'
         });
       if (error) throw error;
       setNewPostUrl("");
+      setSelectedCreatorForPost("");
       refetchPosts();
-      toast({ title: "Post Added", description: "Instagram post URL added successfully" });
+      
+      // Update creator post_status to posted if linked
+      if (selectedCreatorForPost) {
+        await updateCreatorStatus(selectedCreatorForPost, { post_status: 'posted' });
+      }
+      
+      toast({ 
+        title: "Post Added", 
+        description: linkedCreator 
+          ? `Instagram post linked to @${linkedCreator.instagram_handle}` 
+          : "Instagram post URL added successfully" 
+      });
     } catch (error) {
       toast({ title: "Error", description: "Failed to add post URL", variant: "destructive" });
     } finally {
@@ -296,7 +324,7 @@ export default function InstagramCampaignsPage() {
     setIsEditMode(false);
   };
 
-  const addNoteHistory = async (noteType: 'internal' | 'client', content: string) => {
+  const addNoteHistory = async (noteType: 'internal' | 'client' | 'admin' | 'issues', content: string) => {
     if (!content.trim()) return;
     await supabase.from('campaign_note_history').insert({
       org_id: user?.tenantId || '00000000-0000-0000-0000-000000000001',
@@ -313,11 +341,27 @@ export default function InstagramCampaignsPage() {
       (editForm?.report_notes || '').trim() !== (selectedCampaign?.report_notes || '').trim();
     const clientChanged =
       (editForm?.client_notes || '').trim() !== (selectedCampaign?.client_notes || '').trim();
+    const adminChanged =
+      (editForm?.admin_notes || '').trim() !== (selectedCampaign?.admin_notes || '').trim();
+    const issuesChanged =
+      (editForm?.issues_notes || '').trim() !== (selectedCampaign?.issues_notes || '').trim();
+    const previousStatus = normalizeStatus(selectedCampaign?.status);
+    const nextStatus = normalizeStatus(editForm?.status);
 
     await updateCampaignAsync({
       id: selectedCampaign.id,
       updates: editForm
     });
+
+    if (previousStatus !== nextStatus) {
+      await notifyOpsStatusChange({
+        service: "instagram",
+        campaignId: String(selectedCampaign?.id || ''),
+        status: nextStatus,
+        previousStatus,
+        actorEmail: user?.email || null,
+      });
+    }
 
     if (internalChanged) {
       await addNoteHistory('internal', editForm?.report_notes || '');
@@ -340,6 +384,32 @@ export default function InstagramCampaignsPage() {
         fieldKey: 'client_notes',
         originalValue: selectedCampaign?.client_notes || '',
         overrideValue: editForm?.client_notes || '',
+        overrideReason: 'Manual override',
+        orgId: user?.tenantId || '00000000-0000-0000-0000-000000000001',
+        overriddenBy: user?.id || null,
+      });
+    }
+    if (adminChanged) {
+      await addNoteHistory('admin', editForm?.admin_notes || '');
+      await saveOverride({
+        service: 'instagram',
+        campaignId: String(selectedCampaign?.id || ''),
+        fieldKey: 'admin_notes',
+        originalValue: selectedCampaign?.admin_notes || '',
+        overrideValue: editForm?.admin_notes || '',
+        overrideReason: 'Manual override',
+        orgId: user?.tenantId || '00000000-0000-0000-0000-000000000001',
+        overriddenBy: user?.id || null,
+      });
+    }
+    if (issuesChanged) {
+      await addNoteHistory('issues', editForm?.issues_notes || '');
+      await saveOverride({
+        service: 'instagram',
+        campaignId: String(selectedCampaign?.id || ''),
+        fieldKey: 'issues_notes',
+        originalValue: selectedCampaign?.issues_notes || '',
+        overrideValue: editForm?.issues_notes || '',
         overrideReason: 'Manual override',
         orgId: user?.tenantId || '00000000-0000-0000-0000-000000000001',
         overriddenBy: user?.id || null,
@@ -411,14 +481,29 @@ export default function InstagramCampaignsPage() {
     }
   };
 
+  const normalizeStatus = (status?: string) => {
+    const value = (status || '').toLowerCase();
+    if (['pending', 'ready', 'active', 'complete', 'on_hold'].includes(value)) return value;
+    if (['draft', 'pending_approval', 'new'].includes(value)) return 'pending';
+    if (value === 'approved') return 'ready';
+    if (['paused', 'cancelled', 'unreleased', 'rejected'].includes(value)) return 'on_hold';
+    if (value === 'completed') return 'complete';
+    return value || 'pending';
+  };
+
+  const formatStatusLabel = (status?: string) =>
+    normalizeStatus(status)
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+
   const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
+    switch (normalizeStatus(status)) {
       case 'active': return 'bg-green-500';
-      case 'draft': return 'bg-gray-500';
-      case 'completed': return 'bg-blue-500';
-      case 'paused': return 'bg-yellow-500';
-      case 'cancelled': return 'bg-red-500';
-      case 'unreleased': return 'bg-purple-500';
+      case 'ready': return 'bg-blue-500';
+      case 'pending': return 'bg-yellow-500';
+      case 'complete': return 'bg-blue-500';
+      case 'on_hold': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
@@ -426,12 +511,11 @@ export default function InstagramCampaignsPage() {
   // Calculate KPIs and status counts
   const kpis = {
     totalCampaigns: campaigns.length,
-    activeCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'active').length,
-    completedCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'completed').length,
-    draftCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'draft').length,
-    pausedCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'paused').length,
-    cancelledCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'cancelled').length,
-    unreleasedCampaigns: campaigns.filter((c: any) => c.status?.toLowerCase() === 'unreleased').length,
+    activeCampaigns: campaigns.filter((c: any) => normalizeStatus(c.status) === 'active').length,
+    readyCampaigns: campaigns.filter((c: any) => normalizeStatus(c.status) === 'ready').length,
+    pendingCampaigns: campaigns.filter((c: any) => normalizeStatus(c.status) === 'pending').length,
+    completeCampaigns: campaigns.filter((c: any) => normalizeStatus(c.status) === 'complete').length,
+    onHoldCampaigns: campaigns.filter((c: any) => normalizeStatus(c.status) === 'on_hold').length,
     totalBudget: campaigns.reduce((sum: number, c: any) => {
       const price = parseFloat(c.price?.replace(/[^0-9.]/g, '') || '0');
       return sum + price;
@@ -486,7 +570,7 @@ export default function InstagramCampaignsPage() {
       campaign.clients?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       campaign.salespeople?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === "all" || campaign.status?.toLowerCase() === statusFilter.toLowerCase();
+    const matchesStatus = statusFilter === "all" || normalizeStatus(campaign.status) === statusFilter.toLowerCase();
     
     return matchesSearch && matchesStatus;
     })
@@ -651,6 +735,30 @@ export default function InstagramCampaignsPage() {
                 </Badge>
               </Button>
               <Button
+                variant={statusFilter === "pending" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("pending")}
+                className="flex items-center gap-2"
+              >
+                <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
+                Pending
+                <Badge variant="secondary" className="ml-1">
+                  {kpis.pendingCampaigns}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === "ready" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("ready")}
+                className="flex items-center gap-2"
+              >
+                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                Ready
+                <Badge variant="secondary" className="ml-1">
+                  {kpis.readyCampaigns}
+                </Badge>
+              </Button>
+              <Button
                 variant={statusFilter === "active" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("active")}
@@ -663,69 +771,29 @@ export default function InstagramCampaignsPage() {
                 </Badge>
               </Button>
               <Button
-                variant={statusFilter === "completed" ? "default" : "outline"}
+                variant={statusFilter === "on_hold" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setStatusFilter("completed")}
+                onClick={() => setStatusFilter("on_hold")}
+                className="flex items-center gap-2"
+              >
+                <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                On Hold
+                <Badge variant="secondary" className="ml-1">
+                  {kpis.onHoldCampaigns}
+                </Badge>
+              </Button>
+              <Button
+                variant={statusFilter === "complete" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("complete")}
                 className="flex items-center gap-2"
               >
                 <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                Completed
+                Complete
                 <Badge variant="secondary" className="ml-1">
-                  {kpis.completedCampaigns}
+                  {kpis.completeCampaigns}
                 </Badge>
               </Button>
-              <Button
-                variant={statusFilter === "draft" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("draft")}
-                className="flex items-center gap-2"
-              >
-                <span className="h-2 w-2 rounded-full bg-gray-500"></span>
-                Draft
-                <Badge variant="secondary" className="ml-1">
-                  {kpis.draftCampaigns}
-                </Badge>
-              </Button>
-              <Button
-                variant={statusFilter === "paused" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("paused")}
-                className="flex items-center gap-2"
-              >
-                <span className="h-2 w-2 rounded-full bg-yellow-500"></span>
-                Paused
-                <Badge variant="secondary" className="ml-1">
-                  {kpis.pausedCampaigns}
-                </Badge>
-              </Button>
-              {kpis.unreleasedCampaigns > 0 && (
-                <Button
-                  variant={statusFilter === "unreleased" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setStatusFilter("unreleased")}
-                  className="flex items-center gap-2"
-                >
-                  <span className="h-2 w-2 rounded-full bg-purple-500"></span>
-                  Unreleased
-                  <Badge variant="secondary" className="ml-1">
-                    {kpis.unreleasedCampaigns}
-                  </Badge>
-                </Button>
-              )}
-              {kpis.cancelledCampaigns > 0 && (
-                <Button
-                  variant={statusFilter === "cancelled" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setStatusFilter("cancelled")}
-                  className="flex items-center gap-2"
-                >
-                  <span className="h-2 w-2 rounded-full bg-red-500"></span>
-                  Cancelled
-                  <Badge variant="secondary" className="ml-1">
-                    {kpis.cancelledCampaigns}
-                  </Badge>
-                </Button>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -893,8 +961,8 @@ export default function InstagramCampaignsPage() {
                         <span className="text-xs truncate block">{campaign.clients || 'N/A'}</span>
                       </TableCell>
                       <TableCell className="py-2 px-2">
-                        <Badge className={getStatusColor(campaign.status || 'draft')} variant="outline">
-                          <span className="text-[10px]">{campaign.status || 'Draft'}</span>
+                        <Badge className={getStatusColor(campaign.status || 'pending')} variant="outline">
+                          <span className="text-[10px]">{formatStatusLabel(campaign.status || 'pending')}</span>
                         </Badge>
                       </TableCell>
                       <TableCell className="py-2 px-2">
@@ -1047,19 +1115,19 @@ export default function InstagramCampaignsPage() {
               <div>
                 {isEditMode ? (
                   <select
-                    value={editForm.status || 'draft'}
+                    value={normalizeStatus(editForm.status) || 'pending'}
                     onChange={(e) => updateField('status', e.target.value)}
                     className="px-3 py-1 border rounded-md"
                   >
-                    <option value="draft">Draft</option>
+                    <option value="pending">Pending</option>
+                    <option value="ready">Ready</option>
                     <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="paused">Paused</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="on_hold">On Hold</option>
+                    <option value="complete">Complete</option>
                   </select>
                 ) : (
-                  <Badge className={getStatusColor(selectedCampaign.status || 'draft')}>
-                    {selectedCampaign.status || 'Draft'}
+                  <Badge className={getStatusColor(selectedCampaign.status || 'pending')}>
+                    {formatStatusLabel(selectedCampaign.status || 'pending')}
                   </Badge>
                 )}
               </div>
@@ -1327,43 +1395,87 @@ export default function InstagramCampaignsPage() {
               </Card>
 
               {/* Notes */}
-              {(selectedCampaign.report_notes || selectedCampaign.client_notes || isEditMode) && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Notes</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Internal Notes (Ops Only):</p>
-                      {isEditMode ? (
-                        <Textarea
-                          value={editForm.report_notes || ''}
-                          onChange={(e) => updateField('report_notes', e.target.value)}
-                          placeholder="Add report notes..."
-                          rows={3}
-                        />
-                      ) : (
-                        <p className="text-sm">{selectedCampaign.report_notes || '-'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Client Notes (Visible to Clients):</p>
-                      {isEditMode ? (
-                        <Textarea
-                          value={editForm.client_notes || ''}
-                          onChange={(e) => updateField('client_notes', e.target.value)}
-                          placeholder="Add client notes..."
-                          rows={3}
-                        />
-                      ) : (
-                        <p className="text-sm">{selectedCampaign.client_notes || '-'}</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Notes</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Internal Notes */}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Internal Notes (Ops Only):</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={editForm.report_notes || ''}
+                        onChange={(e) => updateField('report_notes', e.target.value)}
+                        placeholder="Add report notes..."
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="text-sm">{selectedCampaign.report_notes || '-'}</p>
+                    )}
+                  </div>
 
-              {/* Tracking Checkboxes */}
+                  {/* Client Notes */}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Client Notes (Visible to Clients):</p>
+                    <p className="text-xs text-muted-foreground mb-2">Brief plan, posting window, what to expect</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={editForm.client_notes || ''}
+                        onChange={(e) => updateField('client_notes', e.target.value)}
+                        placeholder="Add client-facing notes (brief, posting window, expectations)..."
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="text-sm">{selectedCampaign.client_notes || '-'}</p>
+                    )}
+                  </div>
+
+                  {/* Admin Notes */}
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Admin Notes:</p>
+                    <p className="text-xs text-muted-foreground mb-2">Page selection, payment details, admin info</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={editForm.admin_notes || ''}
+                        onChange={(e) => updateField('admin_notes', e.target.value)}
+                        placeholder="Add admin notes (page/payment/admin details)..."
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="text-sm">{selectedCampaign.admin_notes || '-'}</p>
+                    )}
+                  </div>
+
+                  {/* Issues Notes */}
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium text-orange-600 mb-1">Issues / Do-Not-Use Notes:</p>
+                    <p className="text-xs text-muted-foreground mb-2">Known issues, do-not-use pages, problems</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={editForm.issues_notes || ''}
+                        onChange={(e) => updateField('issues_notes', e.target.value)}
+                        placeholder="Add issues (do-not-use pages, known problems)..."
+                        rows={3}
+                        className="border-orange-200 focus:border-orange-400"
+                      />
+                    ) : (
+                      <p className="text-sm">{selectedCampaign.issues_notes || '-'}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Reporting Schedule */}
+              <ReportingScheduleCard 
+                campaign={selectedCampaign}
+                onUpdate={() => {
+                  queryClient.invalidateQueries({ queryKey: ['instagram-campaigns'] });
+                  setIsDetailsOpen(false);
+                }}
+              />
+
+              {/* Legacy Tracking Checkboxes */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Progress Tracking</CardTitle>
@@ -1381,7 +1493,7 @@ export default function InstagramCampaignsPage() {
                   <div className="flex items-center gap-2">
                     <input 
                       type="checkbox" 
-                      checked={selectedCampaign.send_final_report === 'checked'} 
+                      checked={selectedCampaign.send_final_report === 'checked' || !!selectedCampaign.final_report_sent_at} 
                       disabled 
                       className="h-4 w-4"
                     />
@@ -1485,14 +1597,15 @@ export default function InstagramCampaignsPage() {
                               </TableHead>
                               <TableHead>Creator</TableHead>
                               <TableHead className="text-right">Rate</TableHead>
+                              <TableHead className="text-right">Budget Override</TableHead>
+                              <TableHead>Page Status</TableHead>
                               <TableHead>Payment</TableHead>
                               <TableHead>Post</TableHead>
-                              <TableHead>Approval</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {campaignCreators.map((creator) => (
-                              <TableRow key={creator.id}>
+                              <TableRow key={creator.id} className={creator.do_not_use ? 'opacity-50 bg-orange-50' : ''}>
                                 <TableCell>
                                   <Checkbox
                                     checked={selectedCreators.includes(creator.id)}
@@ -1507,14 +1620,51 @@ export default function InstagramCampaignsPage() {
                                 </TableCell>
                                 <TableCell>
                                   <div>
-                                    <div className="font-medium text-sm">@{creator.instagram_handle}</div>
+                                    <div className="font-medium text-sm flex items-center gap-1">
+                                      @{creator.instagram_handle}
+                                      {creator.is_auto_selected === false && (
+                                        <Badge variant="outline" className="text-[10px] ml-1">Manual</Badge>
+                                      )}
+                                    </div>
                                     <div className="text-xs text-muted-foreground">
                                       {creator.posts_count} post{creator.posts_count > 1 ? 's' : ''} • {creator.post_type}
                                     </div>
                                   </div>
                                 </TableCell>
-                                <TableCell className="text-right font-medium">
+                                <TableCell className="text-right font-medium text-muted-foreground">
                                   ${creator.rate?.toLocaleString() || 0}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={creator.budget_allocation ?? creator.rate ?? ''}
+                                    onChange={(e) => {
+                                      const value = parseFloat(e.target.value) || 0;
+                                      updateCreatorStatus(creator.id, { budget_allocation: value } as any);
+                                    }}
+                                    className="w-20 h-8 text-right"
+                                    placeholder={String(creator.rate || 0)}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Select
+                                    value={creator.page_status || 'proposed'}
+                                    onValueChange={(value) => updateCreatorStatus(creator.id, { page_status: value } as any)}
+                                  >
+                                    <SelectTrigger className="w-24 h-8">
+                                      <span className="text-xs">{(creator.page_status || 'proposed').charAt(0).toUpperCase() + (creator.page_status || 'proposed').slice(1)}</span>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="proposed">Proposed</SelectItem>
+                                      <SelectItem value="approved">Approved</SelectItem>
+                                      <SelectItem value="paid">Paid</SelectItem>
+                                      <SelectItem value="ready">Ready</SelectItem>
+                                      <SelectItem value="posted">Posted</SelectItem>
+                                      <SelectItem value="complete">Complete</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </TableCell>
                                 <TableCell>
                                   <Select
@@ -1546,22 +1696,6 @@ export default function InstagramCampaignsPage() {
                                     </SelectContent>
                                   </Select>
                                 </TableCell>
-                                <TableCell>
-                                  <Select
-                                    value={creator.approval_status}
-                                    onValueChange={(value) => updateCreatorStatus(creator.id, { approval_status: value as ApprovalStatus })}
-                                  >
-                                    <SelectTrigger className="w-28 h-8">
-                                      <StatusIndicator type="approval" status={creator.approval_status} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="pending"><StatusIndicator type="approval" status="pending" /></SelectItem>
-                                      <SelectItem value="approved"><StatusIndicator type="approval" status="approved" /></SelectItem>
-                                      <SelectItem value="revision_requested"><StatusIndicator type="approval" status="revision_requested" /></SelectItem>
-                                      <SelectItem value="rejected"><StatusIndicator type="approval" status="rejected" /></SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -1585,17 +1719,41 @@ export default function InstagramCampaignsPage() {
                 </CardHeader>
                 <CardContent>
                   {/* Add Post URL Form */}
-                  <div className="flex gap-2 mb-4">
-                    <Input
-                      placeholder="Paste Instagram post URL (e.g., https://instagram.com/p/...)"
-                      value={newPostUrl}
-                      onChange={(e) => setNewPostUrl(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && addPostUrl()}
-                      className="flex-1"
-                    />
-                    <Button onClick={addPostUrl} disabled={addingPost || !newPostUrl.trim()}>
-                      {addingPost ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                    </Button>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Paste Instagram post URL (e.g., https://instagram.com/p/...)"
+                        value={newPostUrl}
+                        onChange={(e) => setNewPostUrl(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addPostUrl()}
+                        className="flex-1"
+                      />
+                      <Button onClick={addPostUrl} disabled={addingPost || !newPostUrl.trim()}>
+                        {addingPost ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    {/* Creator/Page Selector */}
+                    {campaignCreators.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-muted-foreground whitespace-nowrap">Link to page:</Label>
+                        <Select
+                          value={selectedCreatorForPost}
+                          onValueChange={setSelectedCreatorForPost}
+                        >
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder="Select page (optional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">No page link</SelectItem>
+                            {campaignCreators.map((creator) => (
+                              <SelectItem key={creator.id} value={creator.id}>
+                                @{creator.instagram_handle}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
 
                   {loadingPosts ? (
@@ -1617,6 +1775,11 @@ export default function InstagramCampaignsPage() {
                               <Badge variant="outline" className="shrink-0">
                                 {post.post_type || 'post'}
                               </Badge>
+                              {post.instagram_handle && post.instagram_handle !== 'pending' && (
+                                <Badge variant="secondary" className="shrink-0 text-xs">
+                                  @{post.instagram_handle}
+                                </Badge>
+                              )}
                               <a 
                                 href={post.post_url} 
                                 target="_blank" 
@@ -1627,10 +1790,10 @@ export default function InstagramCampaignsPage() {
                               </a>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              {post.instagram_handle && post.instagram_handle !== 'pending' && (
-                                <span className="text-xs text-muted-foreground">
-                                  @{post.instagram_handle}
-                                </span>
+                              {post.creator_id && (
+                                <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-600">
+                                  Linked
+                                </Badge>
                               )}
                               <Button
                                 variant="ghost"

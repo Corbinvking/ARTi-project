@@ -57,11 +57,11 @@ export const useMemberSubmissions = () => {
           const date = s.submitted_at || s.created_at;
           return date && new Date(date) >= startOfMonth;
         }).length,
-        pendingSubmissions: submissions.filter(s => 
-          ['new', 'pending', 'qa_flag'].includes(s.status)
+        pendingSubmissions: submissions.filter(s =>
+          ['pending', 'ready', 'qa_flag', 'new'].includes(s.status)
         ).length,
-        approvedSubmissions: submissions.filter(s => s.status === 'approved').length,
-        rejectedSubmissions: submissions.filter(s => s.status === 'rejected').length,
+        approvedSubmissions: submissions.filter(s => s.status === 'ready').length,
+        rejectedSubmissions: submissions.filter(s => s.status === 'on_hold').length,
         recentSubmissions: submissions.slice(0, 5).map(s => ({
           ...s,
           submitted_at: s.submitted_at || s.created_at

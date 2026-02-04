@@ -11,8 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../integrations/supabase/client';
-import { Upload, AlertCircle, CheckCircle, User, Music, Calendar, Settings } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Upload, AlertCircle, CheckCircle, User, Music, Calendar, Settings, WifiOff, ExternalLink } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface GenreFamily {
   id: string;
@@ -37,11 +37,18 @@ export const SubmitTrack = () => {
     notes: '',
   });
 
-  // Enhanced access control
+  // Check if member's Influence Planner account is connected
+  const isIPConnected = member?.influence_planner_status === 'connected';
+  const isIPDisconnected = member?.influence_planner_status === 'disconnected';
+  const needsIPSetup = member?.influence_planner_status === 'hasnt_logged_in' || 
+                       member?.influence_planner_status === 'invited';
+
+  // Enhanced access control - now includes Influence Planner connection check
   const canSubmit = member && 
     member.status === 'active' && 
     member.submissions_this_month < member.monthly_repost_limit &&
-    user?.email && member.emails.includes(user.email);
+    user?.email && member.emails.includes(user.email) &&
+    isIPConnected; // Must have connected IP account
   
   const remainingSubmissions = member ? member.monthly_repost_limit - member.submissions_this_month : 0;
 
@@ -146,7 +153,7 @@ export const SubmitTrack = () => {
             family: formData.family || null,
             need_live_link: formData.need_live_link,
             notes: formData.notes || null,
-            status: 'new',
+            status: 'pending',
             subgenres: [], // Will be determined by admin/auto-classification
           }
         ]);
@@ -220,6 +227,100 @@ export const SubmitTrack = () => {
             Please contact support to reactivate your account.
           </AlertDescription>
         </Alert>
+      </div>
+    );
+  }
+
+  // Block submission if Influence Planner account is not connected
+  if (!isIPConnected) {
+    return (
+      <div className="p-6 max-w-2xl mx-auto space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">Submit New Track</h1>
+          <p className="text-muted-foreground">Submit your track for promotion consideration through our SoundCloud groups</p>
+        </div>
+
+        <Alert className="border-amber-200 bg-amber-50">
+          <WifiOff className="h-5 w-5 text-amber-600" />
+          <AlertTitle className="text-amber-800">Influence Planner Connection Required</AlertTitle>
+          <AlertDescription className="text-amber-700 mt-2 space-y-3">
+            {isIPDisconnected ? (
+              <>
+                <p>
+                  Your Influence Planner account has been <strong>disconnected</strong>. 
+                  You need to reconnect before you can submit new tracks.
+                </p>
+                <p className="text-sm">
+                  This is usually caused by a SoundCloud password change or expired session. 
+                  Please log in to Influence Planner to reconnect your account.
+                </p>
+              </>
+            ) : needsIPSetup ? (
+              <>
+                <p>
+                  To submit tracks for promotion, you first need to connect your SoundCloud account 
+                  through <strong>Influence Planner</strong>.
+                </p>
+                <p className="text-sm">
+                  This one-time setup allows us to schedule reposts on your behalf when you receive support.
+                </p>
+              </>
+            ) : (
+              <p>
+                Your Influence Planner account status is: <strong>{member.influence_planner_status}</strong>. 
+                Please contact support for assistance.
+              </p>
+            )}
+          </AlertDescription>
+        </Alert>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">How to Connect</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ol className="list-decimal list-inside space-y-3 text-sm text-muted-foreground">
+              <li>
+                Click the button below to open Influence Planner
+              </li>
+              <li>
+                Log in with your SoundCloud account credentials
+              </li>
+              <li>
+                Authorize Influence Planner to manage reposts on your behalf
+              </li>
+              <li>
+                Return here and refresh the page to continue
+              </li>
+            </ol>
+
+            <div className="pt-4 flex flex-col sm:flex-row gap-3">
+              <Button asChild className="flex-1">
+                <a 
+                  href="https://influenceplanner.com/connect" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  {isIPDisconnected ? 'Reconnect Account' : 'Connect Influence Planner'}
+                </a>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => window.location.reload()}
+              >
+                Refresh Status
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="text-center text-sm text-muted-foreground">
+          <p>
+            Having trouble? <a href="mailto:support@example.com" className="text-primary hover:underline">Contact Support</a>
+          </p>
+        </div>
       </div>
     );
   }

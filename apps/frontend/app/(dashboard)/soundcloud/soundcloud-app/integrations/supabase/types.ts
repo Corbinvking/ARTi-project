@@ -2547,7 +2547,7 @@ export type Database = {
         | "failed"
         | "cancelled"
       size_tier: "T1" | "T2" | "T3" | "T4"
-      submission_status: "new" | "approved" | "rejected" | "pending" | "qa_flag"
+      submission_status: "pending" | "ready" | "active" | "complete" | "on_hold" | "qa_flag"
       target_band_mode: "balance" | "size"
     }
     CompositeTypes: {
@@ -2722,7 +2722,7 @@ export const Constants = {
         "cancelled",
       ],
       size_tier: ["T1", "T2", "T3", "T4"],
-      submission_status: ["new", "approved", "rejected", "pending", "qa_flag"],
+      submission_status: ["pending", "ready", "active", "complete", "on_hold", "qa_flag"],
       target_band_mode: ["balance", "size"],
     },
   },

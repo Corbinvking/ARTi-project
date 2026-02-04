@@ -657,8 +657,8 @@ export function SubmissionDetailModal({
               {submission.campaign_name}
             </DialogTitle>
             <DialogDescription className="flex items-center gap-2 flex-wrap">
-              <Badge variant={submission.status === 'pending_approval' ? 'default' : 'secondary'}>
-                {submission.status === 'pending_approval' ? 'Pending Approval' : submission.status}
+              <Badge variant={submission.status === 'pending' ? 'default' : 'secondary'}>
+                {submission.status === 'pending' ? 'Pending' : submission.status}
               </Badge>
               {submission.invoice_status && (
                 <Badge variant="outline">Invoice: {submission.invoice_status}</Badge>
@@ -1167,7 +1167,7 @@ export function SubmissionDetailModal({
             </TabsContent>
           </Tabs>
 
-          {submission.status === 'pending_approval' && (
+          {submission.status === 'pending' && (
             <DialogFooter className="flex gap-2 pt-4 border-t">
               <Button
                 variant="outline"
