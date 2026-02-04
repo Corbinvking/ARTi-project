@@ -782,8 +782,10 @@ export type Database = {
           channel_id: string | null
           client_id: string | null
           comment_server: string | null
+          comment_server_auto_selected: boolean | null
           comments_7_days: number | null
           comments_sheet_url: string | null
+          comments_csv_file_path: string | null
           confirm_start_date: boolean | null
           created_at: string
           current_comments: number | null
@@ -794,6 +796,10 @@ export type Database = {
           end_date: string | null
           genre: string | null
           goal_views: number | null
+          like_goal: number | null
+          comment_goal: number | null
+          api_poll_cadence: string | null
+          last_api_poll_at: string | null
           id: string
           impression_ctr: number | null
           in_fixer: boolean | null
@@ -802,6 +808,7 @@ export type Database = {
           last_weekly_update_sent: string | null
           last_youtube_fetch: string | null
           like_server: string | null
+          like_server_auto_selected: boolean | null
           likes_7_days: number | null
           manual_progress: number | null
           minimum_engagement: number | null
@@ -841,8 +848,10 @@ export type Database = {
           channel_id?: string | null
           client_id?: string | null
           comment_server?: string | null
+          comment_server_auto_selected?: boolean | null
           comments_7_days?: number | null
           comments_sheet_url?: string | null
+          comments_csv_file_path?: string | null
           confirm_start_date?: boolean | null
           created_at?: string
           current_comments?: number | null
@@ -853,6 +862,10 @@ export type Database = {
           end_date?: string | null
           genre?: string | null
           goal_views?: number | null
+          like_goal?: number | null
+          comment_goal?: number | null
+          api_poll_cadence?: string | null
+          last_api_poll_at?: string | null
           id?: string
           impression_ctr?: number | null
           in_fixer?: boolean | null
@@ -861,6 +874,7 @@ export type Database = {
           last_weekly_update_sent?: string | null
           last_youtube_fetch?: string | null
           like_server?: string | null
+          like_server_auto_selected?: boolean | null
           likes_7_days?: number | null
           manual_progress?: number | null
           minimum_engagement?: number | null
@@ -900,8 +914,10 @@ export type Database = {
           channel_id?: string | null
           client_id?: string | null
           comment_server?: string | null
+          comment_server_auto_selected?: boolean | null
           comments_7_days?: number | null
           comments_sheet_url?: string | null
+          comments_csv_file_path?: string | null
           confirm_start_date?: boolean | null
           created_at?: string
           current_comments?: number | null
@@ -912,6 +928,10 @@ export type Database = {
           end_date?: string | null
           genre?: string | null
           goal_views?: number | null
+          like_goal?: number | null
+          comment_goal?: number | null
+          api_poll_cadence?: string | null
+          last_api_poll_at?: string | null
           id?: string
           impression_ctr?: number | null
           in_fixer?: boolean | null
@@ -920,6 +940,7 @@ export type Database = {
           last_weekly_update_sent?: string | null
           last_youtube_fetch?: string | null
           like_server?: string | null
+          like_server_auto_selected?: boolean | null
           likes_7_days?: number | null
           manual_progress?: number | null
           minimum_engagement?: number | null
@@ -1083,7 +1104,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "salesperson"
-      campaign_status: "pending" | "active" | "paused" | "complete"
+      campaign_status: "pending" | "ready" | "active" | "on_hold" | "complete"
       invoice_status: "tbd" | "sent" | "paid"
       priority_level: "low" | "medium" | "high"
       queue_status: "waiting" | "processing" | "completed" | "failed"
@@ -1249,7 +1270,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "salesperson"],
-      campaign_status: ["pending", "active", "paused", "complete"],
+      campaign_status: ["pending", "ready", "active", "on_hold", "complete"],
       invoice_status: ["tbd", "sent", "paid"],
       priority_level: ["low", "medium", "high"],
       queue_status: ["waiting", "processing", "completed", "failed"],

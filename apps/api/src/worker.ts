@@ -165,11 +165,11 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
   try {
     const timeOfDay = data.timeOfDay || determineTimeOfDay()
     
-    // Fetch all active campaigns (collect stats for all)
+    // Fetch all active campaigns (collect stats for all that match cadence)
     const { data: campaigns, error: fetchError } = await supabase
       .from('youtube_campaigns')
-      .select('id, youtube_url, video_id, current_views, current_likes, current_comments')
-      .in('status', ['active', 'pending'])
+      .select('id, youtube_url, video_id, current_views, current_likes, current_comments, api_poll_cadence, last_api_poll_at')
+      .in('status', ['active', 'pending', 'ready'])
     
     if (fetchError) {
       logger.error('Error fetching YouTube campaigns:', fetchError)
@@ -181,14 +181,31 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
       return { collected: 0, message: 'No campaigns to sync' }
     }
     
-    logger.info(`📊 Found ${campaigns.length} YouTube campaigns to sync`)
+    logger.info(`📊 Found ${campaigns.length} YouTube campaigns to check`)
     
     const today = new Date().toISOString().split('T')[0]
     let successCount = 0
     let errorCount = 0
+    let skippedCount = 0
     
-    // Process each campaign
+    // Process each campaign that matches cadence
     for (const campaign of campaigns) {
+      // Check if campaign should be synced based on cadence
+      const cadence = (campaign as any).api_poll_cadence || '3x_daily'
+      
+      // Skip manual-only campaigns
+      if (cadence === 'manual') {
+        skippedCount++
+        continue
+      }
+      
+      // For daily cadence, only sync once per day (morning)
+      if (cadence === 'daily' && timeOfDay !== 'morning') {
+        skippedCount++
+        continue
+      }
+      
+      // For 3x_daily (default), always proceed
       try {
         const videoId = campaign.video_id || extractVideoIdFromUrl(campaign.youtube_url)
         if (!videoId) {
@@ -228,14 +245,15 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
           continue
         }
         
-        // Also update campaign's current stats
+        // Also update campaign's current stats and last poll timestamp
         await supabase
           .from('youtube_campaigns')
           .update({
             current_views: stats.viewCount,
             current_likes: stats.likeCount,
             current_comments: stats.commentCount,
-            last_youtube_api_fetch: new Date().toISOString()
+            last_youtube_fetch: new Date().toISOString(),
+            last_api_poll_at: new Date().toISOString()
           })
           .eq('id', campaign.id)
         
@@ -247,8 +265,8 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
       }
     }
     
-    logger.info(`✅ YouTube metrics sync complete: ${successCount} success, ${errorCount} errors`)
-    return { collected: successCount, errors: errorCount, total: campaigns.length }
+    logger.info(`✅ YouTube metrics sync complete: ${successCount} success, ${errorCount} errors, ${skippedCount} skipped (cadence)`)
+    return { collected: successCount, errors: errorCount, skipped: skippedCount, total: campaigns.length }
     
   } catch (error) {
     logger.error('YouTube metrics sync failed:', error)

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,11 +16,17 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCampaigns } from "../../hooks/useCampaigns";
+import { notifyOpsStatusChange } from "@/lib/status-notify";
 import { supabase } from "../../integrations/supabase/client";
+import { useAuth } from "../../contexts/AuthContext";
 import { RatioFixerContent } from "./RatioFixerContent";
 import { sanitizeYouTubeUrl } from "../../lib/youtube";
 import { getApiUrl } from "../../lib/getApiUrl";
 import { MultiServiceTypeSelector } from "./MultiServiceTypeSelector";
+import { CommentsCSVUpload } from "./CommentsCSVUpload";
+import { FinalReportModal } from "./FinalReportModal";
+import { OverrideField, OverrideDateField, OverrideSelectField } from "@/components/overrides";
+import { saveOverride, revertOverride } from "@/lib/overrides";
 import { SERVICE_TYPES, GENRE_OPTIONS, LIKE_SERVER_OPTIONS, COMMENT_SERVER_OPTIONS, SHEET_TIER_OPTIONS } from "../../lib/constants";
 import type { Database } from "../../integrations/supabase/types";
 
@@ -46,18 +53,21 @@ interface CampaignSettingsModalProps {
 
 const statusOptions: { value: CampaignStatus; label: string }[] = [
   { value: 'pending', label: 'Pending' },
+  { value: 'ready', label: 'Ready' },
   { value: 'active', label: 'Active' },
-  { value: 'paused', label: 'Paused' },
+  { value: 'on_hold', label: 'On Hold' },
   { value: 'complete', label: 'Complete' },
 ];
 
 export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab = 'basic' }: CampaignSettingsModalProps) => {
   const { toast } = useToast();
   const { campaigns, clients, salespersons, updateCampaign, triggerYouTubeStatsFetch } = useCampaigns();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [loadingStats, setLoadingStats] = useState(false);
   const [refreshingYouTubeData, setRefreshingYouTubeData] = useState(false);
+  const [showFinalReport, setShowFinalReport] = useState(false);
   
   const campaign = campaigns.find(c => c.id === campaignId);
   
@@ -79,6 +89,12 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
     comments_sheet_url: '',
     like_server: '',
     comment_server: '',
+    like_goal: '',
+    comment_goal: '',
+    api_poll_cadence: '3x_daily',
+    comments_csv_file_path: '',
+    like_server_auto_selected: true,
+    comment_server_auto_selected: true,
     minimum_engagement: '',
     wait_time_seconds: '',
     sheet_tier: '',
@@ -90,6 +106,17 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
     views_stalled: false,
     ask_for_access: false,
     youtube_api_enabled: false,
+    // Notes fields
+    internal_notes: '',
+    client_notes: '',
+  });
+
+  // Suggested values for override tracking
+  const [suggestedValues, setSuggestedValues] = useState({
+    start_date: undefined as Date | undefined,
+    end_date: undefined as Date | undefined,
+    like_server: LIKE_SERVER_OPTIONS[0]?.value || '',
+    comment_server: COMMENT_SERVER_OPTIONS[0]?.value || '',
   });
 
   useEffect(() => {
@@ -133,6 +160,12 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         comments_sheet_url: campaign.comments_sheet_url || '',
         like_server: campaign.like_server || '',
         comment_server: campaign.comment_server || '',
+        like_goal: (campaign as any).like_goal?.toString() || '',
+        comment_goal: (campaign as any).comment_goal?.toString() || '',
+        api_poll_cadence: (campaign as any).api_poll_cadence || '3x_daily',
+        comments_csv_file_path: (campaign as any).comments_csv_file_path || '',
+        like_server_auto_selected: (campaign as any).like_server_auto_selected ?? true,
+        comment_server_auto_selected: (campaign as any).comment_server_auto_selected ?? true,
         minimum_engagement: campaign.minimum_engagement?.toString() || '',
         wait_time_seconds: campaign.wait_time_seconds?.toString() || '',
         sheet_tier: campaign.sheet_tier || '',
@@ -143,6 +176,21 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         views_stalled: campaign.views_stalled || false,
         ask_for_access: campaign.ask_for_access || false,
         youtube_api_enabled: campaign.youtube_api_enabled || false,
+        internal_notes: (campaign as any).internal_notes || '',
+        client_notes: (campaign as any).client_notes || '',
+      });
+
+      // Set suggested values - these are the "original" values from the campaign
+      // or system defaults if not set
+      setSuggestedValues({
+        start_date: campaign.start_date ? new Date(campaign.start_date) : new Date(),
+        end_date: campaign.end_date ? new Date(campaign.end_date) : undefined,
+        like_server: (campaign as any).like_server_auto_selected 
+          ? (campaign.like_server || LIKE_SERVER_OPTIONS[0]?.value || '')
+          : LIKE_SERVER_OPTIONS[0]?.value || '',
+        comment_server: (campaign as any).comment_server_auto_selected 
+          ? (campaign.comment_server || COMMENT_SERVER_OPTIONS[0]?.value || '')
+          : COMMENT_SERVER_OPTIONS[0]?.value || '',
       });
     }
   }, [campaign, isOpen]);
@@ -164,6 +212,30 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
       }
     }
   }, [serviceTypes, formData.start_date, formData.end_date]);
+
+  // Auto-select servers when empty and auto_selected is true
+  useEffect(() => {
+    let updated = false;
+    const updates: Partial<typeof formData> = {};
+    
+    // Auto-select like server if empty and auto_selected is true
+    if (!formData.like_server && formData.like_server_auto_selected && LIKE_SERVER_OPTIONS.length > 0) {
+      // Default to first available server
+      updates.like_server = LIKE_SERVER_OPTIONS[0].value;
+      updated = true;
+    }
+    
+    // Auto-select comment server if empty and auto_selected is true
+    if (!formData.comment_server && formData.comment_server_auto_selected && COMMENT_SERVER_OPTIONS.length > 0) {
+      // Default to first available server
+      updates.comment_server = COMMENT_SERVER_OPTIONS[0].value;
+      updated = true;
+    }
+    
+    if (updated) {
+      setFormData(prev => ({ ...prev, ...updates }));
+    }
+  }, [formData.like_server, formData.comment_server, formData.like_server_auto_selected, formData.comment_server_auto_selected]);
 
   const fetchDailyStats = async () => {
     if (!campaign) {
@@ -288,6 +360,94 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
     setFormData(newData);
   };
 
+  // Override handlers for date fields
+  const handleDateOverride = async (field: 'start_date' | 'end_date', date: Date | undefined, reason?: string) => {
+    if (!campaign || !date) return;
+    
+    handleInputChange(field, date);
+    
+    const suggestedDate = suggestedValues[field];
+    if (suggestedDate && date.getTime() !== suggestedDate.getTime()) {
+      try {
+        await saveOverride({
+          service: 'youtube',
+          campaignId: campaign.id,
+          fieldKey: field,
+          originalValue: suggestedDate?.toISOString(),
+          overrideValue: date.toISOString(),
+          overrideReason: reason,
+          orgId: campaign.org_id || '',
+          overriddenBy: user?.id,
+        });
+      } catch (error) {
+        console.error('Failed to save date override:', error);
+      }
+    }
+  };
+
+  const handleDateRevert = async (field: 'start_date' | 'end_date') => {
+    if (!campaign) return;
+    
+    const suggestedDate = suggestedValues[field];
+    if (suggestedDate) {
+      handleInputChange(field, suggestedDate);
+    }
+    
+    try {
+      await revertOverride({
+        service: 'youtube',
+        campaignId: campaign.id,
+        fieldKey: field,
+      });
+    } catch (error) {
+      console.error('Failed to revert date override:', error);
+    }
+  };
+
+  // Override handlers for server selection
+  const handleServerOverride = async (field: 'like_server' | 'comment_server', value: string, reason?: string) => {
+    if (!campaign) return;
+    
+    handleInputChange(field, value);
+    handleInputChange(`${field}_auto_selected`, false);
+    
+    const suggestedValue = suggestedValues[field];
+    if (suggestedValue && value !== suggestedValue) {
+      try {
+        await saveOverride({
+          service: 'youtube',
+          campaignId: campaign.id,
+          fieldKey: field,
+          originalValue: suggestedValue,
+          overrideValue: value,
+          overrideReason: reason,
+          orgId: campaign.org_id || '',
+          overriddenBy: user?.id,
+        });
+      } catch (error) {
+        console.error('Failed to save server override:', error);
+      }
+    }
+  };
+
+  const handleServerRevert = async (field: 'like_server' | 'comment_server') => {
+    if (!campaign) return;
+    
+    const suggestedValue = suggestedValues[field];
+    handleInputChange(field, suggestedValue);
+    handleInputChange(`${field}_auto_selected`, true);
+    
+    try {
+      await revertOverride({
+        service: 'youtube',
+        campaignId: campaign.id,
+        fieldKey: field,
+      });
+    } catch (error) {
+      console.error('Failed to revert server override:', error);
+    }
+  };
+
   const isSetupComplete = () => {
     return formData.desired_daily && 
            formData.comments_sheet_url && 
@@ -340,6 +500,12 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         comments_sheet_url: formData.comments_sheet_url || null,
         like_server: formData.like_server || null,
         comment_server: formData.comment_server || null,
+        like_goal: formData.like_goal ? parseInt(formData.like_goal) : null,
+        comment_goal: formData.comment_goal ? parseInt(formData.comment_goal) : null,
+        like_server_auto_selected: formData.like_server_auto_selected,
+        comment_server_auto_selected: formData.comment_server_auto_selected,
+        api_poll_cadence: formData.api_poll_cadence || '3x_daily',
+        comments_csv_file_path: formData.comments_csv_file_path || null,
         minimum_engagement: formData.minimum_engagement ? parseInt(formData.minimum_engagement) : 0,
         wait_time_seconds: formData.wait_time_seconds ? parseInt(formData.wait_time_seconds) : 0,
         sheet_tier: formData.sheet_tier || null,
@@ -351,8 +517,11 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         ask_for_access: formData.ask_for_access,
         youtube_api_enabled: formData.status === 'active' ? true : formData.youtube_api_enabled,
         technical_setup_complete: Boolean(isSetupComplete()),
+        internal_notes: formData.internal_notes || null,
+        client_notes: formData.client_notes || null,
       };
 
+      const previousStatus = campaign.status;
       const { error } = await updateCampaign(campaign.id, updateData);
       
       if (error) {
@@ -363,6 +532,22 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         title: "Campaign Updated",
         description: "Campaign settings have been saved successfully.",
       });
+
+      if (updateData.status && updateData.status !== previousStatus) {
+        await notifyOpsStatusChange({
+          service: "youtube",
+          campaignId: campaign.id,
+          status: updateData.status,
+          previousStatus: previousStatus || null,
+          actorEmail: user?.email || null,
+        });
+        
+        // Show final report modal when campaign is marked as complete
+        if (updateData.status === 'complete') {
+          setShowFinalReport(true);
+          return; // Don't close the modal yet
+        }
+      }
       
       onClose();
     } catch (error) {
@@ -401,6 +586,12 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         comments_sheet_url: formData.comments_sheet_url || null,
         like_server: formData.like_server || null,
         comment_server: formData.comment_server || null,
+        like_goal: formData.like_goal ? parseInt(formData.like_goal) : null,
+        comment_goal: formData.comment_goal ? parseInt(formData.comment_goal) : null,
+        like_server_auto_selected: formData.like_server_auto_selected,
+        comment_server_auto_selected: formData.comment_server_auto_selected,
+        api_poll_cadence: formData.api_poll_cadence || '3x_daily',
+        comments_csv_file_path: formData.comments_csv_file_path || null,
         minimum_engagement: formData.minimum_engagement ? parseInt(formData.minimum_engagement) : 0,
         wait_time_seconds: formData.wait_time_seconds ? parseInt(formData.wait_time_seconds) : 0,
         sheet_tier: formData.sheet_tier || null,
@@ -413,8 +604,11 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         youtube_api_enabled: true, // Always enable for active campaigns
         technical_setup_complete: true,
         status: 'active' as CampaignStatus,
+        internal_notes: formData.internal_notes || null,
+        client_notes: formData.client_notes || null,
       };
 
+      const previousStatus = campaign.status;
       const { error } = await updateCampaign(campaign.id, updateData);
       
       if (error) {
@@ -424,6 +618,14 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
       toast({
         title: "Campaign Activated",
         description: "Campaign has been activated and will begin processing.",
+      });
+
+      await notifyOpsStatusChange({
+        service: "youtube",
+        campaignId: campaign.id,
+        status: updateData.status,
+        previousStatus: previousStatus || null,
+        actorEmail: user?.email || null,
       });
       
       onClose();
@@ -460,9 +662,10 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         </DialogHeader>
 
         <Tabs defaultValue={initialTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="metrics">Metrics & Targets</TabsTrigger>
+            <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="ratio-fixer">Ratio Fixer</TabsTrigger>
             <TabsTrigger value="results">Results</TabsTrigger>
           </TabsList>
@@ -568,6 +771,33 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                   serviceTypes={serviceTypes}
                   onServiceTypesChange={setServiceTypes}
                 />
+                
+                {/* Like and Comment Goals */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="like_goal">Like Goal</Label>
+                    <Input
+                      id="like_goal"
+                      type="number"
+                      placeholder="Target likes for campaign"
+                      min="0"
+                      value={formData.like_goal}
+                      onChange={(e) => handleInputChange('like_goal', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="comment_goal">Comment Goal</Label>
+                    <Input
+                      id="comment_goal"
+                      type="number"
+                      placeholder="Target comments for campaign"
+                      min="0"
+                      value={formData.comment_goal}
+                      onChange={(e) => handleInputChange('comment_goal', e.target.value)}
+                    />
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="desired_daily">Desired Daily (Auto-calculated)</Label>
@@ -626,46 +856,20 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Start Date</Label>
-                    <Popover modal={true}>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.start_date ? format(formData.start_date, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-[9999] bg-popover border shadow-lg" sideOffset={5}>
-                        <CalendarComponent
-                          mode="single"
-                          selected={formData.start_date}
-                          onSelect={(date) => handleInputChange('start_date', date)}
-                          initialFocus
-                          className="bg-background"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>End Date</Label>
-                    <Popover modal={true}>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal">
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {formData.end_date ? format(formData.end_date, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-[9999] bg-popover border shadow-lg" sideOffset={5}>
-                        <CalendarComponent
-                          mode="single"
-                          selected={formData.end_date}
-                          onSelect={(date) => handleInputChange('end_date', date)}
-                          initialFocus
-                          className="bg-background"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <OverrideDateField
+                    label="Start Date"
+                    value={formData.start_date}
+                    suggestedValue={suggestedValues.start_date}
+                    onSelect={(date, reason) => handleDateOverride('start_date', date, reason)}
+                    onRevert={() => handleDateRevert('start_date')}
+                  />
+                  <OverrideDateField
+                    label="End Date"
+                    value={formData.end_date}
+                    suggestedValue={suggestedValues.end_date}
+                    onSelect={(date, reason) => handleDateOverride('end_date', date, reason)}
+                    onRevert={() => handleDateRevert('end_date')}
+                  />
                 </div>
                 
                 {/* Engagement & Technical Settings */}
@@ -691,36 +895,24 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="like_server">Like Server</Label>
-                    <Select value={formData.like_server} onValueChange={(value) => handleInputChange('like_server', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select server" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LIKE_SERVER_OPTIONS.map((server) => (
-                          <SelectItem key={server.value} value={server.value}>
-                            {server.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="comment_server">Comment Server</Label>
-                    <Select value={formData.comment_server} onValueChange={(value) => handleInputChange('comment_server', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select server" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {COMMENT_SERVER_OPTIONS.map((server) => (
-                          <SelectItem key={server.value} value={server.value}>
-                            {server.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <OverrideSelectField
+                    label="Like Server"
+                    value={formData.like_server}
+                    suggestedValue={suggestedValues.like_server}
+                    options={LIKE_SERVER_OPTIONS}
+                    onValueChange={(value, reason) => handleServerOverride('like_server', value, reason)}
+                    onRevert={() => handleServerRevert('like_server')}
+                    placeholder="Select server"
+                  />
+                  <OverrideSelectField
+                    label="Comment Server"
+                    value={formData.comment_server}
+                    suggestedValue={suggestedValues.comment_server}
+                    options={COMMENT_SERVER_OPTIONS}
+                    onValueChange={(value, reason) => handleServerOverride('comment_server', value, reason)}
+                    onRevert={() => handleServerRevert('comment_server')}
+                    placeholder="Select server"
+                  />
                   <div className="space-y-2">
                     <Label htmlFor="sheet_tier">Sheet Tier</Label>
                     <Select value={formData.sheet_tier} onValueChange={(value) => handleInputChange('sheet_tier', value)}>
@@ -737,14 +929,41 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                     </Select>
                   </div>
                 </div>
-
+                
+                {/* API Polling Cadence */}
                 <div className="space-y-2">
-                  <Label htmlFor="comments_sheet_url">Comments Sheet URL</Label>
-                  <Input
-                    id="comments_sheet_url"
-                    value={formData.comments_sheet_url}
-                    onChange={(e) => handleInputChange('comments_sheet_url', e.target.value)}
-                    placeholder="https://docs.google.com/spreadsheets/..."
+                  <Label htmlFor="api_poll_cadence">API Polling Cadence</Label>
+                  <Select value={formData.api_poll_cadence} onValueChange={(value) => handleInputChange('api_poll_cadence', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select cadence" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3x_daily">3x Daily (8 AM, 2 PM, 8 PM)</SelectItem>
+                      <SelectItem value="daily">Daily (once per day)</SelectItem>
+                      <SelectItem value="manual">Manual only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    How often to automatically fetch YouTube stats. Default is 3x daily.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="comments_sheet_url">Comments Sheet URL</Label>
+                    <Input
+                      id="comments_sheet_url"
+                      value={formData.comments_sheet_url}
+                      onChange={(e) => handleInputChange('comments_sheet_url', e.target.value)}
+                      placeholder="https://docs.google.com/spreadsheets/..."
+                    />
+                    <p className="text-xs text-muted-foreground">Link to Google Sheet with scraped comments</p>
+                  </div>
+                  <CommentsCSVUpload
+                    campaignId={campaignId}
+                    currentFilePath={formData.comments_csv_file_path || null}
+                    onUploadComplete={(filePath) => handleInputChange('comments_csv_file_path', filePath)}
+                    onClear={() => handleInputChange('comments_csv_file_path', '')}
                   />
                 </div>
 
@@ -784,6 +1003,48 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                     />
                     <Label htmlFor="ask_for_access">Ask for Access</Label>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notes" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Campaign Notes</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="internal_notes" className="flex items-center gap-2">
+                    Internal Notes
+                    <Badge variant="secondary" className="text-xs">Ops Only</Badge>
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Internal execution notes visible only to ops team (server issues, pacing, etc.)
+                  </p>
+                  <Textarea
+                    id="internal_notes"
+                    value={formData.internal_notes}
+                    onChange={(e) => handleInputChange('internal_notes', e.target.value)}
+                    placeholder="Enter internal notes for ops team..."
+                    rows={4}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="client_notes" className="flex items-center gap-2">
+                    Client Notes
+                    <Badge variant="outline" className="text-xs">Client Visible</Badge>
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Short explanation and next update expectations visible to client in reports
+                  </p>
+                  <Textarea
+                    id="client_notes"
+                    value={formData.client_notes}
+                    onChange={(e) => handleInputChange('client_notes', e.target.value)}
+                    placeholder="Enter notes visible to client..."
+                    rows={4}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -1157,6 +1418,32 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
           </div>
         </div>
       </DialogContent>
+      
+      {/* Final Report Modal - shown when campaign is marked as complete */}
+      <FinalReportModal
+        isOpen={showFinalReport}
+        onClose={() => {
+          setShowFinalReport(false);
+          onClose();
+        }}
+        campaign={campaign ? {
+          id: campaign.id,
+          campaign_name: campaign.campaign_name,
+          youtube_url: campaign.youtube_url,
+          status: campaign.status || 'complete',
+          start_date: campaign.start_date,
+          end_date: campaign.end_date,
+          goal_views: campaign.goal_views,
+          current_views: campaign.current_views,
+          current_likes: campaign.current_likes,
+          current_comments: campaign.current_comments,
+          total_subscribers: campaign.total_subscribers,
+          client_notes: formData.client_notes || null,
+          like_goal: formData.like_goal ? parseInt(formData.like_goal) : null,
+          comment_goal: formData.comment_goal ? parseInt(formData.comment_goal) : null,
+          genre: campaign.genre,
+        } : null}
+      />
     </Dialog>
   );
 };
