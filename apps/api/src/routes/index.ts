@@ -13,6 +13,9 @@ import { ratioFixerBridgeRoutes } from './ratio-fixer-bridge';
 import instagramScraperRoutes from './instagram-scraper';
 import { scraperControlRoutes } from './scraper-control';
 import { statusNotifyRoutes } from './status-notify';
+import { weeklyUpdatesRoutes } from './weekly-updates';
+import { scraperNotifyRoutes } from './scraper-notify';
+import { invoiceCampaignRoutes } from './invoice-campaign';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -51,6 +54,15 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // Status notification routes
   await server.register(statusNotifyRoutes, { prefix: '/api' });
+
+  // Weekly updates routes (client email reports)
+  await server.register(weeklyUpdatesRoutes, { prefix: '/api' });
+
+  // Scraper notification routes (comment scraper integration)
+  await server.register(scraperNotifyRoutes, { prefix: '/api' });
+
+  // Invoice-to-campaign routes (external invoice system integration)
+  await server.register(invoiceCampaignRoutes, { prefix: '/api' });
 
   // Instagram Scraper routes (Apify integration)
   await server.register(instagramScraperRoutes, { prefix: '/api/instagram-scraper' });

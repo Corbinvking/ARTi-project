@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +52,7 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
   });
 
   const [loading, setLoading] = useState(false);
+  const [showActivationWarning, setShowActivationWarning] = useState(false);
 
   // Parse intake data from custom_service_type field
   const intakeData = campaign?.custom_service_type ? 
@@ -101,6 +103,16 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
            formData.like_server && 
            formData.comment_server && 
            formData.desired_daily;
+  };
+
+  const getMissingFields = () => {
+    const missing: string[] = [];
+    if (!formData.artist_tier) missing.push('Artist Tier');
+    if (!formData.comments_sheet_url) missing.push('Comments Sheet URL');
+    if (!formData.like_server) missing.push('Like Server');
+    if (!formData.comment_server) missing.push('Comment Server');
+    if (!formData.desired_daily) missing.push('Desired Daily Views');
+    return missing;
   };
 
   const handleSaveSetup = async () => {
@@ -169,8 +181,14 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
     }
   };
 
-  const handleActivateCampaign = async () => {
-    if (!campaign || !isSetupComplete()) return;
+  const handleActivateCampaign = async (skipSetupWarning: boolean = false) => {
+    if (!campaign) return;
+    
+    // Show warning if setup is incomplete, but allow proceeding
+    if (!isSetupComplete() && !skipSetupWarning) {
+      setShowActivationWarning(true);
+      return;
+    }
     
     setLoading(true);
     try {
@@ -494,14 +512,53 @@ export const CampaignSetupModal = ({ isOpen, onClose, campaign }: CampaignSetupM
               {loading ? "Saving..." : "Save Setup"}
             </Button>
             <Button 
-              onClick={handleActivateCampaign}
-              disabled={!isSetupComplete() || loading}
+              onClick={() => handleActivateCampaign()}
+              disabled={loading}
+              className={!isSetupComplete() ? "bg-amber-600 hover:bg-amber-700" : ""}
             >
-              {loading ? "Activating..." : "Complete Setup & Activate"}
+              {loading ? "Activating..." : isSetupComplete() ? "Complete Setup & Activate" : "Activate (Setup Incomplete)"}
             </Button>
           </div>
         </div>
       </DialogContent>
+
+      {/* Activation Warning Dialog - shown when activating without complete setup */}
+      <AlertDialog open={showActivationWarning} onOpenChange={setShowActivationWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Activate Without Complete Setup?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Technical setup is incomplete. The following fields are missing:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                {getMissingFields().map((field) => (
+                  <li key={field} className="text-amber-600">{field}</li>
+                ))}
+              </ul>
+              <p>
+                You can still activate if the video is already live and you want to start tracking stats. 
+                The automation features (like ratio fixing) may not work until setup is complete.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                setShowActivationWarning(false);
+                handleActivateCampaign(true);
+              }}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              Activate Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };

@@ -72,6 +72,7 @@ import { useCampaigns } from "../../hooks/useCampaigns";
 import { notifyOpsStatusChange } from "@/lib/status-notify";
 import { useAuth } from "../../contexts/AuthContext";
 import { CampaignSettingsModal } from "../campaigns/CampaignSettingsModal";
+import { getApiUrl } from "../../lib/getApiUrl";
 
 import type { Database } from "../../integrations/supabase/types";
 type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'] & {
@@ -233,21 +234,25 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
       // First update the campaign to enabled
       await updateCampaign(campaignId, { weekly_updates_enabled: true });
       
-      // Then trigger the email send in manual mode (bypasses weekly_update_ready requirement)
-      const { data, error } = await supabase.functions.invoke('send_weekly_updates', {
-        body: { 
+      // Then trigger the email send via API route
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/api/weekly-updates/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
           mode: 'manual', 
           campaign_id: campaignId
-        }
+        }),
       });
 
-      console.log('Weekly update response:', { data, error });
+      const data = await response.json();
+      console.log('Weekly update response:', data);
 
-      if (error) {
-        console.error('Failed to send weekly update:', error);
+      if (!response.ok || !data.ok) {
+        console.error('Failed to send weekly update:', data);
         toast({
           title: "Email Send Failed",
-          description: "Failed to send weekly update email. Please try again.",
+          description: data.message || "Failed to send weekly update email. Please try again.",
           variant: "destructive",
         });
         // Revert the toggle
@@ -255,7 +260,7 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
       } else {
         toast({
           title: "Weekly Update Sent",
-          description: "Weekly update email has been sent successfully!",
+          description: `Weekly update email has been sent to ${data.recipient || 'client'}!`,
         });
       }
     } catch (error) {

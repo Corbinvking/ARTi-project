@@ -59,7 +59,9 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
     comment_server: '',
     wait_time_seconds: '',
     desired_daily: '',
-    status: 'pending' as 'active' | 'pending'
+    status: 'pending' as 'active' | 'pending',
+    source_invoice_id: '',
+    invoice_status: 'tbd' as 'tbd' | 'sent' | 'paid'
   });
 
   const [serviceTypes, setServiceTypes] = useState<ServiceTypeGoal[]>([
@@ -328,7 +330,9 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
         desired_daily: formData.desired_daily ? parseInt(formData.desired_daily) : 0,
         status: formData.status,
         youtube_api_enabled: formData.status === 'active', // Auto-enable for active campaigns
-        technical_setup_complete: formData.status === 'active' // Mark as complete if creating as active
+        technical_setup_complete: formData.status === 'active', // Mark as complete if creating as active
+        source_invoice_id: formData.source_invoice_id || null,
+        invoice_status: formData.invoice_status || 'tbd'
       };
 
       const { data, error } = await createCampaign(campaignData);
@@ -351,6 +355,7 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
       setFormData({
         campaign_name: '',
         youtube_url: '',
+        video_id: '',
         client_id: '',
         salesperson_id: '',
         genre: '',
@@ -363,7 +368,9 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
         comment_server: '',
         wait_time_seconds: '',
         desired_daily: '',
-        status: 'pending' as 'active' | 'pending'
+        status: 'pending' as 'active' | 'pending',
+        source_invoice_id: '',
+        invoice_status: 'tbd' as 'tbd' | 'sent' | 'paid'
       });
       setServiceTypes([{ id: '1', service_type: '' as ServiceType, goal_views: 0 }]);
     } catch (error: any) {
@@ -793,6 +800,36 @@ export const CreateCampaignModal = ({ isOpen, onClose }: CreateCampaignModalProp
                     />
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Invoice Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="source_invoice_id">Invoice ID (Optional)</Label>
+                <Input
+                  id="source_invoice_id"
+                  placeholder="e.g., INV-2024-001"
+                  value={formData.source_invoice_id}
+                  onChange={(e) => handleInputChange('source_invoice_id', e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Link to external invoice if available</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invoice_status">Invoice Status</Label>
+                <Select 
+                  value={formData.invoice_status} 
+                  onValueChange={(value) => handleInputChange('invoice_status', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tbd">TBD</SelectItem>
+                    <SelectItem value="sent">Sent</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             </div>

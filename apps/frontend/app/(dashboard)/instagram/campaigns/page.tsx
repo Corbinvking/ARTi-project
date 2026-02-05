@@ -348,9 +348,18 @@ export default function InstagramCampaignsPage() {
     const previousStatus = normalizeStatus(selectedCampaign?.status);
     const nextStatus = normalizeStatus(editForm?.status);
 
+    // Prepare updates, converting preferred_pages from string to array if needed
+    const updates = { ...editForm };
+    if (typeof updates.preferred_pages === 'string') {
+      updates.preferred_pages = updates.preferred_pages
+        .split(',')
+        .map((p: string) => p.trim().replace(/^@/, ''))
+        .filter((p: string) => p.length > 0);
+    }
+
     await updateCampaignAsync({
       id: selectedCampaign.id,
-      updates: editForm
+      updates
     });
 
     if (previousStatus !== nextStatus) {
@@ -1229,6 +1238,78 @@ export default function InstagramCampaignsPage() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Paid Ops:</span>
                       <span className="font-medium">{selectedCampaign.paid_ops}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Seeding Configuration */}
+              <Card className="border-purple-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="h-5 w-5 text-purple-500" />
+                    Seeding Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Seeding Type:</span>
+                    {isEditMode ? (
+                      <select
+                        className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        value={editForm.seeding_type || 'audio'}
+                        onChange={(e) => updateField('seeding_type', e.target.value)}
+                      >
+                        <option value="audio">Audio Seeding</option>
+                        <option value="footage">Footage Seeding</option>
+                      </select>
+                    ) : (
+                      <Badge variant="outline" className="capitalize">
+                        {selectedCampaign.seeding_type || 'audio'} seeding
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {(selectedCampaign.preferred_pages?.length > 0 || isEditMode) && (
+                    <div>
+                      <span className="text-muted-foreground text-sm">Preferred Pages:</span>
+                      {isEditMode ? (
+                        <Input
+                          className="mt-1"
+                          value={Array.isArray(editForm.preferred_pages) 
+                            ? editForm.preferred_pages.join(', ') 
+                            : editForm.preferred_pages || ''}
+                          onChange={(e) => updateField('preferred_pages', e.target.value)}
+                          placeholder="@page1, @page2, @page3"
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {(selectedCampaign.preferred_pages || []).map((page: string, i: number) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              @{page.replace(/^@/, '')}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {(selectedCampaign.brief || isEditMode) && (
+                    <div>
+                      <span className="text-muted-foreground text-sm">Campaign Brief:</span>
+                      {isEditMode ? (
+                        <Textarea
+                          className="mt-1"
+                          rows={4}
+                          value={editForm.brief || ''}
+                          onChange={(e) => updateField('brief', e.target.value)}
+                          placeholder="Campaign goals, posting expectations, content guidelines..."
+                        />
+                      ) : (
+                        <p className="text-sm mt-1 whitespace-pre-wrap bg-muted/30 p-3 rounded-md">
+                          {selectedCampaign.brief}
+                        </p>
+                      )}
                     </div>
                   )}
                 </CardContent>

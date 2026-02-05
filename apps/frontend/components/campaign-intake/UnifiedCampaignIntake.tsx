@@ -21,6 +21,7 @@ import { useInstagramCampaignMutations } from "@/app/(dashboard)/instagram/seeds
 import { supabase as coreSupabase } from "@/lib/auth"
 import { saveOverride } from "@/lib/overrides"
 import { OverrideField } from "@/components/overrides/OverrideField"
+import { notifyOpsStatusChange } from "@/lib/status-notify"
 
 type ServiceKey = "spotify" | "soundcloud" | "youtube" | "instagram"
 type ServiceType = Database["public"]["Enums"]["service_type"]
@@ -130,6 +131,9 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
     soundUrl: "",
     paidOps: "",
     salespeople: "",
+    seedingType: "audio" as "audio" | "footage",
+    brief: "",
+    preferredPages: "",
   })
 
   const [soundcloudClients, setSoundcloudClients] = useState<
@@ -760,6 +764,12 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
           if (!instagramData.paidOps && !opsOwner) {
             throw new Error("Unable to determine ops owner for Instagram.")
           }
+          // Parse preferred pages into array
+          const preferredPagesArray = instagramData.preferredPages
+            .split(",")
+            .map((p) => p.trim().replace(/^@/, ""))
+            .filter((p) => p.length > 0)
+
           const campaign = await instagramMutations.createCampaignAsync({
             campaign: shared.campaignName,
             clients: spotifyData.clientName || spotifyData.clientEmails || "Unknown Client",
@@ -773,6 +783,9 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
             client_notes: shared.clientNotes || undefined,
             source_invoice_id: sourceInvoiceId || undefined,
             invoice_status: mode === "invoice" ? "pending" : undefined,
+            seeding_type: instagramData.seedingType,
+            brief: instagramData.brief || undefined,
+            preferred_pages: preferredPagesArray.length > 0 ? preferredPagesArray : undefined,
           })
           if (campaign?.id) {
             await addNoteHistory({
@@ -802,6 +815,16 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
                   originalValue: shared.salesperson || opsOwner,
                 },
               ],
+            })
+
+            // Notify ops team about new Instagram campaign
+            await notifyOpsStatusChange({
+              service: "instagram",
+              campaignId: String(campaign.id),
+              status: "new",
+              previousStatus: null,
+              campaignName: shared.campaignName,
+              actorEmail: user?.email || opsOwner,
             })
           }
           results.push({
@@ -1458,50 +1481,100 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
           </TabsContent>
 
           <TabsContent value="instagram" className="pt-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label>Sound URL (optional)</Label>
-                <Input
-                  value={instagramData.soundUrl}
-                  onChange={(event) =>
-                    setInstagramData((prev) => ({ ...prev, soundUrl: event.target.value }))
-                  }
-                  placeholder="https://..."
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label>Seeding Type *</Label>
+                  <select
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={instagramData.seedingType}
+                    onChange={(event) =>
+                      setInstagramData((prev) => ({
+                        ...prev,
+                        seedingType: event.target.value as "audio" | "footage",
+                      }))
+                    }
+                  >
+                    <option value="audio">Audio Seeding</option>
+                    <option value="footage">Footage Seeding</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Audio: lyric videos, music memes, covers. Footage: DJ sets, festivals, live performances.
+                  </p>
+                </div>
+                <div>
+                  <Label>Sound URL (optional)</Label>
+                  <Input
+                    value={instagramData.soundUrl}
+                    onChange={(event) =>
+                      setInstagramData((prev) => ({ ...prev, soundUrl: event.target.value }))
+                    }
+                    placeholder="https://..."
+                  />
+                </div>
+                <OverrideField
+                  label="Paid Ops (override)"
+                  value={instagramData.paidOps}
+                  suggestedValue={opsOwner}
+                  overridden={isOverridden("paid_ops")}
+                  placeholder="ops@artistinfluence.com"
+                  onOverride={(value, reason) => {
+                    setInstagramData((prev) => ({ ...prev, paidOps: value }))
+                    recordOverride("paid_ops", opsOwner, reason)
+                  }}
+                  onRevert={() => {
+                    setInstagramData((prev) => ({ ...prev, paidOps: opsOwner }))
+                    clearOverride("paid_ops")
+                  }}
+                />
+                <OverrideField
+                  label="Salespeople (override)"
+                  value={instagramData.salespeople}
+                  suggestedValue={shared.salesperson || opsOwner}
+                  overridden={isOverridden("salespeople")}
+                  placeholder="sales@artistinfluence.com"
+                  onOverride={(value, reason) => {
+                    setInstagramData((prev) => ({ ...prev, salespeople: value }))
+                    recordOverride("salespeople", shared.salesperson || opsOwner, reason)
+                  }}
+                  onRevert={() => {
+                    setInstagramData((prev) => ({
+                      ...prev,
+                      salespeople: shared.salesperson || opsOwner,
+                    }))
+                    clearOverride("salespeople")
+                  }}
                 />
               </div>
-              <OverrideField
-                label="Paid Ops (override)"
-                value={instagramData.paidOps}
-                suggestedValue={opsOwner}
-                overridden={isOverridden("paid_ops")}
-                placeholder="ops@artistinfluence.com"
-                onOverride={(value, reason) => {
-                  setInstagramData((prev) => ({ ...prev, paidOps: value }))
-                  recordOverride("paid_ops", opsOwner, reason)
-                }}
-                onRevert={() => {
-                  setInstagramData((prev) => ({ ...prev, paidOps: opsOwner }))
-                  clearOverride("paid_ops")
-                }}
-              />
-              <OverrideField
-                label="Salespeople (override)"
-                value={instagramData.salespeople}
-                suggestedValue={shared.salesperson || opsOwner}
-                overridden={isOverridden("salespeople")}
-                placeholder="sales@artistinfluence.com"
-                onOverride={(value, reason) => {
-                  setInstagramData((prev) => ({ ...prev, salespeople: value }))
-                  recordOverride("salespeople", shared.salesperson || opsOwner, reason)
-                }}
-                onRevert={() => {
-                  setInstagramData((prev) => ({
-                    ...prev,
-                    salespeople: shared.salesperson || opsOwner,
-                  }))
-                  clearOverride("salespeople")
-                }}
-              />
+
+              <div>
+                <Label>Preferred Pages (optional)</Label>
+                <Input
+                  value={instagramData.preferredPages}
+                  onChange={(event) =>
+                    setInstagramData((prev) => ({ ...prev, preferredPages: event.target.value }))
+                  }
+                  placeholder="@page1, @page2, @page3 (comma-separated Instagram handles)"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Client-suggested pages. Algorithm will prioritize these if they match criteria.
+                </p>
+              </div>
+
+              <div>
+                <Label>Campaign Brief</Label>
+                <Textarea
+                  rows={4}
+                  value={instagramData.brief}
+                  onChange={(event) =>
+                    setInstagramData((prev) => ({ ...prev, brief: event.target.value }))
+                  }
+                  placeholder="Describe the campaign goals, posting expectations, content guidelines, and any special requirements..."
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Include posting window, content expectations, and any special instructions for ops.
+                </p>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

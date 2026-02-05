@@ -346,10 +346,9 @@ export const ManualOverridesPanel = ({
           {hasAnyOverride && (
             <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-700">
               <AlertCircle className="w-3 h-3 mr-1" />
-              {[dateIsOverride, channelIsOverride, repostLimitIsOverride].filter(
+              Manual Selection ({[dateIsOverride, channelIsOverride, repostLimitIsOverride].filter(
                 Boolean
-              ).length}{" "}
-              active override(s)
+              ).length})
             </Badge>
           )}
         </div>

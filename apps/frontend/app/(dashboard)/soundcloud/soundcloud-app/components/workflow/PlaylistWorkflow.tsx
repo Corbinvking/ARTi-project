@@ -81,6 +81,9 @@ export const PlaylistWorkflow = ({
   const [url, setUrl] = useState(playlistUrl || "")
   const [sendReminderDialogOpen, setSendReminderDialogOpen] = useState(false)
   const [sendingReminder, setSendingReminder] = useState(false)
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false)
+  const [completing, setCompleting] = useState(false)
+  const [isCompleted, setIsCompleted] = useState(false)
 
   // Determine current status
   const getStatus = (): PlaylistStatus => {
@@ -261,6 +264,80 @@ export const PlaylistWorkflow = ({
       })
     } finally {
       setSendingReminder(false)
+    }
+  }
+
+  // Complete campaign and send final report
+  const handleCompleteAndSendReport = async () => {
+    setCompleting(true)
+    try {
+      const tableName =
+        submissionType === "submission" ? "submissions" : "soundcloud_campaigns"
+
+      // Update campaign/submission status to complete
+      const { error: updateError } = await supabase
+        .from(tableName)
+        .update({
+          status: "complete",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId)
+
+      if (updateError) throw updateError
+
+      // Send final report email if client email exists
+      if (clientEmail) {
+        const { error: emailError } = await supabase.functions.invoke(
+          "send-notification-email",
+          {
+            body: {
+              template: "campaign-complete-report",
+              to: clientEmail,
+              data: {
+                clientName: clientName || "Valued Client",
+                trackName: trackName || "your track",
+                artistName: artistName || "Artist",
+                playlistUrl: url,
+                reportUrl: `${process.env.NEXT_PUBLIC_APP_URL}/report/${submissionId}`,
+              },
+            },
+          }
+        )
+
+        if (emailError) {
+          console.error("Failed to send report email:", emailError)
+          // Don't throw - campaign is already marked complete
+          toast({
+            title: "Campaign Completed",
+            description:
+              "Campaign marked as complete but failed to send report email. Please send manually.",
+            variant: "default",
+          })
+        } else {
+          toast({
+            title: "Campaign Completed",
+            description: `Final report sent to ${clientEmail}`,
+          })
+        }
+      } else {
+        toast({
+          title: "Campaign Completed",
+          description:
+            "Campaign marked as complete. No client email available for report.",
+        })
+      }
+
+      setIsCompleted(true)
+      setCompleteDialogOpen(false)
+      onUpdate?.()
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to complete campaign",
+        variant: "destructive",
+      })
+    } finally {
+      setCompleting(false)
     }
   }
 
@@ -490,13 +567,30 @@ export const PlaylistWorkflow = ({
                 <FileText className="w-4 h-4 text-muted-foreground" />
                 <Label className="text-sm font-medium">Campaign Complete</Label>
               </div>
-              <p className="text-xs text-muted-foreground mb-2">
-                Mark the campaign as complete to generate and send the final report
-              </p>
-              <Button variant="outline" size="sm" className="w-full">
-                <Check className="w-4 h-4 mr-2" />
-                Complete & Send Report
-              </Button>
+              {isCompleted ? (
+                <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-md">
+                  <Check className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-green-800">
+                    Campaign completed and report sent
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Mark the campaign as complete to generate and send the final report
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setCompleteDialogOpen(true)}
+                    disabled={completing}
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    Complete & Send Report
+                  </Button>
+                </>
+              )}
             </div>
           </>
         )}
@@ -539,6 +633,80 @@ export const PlaylistWorkflow = ({
             </Button>
             <Button onClick={handleSendReminder} disabled={sendingReminder}>
               {sendingReminder ? "Sending..." : "Send Reminder"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Complete Campaign Dialog */}
+      <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Complete Campaign & Send Report</DialogTitle>
+            <DialogDescription>
+              Mark "{trackName}" by {artistName} as complete and send the final
+              report to the client.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <p className="text-sm text-muted-foreground">
+              This action will:
+            </p>
+            <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+              <li>Mark the campaign status as "Complete"</li>
+              <li>Record the completion timestamp</li>
+              {clientEmail ? (
+                <li>
+                  Send a final report email to{" "}
+                  <span className="font-medium">{clientEmail}</span>
+                </li>
+              ) : (
+                <li className="text-amber-600">
+                  No client email available - report will need to be sent
+                  manually
+                </li>
+              )}
+            </ul>
+            {url && (
+              <div className="p-2 bg-muted/50 rounded-md">
+                <p className="text-xs text-muted-foreground">
+                  Playlist URL included in report:
+                </p>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline break-all"
+                >
+                  {url}
+                </a>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCompleteDialogOpen(false)}
+              disabled={completing}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCompleteAndSendReport}
+              disabled={completing}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {completing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Completing...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Complete & Send Report
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

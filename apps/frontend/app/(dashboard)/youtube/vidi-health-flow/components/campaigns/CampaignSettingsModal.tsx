@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCampaigns } from "../../hooks/useCampaigns";
-import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { notifyOpsStatusChange, notifyScraperCommentsNeeded } from "@/lib/status-notify";
 import { supabase } from "../../integrations/supabase/client";
 import { useAuth } from "../../contexts/AuthContext";
 import { RatioFixerContent } from "./RatioFixerContent";
@@ -68,6 +69,7 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
   const [loadingStats, setLoadingStats] = useState(false);
   const [refreshingYouTubeData, setRefreshingYouTubeData] = useState(false);
   const [showFinalReport, setShowFinalReport] = useState(false);
+  const [showActivationWarning, setShowActivationWarning] = useState(false);
   
   const campaign = campaigns.find(c => c.id === campaignId);
   
@@ -464,17 +466,12 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
     return missing;
   };
 
-  const handleSave = async () => {
+  const handleSave = async (skipSetupWarning: boolean = false) => {
     if (!campaign) return;
     
-    // Check if user is trying to activate without completing setup
-    if (formData.status === 'active' && campaign.status !== 'active' && !isSetupComplete()) {
-      const missingFields = getMissingFields();
-      toast({
-        title: "Cannot Activate Campaign",
-        description: `Please complete the technical setup first. Missing fields: ${missingFields.join(', ')}`,
-        variant: "destructive",
-      });
+    // Check if user is trying to activate without completing setup - show warning but don't block
+    if (formData.status === 'active' && campaign.status !== 'active' && !isSetupComplete() && !skipSetupWarning) {
+      setShowActivationWarning(true);
       return;
     }
     
@@ -541,6 +538,22 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
           previousStatus: previousStatus || null,
           actorEmail: user?.email || null,
         });
+        
+        // Notify comment scraper when campaign is marked as ready and needs comments
+        if (updateData.status === 'ready' && !formData.comments_sheet_url && !formData.comments_csv_file_path) {
+          try {
+            await notifyScraperCommentsNeeded({
+              campaignId: campaign.id,
+              campaignName: formData.campaign_name,
+              youtubeUrl: formData.youtube_url,
+              videoId: campaign.video_id,
+              actorEmail: user?.email || null,
+            });
+          } catch (scraperError) {
+            console.warn('Failed to notify scraper:', scraperError);
+            // Don't fail the status change if scraper notification fails
+          }
+        }
         
         // Show final report modal when campaign is marked as complete
         if (updateData.status === 'complete') {
@@ -628,6 +641,22 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
         actorEmail: user?.email || null,
       });
       
+      // Notify comment scraper if campaign doesn't have comments data yet
+      if (!formData.comments_sheet_url && !formData.comments_csv_file_path) {
+        try {
+          await notifyScraperCommentsNeeded({
+            campaignId: campaign.id,
+            campaignName: formData.campaign_name,
+            youtubeUrl: formData.youtube_url,
+            videoId: campaign.video_id,
+            actorEmail: user?.email || null,
+          });
+        } catch (scraperError) {
+          console.warn('Failed to notify scraper:', scraperError);
+          // Don't fail the activation if scraper notification fails
+        }
+      }
+      
       onClose();
     } catch (error) {
       console.error('Error activating campaign:', error);
@@ -711,17 +740,16 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                         <SelectItem 
                           key={status.value} 
                           value={status.value}
-                          disabled={status.value === 'active' && campaign.status !== 'active' && !isSetupComplete()}
                         >
                           {status.label}
-                          {status.value === 'active' && campaign.status !== 'active' && !isSetupComplete() && ' (Setup Required)'}
+                          {status.value === 'active' && campaign.status !== 'active' && !isSetupComplete() && ' (Setup Incomplete)'}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {campaign.status !== 'active' && !isSetupComplete() && (
-                    <p className="text-sm text-muted-foreground">
-                      Complete technical setup in "Metrics & Targets" tab to activate
+                    <p className="text-sm text-amber-600">
+                      Technical setup incomplete. You can still activate if the video is already live.
                     </p>
                   )}
                 </div>
@@ -1402,7 +1430,7 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
           <div className="flex gap-2">
             <Button 
               variant="outline"
-              onClick={handleSave} 
+              onClick={() => handleSave()} 
               disabled={loading}
             >
               {loading ? "Saving..." : "Save Changes"}
@@ -1444,6 +1472,44 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
           genre: campaign.genre,
         } : null}
       />
+
+      {/* Activation Warning Dialog - shown when activating without complete setup */}
+      <AlertDialog open={showActivationWarning} onOpenChange={setShowActivationWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Activate Without Complete Setup?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Technical setup is incomplete. The following fields are missing:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                {getMissingFields().map((field) => (
+                  <li key={field} className="text-amber-600">{field}</li>
+                ))}
+              </ul>
+              <p>
+                You can still activate if the video is already live and you want to start tracking stats. 
+                The automation features (like ratio fixing) may not work until setup is complete.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                setShowActivationWarning(false);
+                handleSave(true);
+              }}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              Activate Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };

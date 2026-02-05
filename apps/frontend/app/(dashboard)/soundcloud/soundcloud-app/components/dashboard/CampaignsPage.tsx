@@ -380,6 +380,51 @@ export default function CampaignsPage() {
         status: dbStatus,
         actorEmail: user?.email || null,
       });
+
+      // Auto-send tracking link email when campaign is activated
+      if (dbStatus === 'active') {
+        const campaign = campaigns.find(c => c.id === campaignId);
+        if (campaign?.client?.email) {
+          try {
+            console.log('📧 Auto-sending tracking link email to:', campaign.client.email);
+            
+            const { error: emailError } = await supabase.functions.invoke(
+              "send-notification-email",
+              {
+                body: {
+                  template: "tracking-link",
+                  to: campaign.client.email,
+                  data: {
+                    clientName: campaign.client.name || "Valued Client",
+                    trackName: campaign.track_name || "your track",
+                    artistName: campaign.artist_name || "Artist",
+                    trackingUrl: `${process.env.NEXT_PUBLIC_APP_URL}/track/${campaignId}`,
+                  },
+                },
+              }
+            );
+
+            if (!emailError) {
+              // Update tracking_link_sent_at timestamp
+              await supabase
+                .from('soundcloud_submissions')
+                .update({ tracking_link_sent_at: new Date().toISOString() })
+                .eq('id', campaignId);
+
+              toast({
+                title: "Tracking Link Sent",
+                description: `Tracking link automatically sent to ${campaign.client.email}`,
+              });
+            } else {
+              console.error('❌ Failed to send tracking link email:', emailError);
+            }
+          } catch (emailErr) {
+            console.error('❌ Error sending auto tracking link:', emailErr);
+            // Don't throw - status was already updated successfully
+          }
+        }
+      }
+
       fetchCampaigns();
     } catch (error: any) {
       console.error('❌ Error updating campaign status:', error);

@@ -22,6 +22,10 @@ export interface CampaignInput {
   paid_ops?: string;
   source_invoice_id?: string;
   invoice_status?: string;
+  // Seeding workflow fields
+  seeding_type?: 'audio' | 'footage';
+  brief?: string;
+  preferred_pages?: string[];
 }
 
 export function useInstagramCampaignMutations() {

@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "../integrations/supabase/client";
 import type { Database } from "../integrations/supabase/types";
 import { getApiUrl } from "../lib/getApiUrl";
+import { notifyOpsCampaignCreated } from "@/lib/status-notify";
 
 // Use YouTube-specific table types
 type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'] & {
@@ -172,6 +173,21 @@ export const useCampaigns = () => {
           console.warn('Failed to fetch initial YouTube stats:', statsError);
           // Don't fail the campaign creation if stats fetch fails
         }
+      }
+      
+      // Notify ops about new campaign creation
+      try {
+        await notifyOpsCampaignCreated({
+          service: 'youtube',
+          campaignId: data.id,
+          campaignName: data.campaign_name,
+          youtubeUrl: data.youtube_url,
+          clientName: null, // Will be enhanced when client info is available
+          actorEmail: null, // Can be passed from component if needed
+        });
+      } catch (notifyError) {
+        console.warn('Failed to send campaign creation notification:', notifyError);
+        // Don't fail the campaign creation if notification fails
       }
       
       return { data, error: null };
