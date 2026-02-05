@@ -8,6 +8,11 @@ class SessionExpiredError(Exception):
     """Raised when Spotify session is no longer valid."""
     pass
 
+
+class PageNotFoundError(Exception):
+    """Raised when the song/artist page doesn't exist (404)."""
+    pass
+
 class SpotifyArtistsPage:
     def __init__(self, page: Page):
         self.page = page
@@ -35,6 +40,17 @@ class SpotifyArtistsPage:
             print(f"⚠️ Redirected to login page: {current_url}")
             # Raise a specific exception that the caller can catch
             raise SessionExpiredError("SESSION_EXPIRED: Redirected to login page when accessing song")
+        
+        # Check for 404 "page not found" error
+        try:
+            not_found = self.page.locator('text="We couldn\'t find that page"')
+            if await not_found.count() > 0:
+                print(f"⚠️ Page not found (404): {url}")
+                raise PageNotFoundError(f"PAGE_NOT_FOUND: {url}")
+        except PageNotFoundError:
+            raise
+        except:
+            pass
         
         # Check for error messages first
         await self.check_for_errors()
@@ -387,32 +403,64 @@ class SpotifyArtistsPage:
             # Human-like delay before starting
             await asyncio.sleep(1.5 + (0.5 * asyncio.get_event_loop().time()) % 1)
             
-            # Take a debug screenshot if dropdown not found (will be overwritten on success)
+            # First, scroll to top to ensure dropdown is visible
+            await self.page.evaluate("window.scrollTo(0, 0)")
+            await asyncio.sleep(0.5)
+            
+            # Take a debug screenshot before attempting
             try:
                 await self.page.screenshot(path='./logs/debug_before_dropdown.png')
             except:
                 pass
             
-            # Look for the dropdown button - it shows current selection like "Last 7 days", "Last 28 days"
-            # From the screenshot, we can see there's a dropdown in the top right showing "Last 28 days ∨"
+            # 2026 UI Update: Spotify may have moved time range to a filter panel
+            # First check if there's a Filter button we need to click
+            filter_clicked = False
+            filter_selectors = [
+                'button:has-text("Filter")',
+                '[aria-label*="filter" i]',
+                '[data-testid*="filter"]',
+                'button:has([aria-label="Filter Icon"])',
+            ]
+            
+            for selector in filter_selectors:
+                try:
+                    locator = self.page.locator(selector).first
+                    if await locator.count() > 0 and await locator.is_visible():
+                        await locator.click(force=True, timeout=3000)
+                        print(f"Clicked filter button with: {selector}")
+                        filter_clicked = True
+                        await asyncio.sleep(1)
+                        break
+                except:
+                    continue
+            
+            # Look for the dropdown button - multiple strategies
             dropdown_selectors = [
-                'button:has-text("Last 28 days")',  # Current selection in screenshot
+                # Text-based selectors for current time range display
+                'button:has-text("Last 28 days")',
                 'button:has-text("Last 7 days")',
-                'button:has-text("Last 24 hours")',
-                'button:has-text("Last 12 months")',
-                'button:has-text("Last")',  # Generic "Last" text
-                # Try various attribute-based selectors
-                '[data-testid*="time"]',
-                '[data-testid*="dropdown"]',
-                '[data-testid*="range"]',
+                'button:has-text("24 hours")',
+                'button:has-text("12 months")',
+                'button:has-text("Last")',
+                # Spotify-specific selectors (2026 UI)
+                '[data-testid="time-filter"]',
+                '[data-testid="date-range-picker"]',
+                '[data-testid="timeframe-selector"]',
+                '[data-encore-id="dropdownTrigger"]',
+                '[data-encore-id="buttonSecondary"]:has-text("Last")',
+                '[data-encore-id="buttonSecondary"]:has-text("days")',
+                '[data-encore-id="buttonSecondary"]:has-text("months")',
+                # Generic dropdown selectors
                 '[aria-haspopup="listbox"]',
                 '[aria-haspopup="menu"]',
-                # Role-based selectors
-                '[role="button"]:has-text("days")',
-                '[role="button"]:has-text("months")',
                 '[role="combobox"]',
-                # Look for SVG chevron inside button (dropdown indicator)
-                'button:has(svg)',
+                # Look for select-like elements
+                'select',
+                '[class*="TimeRange"]',
+                '[class*="DateRange"]',
+                '[class*="timerange"]',
+                '[class*="daterange"]',
             ]
             
             dropdown_clicked = False
@@ -420,64 +468,93 @@ class SpotifyArtistsPage:
                 try:
                     locator = self.page.locator(selector).first
                     if await locator.count() > 0:
-                        # Use force click to bypass sticky header interception
-                        await locator.click(force=True, timeout=5000)
-                        print(f"Clicked dropdown with selector: {selector}")
-                        dropdown_clicked = True
-                        break
+                        # Check if visible before clicking
+                        if await locator.is_visible():
+                            await locator.click(force=True, timeout=5000)
+                            print(f"Clicked dropdown with selector: {selector}")
+                            dropdown_clicked = True
+                            break
                 except Exception as e:
-                    print(f"Failed selector {selector}: {e}")
                     continue
             
             if not dropdown_clicked:
-                print("Could not find dropdown button")
-                # Debug: list all buttons on page
-                try:
-                    all_buttons = await self.page.locator('button').all_text_contents()
-                    print(f"  Available buttons: {all_buttons[:15]}")  # First 15 buttons
-                except:
-                    pass
-                
-                # Try JavaScript-based approach as last resort
+                # Try JavaScript-based detection - look for any time-related dropdown
                 try:
                     result = await self.page.evaluate('''() => {
-                        // Look for any element that might be a time dropdown
-                        const possibleDropdowns = document.querySelectorAll('[class*="dropdown"], [class*="select"], button');
-                        for (const el of possibleDropdowns) {
-                            const text = el.textContent || '';
-                            if (text.includes('Last') && (text.includes('days') || text.includes('months'))) {
+                        // Strategy 1: Find by text content
+                        const allElements = document.querySelectorAll('button, [role="button"], [class*="dropdown"], [class*="select"]');
+                        for (const el of allElements) {
+                            const text = (el.textContent || '').toLowerCase();
+                            if ((text.includes('last') || text.includes('24') || text.includes('7 day') || text.includes('28') || text.includes('12 month')) 
+                                && el.offsetParent !== null) {
                                 el.click();
-                                return el.textContent;
+                                return 'text-match: ' + el.textContent.trim().substring(0, 30);
                             }
                         }
+                        
+                        // Strategy 2: Find dropdowns near the table/data area
+                        const dataArea = document.querySelector('[class*="playlist"], [class*="table"], main');
+                        if (dataArea) {
+                            const dropdowns = dataArea.querySelectorAll('button, [role="combobox"], [aria-haspopup]');
+                            for (const dd of dropdowns) {
+                                if (dd.offsetParent !== null && dd.querySelector('svg')) {
+                                    dd.click();
+                                    return 'svg-dropdown: ' + (dd.textContent || '').trim().substring(0, 30);
+                                }
+                            }
+                        }
+                        
+                        // Strategy 3: Look in any open filter panel
+                        const filterPanel = document.querySelector('[class*="filter"], [class*="Filter"], [role="dialog"]');
+                        if (filterPanel) {
+                            const options = filterPanel.querySelectorAll('button, [role="option"], [role="menuitem"]');
+                            return 'filter-panel-found: ' + options.length + ' options';
+                        }
+                        
                         return null;
                     }''')
                     if result:
-                        print(f"Clicked dropdown via JavaScript: {result}")
-                        dropdown_clicked = True
+                        print(f"Dropdown interaction via JavaScript: {result}")
+                        if not result.startswith('filter-panel-found'):
+                            dropdown_clicked = True
                         await asyncio.sleep(1.5)
                 except Exception as e:
-                    print(f"JavaScript dropdown click failed: {e}")
+                    print(f"JavaScript dropdown detection failed: {e}")
+            
+            if not dropdown_clicked:
+                print("Could not find dropdown button")
+                # Debug: list all visible interactive elements
+                try:
+                    debug_info = await self.page.evaluate('''() => {
+                        const buttons = Array.from(document.querySelectorAll('button')).filter(b => b.offsetParent !== null);
+                        return buttons.slice(0, 20).map(b => ({
+                            text: (b.textContent || '').trim().substring(0, 40),
+                            class: b.className.substring(0, 50),
+                            testid: b.getAttribute('data-testid')
+                        }));
+                    }''')
+                    print(f"  Visible buttons: {debug_info}")
+                except:
+                    pass
                 
-                if not dropdown_clicked:
-                    # Take debug screenshot
-                    try:
-                        await self.page.screenshot(path='./logs/debug_dropdown_not_found.png')
-                        print("  Debug screenshot saved to ./logs/debug_dropdown_not_found.png")
-                    except:
-                        pass
-                    return
+                # Take debug screenshot
+                try:
+                    await self.page.screenshot(path='./logs/debug_dropdown_not_found.png')
+                    print("  Debug screenshot saved to ./logs/debug_dropdown_not_found.png")
+                except:
+                    pass
+                return
             
             # Wait for dropdown to open with human-like delay
             await asyncio.sleep(1.2 + (0.3 * asyncio.get_event_loop().time()) % 0.8)
             
             # Map range types to display text
             range_mapping = {
-                '24hour': ['Latest 24 hours', '24 hours', 'Last 24 hours', 'Last day'],
-                '7day': ['Last 7 days', '7 days'],
-                '28day': ['Last 28 days', '28 days'],
-                'all': ['Last 12 months', '12 months', 'All time'],
-                '12months': ['Last 12 months', '12 months']
+                '24hour': ['24 hours', 'Latest 24 hours', 'Last 24 hours', 'Last day', '1 day'],
+                '7day': ['7 days', 'Last 7 days', '1 week'],
+                '28day': ['28 days', 'Last 28 days', '4 weeks', '1 month'],
+                'all': ['12 months', 'Last 12 months', 'All time', '1 year'],
+                '12months': ['12 months', 'Last 12 months', '1 year']
             }
             
             range_options = range_mapping.get(range_type, [range_type])
@@ -486,30 +563,61 @@ class SpotifyArtistsPage:
             option_clicked = False
             for option_text in range_options:
                 option_selectors = [
-                    f'text="{option_text}"',
                     f'[role="option"]:has-text("{option_text}")',
+                    f'[role="menuitem"]:has-text("{option_text}")',
+                    f'[role="menuitemradio"]:has-text("{option_text}")',
                     f'li:has-text("{option_text}")',
-                    f'div:has-text("{option_text}")'
+                    f'div[class*="option"]:has-text("{option_text}")',
+                    f'button:has-text("{option_text}")',
+                    f'text="{option_text}"',
                 ]
                 
                 for selector in option_selectors:
                     try:
                         locator = self.page.locator(selector).first
-                        if await locator.count() > 0:
-                            # Use force click to bypass any interception
+                        if await locator.count() > 0 and await locator.is_visible():
                             await locator.click(force=True, timeout=5000)
                             print(f"Selected option: {option_text}")
                             option_clicked = True
                             break
                     except Exception as e:
-                        print(f"Failed to click option {option_text} with {selector}: {e}")
                         continue
                         
                 if option_clicked:
                     break
             
+            # If still not clicked, try JavaScript approach
+            if not option_clicked:
+                try:
+                    for option_text in range_options:
+                        result = await self.page.evaluate(f'''(targetText) => {{
+                            const options = document.querySelectorAll('[role="option"], [role="menuitem"], li, [class*="option"]');
+                            for (const opt of options) {{
+                                if (opt.textContent && opt.textContent.toLowerCase().includes(targetText.toLowerCase()) && opt.offsetParent !== null) {{
+                                    opt.click();
+                                    return opt.textContent.trim();
+                                }}
+                            }}
+                            return null;
+                        }}''', option_text)
+                        if result:
+                            print(f"Selected option via JavaScript: {result}")
+                            option_clicked = True
+                            break
+                except Exception as e:
+                    print(f"JavaScript option selection failed: {e}")
+            
             if not option_clicked:
                 print(f"Could not find option for {range_type}")
+                # If we clicked a filter button, we might need to click Apply
+                if filter_clicked:
+                    try:
+                        apply_btn = self.page.locator('button:has-text("Apply")').first
+                        if await apply_btn.count() > 0:
+                            await apply_btn.click()
+                            print("Clicked Apply button")
+                    except:
+                        pass
                 return
             
             # Wait for page to update with human-like delay
@@ -518,9 +626,12 @@ class SpotifyArtistsPage:
             
             # Wait for loading indicators to disappear
             try:
-                await self.page.wait_for_selector('.loading, [data-testid="loading"]', state='detached', timeout=5000)
+                await self.page.wait_for_selector('.loading, [data-testid="loading"], [class*="spinner"]', state='detached', timeout=5000)
             except:
                 pass  # Loading indicator might not be present
+            
+            # Additional wait for table data to refresh
+            await asyncio.sleep(1)
             
             print(f"Successfully switched to {range_type}")
                     

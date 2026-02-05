@@ -27,7 +27,7 @@ load_dotenv(env_path)
 
 # Add runner to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'runner'))
-from app.pages.spotify_artists import SpotifyArtistsPage, SessionExpiredError
+from app.pages.spotify_artists import SpotifyArtistsPage, SessionExpiredError, PageNotFoundError
 
 # Configuration
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://api.artistinfluence.com')
@@ -730,6 +730,9 @@ async def scrape_campaign(page, spotify_page, campaign):
             'scrape_data': song_data
         }
         
+    except (SessionExpiredError, PageNotFoundError):
+        # Re-raise these specific errors so caller can handle them appropriately
+        raise
     except Exception as e:
         logger.error(f"[{campaign_id}] Error: {e}")
         import traceback
@@ -1485,6 +1488,14 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
                     session_expired = True
                     failure_count += 1
                     continue
+            except PageNotFoundError as e:
+                # Song page doesn't exist (404) - skip without overwriting data
+                logger.warning(f"[{campaign['id']}] ⚠️ Page not found (404) - SKIPPING to preserve existing data")
+                logger.warning(f"[{campaign['id']}] URL may be outdated: {campaign.get('sfa_url', 'unknown')}")
+                # Count as success since we're intentionally skipping (not a scraper failure)
+                success_count += 1
+                await asyncio.sleep(1)
+                continue
             except Exception as e:
                 error_msg = str(e)
                 logger.error(f"[{campaign['id']}] Error during scrape: {e}")

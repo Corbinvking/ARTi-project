@@ -4,7 +4,6 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { MetricCard } from "@/components/dashboard/metric-card"
-import { UnifiedCampaignIntake } from "@/components/campaign-intake/UnifiedCampaignIntake"
 import { PlatformOverview } from "@/components/dashboard/platform-overview"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 import { AnalyticsChart } from "@/components/dashboard/analytics-chart"
@@ -51,8 +50,6 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
-
-      <UnifiedCampaignIntake />
 
       {/* Metrics Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
