@@ -58,7 +58,7 @@ const getStreamStrategistTabs = (currentRole: string | null): SubTab[] => {
     }
   ]
 
-  if (currentRole === 'admin' || currentRole === 'manager') {
+  if (currentRole === 'admin' || currentRole === 'manager' || currentRole === 'operator') {
     return [
       ...baseItems,
       {

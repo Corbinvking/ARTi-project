@@ -8,7 +8,7 @@ export default function SpotifyCampaignBuilderReviewPage() {
   return (
     <div className="h-full w-full">
       <StreamStrategistApp>
-        <ProtectedRoute requiredRoles={['admin', 'manager']}>
+        <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
           <CampaignBuilder />
         </ProtectedRoute>
       </StreamStrategistApp>

@@ -57,7 +57,7 @@ const getNavItemsForRole = (currentRole: string | null) => {
     },
   ];
 
-  if (currentRole === 'admin' || currentRole === 'manager') {
+  if (currentRole === 'admin' || currentRole === 'manager' || currentRole === 'operator') {
     return [
       ...baseItems,
       {

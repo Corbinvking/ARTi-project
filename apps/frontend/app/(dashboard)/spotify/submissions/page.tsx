@@ -8,7 +8,7 @@ export default function SpotifySubmissionsPage() {
   return (
     <div className="h-full w-full">
       <StreamStrategistApp>
-        <ProtectedRoute requiredRoles={['admin', 'manager']}>
+        <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
           <CampaignSubmissionsPage />
         </ProtectedRoute>
       </StreamStrategistApp>

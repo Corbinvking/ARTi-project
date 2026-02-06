@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredRoles?: ('admin' | 'manager' | 'salesperson' | 'vendor')[];
+  requiredRoles?: ('admin' | 'manager' | 'operator' | 'salesperson' | 'vendor')[];
   fallbackPath?: string;
 }
 

@@ -39,9 +39,9 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/campaign-intake" element={<CampaignIntakePage />} />
             
-            {/* Protected routes for admin/manager */}
+            {/* Protected routes for admin/manager/operator */}
             <Route path="/" element={
-              <ProtectedRoute requiredRoles={['admin', 'manager']}>
+              <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
                 <Index />
               </ProtectedRoute>
             } />
@@ -53,42 +53,42 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/playlists" element={
-              <ProtectedRoute requiredRoles={['admin', 'manager']}>
+              <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
                 <PlaylistsPage />
               </ProtectedRoute>
             } />
             <Route path="/campaign/new" element={
-              <ProtectedRoute requiredRoles={['admin', 'manager']}>
+              <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
                 <CampaignBuilder />
               </ProtectedRoute>
             } />
             <Route path="/campaign-builder/review/:submissionId" element={
-              <ProtectedRoute requiredRoles={['admin', 'manager']}>
+              <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
                 <CampaignBuilder />
               </ProtectedRoute>
             } />
             <Route path="/campaign/edit/:campaignId" element={
-              <ProtectedRoute requiredRoles={['admin', 'manager']}>
+              <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
                 <CampaignBuilder />
               </ProtectedRoute>
             } />
             <Route path="/clients" element={
-              <ProtectedRoute requiredRoles={['admin', 'manager', 'salesperson']}>
+              <ProtectedRoute requiredRoles={['admin', 'manager', 'operator', 'salesperson']}>
                 <ClientsPage />
               </ProtectedRoute>
             } />
             <Route path="/campaigns" element={
-              <ProtectedRoute requiredRoles={['admin', 'manager', 'salesperson']}>
+              <ProtectedRoute requiredRoles={['admin', 'manager', 'operator', 'salesperson']}>
                 <CampaignHistoryPage />
               </ProtectedRoute>
             } />
             <Route path="/submissions" element={
-              <ProtectedRoute requiredRoles={['admin', 'manager']}>
+              <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
                 <CampaignSubmissionsPage />
               </ProtectedRoute>
             } />
             <Route path="/ml-dashboard" element={
-              <ProtectedRoute requiredRoles={['admin', 'manager']}>
+              <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
                 <MLDashboardPage />
               </ProtectedRoute>
             } />
