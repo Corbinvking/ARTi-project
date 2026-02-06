@@ -61,6 +61,8 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
     start_date: campaign?.start_date || "",
     client_id: campaign?.client_id || "",
     notes: campaign?.notes || "",
+    internal_notes: (campaign as any)?.internal_notes || "",
+    client_notes: (campaign as any)?.client_notes || "",
   });
 
   const [newClient, setNewClient] = useState({
@@ -158,7 +160,9 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
         status: statusMap[formData.status] || 'new',
         expected_reach_planned: formData.goals,
         support_date: formData.start_date || null,
-        notes: formData.notes || null,
+        notes: formData.internal_notes || formData.notes || null,
+        internal_notes: formData.internal_notes || null,
+        client_notes: formData.client_notes || null,
         qa_flag: false,
         need_live_link: false,
         suggested_supporters: [],
@@ -175,7 +179,9 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
           status: statusMap[formData.status] || 'new',
           expected_reach_planned: formData.goals,
           support_date: formData.start_date || null,
-          notes: formData.notes || null,
+          notes: formData.internal_notes || formData.notes || null,
+          internal_notes: formData.internal_notes || null,
+          client_notes: formData.client_notes || null,
           updated_at: new Date().toISOString(),
         };
 
@@ -420,12 +426,24 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
+        <Label htmlFor="internal_notes">Internal Notes (Ops Only)</Label>
         <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => handleInputChange('notes', e.target.value)}
+          id="internal_notes"
+          value={formData.internal_notes}
+          onChange={(e) => handleInputChange('internal_notes', e.target.value)}
+          placeholder="Internal ops notes -- not visible to clients"
           rows={3}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="client_notes">Client Notes (Visible to Clients)</Label>
+        <Textarea
+          id="client_notes"
+          value={formData.client_notes}
+          onChange={(e) => handleInputChange('client_notes', e.target.value)}
+          placeholder="Notes visible to the client"
+          rows={2}
         />
       </div>
 

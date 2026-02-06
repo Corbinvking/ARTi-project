@@ -5,7 +5,7 @@ import { format, isSameMonth, isSameDay, startOfMonth, endOfMonth, eachDayOfInte
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, Gift } from 'lucide-react';
+import { DollarSign, Gift, Settings2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { CalendarEvent } from './CalendarEvent';
 import { EventDetailsModal } from './EventDetailsModal';
@@ -42,6 +42,7 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
   // Calculate counts for filter badges
   const paidCount = useMemo(() => events.filter(e => e.campaignType === 'paid').length, [events]);
   const freeCount = useMemo(() => events.filter(e => e.campaignType === 'free').length, [events]);
+  const overrideCount = useMemo(() => events.filter(e => e.isOverride).length, [events]);
 
   const getEventsForDate = (date: Date) => {
     return filteredEvents.filter(event => isSameDay(new Date(event.date), date));
@@ -157,6 +158,15 @@ export const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
                   <Gift className="h-3 w-3 mr-1" />
                   Free ({freeCount})
                 </Badge>
+                {overrideCount > 0 && (
+                  <Badge
+                    variant="outline"
+                    className="border-orange-400 text-orange-700 bg-orange-50"
+                  >
+                    <Settings2 className="h-3 w-3 mr-1" />
+                    {overrideCount} Override{overrideCount !== 1 ? 's' : ''}
+                  </Badge>
+                )}
               </div>
             )}
           </div>

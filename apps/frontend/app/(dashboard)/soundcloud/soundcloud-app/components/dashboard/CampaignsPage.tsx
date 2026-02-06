@@ -199,11 +199,14 @@ export default function CampaignsPage() {
           start_date: submission.support_date,
           submission_date: submission.submitted_at,
           notes: submission.notes || '',
+          internal_notes: submission.internal_notes || '',
+          client_notes: submission.client_notes || '',
           created_at: submission.created_at,
           client_id: submission.client_id || submission.member_id || '',
+          track_url: submission.track_url,
           client: {
-            name: submission.artist_name || 'Unknown',
-            email: ''
+            name: submission.client_name || submission.artist_name || 'Unknown',
+            email: submission.client_email || ''
           }
         };
       });

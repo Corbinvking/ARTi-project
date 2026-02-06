@@ -42,6 +42,11 @@ export default function SubmitTrackPage() {
     ? (member.monthly_repost_limit || member.monthly_submission_limit || 0) - (member.submissions_this_month || 0)
     : 0;
 
+  // Check if member's Influence Planner account is connected
+  const ipStatus = (member as any)?.influence_planner_status;
+  const isAccountConnected = ipStatus === 'connected' || ipStatus === 'LINKED' || ipStatus === 'active';
+  const isAccountDisconnected = ipStatus === 'disconnected' || ipStatus === 'INVALID' || ipStatus === 'UNLINKED' || ipStatus === 'needs_reconnect';
+
   const validateSoundCloudUrl = (url: string): boolean => {
     const patterns = [
       /^https?:\/\/(www\.)?soundcloud\.com\/[\w-]+\/[\w-]+/,
@@ -71,6 +76,16 @@ export default function SubmitTrackPage() {
       toast({
         title: "Error",
         description: "Member data not found. Please try logging in again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Block submission if account is disconnected from Influence Planner
+    if (isAccountDisconnected) {
+      toast({
+        title: "Account Not Connected",
+        description: "Your SoundCloud account is not connected to the repost network. Please reconnect before submitting.",
         variant: "destructive"
       });
       return;
@@ -182,6 +197,29 @@ export default function SubmitTrackPage() {
         </CardContent>
       </Card>
 
+      {/* Account Connection Warning */}
+      {isAccountDisconnected && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-destructive">Account Not Connected</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Your SoundCloud account is disconnected from the repost network. 
+                  You must reconnect before submitting new tracks.
+                </p>
+                <Link href="/soundcloud/portal/profile">
+                  <Button variant="outline" size="sm" className="mt-3">
+                    Go to Profile to Reconnect
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Submission Form */}
       <Card>
         <CardHeader>
@@ -271,7 +309,7 @@ export default function SubmitTrackPage() {
             <div className="flex gap-3">
               <Button
                 type="submit"
-                disabled={isSubmitting || remainingSubmissions <= 0 || !urlValid}
+                disabled={isSubmitting || remainingSubmissions <= 0 || !urlValid || isAccountDisconnected}
                 className="flex-1"
               >
                 {isSubmitting ? (

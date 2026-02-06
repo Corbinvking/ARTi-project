@@ -127,9 +127,17 @@ export function useMySubmissions() {
     queryKey: ['my-submissions', member?.id],
     enabled: !!member?.id,
     queryFn: async () => {
+      // Only select client-safe columns -- never expose internal_notes,
+      // override details, IP schedule data, or ops-only metadata
       const { data, error } = await supabase
         .from('soundcloud_submissions')
-        .select('*')
+        .select(`
+          id, track_url, artist_name, track_name, status,
+          support_date, submitted_at, created_at, updated_at,
+          expected_reach_planned, expected_reach_min, expected_reach_max,
+          client_notes, campaign_type, playlist_required, playlist_received,
+          qa_flag, qa_reason, notes, subgenres, family
+        `)
         .eq('member_id', member!.id)
         .order('created_at', { ascending: false });
       
@@ -184,10 +192,13 @@ export function useMyQueueAssignments() {
     enabled: !!member?.id,
     queryFn: async () => {
       // Get submissions where this member is a suggested supporter
+      // Only select client-safe columns -- never expose internal data
       const { data, error } = await supabase
         .from('soundcloud_submissions')
         .select(`
-          *,
+          id, track_url, artist_name, track_name, status,
+          support_date, submitted_at, created_at,
+          expected_reach_planned, client_notes,
           submitter:soundcloud_members!member_id(name, soundcloud_url)
         `)
         .contains('suggested_supporters', [member!.id])

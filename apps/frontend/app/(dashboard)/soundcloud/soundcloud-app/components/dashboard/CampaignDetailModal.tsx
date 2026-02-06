@@ -14,6 +14,7 @@ import { supabase } from "../../integrations/supabase/client";
 import { useToast } from "../../hooks/use-toast";
 import { useWeeklyCampaignReports } from "../../hooks/useWeeklyCampaignReports";
 import { ReceiptLinksManager } from "./ReceiptLinksManager";
+import { ScheduleSuggestionPanel } from "./ScheduleSuggestionPanel";
 import { Mail, TrendingUp, TrendingDown, ExternalLink, BarChart3 } from "lucide-react";
 import { formatFollowerCount } from "../../utils/creditCalculations";
 import { useAuth } from "@/hooks/use-auth";
@@ -326,6 +327,24 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
             campaignId={campaign.id}
             onReachUpdate={handleReachUpdate}
           />
+
+          {/* Influence Planner Scheduling - only show for paid campaigns that aren't yet complete */}
+          {campaign.campaign_type !== 'Free' && campaign.status !== 'Complete' && (
+            <ScheduleSuggestionPanel
+              submissionId={campaign.id}
+              trackUrl={campaign.track_url || ''}
+              campaignType="paid"
+              currentDate={campaign.start_date}
+              goalReposts={campaign.goals}
+              onScheduleCreated={(urls) => {
+                toast({
+                  title: "Schedule Created",
+                  description: `${urls.length} schedule(s) created via Influence Planner`,
+                });
+              }}
+              onUpdate={onCampaignUpdate}
+            />
+          )}
 
         <Card>
           <CardHeader>

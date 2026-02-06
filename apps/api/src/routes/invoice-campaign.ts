@@ -282,6 +282,247 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
     }
   });
 
+  // ============================================================================
+  // SOUNDCLOUD: Create a paid campaign from an invoice
+  // ============================================================================
+  server.post('/invoice-campaign/soundcloud/create', async (request, reply) => {
+    const body = request.body as {
+      invoiceId: string;
+      trackUrl: string;
+      trackName?: string;
+      artistName?: string;
+      clientEmail?: string;
+      clientName?: string;
+      salePrice?: number;
+      goalReposts?: number;
+      startDate?: string;
+      invoiceStatus?: 'pending' | 'sent' | 'paid';
+      playlistRequired?: boolean;
+    };
+
+    const { invoiceId, trackUrl, trackName, artistName, clientEmail, clientName, salePrice, goalReposts, startDate, invoiceStatus, playlistRequired } = body;
+
+    // Validate required fields
+    if (!invoiceId || !trackUrl) {
+      return reply.code(400).send({
+        ok: false,
+        message: 'Missing required fields: invoiceId, trackUrl',
+      });
+    }
+
+    // Basic SoundCloud URL validation
+    const scUrlPattern = /^https?:\/\/(www\.)?soundcloud\.com\//;
+    if (!scUrlPattern.test(trackUrl)) {
+      return reply.code(400).send({
+        ok: false,
+        message: 'Invalid SoundCloud URL. Must start with https://soundcloud.com/',
+      });
+    }
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      request.log.error('Supabase credentials not configured');
+      return reply.code(500).send({ ok: false, message: 'Database not configured' });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    try {
+      // Check for duplicate invoice
+      const { data: existing } = await supabase
+        .from('soundcloud_submissions')
+        .select('id, artist_name, track_url')
+        .eq('source_invoice_id', invoiceId)
+        .maybeSingle();
+
+      if (existing) {
+        return reply.code(409).send({
+          ok: false,
+          message: `SoundCloud campaign already exists for invoice ${invoiceId}`,
+          campaignId: existing.id,
+        });
+      }
+
+      // Extract track name from URL if not provided
+      let resolvedTrackName = trackName;
+      if (!resolvedTrackName) {
+        try {
+          const slug = trackUrl.split('/').pop() || '';
+          resolvedTrackName = decodeURIComponent(slug).replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
+          resolvedTrackName = resolvedTrackName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        } catch {
+          resolvedTrackName = 'Untitled Track';
+        }
+      }
+
+      // Create the paid campaign in soundcloud_submissions
+      const campaignData: Record<string, any> = {
+        org_id: DEFAULT_ORG_ID,
+        track_url: trackUrl,
+        track_name: resolvedTrackName,
+        artist_name: artistName || 'Unknown Artist',
+        campaign_type: 'paid',
+        status: 'pending',
+        source_invoice_id: invoiceId,
+        invoice_status: invoiceStatus || 'paid',
+        client_email: clientEmail || null,
+        client_name: clientName || null,
+        sales_price: salePrice || null,
+        goal_reposts: goalReposts || 0,
+        expected_reach_planned: goalReposts || 0,
+        support_date: startDate || null,
+        playlist_required: playlistRequired || false,
+        submitted_at: new Date().toISOString(),
+      };
+
+      const { data: campaign, error: campaignError } = await supabase
+        .from('soundcloud_submissions')
+        .insert(campaignData)
+        .select()
+        .single();
+
+      if (campaignError) {
+        request.log.error('Failed to create SoundCloud campaign:', campaignError);
+        return reply.code(500).send({
+          ok: false,
+          message: 'Failed to create SoundCloud campaign',
+          error: campaignError.message,
+        });
+      }
+
+      request.log.info(`SoundCloud paid campaign created from invoice ${invoiceId}: ${campaign.id}`);
+
+      // Notify ops about new paid campaign
+      try {
+        const notifyResponse = await server.inject({
+          method: 'POST',
+          url: '/api/campaign-created-notify',
+          payload: {
+            service: 'soundcloud',
+            campaignId: campaign.id,
+            campaignName: `${artistName || 'Unknown'} - ${resolvedTrackName}`,
+            trackUrl: trackUrl,
+            clientName: clientName || null,
+            campaignType: 'paid',
+          },
+        });
+        request.log.info('Ops notification sent:', notifyResponse.statusCode);
+      } catch (notifyError) {
+        request.log.warn('Failed to send ops notification:', notifyError);
+      }
+
+      return reply.code(201).send({
+        ok: true,
+        message: 'SoundCloud paid campaign created successfully',
+        campaign: {
+          id: campaign.id,
+          trackUrl: campaign.track_url,
+          trackName: resolvedTrackName,
+          artistName: campaign.artist_name,
+          campaignType: 'paid',
+          status: campaign.status,
+          invoiceId: campaign.source_invoice_id,
+          invoiceStatus: campaign.invoice_status,
+        },
+      });
+    } catch (error) {
+      request.log.error('Error creating SoundCloud campaign from invoice:', error);
+      return reply.code(500).send({
+        ok: false,
+        message: 'Server error while creating SoundCloud campaign',
+      });
+    }
+  });
+
+  // SOUNDCLOUD: Update invoice status for a SoundCloud campaign
+  server.patch('/invoice-campaign/soundcloud/:campaignId/invoice-status', async (request, reply) => {
+    const { campaignId } = request.params as { campaignId: string };
+    const { invoiceStatus } = request.body as { invoiceStatus: 'pending' | 'sent' | 'paid' };
+
+    if (!campaignId || !invoiceStatus) {
+      return reply.code(400).send({
+        ok: false,
+        message: 'Missing required fields: campaignId, invoiceStatus',
+      });
+    }
+
+    if (!['pending', 'sent', 'paid'].includes(invoiceStatus)) {
+      return reply.code(400).send({
+        ok: false,
+        message: 'Invalid invoice status. Must be: pending, sent, or paid',
+      });
+    }
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return reply.code(500).send({ ok: false, message: 'Database not configured' });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    try {
+      const { data, error } = await supabase
+        .from('soundcloud_submissions')
+        .update({ invoice_status: invoiceStatus })
+        .eq('id', campaignId)
+        .select('id, invoice_status')
+        .single();
+
+      if (error) {
+        request.log.error('Failed to update SoundCloud invoice status:', error);
+        return reply.code(500).send({
+          ok: false,
+          message: 'Failed to update invoice status',
+        });
+      }
+
+      return reply.code(200).send({
+        ok: true,
+        message: 'Invoice status updated',
+        campaign: {
+          id: data.id,
+          invoiceStatus: data.invoice_status,
+        },
+      });
+    } catch (error) {
+      request.log.error('Error updating SoundCloud invoice status:', error);
+      return reply.code(500).send({ ok: false, message: 'Server error' });
+    }
+  });
+
+  // SOUNDCLOUD: Get campaign by invoice ID
+  server.get('/invoice-campaign/soundcloud/by-invoice/:invoiceId', async (request, reply) => {
+    const { invoiceId } = request.params as { invoiceId: string };
+
+    if (!invoiceId) {
+      return reply.code(400).send({ ok: false, message: 'Missing invoiceId' });
+    }
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return reply.code(500).send({ ok: false, message: 'Database not configured' });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    try {
+      const { data, error } = await supabase
+        .from('soundcloud_submissions')
+        .select('id, track_url, track_name, artist_name, campaign_type, status, source_invoice_id, invoice_status, goal_reposts, sales_price, created_at')
+        .eq('source_invoice_id', invoiceId)
+        .single();
+
+      if (error || !data) {
+        return reply.code(404).send({
+          ok: false,
+          message: `No SoundCloud campaign found for invoice ${invoiceId}`,
+        });
+      }
+
+      return reply.code(200).send({ ok: true, campaign: data });
+    } catch (error) {
+      request.log.error('Error fetching SoundCloud campaign by invoice:', error);
+      return reply.code(500).send({ ok: false, message: 'Server error' });
+    }
+  });
+
   // Get campaign by invoice ID
   server.get('/invoice-campaign/by-invoice/:invoiceId', async (request, reply) => {
     const { invoiceId } = request.params as { invoiceId: string };
