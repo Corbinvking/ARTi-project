@@ -342,9 +342,10 @@ export default function OpsQueuePage() {
     const items: QueueItem[] = []
     
     for (const submission of (soundcloudSubmissions || [])) {
-      const status = ((submission as any).status || 'pending').toLowerCase()
+      const status = ((submission as any).status || 'new').toLowerCase()
       
-      if (status === 'pending') {
+      // "new" and "pending" = needs review
+      if (status === 'new' || status === 'pending') {
         items.push({
           id: submission.id,
           service: "SoundCloud",
@@ -368,7 +369,7 @@ export default function OpsQueuePage() {
           priority: "medium",
           status: status,
         })
-      } else if (status === 'active') {
+      } else if (status === 'active' || status === 'approved') {
         items.push({
           id: submission.id,
           service: "SoundCloud",
@@ -577,18 +578,10 @@ export default function OpsQueuePage() {
           <TabsContent value="all" className="space-y-6 mt-6">
             {/* Summary Cards for All Services */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {instagramItems.length > 0 && (
-                <ServiceTaskSummary service="Instagram" stats={instagramStats} items={instagramItems} />
-              )}
-              {spotifyItems.length > 0 && (
-                <ServiceTaskSummary service="Spotify" stats={spotifyStats} items={spotifyItems} />
-              )}
-              {youtubeItems.length > 0 && (
-                <ServiceTaskSummary service="YouTube" stats={youtubeStats} items={youtubeItems} />
-              )}
-              {soundcloudItems.length > 0 && (
-                <ServiceTaskSummary service="SoundCloud" stats={soundcloudStats} items={soundcloudItems} />
-              )}
+              <ServiceTaskSummary service="Instagram" stats={instagramStats} items={instagramItems} />
+              <ServiceTaskSummary service="Spotify" stats={spotifyStats} items={spotifyItems} />
+              <ServiceTaskSummary service="YouTube" stats={youtubeStats} items={youtubeItems} />
+              <ServiceTaskSummary service="SoundCloud" stats={soundcloudStats} items={soundcloudItems} />
             </div>
 
             <Card>
