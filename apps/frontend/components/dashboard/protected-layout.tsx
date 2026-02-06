@@ -42,6 +42,16 @@ export function ProtectedLayout({
     }
   }, [user, loading, pathname, router])
 
+  // Redirect operators away from admin panel to operator panel
+  useEffect(() => {
+    if (!loading && user && user.role === 'operator') {
+      if (pathname?.startsWith('/admin')) {
+        console.log('🚫 Operator access to admin blocked, redirecting to operator panel')
+        router.push("/operator")
+      }
+    }
+  }, [user, loading, pathname, router])
+
   useEffect(() => {
     if (user && requiredRoles && !requiredRoles.includes(user.role)) {
       // Members get redirected to portal, others to dashboard

@@ -23,6 +23,7 @@ interface Tab {
   href: string
   platform?: string
   adminOnly?: boolean
+  operatorOnly?: boolean
 }
 
 interface SubTab {
@@ -42,6 +43,7 @@ const mainTabs: Tab[] = [
   { id: "instagram", label: "Instagram", href: "/instagram", platform: "instagram" },
   { id: "youtube", label: "YouTube", href: "/youtube", platform: "youtube" },
   { id: "soundcloud", label: "SoundCloud", href: "/soundcloud", platform: "soundcloud" },
+  { id: "operator", label: "Operator", href: "/operator", operatorOnly: true },
   { id: "admin", label: "Admin", href: "/admin", adminOnly: true },
 ]
 
@@ -162,15 +164,21 @@ export function PlatformNavigation() {
                         pathname.includes('/instagram') ? 'instagram' :
                         pathname.includes('/youtube') ? 'youtube' :
                         pathname.includes('/soundcloud') ? 'soundcloud' :
+                        pathname.includes('/operator') ? 'operator' :
                         pathname.includes('/admin') ? 'admin' : 'dashboard'
 
   // Get visible main tabs
   const visibleMainTabs = mainTabs.filter((tab) => {
     if (!user) return false
     
-    // Admin-only tabs
+    // Admin-only tabs - only admins see the Admin tab
     if (tab.adminOnly) {
       return user.role === 'admin'
+    }
+
+    // Operator-only tab - operators and admins see the Operator tab
+    if (tab.operatorOnly) {
+      return user.role === 'operator' || user.role === 'admin'
     }
     
     // Platform-based tabs - check permissions
@@ -187,6 +195,8 @@ export function PlatformNavigation() {
         case 'admin':
           return true // Admin can see all tabs
         case 'manager':
+          return ['dashboard', 'instagram', 'spotify', 'soundcloud', 'youtube'].includes(tab.platform)
+        case 'operator':
           return ['dashboard', 'instagram', 'spotify', 'soundcloud', 'youtube'].includes(tab.platform)
         case 'sales':
           return ['dashboard', 'instagram', 'spotify', 'youtube'].includes(tab.platform)

@@ -46,6 +46,8 @@ const getDefaultPermissions = (role: string) => {
         { platform: 'spotify', can_read: true, can_write: true, can_delete: false },
         { platform: 'youtube', can_read: true, can_write: true, can_delete: false }
       ]
+    case 'operator':
+      return PLATFORMS.map(p => ({ platform: p.id, can_read: true, can_write: true, can_delete: false }))
     case 'vendor':
       return [
         { platform: 'dashboard', can_read: true, can_write: false, can_delete: false },
@@ -64,7 +66,7 @@ interface AdminUser {
   id: string
   email: string
   name: string
-  role: "admin" | "manager" | "sales" | "vendor"
+  role: "admin" | "manager" | "operator" | "sales" | "vendor"
   org_id?: string
   created_at: string
   last_sign_in_at?: string
@@ -355,6 +357,7 @@ export function UserManagement() {
     switch (role) {
       case "admin": return "bg-red-100 text-red-800"
       case "manager": return "bg-blue-100 text-blue-800"
+      case "operator": return "bg-cyan-100 text-cyan-800"
       case "sales": return "bg-green-100 text-green-800"
       case "vendor": return "bg-orange-100 text-orange-800"
       case "analyst": return "bg-purple-100 text-purple-800"
@@ -469,6 +472,7 @@ export function UserManagement() {
                     <SelectContent>
                       <SelectItem value="vendor">Vendor</SelectItem>
                       <SelectItem value="sales">Sales</SelectItem>
+                      <SelectItem value="operator">Operator</SelectItem>
                       <SelectItem value="analyst">Analyst</SelectItem>
                       <SelectItem value="manager">Manager</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>

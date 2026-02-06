@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 export interface User {
   id: string
   email: string
-  role: "admin" | "manager" | "sales" | "vendor" | "member"
+  role: "admin" | "manager" | "operator" | "sales" | "vendor" | "member"
   tenantId: string
   name: string
   permissions?: Permission[]
@@ -99,6 +99,7 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   admin: ["read", "write", "delete", "manage_users", "manage_settings"],
   manager: ["read", "write", "manage_campaigns"],
+  operator: ["read", "write", "manage_campaigns", "submit_reports"],
   sales: ["read", "write", "create_campaigns"],
   vendor: ["read", "create_content"],
   member: ["read", "submit_tracks"],  // SoundCloud members
@@ -258,6 +259,8 @@ export const authService = {
         return true // Admin can access everything
       case "manager":
         return ["dashboard", "spotify", "soundcloud", "youtube", "instagram"].includes(platform)
+      case "operator":
+        return ["dashboard", "spotify", "soundcloud", "youtube", "instagram", "operator"].includes(platform)
       case "sales":
         return ["dashboard", "spotify", "youtube", "instagram"].includes(platform)
       case "vendor":
