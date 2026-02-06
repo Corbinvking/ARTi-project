@@ -34,7 +34,7 @@ export interface SubmissionWithMember {
       balance: number;
       monthly_grant: number;
     } | null;
-  };
+  } | null;
 }
 
 export const useSubmissionsList = (status?: string | 'all') => {
@@ -44,9 +44,7 @@ export const useSubmissionsList = (status?: string | 'all') => {
 
   const fetchSubmissions = async () => {
     try {
-      // Query soundcloud_submissions with aliased join to soundcloud_members
-      // Alias followers → soundcloud_followers so downstream components work
-      // net_credits serves as the balance (no separate wallet table exists)
+      // Step 1: Fetch submissions from the actual table
       let query = supabase
         .from('soundcloud_submissions')
         .select(`
@@ -67,17 +65,7 @@ export const useSubmissionsList = (status?: string | 'all') => {
           qa_reason,
           need_live_link,
           support_url,
-          member_id,
-          members:soundcloud_members!member_id(
-            id,
-            name,
-            primary_email,
-            size_tier,
-            status,
-            net_credits,
-            soundcloud_followers:followers,
-            monthly_credit_limit
-          )
+          member_id
         `)
         .order('submitted_at', { ascending: false });
 
@@ -85,23 +73,53 @@ export const useSubmissionsList = (status?: string | 'all') => {
         query = query.eq('status', status as any);
       }
 
-      const { data, error } = await query;
+      const { data: submissionsData, error: subError } = await query;
+      if (subError) throw subError;
 
-      if (error) throw error;
+      if (!submissionsData || submissionsData.length === 0) {
+        setSubmissions([]);
+        return;
+      }
 
-      // Map the data to add a virtual repost_credit_wallet for backward compat
-      const mapped = (data || []).map((row: any) => ({
-        ...row,
-        members: row.members ? {
-          ...row.members,
-          repost_credit_wallet: {
-            balance: row.members.net_credits || 0,
-            monthly_grant: row.members.monthly_credit_limit || 0,
-          },
-        } : row.members,
+      // Step 2: Fetch member data for all unique member_ids
+      const memberIds = [...new Set(submissionsData.map(s => s.member_id).filter(Boolean))];
+
+      let membersMap: Record<string, any> = {};
+
+      if (memberIds.length > 0) {
+        const { data: membersData, error: memError } = await supabase
+          .from('soundcloud_members')
+          .select('id, name, primary_email, size_tier, status, net_credits, followers, monthly_credit_limit')
+          .in('id', memberIds);
+
+        if (memError) {
+          console.warn('Could not fetch member data:', memError);
+        } else if (membersData) {
+          for (const m of membersData) {
+            membersMap[m.id] = {
+              id: m.id,
+              name: m.name,
+              primary_email: m.primary_email,
+              size_tier: m.size_tier,
+              status: m.status,
+              net_credits: m.net_credits || 0,
+              soundcloud_followers: m.followers || 0,
+              repost_credit_wallet: {
+                balance: m.net_credits || 0,
+                monthly_grant: m.monthly_credit_limit || 0,
+              },
+            };
+          }
+        }
+      }
+
+      // Step 3: Merge submissions with member data
+      const merged: SubmissionWithMember[] = submissionsData.map((sub: any) => ({
+        ...sub,
+        members: sub.member_id ? (membersMap[sub.member_id] || null) : null,
       }));
 
-      setSubmissions(mapped as SubmissionWithMember[]);
+      setSubmissions(merged);
     } catch (error: any) {
       console.error('Error fetching submissions:', error);
       toast({

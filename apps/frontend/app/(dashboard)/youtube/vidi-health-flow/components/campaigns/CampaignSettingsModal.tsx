@@ -1256,23 +1256,15 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  Daily Performance Trends (3x Daily Collection)
+                  Daily Performance Trends (Auto-collected 3x Daily)
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={fetchDailyStats}
-                      disabled={loadingStats || refreshingYouTubeData}
+                      disabled={loadingStats}
                     >
                       {loadingStats ? "Loading..." : "Refresh Display"}
-                    </Button>
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      onClick={handleRefreshYouTubeData}
-                      disabled={refreshingYouTubeData || loadingStats}
-                    >
-                      {refreshingYouTubeData ? "Fetching..." : "Fetch Fresh Data"}
                     </Button>
                   </div>
                 </CardTitle>
