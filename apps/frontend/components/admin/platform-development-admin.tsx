@@ -25,6 +25,8 @@ import {
   ArrowUpCircle,
   Code2,
   Filter,
+  Crosshair,
+  MapPin,
 } from "lucide-react"
 
 type Report = {
@@ -40,6 +42,16 @@ type Report = {
   completed_at: string | null
   created_at: string
   updated_at: string
+  element_data: {
+    selector: string
+    tagName: string
+    id: string | null
+    classes: string[]
+    textContent: string
+    pageUrl: string
+    boundingRect: { top: number; left: number; width: number; height: number }
+    timestamp: string
+  } | null
 }
 
 const formatDate = (value: string) => {
@@ -206,6 +218,29 @@ export function PlatformDevelopmentAdmin() {
                           <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
                             {report.description}
                           </p>
+                        )}
+                        {report.element_data && (
+                          <div className="mt-1.5 rounded border border-primary/20 bg-primary/5 px-2 py-1.5">
+                            <div className="flex items-center gap-1 text-[10px] font-medium text-primary mb-0.5">
+                              <Crosshair className="h-2.5 w-2.5" />
+                              Element
+                            </div>
+                            <p className="text-[10px] font-mono text-muted-foreground truncate max-w-[250px]" title={report.element_data.selector}>
+                              {report.element_data.selector}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground">
+                              <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
+                              <span className="truncate">{report.element_data.pageUrl}</span>
+                              <span className="font-mono bg-muted px-1 rounded">
+                                {report.element_data.tagName.toLowerCase()}
+                              </span>
+                            </div>
+                            {report.element_data.textContent && (
+                              <p className="text-[10px] text-muted-foreground italic truncate mt-0.5">
+                                &ldquo;{report.element_data.textContent.slice(0, 60)}&rdquo;
+                              </p>
+                            )}
+                          </div>
                         )}
                       </div>
                     </TableCell>

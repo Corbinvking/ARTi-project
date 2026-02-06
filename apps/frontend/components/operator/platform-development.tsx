@@ -14,6 +14,8 @@ import {
   AlertCircle,
   ArrowUpCircle,
   Circle,
+  Crosshair,
+  MapPin,
 } from "lucide-react"
 
 type Report = {
@@ -29,6 +31,16 @@ type Report = {
   completed_at: string | null
   created_at: string
   updated_at: string
+  element_data: {
+    selector: string
+    tagName: string
+    id: string | null
+    classes: string[]
+    textContent: string
+    pageUrl: string
+    boundingRect: { top: number; left: number; width: number; height: number }
+    timestamp: string
+  } | null
 }
 
 const formatDate = (value: string) => {
@@ -237,6 +249,26 @@ export function PlatformDevelopment() {
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {report.description}
                         </p>
+                      )}
+
+                      {/* Element Data Attachment */}
+                      {report.element_data && (
+                        <div className="mt-2 rounded border border-primary/20 bg-primary/5 px-3 py-2">
+                          <div className="flex items-center gap-1.5 text-[11px] font-medium text-primary mb-1">
+                            <Crosshair className="h-3 w-3" />
+                            Element Attached
+                          </div>
+                          <p className="text-[11px] font-mono text-muted-foreground truncate" title={report.element_data.selector}>
+                            {report.element_data.selector}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+                            <MapPin className="h-2.5 w-2.5 flex-shrink-0" />
+                            <span className="truncate">{report.element_data.pageUrl}</span>
+                            <span className="font-mono bg-muted px-1 rounded text-[10px]">
+                              {report.element_data.tagName.toLowerCase()}
+                            </span>
+                          </div>
+                        </div>
                       )}
 
                       <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">

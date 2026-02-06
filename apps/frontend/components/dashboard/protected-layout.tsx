@@ -4,9 +4,12 @@ import type React from "react"
 
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter, usePathname } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { PlatformNavigation } from "@/components/navigation/platform-navigation"
 import { UserMenu } from "@/components/navigation/user-menu"
+import { ElementPicker } from "@/components/operator/element-picker"
+import { ReportForm } from "@/components/operator/report-form"
+import type { ElementData } from "@/components/operator/element-picker"
 
 interface ProtectedLayoutProps {
   children: React.ReactNode
@@ -78,6 +81,28 @@ export function ProtectedLayout({
     return null
   }
 
+  // Element Picker state - for operators and admins
+  const [pickedElement, setPickedElement] = useState<ElementData | null>(null)
+  const [reportFormOpen, setReportFormOpen] = useState(false)
+
+  const handleElementSelected = useCallback((data: ElementData) => {
+    setPickedElement(data)
+    setReportFormOpen(true)
+  }, [])
+
+  const handleReportFormClose = useCallback((open: boolean) => {
+    setReportFormOpen(open)
+    if (!open) {
+      setPickedElement(null)
+    }
+  }, [])
+
+  const handleClearElement = useCallback(() => {
+    setPickedElement(null)
+  }, [])
+
+  const showElementPicker = user?.role === 'operator' || user?.role === 'admin'
+
   if (requiredRoles && !requiredRoles.includes(user.role)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -101,6 +126,20 @@ export function ProtectedLayout({
       )}
       {!hideNavigation && <PlatformNavigation />}
       <main className="container mx-auto px-4 py-6">{children}</main>
+
+      {/* Element Picker - floating on every page for operators/admins */}
+      {showElementPicker && (
+        <>
+          <ElementPicker onElementSelected={handleElementSelected} />
+          <ReportForm
+            externalOpen={reportFormOpen}
+            onExternalOpenChange={handleReportFormClose}
+            elementData={pickedElement}
+            onClearElementData={handleClearElement}
+            hideTrigger
+          />
+        </>
+      )}
     </div>
   )
 }
