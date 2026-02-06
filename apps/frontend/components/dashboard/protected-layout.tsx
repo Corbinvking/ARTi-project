@@ -66,22 +66,7 @@ export function ProtectedLayout({
     }
   }, [user, requiredRoles, router])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!user) {
-    return null
-  }
-
-  // Element Picker state - for operators and admins
+  // Element Picker state - hooks MUST be before any conditional returns
   const [pickedElement, setPickedElement] = useState<ElementData | null>(null)
   const [reportFormOpen, setReportFormOpen] = useState(false)
 
@@ -102,6 +87,21 @@ export function ProtectedLayout({
   }, [])
 
   const showElementPicker = user?.role === 'operator' || user?.role === 'admin'
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
 
   if (requiredRoles && !requiredRoles.includes(user.role)) {
     return (
