@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -95,15 +96,26 @@ export function PlatformDevelopmentAdmin() {
         updateData.completed_at = null
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("platform_development_reports")
         .update(updateData)
         .eq("id", id)
+        .select()
 
       if (error) throw error
+
+      // Supabase returns empty array if RLS blocked the update
+      if (!data || data.length === 0) {
+        throw new Error("Update was blocked. You may not have permission to modify this report.")
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["platform-dev-reports"] })
+      toast.success(`Report marked as ${variables.status.replace("_", " ")}`)
+    },
+    onError: (error) => {
+      console.error("Failed to update report:", error)
+      toast.error(error instanceof Error ? error.message : "Failed to update report status")
     },
   })
 

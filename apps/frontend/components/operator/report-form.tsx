@@ -111,7 +111,7 @@ export function ReportForm({
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Submit a Report</DialogTitle>
           <DialogDescription>
@@ -121,33 +121,33 @@ export function ReportForm({
         <div className="grid gap-4 py-4">
           {/* Element Data Preview */}
           {elementData && (
-            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2 text-xs font-medium text-primary">
-                  <Crosshair className="h-3.5 w-3.5" />
+                  <Crosshair className="h-3.5 w-3.5 flex-shrink-0" />
                   Element Attached
                 </div>
                 <button
                   onClick={() => onClearElementData?.()}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <div className="mt-2 space-y-1">
-                <p className="text-xs font-mono text-muted-foreground truncate" title={elementData.selector}>
+              <div className="mt-2 space-y-1.5">
+                <p className="text-xs font-mono text-muted-foreground break-all leading-relaxed" title={elementData.selector}>
                   {elementData.selector}
                 </p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                   <MapPin className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">{elementData.pageUrl}</span>
-                  <span className="font-mono text-[10px] bg-muted px-1.5 py-0.5 rounded">
+                  <span>{elementData.pageUrl}</span>
+                  <span className="font-mono text-[10px] bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
                     {elementData.tagName.toLowerCase()}
                   </span>
                 </div>
                 {elementData.textContent && (
-                  <p className="text-xs text-muted-foreground italic truncate">
-                    &ldquo;{elementData.textContent.slice(0, 80)}&rdquo;
+                  <p className="text-xs text-muted-foreground italic break-words">
+                    &ldquo;{elementData.textContent.slice(0, 120)}&rdquo;
                   </p>
                 )}
               </div>
