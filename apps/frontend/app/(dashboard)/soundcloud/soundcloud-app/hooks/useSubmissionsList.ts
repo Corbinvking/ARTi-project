@@ -33,7 +33,7 @@ export interface SubmissionWithMember {
     repost_credit_wallet: {
       balance: number;
       monthly_grant: number;
-    };
+    } | null;
   };
 }
 
@@ -44,8 +44,11 @@ export const useSubmissionsList = (status?: string | 'all') => {
 
   const fetchSubmissions = async () => {
     try {
+      // Query soundcloud_submissions with aliased join to soundcloud_members
+      // Alias followers → soundcloud_followers so downstream components work
+      // net_credits serves as the balance (no separate wallet table exists)
       let query = supabase
-        .from('submissions')
+        .from('soundcloud_submissions')
         .select(`
           id,
           track_url,
@@ -65,15 +68,15 @@ export const useSubmissionsList = (status?: string | 'all') => {
           need_live_link,
           support_url,
           member_id,
-          members!inner(
+          members:soundcloud_members!member_id(
             id,
             name,
             primary_email,
             size_tier,
             status,
             net_credits,
-            soundcloud_followers,
-            repost_credit_wallet!inner(balance, monthly_grant)
+            soundcloud_followers:followers,
+            monthly_credit_limit
           )
         `)
         .order('submitted_at', { ascending: false });
@@ -86,7 +89,19 @@ export const useSubmissionsList = (status?: string | 'all') => {
 
       if (error) throw error;
 
-      setSubmissions(data as SubmissionWithMember[]);
+      // Map the data to add a virtual repost_credit_wallet for backward compat
+      const mapped = (data || []).map((row: any) => ({
+        ...row,
+        members: row.members ? {
+          ...row.members,
+          repost_credit_wallet: {
+            balance: row.members.net_credits || 0,
+            monthly_grant: row.members.monthly_credit_limit || 0,
+          },
+        } : row.members,
+      }));
+
+      setSubmissions(mapped as SubmissionWithMember[]);
     } catch (error: any) {
       console.error('Error fetching submissions:', error);
       toast({
@@ -108,7 +123,7 @@ export const useSubmissionsList = (status?: string | 'all') => {
       }
 
       const { error } = await supabase
-        .from('submissions')
+        .from('soundcloud_submissions')
         .update(updateData)
         .eq('id', submissionId);
 

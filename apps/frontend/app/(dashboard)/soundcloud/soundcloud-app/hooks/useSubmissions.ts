@@ -28,7 +28,7 @@ export const useSubmissions = () => {
   const fetchStats = async () => {
     try {
       const { data, error } = await supabase
-        .from('submissions')
+        .from('soundcloud_submissions')
         .select('status');
 
       if (error) throw error;
