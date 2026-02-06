@@ -23,7 +23,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/auth"
 import { createClient } from "@supabase/supabase-js"
 import { toast } from "sonner"
-import { PermissionMatrix } from "./permission-matrix"
 
 const PLATFORMS = [
   { id: 'dashboard', name: 'Dashboard', icon: '📊' },
@@ -639,13 +638,6 @@ export function UserManagement() {
         )}
       </CardContent>
     </Card>
-
-    {/* Permission Matrix */}
-    <PermissionMatrix 
-      users={users}
-      onUpdatePermissions={handleUpdatePermissions}
-      onRefresh={loadUsers}
-    />
     </div>
   )
 }
