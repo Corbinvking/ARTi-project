@@ -178,10 +178,46 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
 
       if (error) throw error;
 
-      toast({
-        title: "Member Added",
-        description: `${formData.name} has been successfully added to the system`,
-      });
+      // Auto-provision auth credentials via backend API
+      if (data?.id) {
+        try {
+          const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
+          const provisionRes = await fetch(`${apiBaseUrl}/api/soundcloud/members/provision-auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              memberId: data.id,
+              email: formData.primary_email,
+              name: formData.name,
+            }),
+          });
+          const provisionData = await provisionRes.json();
+
+          if (provisionData.status === 'created' || provisionData.status === 'linked') {
+            toast({
+              title: "Member Added + Login Created",
+              description: `${formData.name} has been added and login credentials were auto-created`,
+            });
+          } else {
+            toast({
+              title: "Member Added",
+              description: `${formData.name} added. Login provisioning: ${provisionData.reason || provisionData.status}`,
+            });
+          }
+        } catch (provisionErr: any) {
+          console.error('Auth provisioning failed:', provisionErr);
+          toast({
+            title: "Member Added (login pending)",
+            description: `${formData.name} was added, but auto-login creation failed. It can be retried later.`,
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Member Added",
+          description: `${formData.name} has been successfully added to the system`,
+        });
+      }
 
       // Reset form
       setFormData({

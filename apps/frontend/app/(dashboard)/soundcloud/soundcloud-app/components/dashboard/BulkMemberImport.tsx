@@ -375,8 +375,9 @@ export const BulkMemberImport: React.FC<BulkMemberImportProps> = ({
         importResults.push({
           member,
           success: true,
-          rowIndex: i
-        });
+          rowIndex: i,
+          memberId: insertedMember.id
+        } as ImportResult & { memberId: string });
 
       } catch (error: any) {
         importResults.push({
@@ -390,6 +391,35 @@ export const BulkMemberImport: React.FC<BulkMemberImportProps> = ({
       setProgress(((i + 1) / mappedMembers.length) * 100);
     }
 
+    // --- Bulk-provision auth credentials for all successfully imported members ---
+    const successfulMemberIds = importResults
+      .filter(r => r.success)
+      .map(r => {
+        // We need the member ID from the insert; store it during import
+        return (r as any).memberId as string;
+      })
+      .filter(Boolean);
+
+    let authProvisioned = 0;
+    let authFailed = 0;
+
+    if (successfulMemberIds.length > 0) {
+      try {
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
+        const provisionRes = await fetch(`${apiBaseUrl}/api/soundcloud/members/bulk-provision-auth`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memberIds: successfulMemberIds }),
+        });
+        const provisionData = await provisionRes.json();
+        authProvisioned = (provisionData.provisioned || 0) + (provisionData.linked || 0);
+        authFailed = provisionData.failed || 0;
+      } catch (provisionErr) {
+        console.error('Bulk auth provisioning failed:', provisionErr);
+        authFailed = successfulMemberIds.length;
+      }
+    }
+
     setResults(importResults);
     setCurrentStep('complete');
     setIsProcessing(false);
@@ -397,9 +427,13 @@ export const BulkMemberImport: React.FC<BulkMemberImportProps> = ({
     const successCount = importResults.filter(r => r.success).length;
     const failCount = importResults.length - successCount;
 
+    const authSummary = successfulMemberIds.length > 0
+      ? ` ${authProvisioned} login(s) created.${authFailed > 0 ? ` ${authFailed} login(s) failed.` : ''}`
+      : '';
+
     toast({
       title: "Import complete",
-      description: `${successCount} members imported successfully. ${failCount} failed.`,
+      description: `${successCount} members imported. ${failCount} failed.${authSummary}`,
       variant: successCount > 0 ? "default" : "destructive"
     });
 

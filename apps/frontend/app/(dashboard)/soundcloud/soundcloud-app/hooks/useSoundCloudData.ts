@@ -158,6 +158,17 @@ export const useDeleteMember = () => {
   
   return useMutation({
     mutationFn: async (memberId: string) => {
+      // 0. Deprovision auth credentials first (delete auth.users entry)
+      try {
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
+        await fetch(`${apiBaseUrl}/api/soundcloud/members/${memberId}/deprovision-auth`, {
+          method: 'DELETE',
+        });
+      } catch (deprovisionErr) {
+        // Log but don't block member deletion if auth cleanup fails
+        console.warn('Auth deprovision failed (continuing with member delete):', deprovisionErr);
+      }
+
       // Delete in correct order to avoid FK constraints
       
       // 1. Get member accounts

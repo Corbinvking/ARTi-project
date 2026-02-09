@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ExternalLink, Mail, Calendar, Crown, Music, Edit, Save, X, Loader2, RefreshCw, CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { ExternalLink, Mail, Calendar, Crown, Music, Edit, Save, X, Loader2, RefreshCw, CheckCircle2, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldCheck, UserPlus, Copy } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
 import { useToast } from '../../hooks/use-toast';
 import { format } from 'date-fns';
@@ -38,6 +38,7 @@ interface Member {
   override_set_by?: string;
   override_set_at?: string;
   computed_monthly_repost_limit?: number;
+  user_id?: string;
 }
 
 interface GenreFamily {
@@ -90,6 +91,121 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
   const [subgenres, setSubgenres] = useState<Subgenre[]>([]);
   const [availableSubgenres, setAvailableSubgenres] = useState<Subgenre[]>([]);
 
+  // --- Auth / credentials state ---
+  const [authUser, setAuthUser] = useState<{
+    id: string;
+    email: string;
+    status: string;
+    last_sign_in_at: string | null;
+    created_at: string;
+  } | null>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isProvisioningAuth, setIsProvisioningAuth] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordJustCopied, setPasswordJustCopied] = useState(false);
+
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
+
+  // Fetch auth user data when modal opens
+  const fetchAuthUser = useCallback(async (userId: string) => {
+    setIsLoadingAuth(true);
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/admin/users`);
+      const data = await res.json();
+      const users = data.users || [];
+      const found = users.find((u: any) => u.id === userId);
+      if (found) {
+        setAuthUser({
+          id: found.id,
+          email: found.email,
+          status: found.status || 'unknown',
+          last_sign_in_at: found.last_sign_in_at,
+          created_at: found.created_at,
+        });
+      } else {
+        setAuthUser(null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch auth user:', err);
+      setAuthUser(null);
+    } finally {
+      setIsLoadingAuth(false);
+    }
+  }, [apiBaseUrl]);
+
+  // Handle password reset
+  const handleResetPassword = async () => {
+    if (!member || !newPassword || newPassword.length < 6) {
+      toast({
+        title: 'Invalid Password',
+        description: 'Password must be at least 6 characters',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsResettingPassword(true);
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/soundcloud/members/${member.id}/reset-password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to reset password');
+      toast({ title: 'Password Updated', description: 'The member login password has been changed.' });
+      setNewPassword('');
+      setShowPassword(false);
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Password reset failed', variant: 'destructive' });
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  // Handle provision auth
+  const handleProvisionAuth = async () => {
+    if (!member) return;
+    setIsProvisioningAuth(true);
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/soundcloud/members/provision-auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: member.id,
+          email: member.primary_email,
+          name: member.name,
+        }),
+      });
+      const data = await res.json();
+      if (data.status === 'created' || data.status === 'linked') {
+        toast({ title: 'Login Created', description: `Portal credentials provisioned for ${member.name}` });
+        // Refresh auth info
+        if (data.userId) {
+          await fetchAuthUser(data.userId);
+        }
+        onUpdate(); // Refresh member data to get the new user_id
+      } else {
+        toast({ title: 'Provisioning Issue', description: data.reason || data.status, variant: 'destructive' });
+      }
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message || 'Failed to provision auth', variant: 'destructive' });
+    } finally {
+      setIsProvisioningAuth(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setPasswordJustCopied(true);
+      setTimeout(() => setPasswordJustCopied(false), 2000);
+    } catch {
+      // Fallback
+    }
+  };
+
   useEffect(() => {
     if (member) {
       setFormData({
@@ -108,8 +224,19 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
       });
       setDisplayMember(member);
       setAnalysisSuccess(false);
+      setNewPassword('');
+      setShowPassword(false);
     }
   }, [member]);
+
+  // Fetch auth user when modal opens with a member that has user_id
+  useEffect(() => {
+    if (isOpen && member?.user_id) {
+      fetchAuthUser(member.user_id);
+    } else if (isOpen && member && !member.user_id) {
+      setAuthUser(null);
+    }
+  }, [isOpen, member?.user_id, fetchAuthUser]);
 
   // Fetch genre data when modal opens
   useEffect(() => {
@@ -250,6 +377,38 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
 
       if (error) throw error;
 
+      // Sync email to auth.users if the primary email was changed and member has auth
+      if (
+        member.user_id &&
+        formData.primary_email &&
+        formData.primary_email !== member.primary_email
+      ) {
+        try {
+          const emailRes = await fetch(
+            `${apiBaseUrl}/api/soundcloud/members/${member.id}/update-auth-email`,
+            {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ newEmail: formData.primary_email }),
+            }
+          );
+          if (!emailRes.ok) {
+            const emailData = await emailRes.json();
+            console.warn('Auth email sync failed:', emailData.error);
+            toast({
+              title: "Profile saved, login email sync failed",
+              description: `Member updated but login email could not be synced: ${emailData.error}`,
+              variant: "destructive"
+            });
+          } else {
+            // Refresh auth user to show updated email
+            if (member.user_id) fetchAuthUser(member.user_id);
+          }
+        } catch (emailErr) {
+          console.warn('Auth email sync error:', emailErr);
+        }
+      }
+
       toast({
         title: "Success",
         description: "Member profile updated successfully"
@@ -372,6 +531,139 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
             {getStatusBadge(currentMember.status)}
             {getTierBadge(currentMember.size_tier)}
           </div>
+
+          {/* Portal Login Credentials */}
+          <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5">
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-primary" />
+              Portal Login Credentials
+            </h3>
+
+            {isLoadingAuth ? (
+              <div className="flex items-center gap-2 py-3">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">Loading credentials...</span>
+              </div>
+            ) : currentMember.user_id && authUser ? (
+              <div className="space-y-4">
+                {/* Status indicator */}
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${authUser.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                  <span className="text-sm font-medium">
+                    {authUser.status === 'active' ? 'Active Account' : 'Pending Activation'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Login Email */}
+                  <div>
+                    <Label className="text-sm font-medium">Login Email</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-sm text-muted-foreground font-mono">{authUser.email}</p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => copyToClipboard(authUser.email)}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Last Sign In */}
+                  <div>
+                    <Label className="text-sm font-medium">Last Sign In</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {authUser.last_sign_in_at
+                        ? format(new Date(authUser.last_sign_in_at), 'MMM dd, yyyy h:mm a')
+                        : 'Never signed in'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Password Reset */}
+                <div>
+                  <Label className="text-sm font-medium">Reset Password</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="relative flex-1">
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Enter new password (min 6 chars)"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="pr-10 font-mono"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                    <Button
+                      onClick={handleResetPassword}
+                      disabled={isResettingPassword || !newPassword || newPassword.length < 6}
+                      size="sm"
+                      variant="default"
+                    >
+                      {isResettingPassword ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <ShieldCheck className="w-4 h-4 mr-1" />
+                          Update
+                        </>
+                      )}
+                    </Button>
+                    {newPassword && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => copyToClipboard(newPassword)}
+                        title="Copy password"
+                      >
+                        {passwordJustCopied ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Account created {format(new Date(authUser.created_at), 'MMM dd, yyyy')}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              /* No credentials provisioned */
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">No portal login provisioned</p>
+                  <p className="text-xs text-muted-foreground">
+                    Create login credentials so this member can access the portal
+                  </p>
+                </div>
+                <Button
+                  onClick={handleProvisionAuth}
+                  disabled={isProvisioningAuth || !currentMember.primary_email}
+                  size="sm"
+                >
+                  {isProvisioningAuth ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  ) : (
+                    <UserPlus className="w-4 h-4 mr-1" />
+                  )}
+                  Create Login
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <Separator />
 
           {/* Basic Information */}
           <div>

@@ -18,7 +18,8 @@ import {
   Calendar,
   LogOut,
   Menu,
-  X
+  X,
+  Megaphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthProvider, useAuth } from "../soundcloud-app/contexts/AuthContext";
@@ -26,6 +27,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const portalNavItems = [
   { title: "Dashboard", href: "/soundcloud/portal", icon: Home, exact: true },
+  { title: "Campaigns", href: "/soundcloud/portal/campaigns", icon: Megaphone },
   { title: "My Queue", href: "/soundcloud/portal/queue", icon: Calendar },
   { title: "Submit Track", href: "/soundcloud/portal/submit", icon: Upload },
   { title: "History", href: "/soundcloud/portal/history", icon: History },
@@ -147,7 +149,7 @@ function PortalLayoutContent({ children }: { children: ReactNode }) {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {portalNavItems.slice(0, 6).map((item) => {
+            {portalNavItems.slice(0, 7).map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href, item.exact);
               return (
