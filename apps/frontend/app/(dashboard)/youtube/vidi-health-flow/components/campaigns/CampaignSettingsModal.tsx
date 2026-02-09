@@ -1256,17 +1256,19 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  Daily Performance Trends (Auto-collected 3x Daily)
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={fetchDailyStats}
-                      disabled={loadingStats}
-                    >
-                      {loadingStats ? "Loading..." : "Refresh Display"}
-                    </Button>
-                  </div>
+                  <span>Daily Performance Trends (Auto-collected 3x Daily)</span>
+                  {/* Last scraped indicator */}
+                  {(() => {
+                    const lastCollected = dailyStats.length > 0
+                      ? dailyStats[dailyStats.length - 1]?.collected_at
+                      : campaign.last_api_poll_at || campaign.last_youtube_fetch;
+                    return lastCollected ? (
+                      <span className="text-xs font-normal text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Last collected: {format(new Date(lastCollected), 'MMM dd \'at\' h:mm a')}
+                      </span>
+                    ) : null;
+                  })()}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1296,7 +1298,7 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                           subscribers: stat.total_subscribers || 0,
                           collected_at: stat.collected_at
                         }))}
-                        margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
+                        margin={{ top: 5, right: 60, left: 40, bottom: 60 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
@@ -1306,49 +1308,71 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                           textAnchor="end"
                           height={60}
                         />
-                        <YAxis />
+                        <YAxis 
+                          yAxisId="left" 
+                          stroke="#3b82f6"
+                          tick={{ fontSize: 11 }}
+                          label={{ value: 'Views', angle: -90, position: 'insideLeft', style: { fill: '#3b82f6', fontSize: 11 } }}
+                        />
+                        <YAxis 
+                          yAxisId="right" 
+                          orientation="right" 
+                          stroke="#ef4444"
+                          tick={{ fontSize: 11 }}
+                          label={{ value: 'Likes / Comments / Subs', angle: 90, position: 'insideRight', style: { fill: '#ef4444', fontSize: 11 } }}
+                        />
                         <Tooltip 
                           formatter={(value: number, name: string) => [
                             value.toLocaleString(),
-                            name.charAt(0).toUpperCase() + name.slice(1)
+                            name
                           ]}
                           labelFormatter={(label) => `${label}`}
+                          contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                          labelStyle={{ color: 'hsl(var(--card-foreground))' }}
                         />
                         <Legend />
                         <Line 
+                          yAxisId="left"
                           type="monotone" 
                           dataKey="views" 
                           stroke="#3b82f6"
                           strokeWidth={2} 
                           name="Views"
-                          dot={{ r: 4, fill: "#3b82f6" }}
+                          connectNulls={true}
+                          dot={{ r: 3, fill: "#3b82f6" }}
                           activeDot={{ r: 6, fill: "#3b82f6" }}
                         />
                         <Line 
+                          yAxisId="right"
                           type="monotone" 
                           dataKey="likes" 
                           stroke="#ef4444"
                           strokeWidth={2} 
                           name="Likes"
-                          dot={{ r: 4, fill: "#ef4444" }}
+                          connectNulls={true}
+                          dot={{ r: 3, fill: "#ef4444" }}
                           activeDot={{ r: 6, fill: "#ef4444" }}
                         />
                         <Line 
+                          yAxisId="right"
                           type="monotone" 
                           dataKey="comments" 
                           stroke="#22c55e"
                           strokeWidth={2} 
                           name="Comments"
-                          dot={{ r: 4, fill: "#22c55e" }}
+                          connectNulls={true}
+                          dot={{ r: 3, fill: "#22c55e" }}
                           activeDot={{ r: 6, fill: "#22c55e" }}
                         />
                         <Line 
+                          yAxisId="right"
                           type="monotone" 
                           dataKey="subscribers" 
                           stroke="#a855f7"
                           strokeWidth={2} 
                           name="Subscribers"
-                          dot={{ r: 4, fill: "#a855f7" }}
+                          connectNulls={true}
+                          dot={{ r: 3, fill: "#a855f7" }}
                           activeDot={{ r: 6, fill: "#a855f7" }}
                         />
                       </LineChart>
