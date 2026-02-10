@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { createPortal } from "react-dom"
 import { Crosshair, X } from "lucide-react"
 
 export interface ElementData {
@@ -94,7 +95,13 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
     label: string
   } | null>(null)
   const [tooltip, setTooltip] = useState<{ x: number; y: number } | null>(null)
+  const [mounted, setMounted] = useState(false)
   const overlayRef = useRef<HTMLDivElement>(null)
+
+  // Wait for client-side mount before creating portal
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -221,13 +228,22 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
     }
   }, [active, handleKeyDown])
 
-  return (
+  // Don't render anything on the server
+  if (!mounted) return null
+
+  // Render everything via portal to <body> so it's always above all other content
+  // including Radix UI dialogs/modals which also use portals
+  const pickerUI = (
     <>
-      {/* Floating Action Button */}
+      {/* Floating Action Button - always visible */}
       <button
         data-element-picker="fab"
-        onClick={() => setActive(!active)}
-        className={`fixed bottom-6 left-6 z-[9998] flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all duration-200 ${
+        onClick={(e) => {
+          e.stopPropagation()
+          setActive(!active)
+        }}
+        style={{ zIndex: 2147483647 }} // max possible z-index
+        className={`fixed bottom-6 left-6 flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all duration-200 ${
           active
             ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background scale-110"
             : "bg-card text-muted-foreground border border-border hover:bg-accent hover:text-foreground hover:scale-105"
@@ -241,7 +257,8 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
       {active && (
         <div
           data-element-picker="banner"
-          className="fixed bottom-6 left-20 z-[9998] bg-primary text-primary-foreground text-xs font-medium px-3 py-2 rounded-full shadow-lg animate-in fade-in slide-in-from-left-2"
+          style={{ zIndex: 2147483647 }}
+          className="fixed bottom-6 left-20 bg-primary text-primary-foreground text-xs font-medium px-3 py-2 rounded-full shadow-lg animate-in fade-in slide-in-from-left-2"
         >
           Click any element to report it &middot; Press ESC to cancel
         </div>
@@ -252,8 +269,8 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
         <div
           ref={overlayRef}
           data-element-picker-overlay="true"
-          className="fixed inset-0 z-[9997] cursor-crosshair"
-          style={{ background: "transparent" }}
+          style={{ zIndex: 2147483646 }}
+          className="fixed inset-0 cursor-crosshair"
           onMouseMove={(e) => handleMouseMove(e.nativeEvent)}
           onClick={(e) => handleClick(e.nativeEvent)}
           onContextMenu={(e) => handleContextMenu(e.nativeEvent)}
@@ -264,8 +281,9 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
       {active && highlight && (
         <div
           data-element-picker="highlight"
-          className="fixed z-[9999] pointer-events-none border-2 border-primary/80 rounded-sm"
+          className="fixed pointer-events-none border-2 border-primary/80 rounded-sm"
           style={{
+            zIndex: 2147483646,
             top: highlight.top,
             left: highlight.left,
             width: highlight.width,
@@ -280,8 +298,9 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
       {active && highlight && tooltip && (
         <div
           data-element-picker="tooltip"
-          className="fixed z-[10000] pointer-events-none bg-foreground text-background text-[11px] font-mono px-2 py-1 rounded shadow-lg whitespace-nowrap max-w-xs truncate"
+          className="fixed pointer-events-none bg-foreground text-background text-[11px] font-mono px-2 py-1 rounded shadow-lg whitespace-nowrap max-w-xs truncate"
           style={{
+            zIndex: 2147483647,
             top: tooltip.y + 16,
             left: tooltip.x + 12,
           }}
@@ -291,4 +310,6 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
       )}
     </>
   )
+
+  return createPortal(pickerUI, document.body)
 }
