@@ -143,6 +143,7 @@ async function provisionSingleMember(
         is_member: true,
         full_name: name,
         member_id: memberId,
+        admin_set_password: tempPassword,
       },
     })
 
@@ -370,6 +371,7 @@ export async function soundcloudMemberRoutes(fastify: FastifyInstance) {
 
         const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
           password: newPassword,
+          user_metadata: { admin_set_password: newPassword },
         })
 
         if (updateError) {
@@ -378,7 +380,7 @@ export async function soundcloudMemberRoutes(fastify: FastifyInstance) {
         }
 
         request.log.info({ memberId, userId }, 'Password reset successful')
-        return reply.send({ message: 'Password updated successfully', memberId, userId })
+        return reply.send({ message: 'Password updated successfully', memberId, userId, savedPassword: newPassword })
       } catch (error: any) {
         request.log.error(error, 'Error in reset-password endpoint')
         return reply.code(500).send({ error: 'Internal server error' })

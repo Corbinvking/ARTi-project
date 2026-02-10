@@ -132,7 +132,8 @@ export async function adminRoutes(fastify: FastifyInstance) {
           last_sign_in_at: authUser.last_sign_in_at,
           created_at: authUser.created_at,
           email_confirmed_at: authUser.email_confirmed_at,
-          permissions: userPermissions
+          permissions: userPermissions,
+          admin_set_password: metadata.admin_set_password || null,
         }
       })
       

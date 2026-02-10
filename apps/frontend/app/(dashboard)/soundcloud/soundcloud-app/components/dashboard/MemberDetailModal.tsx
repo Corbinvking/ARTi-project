@@ -98,13 +98,16 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     status: string;
     last_sign_in_at: string | null;
     created_at: string;
+    admin_set_password: string | null;
   } | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [isProvisioningAuth, setIsProvisioningAuth] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [passwordJustCopied, setPasswordJustCopied] = useState(false);
+  const [currentPwCopied, setCurrentPwCopied] = useState(false);
 
   // --- Connected campaigns state ---
   const [memberCampaigns, setMemberCampaigns] = useState<any[]>([]);
@@ -217,6 +220,7 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
           status: found.status || 'unknown',
           last_sign_in_at: found.last_sign_in_at,
           created_at: found.created_at,
+          admin_set_password: found.admin_set_password || null,
         });
       } else {
         setAuthUser(null);
@@ -249,6 +253,10 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to reset password');
       toast({ title: 'Password Updated', description: 'The member login password has been changed.' });
+      // Update the displayed current password immediately
+      if (authUser) {
+        setAuthUser({ ...authUser, admin_set_password: newPassword });
+      }
       setNewPassword('');
       setShowPassword(false);
     } catch (err: any) {
@@ -684,9 +692,49 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                   </div>
                 </div>
 
+                {/* Current Password */}
+                <div className="p-3 bg-muted/50 rounded-lg border">
+                  <Label className="text-sm font-medium">Current Password</Label>
+                  {authUser.admin_set_password ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="text-sm font-mono bg-background px-2 py-1 rounded border flex-1 truncate">
+                        {showCurrentPassword ? authUser.admin_set_password : '\u2022'.repeat(Math.min(authUser.admin_set_password.length, 20))}
+                      </code>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 flex-shrink-0"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        title={showCurrentPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showCurrentPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 flex-shrink-0"
+                        onClick={() => {
+                          copyToClipboard(authUser.admin_set_password!);
+                          setCurrentPwCopied(true);
+                          setTimeout(() => setCurrentPwCopied(false), 2000);
+                        }}
+                        title="Copy password"
+                      >
+                        {currentPwCopied ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground mt-1 italic">
+                      No saved password -- set one below to track it
+                    </p>
+                  )}
+                </div>
+
                 {/* Password Reset */}
                 <div>
-                  <Label className="text-sm font-medium">Reset Password</Label>
+                  <Label className="text-sm font-medium">Set New Password</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <div className="relative flex-1">
                       <Input
