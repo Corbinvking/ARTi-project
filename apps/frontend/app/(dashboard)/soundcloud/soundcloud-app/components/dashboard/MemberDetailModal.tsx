@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ExternalLink, Mail, Calendar, Crown, Music, Edit, Save, X, Loader2, RefreshCw, CheckCircle2, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldCheck, UserPlus, Copy } from 'lucide-react';
+import { ExternalLink, Mail, Calendar, Crown, Music, Edit, Save, X, Loader2, RefreshCw, CheckCircle2, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldCheck, UserPlus, Copy, Megaphone, Play, Heart, Repeat, MessageCircle, Target } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
 import { useToast } from '../../hooks/use-toast';
 import { format } from 'date-fns';
@@ -106,7 +106,101 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [passwordJustCopied, setPasswordJustCopied] = useState(false);
 
+  // --- Connected campaigns state ---
+  const [memberCampaigns, setMemberCampaigns] = useState<any[]>([]);
+  const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
+
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
+
+  // Fetch campaigns connected to this member
+  const fetchMemberCampaigns = useCallback(async (memberId: string) => {
+    setIsLoadingCampaigns(true);
+    try {
+      // 1. Get submissions by this member
+      const { data: submissions } = await supabase
+        .from('soundcloud_submissions')
+        .select('id, track_url, artist_name, track_name, status, support_date, created_at, client_id')
+        .eq('member_id', memberId)
+        .order('created_at', { ascending: false });
+
+      // 2. Get queue assignments where this member is a supporter
+      const { data: assignments } = await supabase
+        .from('soundcloud_queue_assignments')
+        .select(`
+          id, status, credits_allocated,
+          submission:soundcloud_submissions(id, track_url, artist_name, track_name, status, support_date, client_id)
+        `)
+        .eq('supporter_id', memberId)
+        .order('created_at', { ascending: false });
+
+      // 3. Collect all client_ids to look up campaigns
+      const clientIds = new Set<string>();
+      submissions?.forEach(s => { if (s.client_id) clientIds.add(s.client_id); });
+      assignments?.forEach((a: any) => { if (a.submission?.client_id) clientIds.add(a.submission.client_id); });
+
+      let campaignMap: Record<string, any> = {};
+      if (clientIds.size > 0) {
+        const { data: campaigns } = await supabase
+          .from('soundcloud_campaigns')
+          .select('id, artist_name, track_name, track_url, status, start_date, end_date, goal_reposts, client_id')
+          .in('client_id', Array.from(clientIds));
+        if (campaigns) {
+          for (const c of campaigns) campaignMap[c.client_id] = c;
+        }
+      }
+
+      // 4. Build combined list
+      const result: any[] = [];
+      const seenIds = new Set<string>();
+
+      // From submissions
+      for (const sub of (submissions || [])) {
+        const campaign = sub.client_id ? campaignMap[sub.client_id] : null;
+        const id = campaign?.id || sub.id;
+        if (seenIds.has(id)) continue;
+        seenIds.add(id);
+        result.push({
+          id,
+          artist_name: campaign?.artist_name || sub.artist_name || 'Unknown',
+          track_name: campaign?.track_name || sub.track_name || 'Unknown',
+          track_url: campaign?.track_url || sub.track_url || '',
+          status: campaign?.status || sub.status || 'unknown',
+          start_date: campaign?.start_date || sub.support_date || null,
+          end_date: campaign?.end_date || null,
+          goal_reposts: campaign?.goal_reposts || null,
+          role: 'submitter',
+        });
+      }
+
+      // From queue assignments
+      for (const assignment of (assignments || [])) {
+        const sub = (assignment as any).submission;
+        if (!sub) continue;
+        const campaign = sub.client_id ? campaignMap[sub.client_id] : null;
+        const id = campaign?.id || sub.id;
+        if (seenIds.has(id)) continue;
+        seenIds.add(id);
+        result.push({
+          id,
+          artist_name: campaign?.artist_name || sub.artist_name || 'Unknown',
+          track_name: campaign?.track_name || sub.track_name || 'Unknown',
+          track_url: campaign?.track_url || sub.track_url || '',
+          status: campaign?.status || sub.status || 'unknown',
+          start_date: campaign?.start_date || sub.support_date || null,
+          end_date: campaign?.end_date || null,
+          goal_reposts: campaign?.goal_reposts || null,
+          role: 'supporter',
+        });
+      }
+
+      setMemberCampaigns(result);
+    } catch (err) {
+      console.error('Failed to fetch member campaigns:', err);
+      setMemberCampaigns([]);
+    } finally {
+      setIsLoadingCampaigns(false);
+    }
+  }, []);
 
   // Fetch auth user data when modal opens
   const fetchAuthUser = useCallback(async (userId: string) => {
@@ -228,6 +322,13 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
       setShowPassword(false);
     }
   }, [member]);
+
+  // Fetch campaigns when modal opens
+  useEffect(() => {
+    if (isOpen && member?.id) {
+      fetchMemberCampaigns(member.id);
+    }
+  }, [isOpen, member?.id, fetchMemberCampaigns]);
 
   // Fetch auth user when modal opens with a member that has user_id
   useEffect(() => {
@@ -1286,6 +1387,106 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
                 </div>
               </div>
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Connected Campaigns */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Megaphone className="w-5 h-5" />
+              Connected Campaigns
+            </h3>
+
+            {isLoadingCampaigns ? (
+              <div className="flex items-center gap-2 py-4">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">Loading campaigns...</span>
+              </div>
+            ) : memberCampaigns.length === 0 ? (
+              <div className="py-4 text-center">
+                <Megaphone className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2" />
+                <p className="text-sm text-muted-foreground">No campaigns connected to this member</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Campaigns appear here when the member submits tracks or is assigned as a supporter
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  {memberCampaigns.length} campaign{memberCampaigns.length !== 1 ? 's' : ''} connected
+                </p>
+                {memberCampaigns.map((campaign) => {
+                  const statusColors: Record<string, string> = {
+                    live: 'text-green-600 bg-green-50 border-green-200',
+                    completed: 'text-purple-600 bg-purple-50 border-purple-200',
+                    scheduled: 'text-blue-600 bg-blue-50 border-blue-200',
+                    approved: 'text-green-600 bg-green-50 border-green-200',
+                    pending: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+                    new: 'text-blue-600 bg-blue-50 border-blue-200',
+                    draft: 'text-slate-600 bg-slate-50 border-slate-200',
+                    paused: 'text-amber-600 bg-amber-50 border-amber-200',
+                    intake: 'text-gray-600 bg-gray-50 border-gray-200',
+                    rejected: 'text-red-600 bg-red-50 border-red-200',
+                  };
+                  const statusColor = statusColors[campaign.status] || 'text-gray-600 bg-gray-50 border-gray-200';
+
+                  return (
+                    <div
+                      key={campaign.id}
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-md flex items-center justify-center flex-shrink-0">
+                          <Music className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{campaign.track_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{campaign.artist_name}</p>
+                          {campaign.start_date && (
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(campaign.start_date).toLocaleDateString()}
+                              {campaign.end_date && ` - ${new Date(campaign.end_date).toLocaleDateString()}`}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                        {campaign.goal_reposts != null && campaign.goal_reposts > 0 && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Target className="h-3 w-3" />
+                            {campaign.goal_reposts}
+                          </span>
+                        )}
+                        <Badge
+                          variant="outline"
+                          className={`text-xs capitalize ${
+                            campaign.role === 'submitter'
+                              ? 'bg-primary/10 text-primary border-primary/20'
+                              : 'bg-secondary text-secondary-foreground'
+                          }`}
+                        >
+                          {campaign.role}
+                        </Badge>
+                        <Badge variant="outline" className={`text-xs ${statusColor}`}>
+                          {campaign.status}
+                        </Badge>
+                        {campaign.track_url && (
+                          <a
+                            href={campaign.track_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
