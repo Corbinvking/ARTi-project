@@ -26,14 +26,12 @@ interface ElementPickerProps {
 
 /**
  * Generate a readable CSS selector path for an element.
- * Walks up the DOM tree and prefers id, then tag.classes:nth-child(n).
  */
 function generateSelector(el: Element): string {
   const parts: string[] = []
   let current: Element | null = el
 
   while (current && current !== document.body && current !== document.documentElement) {
-    // If element has an id, use it and stop (ids are unique)
     if (current.id) {
       parts.unshift(`#${current.id}`)
       break
@@ -41,7 +39,6 @@ function generateSelector(el: Element): string {
 
     let part = current.tagName.toLowerCase()
 
-    // Add meaningful classes (skip utility/tailwind classes for readability)
     const meaningful = Array.from(current.classList).filter(
       (c) => !c.startsWith("h-") && !c.startsWith("w-") && !c.startsWith("p-") &&
              !c.startsWith("m-") && !c.startsWith("text-") && !c.startsWith("bg-") &&
@@ -57,7 +54,6 @@ function generateSelector(el: Element): string {
       part += "." + meaningful.slice(0, 2).join(".")
     }
 
-    // Add nth-child for disambiguation
     const parent = current.parentElement
     if (parent) {
       const siblings = Array.from(parent.children).filter(
@@ -76,9 +72,6 @@ function generateSelector(el: Element): string {
   return parts.join(" > ")
 }
 
-/**
- * Get the visible text content of an element, truncated.
- */
 function getTextContent(el: Element): string {
   const text = (el as HTMLElement).innerText || el.textContent || ""
   const cleaned = text.replace(/\s+/g, " ").trim()
@@ -97,17 +90,55 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number } | null>(null)
   const [mounted, setMounted] = useState(false)
   const overlayRef = useRef<HTMLDivElement>(null)
+  const fabRef = useRef<HTMLButtonElement>(null)
 
-  // Wait for client-side mount before creating portal
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // CRITICAL: Use capture-phase listeners on document to intercept clicks
+  // on the FAB *before* Radix UI dialog overlays/focus-traps can steal them.
+  useEffect(() => {
+    if (!mounted) return
+
+    const handleCapturePointerDown = (e: PointerEvent) => {
+      const fab = fabRef.current
+      if (!fab) return
+
+      // Check if the click target is the FAB or inside it
+      const target = e.target as Node
+      if (fab === target || fab.contains(target)) {
+        // Stop the event from reaching dialog overlays
+        e.stopPropagation()
+      }
+    }
+
+    const handleCaptureClick = (e: MouseEvent) => {
+      const fab = fabRef.current
+      if (!fab) return
+
+      const target = e.target as Node
+      if (fab === target || fab.contains(target)) {
+        e.stopPropagation()
+        // Toggle active state
+        setActive((prev) => !prev)
+      }
+    }
+
+    // Capture phase = fires BEFORE any bubble handlers (like Radix overlays)
+    document.addEventListener("pointerdown", handleCapturePointerDown, true)
+    document.addEventListener("click", handleCaptureClick, true)
+
+    return () => {
+      document.removeEventListener("pointerdown", handleCapturePointerDown, true)
+      document.removeEventListener("click", handleCaptureClick, true)
+    }
+  }, [mounted])
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!active) return
 
-      // Temporarily hide overlay to find the real element beneath
       const overlay = overlayRef.current
       if (overlay) overlay.style.pointerEvents = "none"
 
@@ -121,7 +152,6 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
         return
       }
 
-      // Skip our own picker UI elements
       if (
         target.closest("[data-element-picker]") ||
         target.closest("[data-element-picker-overlay]")
@@ -155,7 +185,6 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
       e.preventDefault()
       e.stopPropagation()
 
-      // Find real element under overlay
       const overlay = overlayRef.current
       if (overlay) overlay.style.pointerEvents = "none"
 
@@ -208,7 +237,6 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
     [active]
   )
 
-  // Prevent context menu during inspection
   const handleContextMenu = useCallback(
     (e: MouseEvent) => {
       if (active) {
@@ -228,22 +256,25 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
     }
   }, [active, handleKeyDown])
 
-  // Don't render anything on the server
   if (!mounted) return null
 
-  // Render everything via portal to <body> so it's always above all other content
-  // including Radix UI dialogs/modals which also use portals
   const pickerUI = (
     <>
-      {/* Floating Action Button - always visible */}
+      {/* Floating Action Button - ALWAYS on top and clickable */}
       <button
+        ref={fabRef}
         data-element-picker="fab"
-        onClick={(e) => {
-          e.stopPropagation()
-          setActive(!active)
+        // onClick is handled by the capture-phase document listener above
+        // so it works even when dialogs/modals are open
+        style={{
+          zIndex: 2147483647,
+          // Ensure the button creates its own stacking context
+          isolation: "isolate",
+          position: "fixed",
+          bottom: 24,
+          left: 24,
         }}
-        style={{ zIndex: 2147483647 }} // max possible z-index
-        className={`fixed bottom-6 left-6 flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all duration-200 ${
+        className={`flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all duration-200 ${
           active
             ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background scale-110"
             : "bg-card text-muted-foreground border border-border hover:bg-accent hover:text-foreground hover:scale-105"
@@ -257,8 +288,8 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
       {active && (
         <div
           data-element-picker="banner"
-          style={{ zIndex: 2147483647 }}
-          className="fixed bottom-6 left-20 bg-primary text-primary-foreground text-xs font-medium px-3 py-2 rounded-full shadow-lg animate-in fade-in slide-in-from-left-2"
+          style={{ zIndex: 2147483647, position: "fixed", bottom: 24, left: 80 }}
+          className="bg-primary text-primary-foreground text-xs font-medium px-3 py-2 rounded-full shadow-lg animate-in fade-in slide-in-from-left-2"
         >
           Click any element to report it &middot; Press ESC to cancel
         </div>
@@ -269,8 +300,8 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
         <div
           ref={overlayRef}
           data-element-picker-overlay="true"
-          style={{ zIndex: 2147483646 }}
-          className="fixed inset-0 cursor-crosshair"
+          style={{ zIndex: 2147483646, position: "fixed", inset: 0 }}
+          className="cursor-crosshair"
           onMouseMove={(e) => handleMouseMove(e.nativeEvent)}
           onClick={(e) => handleClick(e.nativeEvent)}
           onContextMenu={(e) => handleContextMenu(e.nativeEvent)}
@@ -281,9 +312,10 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
       {active && highlight && (
         <div
           data-element-picker="highlight"
-          className="fixed pointer-events-none border-2 border-primary/80 rounded-sm"
+          className="pointer-events-none border-2 border-primary/80 rounded-sm"
           style={{
             zIndex: 2147483646,
+            position: "fixed",
             top: highlight.top,
             left: highlight.left,
             width: highlight.width,
@@ -298,9 +330,10 @@ export function ElementPicker({ onElementSelected }: ElementPickerProps) {
       {active && highlight && tooltip && (
         <div
           data-element-picker="tooltip"
-          className="fixed pointer-events-none bg-foreground text-background text-[11px] font-mono px-2 py-1 rounded shadow-lg whitespace-nowrap max-w-xs truncate"
+          className="pointer-events-none bg-foreground text-background text-[11px] font-mono px-2 py-1 rounded shadow-lg whitespace-nowrap max-w-xs truncate"
           style={{
             zIndex: 2147483647,
+            position: "fixed",
             top: tooltip.y + 16,
             left: tooltip.x + 12,
           }}
