@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { redis } from '@/lib/redis';
 import { initializeEmbeddingModel } from '@/lib/query-embeddings';
 import { randomUUID } from 'crypto';
+import { startWorker } from './worker.js';
 
 const server = Fastify({
   logger: true,
@@ -56,6 +57,9 @@ async function startServer() {
       host,
       nodeEnv: process.env.NODE_ENV,
     }, 'Server started successfully');
+
+    // Start background worker (BullMQ cron jobs for YouTube 3x daily, etc.)
+    await startWorker();
 
   } catch (err) {
     logger.error(err, 'Failed to start server');

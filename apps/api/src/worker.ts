@@ -348,32 +348,6 @@ async function syncInstagramMetrics(data: any) {
   // TODO: Implement Instagram metrics fetching
 }
 
-// Event handlers (only if worker exists)
-if (metricsWorker) {
-  metricsWorker.on('completed', (job) => {
-    logger.info(`Job ${job.id} completed successfully`)
-  })
-
-  metricsWorker.on('failed', (job, failedReason) => {
-    logger.error(`Job ${job?.id} failed: ${failedReason}`)
-  })
-
-  // Handle graceful shutdown
-  process.on('SIGTERM', async () => {
-    logger.info('Received SIGTERM, shutting down worker...')
-    await metricsWorker.close()
-    if (redis) await redis.quit()
-    process.exit(0)
-  })
-
-  process.on('SIGINT', async () => {
-    logger.info('Received SIGINT, shutting down worker...')
-    await metricsWorker.close()
-    if (redis) await redis.quit()
-    process.exit(0)
-  })
-}
-
 // Setup cron schedules - aligned with architecture diagram
 async function setupCronSchedules() {
   if (!redis) {
@@ -458,8 +432,8 @@ async function setupCronSchedules() {
   }
 }
 
-// Start the worker
-async function startWorker() {
+// Start the worker (exported so index.ts can call it after server is up)
+export async function startWorker() {
   try {
     if (!redis) {
       logger.info('🚀 Skipping metrics worker - Redis not available')
@@ -471,8 +445,7 @@ async function startWorker() {
     logger.info('✅ Metrics worker started successfully')
   } catch (error) {
     logger.error('Failed to start worker:', error)
-    process.exit(1)
+    // Don't process.exit here - let the server keep running even if worker fails
+    logger.error('Worker startup failed, cron jobs will not run')
   }
 }
-
-startWorker()

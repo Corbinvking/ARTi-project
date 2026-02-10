@@ -141,9 +141,32 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
       setServiceTypes(campaignServiceTypes);
       
       // Fetch daily stats when modal opens (data is collected by background cron job)
+      // Also trigger a fresh YouTube API collection if data is stale (>8 hours old)
       if (isOpen) {
         console.log('📊 Modal opened for campaign:', campaign.id, '- fetching daily stats');
         fetchDailyStats();
+
+        // Check if data is stale and auto-trigger collection
+        const lastCollected = (campaign as any).last_api_poll_at || campaign.last_youtube_fetch;
+        const EIGHT_HOURS = 8 * 60 * 60 * 1000;
+        const isStale = !lastCollected || (Date.now() - new Date(lastCollected).getTime()) > EIGHT_HOURS;
+
+        if (isStale && (campaign.video_id || campaign.youtube_url)) {
+          console.log('📊 Data is stale, triggering fresh YouTube collection for campaign:', campaign.id);
+          const apiUrl = getApiUrl();
+          fetch(`${apiUrl}/api/youtube-data-api/collect-daily-stats`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ campaignId: campaign.id }),
+          })
+            .then(() => {
+              console.log('📊 Fresh collection triggered, re-fetching display data');
+              fetchDailyStats();
+            })
+            .catch((e) => {
+              console.error('Auto-collection failed:', e);
+            });
+        }
       }
       
       setFormData({
