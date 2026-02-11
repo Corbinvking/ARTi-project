@@ -15,7 +15,7 @@ export function ScraperStatusCard() {
   const triggerScraper = useTriggerScraper()
   const [showLogs, setShowLogs] = useState(false)
   const [logType, setLogType] = useState<'production' | 'errors' | 'cron' | 'keepalive' | 'keepalive_cron'>('production')
-  const [autoRefresh, setAutoRefresh] = useState(false)
+  const [autoRefresh, setAutoRefresh] = useState(true)
   const { data: logs, refetch: fetchLogs, isFetching: logsLoading } = useScraperLogs(logType, 100)
   const logsContainerRef = useRef<HTMLDivElement>(null)
 
@@ -376,34 +376,13 @@ export function ScraperStatusCard() {
         {showLogs && logs && (
           <div ref={logsContainerRef} className="bg-muted rounded-lg p-4 max-h-96 overflow-auto">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">
-                {logType.charAt(0).toUpperCase() + logType.slice(1)} Logs (Last {logs.logs.length} lines)
-                {autoRefresh && <Badge variant="default" className="ml-2 text-xs">Auto-refreshing</Badge>}
+              <span className="text-sm font-medium flex items-center gap-2">
+                {logType.charAt(0).toUpperCase() + logType.slice(1)} Logs ({logs.logs.length} lines)
+                <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
               </span>
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant={autoRefresh ? "default" : "outline"} 
-                  size="sm" 
-                  onClick={() => setAutoRefresh(!autoRefresh)}
-                  title={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh (every 3s)"}
-                >
-                  <RefreshCw className={`h-3 w-3 mr-1 ${autoRefresh ? 'animate-spin' : ''}`} />
-                  Auto
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleRefreshLogs}
-                  disabled={logsLoading}
-                  title="Refresh logs now"
-                >
-                  <RefreshCw className={`h-3 w-3 mr-1 ${logsLoading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setShowLogs(false)}>
-                  Close
-                </Button>
-              </div>
+              <Button variant="ghost" size="sm" onClick={() => setShowLogs(false)}>
+                Close
+              </Button>
             </div>
             <pre className="text-xs font-mono whitespace-pre-wrap break-all">
               {logs.logs.join('\n') || 'No logs available'}
