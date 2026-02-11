@@ -2751,6 +2751,12 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     const totalSongStreams7d = songs.reduce((sum: number, s: any) => sum + (s.streams_7d || 0), 0);
                     const totalSongStreams24h = songs.reduce((sum: number, s: any) => sum + (s.streams_24h || 0), 0);
                     
+                    // Get ALL-TIME streams from scrape_data JSON (captured from S4A song header)
+                    const totalAlltimeStreams = songs.reduce((sum: number, s: any) => {
+                      const alltime = s.scrape_data?.alltime_streams || 0;
+                      return sum + alltime;
+                    }, 0);
+                    
                     // Get the most recent update timestamp from songs
                     const lastUpdated = songs.reduce((latest: Date | null, s: any) => {
                       if (!s.updated_at) return latest;
@@ -2902,6 +2908,24 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                             <p className="text-xs text-muted-foreground">streams/day (vendor playlists)</p>
                           </div>
                         </div>
+                        
+                        {/* All-Time Streams Banner */}
+                        {totalAlltimeStreams > 0 && streamViewMode === 'total' && (
+                          <div className="mb-4 p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Globe className="h-4 w-4 text-indigo-600" />
+                                <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">All-Time Streams</span>
+                              </div>
+                              <span className="text-lg font-bold text-indigo-600">
+                                {totalAlltimeStreams.toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Total lifetime streams from Spotify for Artists
+                            </p>
+                          </div>
+                        )}
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                           {/* Current Streams */}

@@ -677,7 +677,13 @@ async def fetch_campaigns_from_database(limit=None):
 
 
 async def scrape_campaign(page, spotify_page, campaign):
-    """Scrape data for a single campaign"""
+    """Scrape data for a single campaign.
+    
+    Flow (2026 S4A UI):
+      1. Navigate to /stats (Overview) page -> extract all-time streams from hero
+      2. Navigate to /playlists page
+      3. For each time range (7d, 28d, 12m): switch dropdown, extract playlist table
+    """
     campaign_id = campaign['id']
     campaign_name = campaign['campaign']
     sfa_url = campaign['sfa']
@@ -690,45 +696,67 @@ async def scrape_campaign(page, spotify_page, campaign):
             logger.error(f"[{campaign_id}] Page is closed! Cannot scrape.")
             return None
         
-        # Navigate to song
-        await spotify_page.navigate_to_song(sfa_url)
+        # --- Step 1: Navigate to Overview (/stats) and get all-time streams ---
+        await spotify_page.navigate_to_song(sfa_url, target_tab='stats')
         await asyncio.sleep(2)
         
-        # Scrape all three time ranges
-        song_data = {'time_ranges': {}}
+        alltime_streams = await spotify_page.get_alltime_streams()
+        logger.info(f"  All-time streams: {alltime_streams:,}")
         
-        for time_range in ['24hour', '7day', '12months']:
+        # --- Step 2: Navigate to Playlists tab ---
+        await spotify_page.navigate_to_playlists_tab()
+        await asyncio.sleep(2)
+        
+        # --- Step 3: Scrape each available time range ---
+        # S4A playlists page offers: 7 days, 28 days, 12 months (no 24-hour option)
+        song_data = {'time_ranges': {}, 'alltime_streams': alltime_streams}
+        
+        for time_range in ['7day', '28day', '12months']:
             logger.info(f"  Extracting {time_range} data...")
             
-            # Switch time range
+            # Switch time range via dropdown
             await spotify_page.switch_time_range(time_range)
             await asyncio.sleep(2)
             
-            # Get stats
+            # Get stats from the playlist table
             stats = await spotify_page.get_song_stats()
             song_data['time_ranges'][time_range] = {'stats': stats}
             
             streams = stats.get('streams', 0)
             playlists_count = len(stats.get('playlists', []))
-            logger.info(f"    {time_range}: {streams} streams, {playlists_count} playlists")
+            logger.info(f"    {time_range}: {streams:,} streams, {playlists_count} playlists")
         
         # Extract data for database update
-        stats_24h = song_data['time_ranges']['24hour']['stats']
+        # Map to existing DB fields for backward compatibility:
+        #   streams_24h  <- 7-day data (finest granularity available; S4A no longer offers 24h)
+        #   streams_7d   <- 28-day data  
+        #   streams_12m  <- 12-month data
+        #   streams_alltime <- all-time from hero stats (NEW)
         stats_7d = song_data['time_ranges']['7day']['stats']
+        stats_28d = song_data['time_ranges']['28day']['stats']
         stats_12m = song_data['time_ranges']['12months']['stats']
         
+        # Store alltime_streams in the scrape_data JSON (no schema change needed)
+        song_data['alltime_streams'] = alltime_streams
+        
         now_iso = datetime.now(timezone.utc).isoformat()
-        return {
-            'streams_24h': stats_24h.get('streams', 0),
-            'streams_7d': stats_7d.get('streams', 0),
-            'streams_12m': stats_12m.get('streams', 0),
-            'playlists_24h_count': len(stats_24h.get('playlists', [])),
-            'playlists_7d_count': len(stats_7d.get('playlists', [])),
+        result = {
+            'streams_24h': stats_7d.get('streams', 0),        # Actually 7-day (finest available)
+            'streams_7d': stats_28d.get('streams', 0),         # Actually 28-day
+            'streams_12m': stats_12m.get('streams', 0),        # 12-month
+            'playlists_24h_count': len(stats_7d.get('playlists', [])),
+            'playlists_7d_count': len(stats_28d.get('playlists', [])),
             'playlists_12m_count': len(stats_12m.get('playlists', [])),
             'last_scraped_at': now_iso,
-            'updated_at': now_iso,  # Also update this so frontend shows correct "last updated" 
+            'updated_at': now_iso,
             'scrape_data': song_data
         }
+        
+        # Add streams_alltime as a top-level DB field if the column exists
+        # (will be stripped by update_campaign_in_database if column is missing)
+        result['streams_alltime'] = alltime_streams
+        
+        return result
         
     except (SessionExpiredError, PageNotFoundError):
         # Re-raise these specific errors so caller can handle them appropriately
@@ -839,7 +867,28 @@ async def update_campaign_in_database(campaign_id, data):
     response = requests.patch(url, headers=headers, params=params, json=data)
     
     if response.status_code not in [200, 204]:
-        logger.error(f"[{campaign_id}] Database update failed: {response.status_code} - {response.text}")
+        error_text = response.text or ''
+        # If the error is about a missing column, retry without that column
+        if 'Could not find' in error_text and 'column' in error_text:
+            # Extract the problematic column name and remove it
+            import json as _json
+            try:
+                err = _json.loads(error_text)
+                msg = err.get('message', '')
+                # e.g. "Could not find the 'streams_alltime' column..."
+                col_match = re.search(r"'(\w+)' column", msg)
+                if col_match:
+                    bad_col = col_match.group(1)
+                    logger.warning(f"[{campaign_id}] Column '{bad_col}' missing in DB, retrying without it")
+                    data.pop(bad_col, None)
+                    response = requests.patch(url, headers=headers, params=params, json=data)
+                    if response.status_code in [200, 204]:
+                        logger.info(f"[{campaign_id}] ✓ Raw data updated (without {bad_col}){' [PROTECTED]' if data_protected else ''}")
+                        return True
+            except Exception:
+                pass
+        
+        logger.error(f"[{campaign_id}] Database update failed: {response.status_code} - {error_text}")
         return False
     
     logger.info(f"[{campaign_id}] ✓ Raw data updated in spotify_campaigns (with trend history){' [PROTECTED]' if data_protected else ''}")
@@ -1384,6 +1433,7 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
     
     success_count = 0
     failure_count = 0
+    skipped_count = 0
     session_expired = False
     
     # Launch fresh browser for this batch
@@ -1491,9 +1541,9 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
             except PageNotFoundError as e:
                 # Song page doesn't exist (404) - skip without overwriting data
                 logger.warning(f"[{campaign['id']}] ⚠️ Page not found (404) - SKIPPING to preserve existing data")
-                logger.warning(f"[{campaign['id']}] URL may be outdated: {campaign.get('sfa_url', 'unknown')}")
-                # Count as success since we're intentionally skipping (not a scraper failure)
-                success_count += 1
+                logger.warning(f"[{campaign['id']}] URL: {campaign.get('sfa', 'unknown')}")
+                # Count as skipped (not success and not failure)
+                skipped_count += 1
                 await asyncio.sleep(1)
                 continue
             except Exception as e:
@@ -1553,7 +1603,8 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
         logger.warning("Please login via VNC and run the scraper again to continue.")
         logger.warning("="*60)
     
-    logger.info(f"Batch {batch_num} complete: {success_count} success, {failure_count} failed")
+    skip_msg = f", {skipped_count} skipped (404)" if skipped_count > 0 else ""
+    logger.info(f"Batch {batch_num} complete: {success_count} success, {failure_count} failed{skip_msg}")
     return success_count, failure_count
 
 
