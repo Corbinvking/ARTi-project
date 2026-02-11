@@ -1614,6 +1614,28 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
 async def main(limit=None):
     """Main scraper execution with batch processing to prevent browser crashes"""
     
+    # Create lock file so the dashboard and keepalive know we're running
+    LOCK_FILE = Path(__file__).parent / 'scraper.lock'
+    try:
+        LOCK_FILE.write_text(str(os.getpid()))
+        logger.info(f"Lock file created: {LOCK_FILE} (PID {os.getpid()})")
+    except Exception as e:
+        logger.warning(f"Could not create lock file: {e}")
+    
+    try:
+        return await _main_inner(limit)
+    finally:
+        # Always remove lock file on exit
+        try:
+            LOCK_FILE.unlink(missing_ok=True)
+            logger.info("Lock file removed")
+        except Exception:
+            pass
+
+
+async def _main_inner(limit=None):
+    """Inner main function (wrapped by main() for lock file management)"""
+    
     # Configuration for batch processing
     BATCH_SIZE = 15  # Process 15 campaigns per browser instance
     MAX_BROWSER_DATA_MB = 500  # Clear browser data if larger than 500MB
