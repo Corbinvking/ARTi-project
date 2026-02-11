@@ -3,6 +3,7 @@ import Redis from 'ioredis'
 import { logger } from './lib/logger.js'
 import { supabase } from './lib/supabase.js'
 import { redis } from './lib/redis.js'
+import { incrementalSync, getActiveConnection } from './lib/quickbooks/sync.js'
 
 // Only initialize BullMQ if Redis is available
 let metricsQueue: Queue | null = null
@@ -37,6 +38,9 @@ if (redis) {
           break
         case 'instagram-sync':
           await syncInstagramMetrics(job.data)
+          break
+        case 'qbo-cdc-sync':
+          await runQBOCDCSync()
           break
         case 'health-check':
           logger.info('Performing hourly health check...')
@@ -348,6 +352,27 @@ async function syncInstagramMetrics(data: any) {
   // TODO: Implement Instagram metrics fetching
 }
 
+// QuickBooks CDC reconciliation job
+async function runQBOCDCSync() {
+  logger.info('📒 Starting QuickBooks CDC reconciliation sync...')
+  
+  try {
+    const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
+    const conn = await getActiveConnection(DEFAULT_ORG_ID)
+    
+    if (!conn) {
+      logger.info('No active QBO connection, skipping CDC sync')
+      return
+    }
+
+    const results = await incrementalSync(conn.id, conn.realm_id)
+    logger.info({ results }, '✅ QuickBooks CDC sync complete')
+  } catch (error) {
+    logger.error('QuickBooks CDC sync failed:', error)
+    throw error
+  }
+}
+
 // Setup cron schedules - aligned with architecture diagram
 async function setupCronSchedules() {
   if (!redis) {
@@ -425,7 +450,18 @@ async function setupCronSchedules() {
       }
     )
 
-    logger.info('✅ Cron schedules configured successfully (including 3x daily YouTube sync)')
+    // QuickBooks CDC reconciliation — daily at 3:00 AM UTC
+    await metricsQueue!.add(
+      'qbo-cdc-sync',
+      {},
+      {
+        repeat: { pattern: '0 3 * * *' }, // Daily at 3:00 AM UTC
+        removeOnComplete: 10,
+        removeOnFail: 5,
+      }
+    )
+
+    logger.info('✅ Cron schedules configured successfully (including 3x daily YouTube sync, daily QBO CDC)')
 
   } catch (error) {
     logger.error('❌ Failed to setup cron schedules:', error)

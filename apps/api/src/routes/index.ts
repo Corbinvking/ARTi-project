@@ -17,6 +17,7 @@ import { weeklyUpdatesRoutes } from './weekly-updates';
 import { scraperNotifyRoutes } from './scraper-notify';
 import { invoiceCampaignRoutes } from './invoice-campaign';
 import { soundcloudMemberRoutes } from './soundcloud-members';
+import { quickbooksRoutes } from './quickbooks';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -73,6 +74,9 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // SoundCloud member auth lifecycle routes (provision/deprovision)
   await server.register(soundcloudMemberRoutes, { prefix: '/api' });
+
+  // QuickBooks Online integration routes (OAuth, sync, webhooks, metrics)
+  await server.register(quickbooksRoutes, { prefix: '/api' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {

@@ -2,6 +2,7 @@ import { UserManagement } from "@/components/admin/user-management"
 import { SystemSettings } from "@/components/admin/system-settings"
 import { PlatformIntegrations } from "@/components/admin/platform-integrations"
 import { FinancialIntegration } from "@/components/admin/financial-integration"
+import { QuickBooksStatusCard } from "@/components/admin/quickbooks-status-card"
 import { ScraperStatusCard } from "@/components/admin/scraper-status-card"
 import VendorPlaylistsImport from "@/components/admin/VendorPlaylistsImport"
 import { PlatformDevelopmentAdmin } from "@/components/admin/platform-development-admin"
@@ -23,6 +24,7 @@ export default function AdminPage() {
         <PlatformDevelopmentAdmin />
         <SystemSettings />
         <PlatformIntegrations />
+        <QuickBooksStatusCard />
         <ScraperStatusCard />
         <VendorPlaylistsImport />
         <FinancialIntegration />
