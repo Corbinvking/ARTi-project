@@ -88,6 +88,15 @@ export const ScheduleSuggestionPanel = ({
   const [selectedChannels, setSelectedChannels] = useState<Set<string>>(new Set())
   const [channelsOverridden, setChannelsOverridden] = useState(false)
 
+  // Channel loading progress
+  const [channelProgress, setChannelProgress] = useState<{
+    phase: string
+    membersLoaded: number
+    totalMembers: number | null
+    page: number
+    totalPages: number | null
+  }>({ phase: "", membersLoaded: 0, totalMembers: null, page: 0, totalPages: null })
+
   // Schedule state
   const [scheduling, setScheduling] = useState(false)
 
@@ -129,15 +138,17 @@ export const ScheduleSuggestionPanel = ({
     }
   }, [selectedSlot])
 
-  // ----- Fetch Channel Suggestions -----
+  // ----- Fetch Channel Suggestions (streaming with progress) -----
   const fetchChannelSuggestions = useCallback(async () => {
     setLoadingChannels(true)
+    setChannelProgress({ phase: "connecting", membersLoaded: 0, totalMembers: null, page: 0, totalPages: null })
     try {
       const token = await getAuthToken()
       if (!token) throw new Error("Not authenticated")
 
       const params = new URLSearchParams()
       if (goalReposts > 0) params.set("targetReach", String(goalReposts))
+      params.set("stream", "true")
 
       const res = await fetch(
         `/api/soundcloud/influenceplanner/suggest-channels?${params.toString()}`,
@@ -146,14 +157,49 @@ export const ScheduleSuggestionPanel = ({
 
       if (!res.ok) throw new Error("Failed to fetch channels")
 
-      const data = await res.json()
-      setChannelSuggestions(data.channels || [])
+      const reader = res.body?.getReader()
+      if (!reader) throw new Error("Streaming not supported")
 
-      // Auto-select suggested channels
-      const suggested = (data.channels || [])
-        .filter((c: ChannelSuggestion) => c.suggested)
-        .map((c: ChannelSuggestion) => c.user_id)
-      setSelectedChannels(new Set(suggested))
+      const decoder = new TextDecoder()
+      let buffer = ""
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || ""
+
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const event = JSON.parse(line)
+            if (event.type === "progress") {
+              setChannelProgress({
+                phase: event.phase,
+                membersLoaded: event.membersLoaded,
+                totalMembers: event.totalMembers,
+                page: event.page,
+                totalPages: event.totalPages,
+              })
+            } else if (event.type === "result") {
+              setChannelSuggestions(event.channels || [])
+              const suggested = (event.channels || [])
+                .filter((c: ChannelSuggestion) => c.suggested)
+                .map((c: ChannelSuggestion) => c.user_id)
+              setSelectedChannels(new Set(suggested))
+            } else if (event.type === "error") {
+              throw new Error(event.error)
+            }
+          } catch (parseErr: any) {
+            if (parseErr.message && parseErr.message !== "Unexpected end of JSON input") {
+              throw parseErr
+            }
+          }
+        }
+      }
     } catch (err: any) {
       console.error("Error fetching channel suggestions:", err)
       toast({
@@ -528,9 +574,38 @@ export const ScheduleSuggestionPanel = ({
           </div>
 
           {loadingChannels ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading channels from Influence Planner...
+            <div className="space-y-3 py-4">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {channelProgress.phase === "connecting"
+                    ? "Connecting to Influence Planner..."
+                    : channelProgress.phase === "scoring"
+                    ? "Scoring and ranking channels..."
+                    : channelProgress.totalMembers
+                    ? `Loading members (${channelProgress.membersLoaded} of ${channelProgress.totalMembers})...`
+                    : `Loading members (${channelProgress.membersLoaded} found)...`}
+                </div>
+                {channelProgress.totalPages && channelProgress.phase === "fetching" && (
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    Page {channelProgress.page}/{channelProgress.totalPages}
+                  </span>
+                )}
+              </div>
+              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+                  style={{
+                    width: channelProgress.phase === "scoring"
+                      ? "95%"
+                      : channelProgress.totalMembers && channelProgress.totalMembers > 0
+                      ? `${Math.min(90, (channelProgress.membersLoaded / channelProgress.totalMembers) * 90)}%`
+                      : channelProgress.phase === "connecting"
+                      ? "5%"
+                      : "10%",
+                  }}
+                />
+              </div>
             </div>
           ) : (
             <div className="space-y-1 max-h-64 overflow-y-auto">

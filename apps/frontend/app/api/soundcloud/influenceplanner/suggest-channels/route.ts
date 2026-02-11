@@ -29,12 +29,18 @@ interface ChannelSuggestion {
 /**
  * GET /api/soundcloud/influenceplanner/suggest-channels
  *
- * Fetches all LINKED members from the Influence Planner API, scores them,
- * and returns a ranked list of suggested channels for a campaign.
+ * Streams progress events (NDJSON) while fetching members from the
+ * Influence Planner API, then sends the final scored channel list.
+ *
+ * Each line is a JSON object with a `type` field:
+ *   { type: "progress", membersLoaded, totalMembers, page, totalPages, phase }
+ *   { type: "result", channels, meta }
+ *   { type: "error", error }
  *
  * Query params:
  *  - targetReach (optional) - desired total reach; system picks enough channels to hit it
  *  - maxChannels (optional) - maximum number of channels to suggest (default: 25)
+ *  - stream (optional) - set to "true" for streaming NDJSON; otherwise returns classic JSON
  */
 export async function GET(request: Request) {
   const auth = await getAuthorizedUser(request);
@@ -48,9 +54,152 @@ export async function GET(request: Request) {
     Math.max(parseInt(url.searchParams.get("maxChannels") || "25", 10), 1),
     100
   );
+  const useStream = url.searchParams.get("stream") === "true";
 
+  // --- Helper: score and rank members ---
+  function scoreAndRank(allMembers: NetworkMember[]) {
+    const linkedMembers = allMembers.filter((m) => m.status === "LINKED");
+
+    const scoredMembers: ChannelSuggestion[] = linkedMembers.map((member) => {
+      const followerScore = Math.log10(Math.max(member.followers, 1)) * 25;
+      const daysSinceUpdate = member.updated_at
+        ? (Date.now() - new Date(member.updated_at).getTime()) / (1000 * 60 * 60 * 24)
+        : 365;
+      const recencyScore = Math.max(0, 20 - daysSinceUpdate * 0.1);
+      const totalScore = Math.round((followerScore + recencyScore) * 10) / 10;
+
+      return {
+        user_id: member.user_id,
+        name: member.name,
+        followers: member.followers,
+        profile_url: member.profile_url,
+        image_url: member.image_url,
+        score: totalScore,
+        suggested: false,
+        reason: "",
+      };
+    });
+
+    scoredMembers.sort((a, b) => b.score - a.score);
+
+    let accumulatedReach = 0;
+    const reachFactor = 0.06;
+    let suggestedCount = 0;
+
+    for (const member of scoredMembers) {
+      if (suggestedCount >= maxChannels) break;
+      if (targetReach > 0 && accumulatedReach >= targetReach) break;
+      member.suggested = true;
+      member.reason =
+        suggestedCount < 5
+          ? "Top-ranked channel by followers and activity"
+          : "Recommended to increase campaign reach";
+      suggestedCount++;
+      accumulatedReach += Math.round(member.followers * reachFactor);
+    }
+
+    for (const member of scoredMembers) {
+      if (!member.suggested) {
+        member.reason =
+          targetReach > 0 && accumulatedReach >= targetReach
+            ? "Target reach already met by higher-ranked channels"
+            : "Lower priority based on follower count and activity";
+      }
+    }
+
+    return {
+      channels: scoredMembers,
+      meta: {
+        totalLinked: linkedMembers.length,
+        totalAll: allMembers.length,
+        suggestedCount,
+        estimatedReach: accumulatedReach,
+        targetReach: targetReach || null,
+      },
+    };
+  }
+
+  // ===== STREAMING MODE =====
+  if (useStream) {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const send = (obj: Record<string, unknown>) => {
+          controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
+        };
+
+        try {
+          const allMembers: NetworkMember[] = [];
+          let offset = 0;
+          const limit = 25;
+          let hasMore = true;
+          let totalMembers: number | null = null;
+          let page = 0;
+
+          // Send initial progress
+          send({ type: "progress", phase: "connecting", membersLoaded: 0, totalMembers: null, page: 0, totalPages: null });
+
+          while (hasMore) {
+            const { data, status } = await influencePlannerFetch<{
+              results: NetworkMember[];
+              totalElements: number;
+              last: boolean;
+            }>({
+              method: "GET",
+              path: "/network/members",
+              query: { offset, limit, sortBy: "FOLLOWERS", sortDir: "DESC" },
+              authToken: auth.token,
+            });
+
+            if (status !== 200 || !data?.results) break;
+
+            allMembers.push(...data.results);
+            hasMore = !data.last;
+            offset += limit;
+            page++;
+
+            if (totalMembers === null && data.totalElements) {
+              totalMembers = Math.min(data.totalElements, 500);
+            }
+
+            const totalPages = totalMembers ? Math.ceil(totalMembers / limit) : null;
+
+            send({
+              type: "progress",
+              phase: "fetching",
+              membersLoaded: allMembers.length,
+              totalMembers,
+              page,
+              totalPages,
+            });
+
+            if (allMembers.length >= 500) break;
+          }
+
+          // Scoring phase
+          send({ type: "progress", phase: "scoring", membersLoaded: allMembers.length, totalMembers: allMembers.length, page, totalPages: page });
+
+          const result = scoreAndRank(allMembers);
+          send({ type: "result", ...result });
+        } catch (error: any) {
+          send({ type: "error", error: error.message || "Failed to fetch channel suggestions" });
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/x-ndjson",
+        "Cache-Control": "no-cache",
+        "Transfer-Encoding": "chunked",
+      },
+    });
+  }
+
+  // ===== CLASSIC (non-streaming) MODE =====
   try {
-    // Fetch all members from Influence Planner API (paginate through all)
     const allMembers: NetworkMember[] = [];
     let offset = 0;
     const limit = 25;
@@ -64,97 +213,20 @@ export async function GET(request: Request) {
       }>({
         method: "GET",
         path: "/network/members",
-        query: {
-          offset,
-          limit,
-          sortBy: "FOLLOWERS",
-          sortDir: "DESC",
-        },
+        query: { offset, limit, sortBy: "FOLLOWERS", sortDir: "DESC" },
         authToken: auth.token,
       });
 
-      if (status !== 200 || !data?.results) {
-        break;
-      }
+      if (status !== 200 || !data?.results) break;
 
       allMembers.push(...data.results);
       hasMore = !data.last;
       offset += limit;
-
-      // Safety: don't fetch more than 500 members
       if (allMembers.length >= 500) break;
     }
 
-    // Filter to only LINKED members (valid connections)
-    const linkedMembers = allMembers.filter((m) => m.status === "LINKED");
-
-    // Score each member
-    // Higher followers = higher score, with diminishing returns
-    const scoredMembers: ChannelSuggestion[] = linkedMembers.map((member) => {
-      // Score based on follower count (log scale for fairness)
-      const followerScore = Math.log10(Math.max(member.followers, 1)) * 25;
-
-      // Recency bonus: recently updated members are more active
-      const daysSinceUpdate = member.updated_at
-        ? (Date.now() - new Date(member.updated_at).getTime()) / (1000 * 60 * 60 * 24)
-        : 365;
-      const recencyScore = Math.max(0, 20 - daysSinceUpdate * 0.1);
-
-      const totalScore = Math.round((followerScore + recencyScore) * 10) / 10;
-
-      return {
-        user_id: member.user_id,
-        name: member.name,
-        followers: member.followers,
-        profile_url: member.profile_url,
-        image_url: member.image_url,
-        score: totalScore,
-        suggested: false, // Will be set below
-        reason: "",
-      };
-    });
-
-    // Sort by score descending
-    scoredMembers.sort((a, b) => b.score - a.score);
-
-    // Mark top channels as suggested
-    let accumulatedReach = 0;
-    const reachFactor = 0.06; // Default 6% reach factor
-    let suggestedCount = 0;
-
-    for (const member of scoredMembers) {
-      if (suggestedCount >= maxChannels) break;
-
-      // If we have a target reach, stop suggesting once we'd hit it
-      if (targetReach > 0 && accumulatedReach >= targetReach) break;
-
-      member.suggested = true;
-      member.reason = suggestedCount < 5
-        ? "Top-ranked channel by followers and activity"
-        : "Recommended to increase campaign reach";
-      suggestedCount++;
-      accumulatedReach += Math.round(member.followers * reachFactor);
-    }
-
-    // Mark non-suggested members with reason
-    for (const member of scoredMembers) {
-      if (!member.suggested) {
-        member.reason = targetReach > 0 && accumulatedReach >= targetReach
-          ? "Target reach already met by higher-ranked channels"
-          : "Lower priority based on follower count and activity";
-      }
-    }
-
-    return NextResponse.json({
-      channels: scoredMembers,
-      meta: {
-        totalLinked: linkedMembers.length,
-        totalAll: allMembers.length,
-        suggestedCount,
-        estimatedReach: accumulatedReach,
-        targetReach: targetReach || null,
-      },
-    });
+    const result = scoreAndRank(allMembers);
+    return NextResponse.json(result);
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message || "Failed to fetch channel suggestions" },
