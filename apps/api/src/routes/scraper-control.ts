@@ -189,12 +189,55 @@ export async function scraperControlRoutes(server: FastifyInstance) {
       const cronScheduled = true;
       const cronSchedule = '0 2 * * * (Daily at 2 AM UTC)';
 
+      // Read session keepalive status
+      let keepalive: {
+        sessionActive: boolean;
+        sessionExpiredAt: string | null;
+        lastKeepaliveAt: string | null;
+      } = { sessionActive: true, sessionExpiredAt: null, lastKeepaliveAt: null };
+
+      try {
+        // Check if session_expired.flag exists (means session is dead)
+        const flagPath = path.join(SCRAPER_PATH, 'logs', 'session_expired.flag');
+        try {
+          const flagContent = await fs.readFile(flagPath, 'utf-8');
+          keepalive.sessionActive = false;
+          keepalive.sessionExpiredAt = flagContent.trim() || null;
+          logger.info({ sessionExpiredAt: keepalive.sessionExpiredAt }, '⚠️ Session expired flag found');
+        } catch {
+          // Flag doesn't exist = session is active (or keepalive hasn't run yet)
+          keepalive.sessionActive = true;
+        }
+
+        // Parse last keepalive timestamp from keepalive.log
+        try {
+          const keepaliveLogPath = path.join(SCRAPER_PATH, 'logs', 'keepalive.log');
+          const keepaliveLog = await fs.readFile(keepaliveLogPath, 'utf-8');
+          const lines = keepaliveLog.trim().split('\n');
+          // Search from the end for the most recent timestamp
+          for (let i = lines.length - 1; i >= 0; i--) {
+            const match = lines[i]!.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
+            if (match) {
+              // Convert "2026-02-11 01:09:17" to ISO format
+              keepalive.lastKeepaliveAt = new Date(match[1]!.replace(' ', 'T') + 'Z').toISOString();
+              break;
+            }
+          }
+          logger.info({ lastKeepaliveAt: keepalive.lastKeepaliveAt }, '📋 Last keepalive timestamp');
+        } catch {
+          // Keepalive log doesn't exist yet
+        }
+      } catch (err) {
+        logger.warn({ error: (err as Error).message }, '⚠️ Error reading keepalive data');
+      }
+
       const result = {
         isRunning,
         lastRun,
         cronScheduled,
         cronSchedule,
         lastHealthCheck: healthData,
+        keepalive,
         timestamp: new Date().toISOString(),
         // Debug info
         _debug: {
@@ -283,6 +326,8 @@ export async function scraperControlRoutes(server: FastifyInstance) {
         production: 'logs/production.log',
         errors: 'logs/errors.log',
         cron: 'logs/cron.log',
+        keepalive: 'logs/keepalive.log',
+        keepalive_cron: 'logs/keepalive_cron.log',
       };
 
       const logFile = logFiles[logType as string] || logFiles.production;

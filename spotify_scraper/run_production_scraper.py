@@ -1585,6 +1585,36 @@ async def main(limit=None):
         log_scraper_run('failed', error_message='Missing Supabase key')
         return False
     
+    # CHECK: Session keepalive status
+    session_flag_path = Path(__file__).parent / 'logs' / 'session_expired.flag'
+    if session_flag_path.exists():
+        try:
+            expired_at = session_flag_path.read_text().strip()
+            logger.warning("=" * 60)
+            logger.warning("SESSION EXPIRED FLAG DETECTED")
+            logger.warning(f"Session was reported expired at: {expired_at}")
+            logger.warning("The keepalive script detected the session is no longer valid.")
+            logger.warning("Scraper will attempt to proceed, but may fail.")
+            logger.warning("To fix: login via VNC and restart the scraper.")
+            logger.warning("=" * 60)
+        except Exception:
+            logger.warning("Session expired flag exists but could not read timestamp")
+    
+    # Log last keepalive status
+    keepalive_log_path = Path(__file__).parent / 'logs' / 'keepalive.log'
+    if keepalive_log_path.exists():
+        try:
+            # Read last few lines of keepalive log
+            lines = keepalive_log_path.read_text().strip().split('\n')
+            last_lines = lines[-3:] if len(lines) >= 3 else lines
+            logger.info("Last keepalive status:")
+            for line in last_lines:
+                logger.info(f"  {line}")
+        except Exception:
+            pass
+    else:
+        logger.info("No keepalive log found (keepalive cron may not be set up)")
+    
     # FAILSAFE: Pre-flight API health check
     logger.info("")
     if not check_api_health():
@@ -1672,6 +1702,18 @@ async def main(limit=None):
         
         total_success += success
         total_failure += failure
+        
+        # EARLY ABORT: If an entire batch failed with 0 successes, the session is dead
+        # Don't waste time looping through the remaining 13 batches
+        if success == 0 and failure == len(batch_campaigns):
+            remaining = total_campaigns - batch_end
+            logger.error("="*60)
+            logger.error("ABORTING: Session is invalid - no campaigns succeeded in this batch")
+            logger.error(f"Skipping remaining {remaining} campaigns across {total_batches - batch_num} batches")
+            logger.error("Please login via VNC and run the scraper again.")
+            logger.error("="*60)
+            total_failure += remaining
+            break
         
         # Brief pause between batches to let memory settle
         if batch_num < total_batches:

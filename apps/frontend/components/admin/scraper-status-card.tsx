@@ -14,7 +14,7 @@ export function ScraperStatusCard() {
   const { data: health, refetch: refetchHealth } = useScraperHealth()
   const triggerScraper = useTriggerScraper()
   const [showLogs, setShowLogs] = useState(false)
-  const [logType, setLogType] = useState<'production' | 'errors' | 'cron'>('production')
+  const [logType, setLogType] = useState<'production' | 'errors' | 'cron' | 'keepalive' | 'keepalive_cron'>('production')
   const [autoRefresh, setAutoRefresh] = useState(false)
   const { data: logs, refetch: fetchLogs, isFetching: logsLoading } = useScraperLogs(logType, 100)
   const logsContainerRef = useRef<HTMLDivElement>(null)
@@ -165,7 +165,7 @@ export function ScraperStatusCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Status Info */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Last Run</p>
             <p className={`text-lg font-semibold ${isStale ? 'text-red-500' : ''}`}>
@@ -204,6 +204,34 @@ export function ScraperStatusCard() {
             {status?.cronSchedule && (
               <p className="text-xs text-muted-foreground font-mono mt-1">
                 Daily at 2 AM
+              </p>
+            )}
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">Session</p>
+            <div className="flex items-center space-x-2">
+              {status?.keepalive?.sessionActive ? (
+                <Badge variant="default" className="flex items-center space-x-1">
+                  <div className="h-2 w-2 rounded-full bg-green-400" />
+                  <span>Active</span>
+                </Badge>
+              ) : status?.keepalive?.sessionActive === false ? (
+                <Badge variant="destructive" className="flex items-center space-x-1">
+                  <div className="h-2 w-2 rounded-full bg-white" />
+                  <span>Expired</span>
+                </Badge>
+              ) : (
+                <Badge variant="secondary">Unknown</Badge>
+              )}
+            </div>
+            {status?.keepalive?.sessionActive === false && status.keepalive.sessionExpiredAt && (
+              <p className="text-xs text-red-500">
+                Expired {formatDistanceToNow(new Date(status.keepalive.sessionExpiredAt), { addSuffix: true })}
+              </p>
+            )}
+            {status?.keepalive?.sessionActive && status.keepalive.lastKeepaliveAt && (
+              <p className="text-xs text-muted-foreground">
+                Keepalive {formatDistanceToNow(new Date(status.keepalive.lastKeepaliveAt), { addSuffix: true })}
               </p>
             )}
           </div>
@@ -332,6 +360,15 @@ export function ScraperStatusCard() {
           >
             {showLogs && logType === 'cron' ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
             Cron Logs
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleViewLogs('keepalive')}
+            disabled={logsLoading}
+          >
+            {showLogs && logType === 'keepalive' ? <ChevronUp className="h-4 w-4 mr-2" /> : <ChevronDown className="h-4 w-4 mr-2" />}
+            Keepalive Logs
           </Button>
         </div>
 

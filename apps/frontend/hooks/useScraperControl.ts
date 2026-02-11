@@ -16,6 +16,11 @@ interface ScraperStatus {
     checks: Record<string, string>;
     errors: string[];
   } | null;
+  keepalive: {
+    sessionActive: boolean;
+    sessionExpiredAt: string | null;
+    lastKeepaliveAt: string | null;
+  } | null;
   timestamp: string;
 }
 
@@ -78,7 +83,7 @@ export function useTriggerScraper() {
   });
 }
 
-export function useScraperLogs(logType: 'production' | 'errors' | 'cron' = 'production', lines: number = 100) {
+export function useScraperLogs(logType: 'production' | 'errors' | 'cron' | 'keepalive' | 'keepalive_cron' = 'production', lines: number = 100) {
   return useQuery({
     queryKey: ['scraper-logs', logType, lines],
     queryFn: async () => {
