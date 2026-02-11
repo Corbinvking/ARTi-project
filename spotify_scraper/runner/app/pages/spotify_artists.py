@@ -409,14 +409,95 @@ class SpotifyArtistsPage:
         
         return stats
     
+    async def _try_switch_dropdown(self, target_label: str) -> bool:
+        """Attempt to switch the playlists page dropdown to the target time range.
+        Returns True if the switch was confirmed, False otherwise."""
+        
+        # Scroll to top so dropdown is visible
+        await self.page.evaluate("window.scrollTo(0, 0)")
+        await asyncio.sleep(0.5)
+        
+        # Find the playlists page dropdown (aria-haspopup="listbox")
+        dropdown_btn = self.page.locator('button[aria-haspopup="listbox"]').first
+        
+        if await dropdown_btn.count() == 0 or not await dropdown_btn.is_visible():
+            print(f"  WARNING: No dropdown found on page -- cannot switch time range")
+            print(f"  Current URL: {self.page.url}")
+            return False
+        
+        current_text = (await dropdown_btn.text_content() or '').strip()
+        
+        # If already showing the desired range, confirm and return
+        if target_label.lower() in current_text.lower():
+            print(f"  Already on {target_label}")
+            return True
+        
+        # Click to open the dropdown
+        await dropdown_btn.click(force=True, timeout=5000)
+        print(f"  Opened dropdown (was: {current_text})")
+        await asyncio.sleep(1.5)
+        
+        # Try to select the desired option
+        option_clicked = False
+        
+        for sel in [f'[role="option"]:has-text("{target_label}")', f'li:has-text("{target_label}")']:
+            try:
+                opt = self.page.locator(sel).first
+                if await opt.count() > 0 and await opt.is_visible():
+                    await opt.click(force=True, timeout=3000)
+                    option_clicked = True
+                    break
+            except Exception:
+                continue
+        
+        # JavaScript fallback
+        if not option_clicked:
+            target_lower = target_label.lower()
+            result = await self.page.evaluate(f'''() => {{
+                const opts = document.querySelectorAll('[role="option"], [role="listbox"] li, li');
+                for (const o of opts) {{
+                    const text = (o.textContent || '').toLowerCase().trim();
+                    if (text.includes("{target_lower}") && o.offsetParent !== null) {{
+                        o.click();
+                        return true;
+                    }}
+                }}
+                return false;
+            }}''')
+            option_clicked = bool(result)
+        
+        if not option_clicked:
+            print(f"  WARNING: Could not find option '{target_label}' in dropdown")
+            await self.page.keyboard.press('Escape')
+            await asyncio.sleep(0.5)
+            return False
+        
+        # Wait for table to refresh after selection
+        await asyncio.sleep(2)
+        
+        # VERIFY: Re-read dropdown text to confirm the switch actually happened
+        try:
+            new_text = (await dropdown_btn.text_content() or '').strip()
+            if target_label.lower() in new_text.lower():
+                print(f"  Confirmed: dropdown now shows '{new_text}'")
+            else:
+                print(f"  WARNING: Dropdown still shows '{new_text}' (expected '{target_label}')")
+                return False
+        except Exception:
+            pass  # Dropdown might have re-rendered, don't fail on verification read
+        
+        # Wait for sort-table rows to appear (confirms data loaded)
+        try:
+            await self.page.wait_for_selector('[data-testid="sort-table-body-row"]', timeout=8000)
+        except Exception:
+            print(f"  WARNING: Table rows did not appear after switching to {target_label}")
+        
+        return True
+
     async def switch_time_range(self, range_type: str) -> None:
         """Switch between different time ranges using the playlists page dropdown.
         
-        IMPORTANT: On the Playlists page, the time range is controlled by a 
-        dropdown button (aria-haspopup="listbox") with text like "Last 28 days".
-        The chip filters ("7 days", "28 days", "12 months") that appear in the 
-        header area navigate AWAY from the playlists page to the Overview page,
-        so we must NOT use them.
+        Includes verification that the switch actually happened and a single retry.
         
         Args:
             range_type: One of '7day', '28day', '12months'
@@ -425,7 +506,6 @@ class SpotifyArtistsPage:
             print(f"Switching to {range_type} time range...")
             await asyncio.sleep(1)
             
-            # Map range types to dropdown text labels
             range_labels = {
                 '7day':     'Last 7 days',
                 '28day':    'Last 28 days',
@@ -437,70 +517,17 @@ class SpotifyArtistsPage:
                 print(f"  Unknown range type: {range_type}, skipping")
                 return
             
-            # Scroll to top so dropdown is visible
-            await self.page.evaluate("window.scrollTo(0, 0)")
-            await asyncio.sleep(0.5)
+            # First attempt
+            success = await self._try_switch_dropdown(target_label)
             
-            # Find the playlists page dropdown (aria-haspopup="listbox")
-            dropdown_btn = self.page.locator('button[aria-haspopup="listbox"]').first
-            
-            if await dropdown_btn.count() == 0 or not await dropdown_btn.is_visible():
-                print(f"  WARNING: No dropdown found on page -- cannot switch time range")
-                print(f"  Current URL: {self.page.url}")
-                return
-            
-            current_text = (await dropdown_btn.text_content() or '').strip()
-            
-            # If already showing the desired range, skip
-            if target_label.lower() in current_text.lower():
-                print(f"  Already on {target_label}")
-                return
-            
-            # Click to open the dropdown
-            await dropdown_btn.click(force=True, timeout=5000)
-            print(f"  Opened dropdown (was: {current_text})")
-            await asyncio.sleep(1)
-            
-            # Select the desired option from the listbox
-            option_selectors = [
-                f'[role="option"]:has-text("{target_label}")',
-                f'li:has-text("{target_label}")',
-            ]
-            
-            for sel in option_selectors:
-                try:
-                    opt = self.page.locator(sel).first
-                    if await opt.count() > 0 and await opt.is_visible():
-                        await opt.click(force=True, timeout=3000)
-                        print(f"  Selected: {target_label}")
-                        # Wait for table to refresh
-                        await asyncio.sleep(3)
-                        return
-                except Exception:
-                    continue
-            
-            # JavaScript fallback for option selection
-            target_lower = target_label.lower()
-            result = await self.page.evaluate(f'''() => {{
-                const opts = document.querySelectorAll('[role="option"], [role="listbox"] li, li');
-                for (const o of opts) {{
-                    const text = (o.textContent || '').toLowerCase().trim();
-                    if (text.includes("{target_lower}") && o.offsetParent !== null) {{
-                        o.click();
-                        return o.textContent.trim();
-                    }}
-                }}
-                return null;
-            }}''')
-            if result:
-                print(f"  Selected via JS: {result}")
-                await asyncio.sleep(3)
-                return
-            
-            # Could not select option -- close dropdown and continue
-            print(f"  WARNING: Dropdown opened but could not find '{target_label}'")
-            await self.page.keyboard.press('Escape')
-            await asyncio.sleep(0.5)
+            if not success:
+                # Retry once: scroll, wait, try again
+                print(f"  Retrying dropdown switch for {target_label}...")
+                await asyncio.sleep(2)
+                success = await self._try_switch_dropdown(target_label)
+                
+                if not success:
+                    print(f"  FAILED: Could not switch to {range_type} after retry")
                     
         except Exception as e:
             print(f"Failed to switch time range: {e}")

@@ -720,6 +720,17 @@ async def scrape_campaign(page, spotify_page, campaign):
             
             # Get stats from the playlist table
             stats = await spotify_page.get_song_stats()
+            
+            # If 0 playlists found, the dropdown switch likely failed -- retry
+            if len(stats.get('playlists', [])) == 0:
+                logger.warning(f"    {time_range}: 0 playlists -- dropdown switch may have failed, retrying...")
+                # Re-navigate to playlists page and try again
+                await spotify_page.navigate_to_song(sfa_url, target_tab='playlists')
+                await asyncio.sleep(3)
+                await spotify_page.switch_time_range(time_range)
+                await asyncio.sleep(2)
+                stats = await spotify_page.get_song_stats()
+            
             song_data['time_ranges'][time_range] = {'stats': stats}
             
             streams = stats.get('streams', 0)
