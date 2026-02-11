@@ -410,13 +410,13 @@ class SpotifyArtistsPage:
         return stats
     
     async def switch_time_range(self, range_type: str) -> None:
-        """Switch between different time ranges on the current page.
+        """Switch between different time ranges using the playlists page dropdown.
         
-        Supports two S4A UI mechanisms (2026 UI):
-          - Playlists page: dropdown button with aria-haspopup="listbox" 
-            (text like "Last 28 days", "Last 7 days", "Last 12 months")
-          - Overview page: chip filter buttons with data-encore-id="chipFilter"
-            (text like "7 days", "28 days", "12 months")
+        IMPORTANT: On the Playlists page, the time range is controlled by a 
+        dropdown button (aria-haspopup="listbox") with text like "Last 28 days".
+        The chip filters ("7 days", "28 days", "12 months") that appear in the 
+        header area navigate AWAY from the playlists page to the Overview page,
+        so we must NOT use them.
         
         Args:
             range_type: One of '7day', '28day', '12months'
@@ -425,111 +425,82 @@ class SpotifyArtistsPage:
             print(f"Switching to {range_type} time range...")
             await asyncio.sleep(1)
             
-            # Map range types to the text labels used in the S4A UI
-            # Playlists page dropdown uses "Last X" prefix; chip filters don't
+            # Map range types to dropdown text labels
             range_labels = {
-                '7day':     {'dropdown': 'Last 7 days',  'chip': '7 days'},
-                '28day':    {'dropdown': 'Last 28 days', 'chip': '28 days'},
-                '12months': {'dropdown': 'Last 12 months', 'chip': '12 months'},
+                '7day':     'Last 7 days',
+                '28day':    'Last 28 days',
+                '12months': 'Last 12 months',
             }
             
-            labels = range_labels.get(range_type)
-            if not labels:
+            target_label = range_labels.get(range_type)
+            if not target_label:
                 print(f"  Unknown range type: {range_type}, skipping")
                 return
             
-            # Scroll to top so controls are visible
+            # Scroll to top so dropdown is visible
             await self.page.evaluate("window.scrollTo(0, 0)")
             await asyncio.sleep(0.5)
             
-            # ----- Strategy 1: Playlists page dropdown (aria-haspopup="listbox") -----
-            try:
-                dropdown_btn = self.page.locator('button[aria-haspopup="listbox"]').first
-                if await dropdown_btn.count() > 0 and await dropdown_btn.is_visible():
-                    current_text = (await dropdown_btn.text_content() or '').strip()
-                    
-                    # If already showing the desired range, skip
-                    if labels['dropdown'].lower() in current_text.lower():
-                        print(f"  Already on {labels['dropdown']}")
-                        return
-                    
-                    # Click to open the dropdown
-                    await dropdown_btn.click(force=True, timeout=5000)
-                    print(f"  Opened dropdown (was: {current_text})")
-                    await asyncio.sleep(1)
-                    
-                    # Select the desired option from the listbox
-                    option_selectors = [
-                        f'[role="option"]:has-text("{labels["dropdown"]}")',
-                        f'[role="option"]:has-text("{labels["chip"]}")',
-                        f'li:has-text("{labels["dropdown"]}")',
-                        f'li:has-text("{labels["chip"]}")',
-                    ]
-                    
-                    for sel in option_selectors:
-                        try:
-                            opt = self.page.locator(sel).first
-                            if await opt.count() > 0 and await opt.is_visible():
-                                await opt.click(force=True, timeout=3000)
-                                print(f"  Selected: {labels['dropdown']}")
-                                await asyncio.sleep(2)
-                                return
-                        except Exception:
-                            continue
-                    
-                    # JavaScript fallback for option selection
-                    target = labels['dropdown'].lower()
-                    result = await self.page.evaluate(f'''() => {{
-                        const opts = document.querySelectorAll('[role="option"], li');
-                        for (const o of opts) {{
-                            if (o.textContent && o.textContent.toLowerCase().includes("{target}") && o.offsetParent !== null) {{
-                                o.click();
-                                return o.textContent.trim();
-                            }}
-                        }}
-                        return null;
-                    }}''')
-                    if result:
-                        print(f"  Selected via JS: {result}")
-                        await asyncio.sleep(2)
-                        return
-                    
-                    print(f"  Dropdown opened but could not find option for {labels['dropdown']}")
-                    # Press Escape to close the dropdown
-                    await self.page.keyboard.press('Escape')
-                    await asyncio.sleep(0.5)
-            except Exception as e:
-                print(f"  Dropdown strategy failed: {e}")
+            # Find the playlists page dropdown (aria-haspopup="listbox")
+            dropdown_btn = self.page.locator('button[aria-haspopup="listbox"]').first
             
-            # ----- Strategy 2: Chip filter buttons (data-encore-id="chipFilter") -----
-            try:
-                chip = self.page.locator(f'[data-encore-id="chipFilter"]:has-text("{labels["chip"]}")').first
-                if await chip.count() > 0 and await chip.is_visible():
-                    await chip.click(force=True, timeout=3000)
-                    print(f"  Clicked chip filter: {labels['chip']}")
-                    await asyncio.sleep(2)
-                    return
-            except Exception as e:
-                print(f"  Chip filter strategy failed: {e}")
+            if await dropdown_btn.count() == 0 or not await dropdown_btn.is_visible():
+                print(f"  WARNING: No dropdown found on page -- cannot switch time range")
+                print(f"  Current URL: {self.page.url}")
+                return
             
-            # ----- Strategy 3: Generic button text match -----
-            try:
-                for text in [labels['dropdown'], labels['chip']]:
-                    btn = self.page.locator(f'button:has-text("{text}")').first
-                    if await btn.count() > 0 and await btn.is_visible():
-                        await btn.click(force=True, timeout=3000)
-                        print(f"  Clicked button with text: {text}")
-                        await asyncio.sleep(2)
+            current_text = (await dropdown_btn.text_content() or '').strip()
+            
+            # If already showing the desired range, skip
+            if target_label.lower() in current_text.lower():
+                print(f"  Already on {target_label}")
+                return
+            
+            # Click to open the dropdown
+            await dropdown_btn.click(force=True, timeout=5000)
+            print(f"  Opened dropdown (was: {current_text})")
+            await asyncio.sleep(1)
+            
+            # Select the desired option from the listbox
+            option_selectors = [
+                f'[role="option"]:has-text("{target_label}")',
+                f'li:has-text("{target_label}")',
+            ]
+            
+            for sel in option_selectors:
+                try:
+                    opt = self.page.locator(sel).first
+                    if await opt.count() > 0 and await opt.is_visible():
+                        await opt.click(force=True, timeout=3000)
+                        print(f"  Selected: {target_label}")
+                        # Wait for table to refresh
+                        await asyncio.sleep(3)
                         return
-            except Exception as e:
-                print(f"  Generic button strategy failed: {e}")
+                except Exception:
+                    continue
             
-            # All strategies failed
-            print(f"  WARNING: Could not switch to {range_type} -- all strategies failed")
-            try:
-                await self.page.screenshot(path='./logs/debug_switch_failed.png')
-            except Exception:
-                pass
+            # JavaScript fallback for option selection
+            target_lower = target_label.lower()
+            result = await self.page.evaluate(f'''() => {{
+                const opts = document.querySelectorAll('[role="option"], [role="listbox"] li, li');
+                for (const o of opts) {{
+                    const text = (o.textContent || '').toLowerCase().trim();
+                    if (text.includes("{target_lower}") && o.offsetParent !== null) {{
+                        o.click();
+                        return o.textContent.trim();
+                    }}
+                }}
+                return null;
+            }}''')
+            if result:
+                print(f"  Selected via JS: {result}")
+                await asyncio.sleep(3)
+                return
+            
+            # Could not select option -- close dropdown and continue
+            print(f"  WARNING: Dropdown opened but could not find '{target_label}'")
+            await self.page.keyboard.press('Escape')
+            await asyncio.sleep(0.5)
                     
         except Exception as e:
             print(f"Failed to switch time range: {e}")

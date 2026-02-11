@@ -703,8 +703,8 @@ async def scrape_campaign(page, spotify_page, campaign):
         alltime_streams = await spotify_page.get_alltime_streams()
         logger.info(f"  All-time streams: {alltime_streams:,}")
         
-        # --- Step 2: Navigate to Playlists tab ---
-        await spotify_page.navigate_to_playlists_tab()
+        # --- Step 2: Navigate to Playlists page (full page.goto, not tab click) ---
+        await spotify_page.navigate_to_song(sfa_url, target_tab='playlists')
         await asyncio.sleep(2)
         
         # --- Step 3: Scrape each available time range ---
@@ -1083,9 +1083,12 @@ async def sync_to_campaign_playlists(campaign_id, scrape_data):
                 streams_str = str(playlist.get('streams', 0)).replace(',', '')
                 streams = int(streams_str) if streams_str.isdigit() else 0
                 
-                if time_range == '24hour':
+                # Map new scraper time range keys to DB fields
+                # (7day is finest available from S4A -> streams_24h,
+                #  28day -> streams_7d, 12months -> streams_12m)
+                if time_range == '7day':
                     playlists_by_normalized[normalized_key]['streams_24h'] = streams
-                elif time_range == '7day':
+                elif time_range == '28day':
                     playlists_by_normalized[normalized_key]['streams_7d'] = streams
                 elif time_range == '12months':
                     playlists_by_normalized[normalized_key]['streams_12m'] = streams
