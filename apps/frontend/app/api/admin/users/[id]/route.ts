@@ -24,60 +24,49 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const supabaseAdmin = getAdminClient();
 
-    // Verify user exists
+    // Try to get user from Auth (may 404 if API uses different Supabase than DB)
     const { data: existingUser, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
-    if (userError || !existingUser.user) {
-      return NextResponse.json({ error: 'User not found in Auth' }, { status: 404 });
-    }
+    const inAuth = !userError && !!existingUser?.user;
 
-    // Build update payload
-    const updatePayload: any = {};
-    const metadataUpdates: any = {};
-
-    if (name) {
-      metadataUpdates.full_name = name;
-      metadataUpdates.name = name;
-    }
-    if (role) {
-      metadataUpdates.role = role;
-    }
-    if (password) {
-      updatePayload.password = password;
-      metadataUpdates.admin_set_password = password;
-    }
-
-    if (Object.keys(metadataUpdates).length > 0) {
-      updatePayload.user_metadata = {
-        ...existingUser.user.user_metadata,
-        ...metadataUpdates,
-      };
-    }
-
-    // Update auth user
-    if (Object.keys(updatePayload).length > 0) {
-      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, updatePayload);
-      if (updateError) {
-        console.error('Error updating auth user:', updateError);
-        return NextResponse.json({ error: updateError.message }, { status: 500 });
+    if (inAuth) {
+      // Update Auth user when present
+      const updatePayload: any = {};
+      const metadataUpdates: any = {};
+      if (name) {
+        metadataUpdates.full_name = name;
+        metadataUpdates.name = name;
+      }
+      if (role) metadataUpdates.role = role;
+      if (password) {
+        updatePayload.password = password;
+        metadataUpdates.admin_set_password = password;
+      }
+      if (Object.keys(metadataUpdates).length > 0) {
+        updatePayload.user_metadata = { ...(existingUser?.user?.user_metadata || {}), ...metadataUpdates };
+      }
+      if (Object.keys(updatePayload).length > 0) {
+        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, updatePayload);
+        if (updateError) {
+          console.error('Error updating auth user:', updateError);
+          return NextResponse.json({ error: updateError.message }, { status: 500 });
+        }
       }
     }
 
-    // Update public.users table
+    // Always update public.users and profiles (so Edit works even when Auth 404)
     if (name) {
       await supabaseAdmin.from('users').update({ full_name: name }).eq('id', userId);
     }
 
-    // Update profiles (name + password in metadata)
     const profileUpdates: any = {};
     if (name) profileUpdates.name = name;
     if (role) profileUpdates.role = role;
     if (password) {
-      // Read existing metadata, merge password
       const { data: existingProfile } = await supabaseAdmin
         .from('profiles')
         .select('metadata')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       profileUpdates.metadata = {
         ...(existingProfile?.metadata || {}),
         admin_set_password: password,
@@ -87,20 +76,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       await supabaseAdmin.from('profiles').update(profileUpdates).eq('id', userId);
     }
 
-    // Update user_roles if role changed
     if (role) {
       const roleMap: Record<string, string> = {
         admin: 'admin', manager: 'manager', sales: 'salesperson',
         salesperson: 'salesperson', vendor: 'vendor', operator: 'operator', user: 'user',
       };
       const dbRole = roleMap[role] || role;
-
       await supabaseAdmin.from('user_roles').delete().eq('user_id', userId);
       await supabaseAdmin.from('user_roles').insert({ user_id: userId, role: dbRole });
     }
 
     return NextResponse.json({
-      message: 'User updated successfully',
+      message: inAuth
+        ? 'User updated successfully'
+        : 'Name, role, and displayed password updated. Login password was not changed (user not found in Auth for this deployment).',
       userId,
       updated: { name, role, passwordChanged: !!password },
     });

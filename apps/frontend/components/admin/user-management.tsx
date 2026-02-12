@@ -322,7 +322,12 @@ export function UserManagement() {
   const handleBackfillPasswords = async () => {
     try {
       setBackfilling(true)
-      const { data: { session } } = await supabase.auth.getSession()
+      // Refresh session so we have a valid token (avoids "invalid session" if token expired)
+      const { data: { session }, error: refreshErr } = await supabase.auth.refreshSession()
+      if (refreshErr) {
+        toast.error('Session expired. Please log out and log in again.')
+        return
+      }
       if (!session?.access_token) {
         toast.error('You must be logged in')
         return

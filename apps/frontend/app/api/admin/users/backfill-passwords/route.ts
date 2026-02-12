@@ -22,7 +22,9 @@ function generatePassword(): string {
 export async function POST(request: Request) {
   try {
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY not set' }, { status: 500 });
+      return NextResponse.json({
+        error: 'SUPABASE_SERVICE_ROLE_KEY is not set in the deployment environment. Add it in Vercel: Project → Settings → Environment Variables (Production).',
+      }, { status: 500 });
     }
     const authHeader = request.headers.get('Authorization');
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -32,7 +34,10 @@ export async function POST(request: Request) {
     const supabaseAdmin = getAdminClient();
     const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
     if (authErr || !user) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+      const message = authErr?.message === 'JWT expired'
+        ? 'Session expired. Please log out and log in again, then try Backfill passwords.'
+        : authErr?.message || 'Invalid session. Ensure you are logged in to the same app (e.g. app.artistinfluence.com). Try log out and log in again.';
+      return NextResponse.json({ error: message }, { status: 401 });
     }
     const { data: roles } = await supabaseAdmin.from('user_roles').select('role').eq('user_id', user.id);
     if (!roles?.some((r: { role: string }) => r.role === 'admin')) {
