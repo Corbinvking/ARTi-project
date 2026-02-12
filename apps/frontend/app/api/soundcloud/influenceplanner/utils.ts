@@ -51,10 +51,21 @@ export const getAuthorizedUser = async (request: Request) => {
   const user = data.user;
   const metadataRoles = user.user_metadata?.roles || user.app_metadata?.roles || [];
   const singleRole = user.user_metadata?.role || user.app_metadata?.role;
-  const roles = [
+  let roles = [
     ...(Array.isArray(metadataRoles) ? metadataRoles : []),
     ...(singleRole ? [singleRole] : []),
   ];
+
+  // If no role in auth metadata, fall back to user_roles table (e.g. operators whose role is only in DB)
+  if (roles.length === 0) {
+    const { data: dbRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    if (dbRoles?.length) {
+      roles = dbRoles.map((r: { role: string }) => r.role);
+    }
+  }
 
   const allowedPlatformRoles = ["admin", "moderator", "manager", "operator"];
   const hasAllowedRole = roles.some((r) => allowedPlatformRoles.includes(r));
