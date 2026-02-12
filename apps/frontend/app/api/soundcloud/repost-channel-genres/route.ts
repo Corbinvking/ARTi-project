@@ -66,13 +66,14 @@ export async function PUT(request: Request) {
   try {
     const supabase = createAdminClient(auth.token);
 
-    const { data: existing } = await supabase
-      .from("soundcloud_genre_families")
-      .select("id")
-      .eq("id", genre_family_id)
-      .single();
-
-    if (!existing) {
+    // Accept id from either soundcloud_genre_families or genre_families (DB FK is to soundcloud; genre_families used for display in app)
+    const [scRes, genRes] = await Promise.all([
+      supabase.from("soundcloud_genre_families").select("id").eq("id", genre_family_id).single(),
+      supabase.from("genre_families").select("id").eq("id", genre_family_id).single(),
+    ]);
+    const existsInSc = !scRes.error && scRes.data;
+    const existsInGen = !genRes.error && genRes.data;
+    if (!existsInSc && !existsInGen) {
       return NextResponse.json(
         { error: "genre_family_id not found" },
         { status: 400 }

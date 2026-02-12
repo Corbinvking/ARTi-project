@@ -37,13 +37,24 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
   const { toast } = useToast();
 
   const fetchGenreFamilies = useCallback(async () => {
-    const { data, error } = await supabase
+    // Prefer soundcloud_genre_families; fallback to genre_families (used elsewhere in app) if empty
+    const { data: scData, error: scError } = await supabase
       .from("soundcloud_genre_families")
       .select("id, name")
-      .eq("active", true)
       .order("name");
-    if (error) throw error;
-    setGenreFamilies(data || []);
+    if (!scError && scData && scData.length > 0) {
+      setGenreFamilies(scData);
+      return;
+    }
+    const { data: genData, error: genError } = await supabase
+      .from("genre_families")
+      .select("id, name")
+      .order("name");
+    if (!genError && genData && genData.length > 0) {
+      setGenreFamilies(genData);
+      return;
+    }
+    setGenreFamilies(scData ?? genData ?? []);
   }, []);
 
   const fetchAssignments = useCallback(async () => {

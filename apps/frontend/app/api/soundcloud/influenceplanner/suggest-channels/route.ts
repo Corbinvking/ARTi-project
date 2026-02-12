@@ -37,12 +37,13 @@ async function enrichChannelsWithGenres(
     const { data: genreRows } = await supabase
       .from("soundcloud_repost_channel_genres")
       .select("ip_user_id, genre_family_id");
-    const { data: families } = await supabase
-      .from("soundcloud_genre_families")
-      .select("id, name");
-
     const familyMap = new Map<string, string>();
-    (families || []).forEach((f: { id: string; name: string }) => familyMap.set(f.id, f.name));
+    const scFamilies = await supabase.from("soundcloud_genre_families").select("id, name");
+    (scFamilies.data || []).forEach((f: { id: string; name: string }) => familyMap.set(f.id, f.name));
+    const genFamilies = await supabase.from("genre_families").select("id, name");
+    if (!genFamilies.error && genFamilies.data) {
+      (genFamilies.data || []).forEach((f: { id: string; name: string }) => familyMap.set(f.id, f.name));
+    }
     const genreByUser = new Map<string, { id: string; name: string }>();
     (genreRows || []).forEach((r: { ip_user_id: string; genre_family_id: string }) => {
       genreByUser.set(r.ip_user_id, { id: r.genre_family_id, name: familyMap.get(r.genre_family_id) || "" });
