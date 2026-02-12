@@ -82,8 +82,8 @@ fi
 echo "=== Spotify Scraper Started at $(date) ===" >> logs/production.log
 echo "DISPLAY=$DISPLAY, HEADLESS=$HEADLESS" >> logs/production.log
 
-# Run the Python scraper
-python3 run_production_scraper.py >> logs/production.log 2>&1
+# Run the Python scraper (unbuffered so completion logs are always written before exit)
+python3 -u run_production_scraper.py >> logs/production.log 2>&1
 
 # Capture exit code
 EXIT_CODE=$?

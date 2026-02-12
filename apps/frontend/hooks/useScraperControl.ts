@@ -83,7 +83,7 @@ export function useTriggerScraper() {
   });
 }
 
-export function useScraperLogs(logType: 'production' | 'errors' | 'cron' | 'keepalive' | 'keepalive_cron' = 'production', lines: number = 100) {
+export function useScraperLogs(logType: 'production' | 'errors' | 'cron' | 'keepalive' | 'keepalive_cron' = 'production', lines: number = 500) {
   return useQuery({
     queryKey: ['scraper-logs', logType, lines],
     queryFn: async () => {

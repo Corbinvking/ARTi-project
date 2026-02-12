@@ -7,11 +7,12 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, password, roles } = body;
+    const { email, password, roles, name } = body;
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
+    const fullName = name || email.split('@')[0];
 
     // Create admin client with service role
     const supabaseAdmin = createClient(
@@ -55,12 +56,15 @@ export async function POST(request: Request) {
     }
 
     // Create user using admin client
+    const primaryRole = roles?.[0] || 'vendor';
     const { data, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
       user_metadata: {
-        role: roles?.[0] || 'vendor' // Store primary role in metadata
+        role: primaryRole,
+        full_name: fullName,
+        name: fullName,
       }
     });
 
@@ -86,20 +90,45 @@ export async function POST(request: Request) {
       }
     }
 
-    // Also insert into public.users table
+    // Insert into public.users and upsert profiles (with password in metadata) using service role
     if (data.user) {
       const { error: publicUserError } = await supabaseAdmin
         .from('users')
         .insert({
           id: data.user.id,
           email: data.user.email,
-          full_name: email.split('@')[0],
-          role: roles?.[0] || 'vendor'
+          full_name: fullName,
+          role: primaryRole
         });
 
       if (publicUserError) {
         console.warn('Error inserting into public.users:', publicUserError);
-        // Don't fail the request
+      }
+
+      // Ensure profile exists with admin_set_password so admins can see it in User Management
+      const { data: existingProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('id, metadata')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      const mergedMetadata = {
+        ...(existingProfile?.metadata || {}),
+        admin_set_password: password,
+      };
+
+      const { error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .upsert({
+          id: data.user.id,
+          email: data.user.email,
+          name: fullName,
+          role: primaryRole,
+          metadata: mergedMetadata,
+        }, { onConflict: 'id' });
+
+      if (profileError) {
+        console.warn('Error upserting profile (password visibility):', profileError);
       }
     }
 

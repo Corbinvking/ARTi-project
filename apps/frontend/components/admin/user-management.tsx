@@ -115,6 +115,7 @@ export function UserManagement() {
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set())
 
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const [settingPasswordId, setSettingPasswordId] = useState<string | null>(null)
   const { user: currentUser } = useAuth()
 
   useEffect(() => { loadUsers() }, [])
@@ -224,6 +225,7 @@ export function UserManagement() {
         body: JSON.stringify({
           email: newUser.email,
           password: newUser.password,
+          name: newUser.name,
           roles: [newUser.role === 'sales' ? 'salesperson' : newUser.role],
         })
       })
@@ -314,6 +316,36 @@ export function UserManagement() {
       toast.error(error.message || 'Failed to update user')
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Set password (for users showing "Not set" — generates password, stores in Auth + profiles)
+  // --------------------------------------------------------------------------
+  const handleSetPassword = async (userId: string) => {
+    try {
+      setSettingPasswordId(userId)
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch(`/api/admin/users/${userId}/set-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({}),
+      })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to set password')
+      }
+      const { password } = await response.json()
+      await loadUsers()
+      copyToClipboard(password, 'Password')
+      toast.success('Password set and copied to clipboard')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to set password')
+    } finally {
+      setSettingPasswordId(null)
     }
   }
 
@@ -483,7 +515,6 @@ export function UserManagement() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Vendor</TableHead>
               <TableHead>Password</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Login</TableHead>
@@ -493,14 +524,16 @@ export function UserManagement() {
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   {searchQuery || roleFilter !== "all" ? 'No users match your filters' : 'No users found'}
                 </TableCell>
               </TableRow>
             ) : (
               filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {user.role === 'vendor' && user.vendor_name ? user.vendor_name : user.name}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <span className="text-sm">{user.email}</span>
@@ -513,11 +546,6 @@ export function UserManagement() {
                     <Badge className={getRoleColor(user.role)} variant="secondary">
                       {user.role === 'salesperson' ? 'sales' : user.role}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {user.role === 'vendor' && user.vendor_name
-                      ? <span className="font-medium">{user.vendor_name}</span>
-                      : <span className="text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell>
                     {user.admin_set_password ? (
@@ -533,7 +561,22 @@ export function UserManagement() {
                         </Button>
                       </div>
                     ) : (
-                      <span className="text-xs text-muted-foreground">Not set</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground">Not set</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
+                          disabled={settingPasswordId === user.id}
+                          onClick={() => handleSetPassword(user.id)}
+                        >
+                          {settingPasswordId === user.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            'Set password'
+                          )}
+                        </Button>
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>

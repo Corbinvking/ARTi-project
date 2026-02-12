@@ -320,7 +320,7 @@ export async function scraperControlRoutes(server: FastifyInstance) {
   }>('/scraper/logs', async (request, reply) => {
     try {
       const logType = (request.query as any).type || 'production';
-      const lines = parseInt((request.query as any).lines || '100');
+      const lines = parseInt((request.query as any).lines || '500');
 
       const logFiles: Record<string, string> = {
         production: 'logs/production.log',

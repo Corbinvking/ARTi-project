@@ -1848,7 +1848,14 @@ async def _main_inner(limit=None):
         campaigns_success=total_success,
         campaigns_failed=total_failure
     )
-    
+    # Ensure completion logs are written before exit (avoids "hanging" log view when stdout is redirected)
+    try:
+        for h in logging.root.handlers:
+            h.flush()
+        sys.stdout.flush()
+        sys.stderr.flush()
+    except Exception:
+        pass
     return total_success > 0
 
 
@@ -1860,4 +1867,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     success = asyncio.run(main(limit=args.limit))
+    try:
+        sys.stdout.flush()
+        sys.stderr.flush()
+    except Exception:
+        pass
     sys.exit(0 if success else 1)

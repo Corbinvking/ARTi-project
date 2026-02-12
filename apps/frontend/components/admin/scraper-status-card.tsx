@@ -16,7 +16,7 @@ export function ScraperStatusCard() {
   const [showLogs, setShowLogs] = useState(false)
   const [logType, setLogType] = useState<'production' | 'errors' | 'cron' | 'keepalive' | 'keepalive_cron'>('production')
   const [autoRefresh, setAutoRefresh] = useState(true)
-  const { data: logs, refetch: fetchLogs, isFetching: logsLoading } = useScraperLogs(logType, 100)
+  const { data: logs, refetch: fetchLogs, isFetching: logsLoading } = useScraperLogs(logType, 500)
   const logsContainerRef = useRef<HTMLDivElement>(null)
 
   // Auto-scroll to bottom when logs update
