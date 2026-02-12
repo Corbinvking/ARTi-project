@@ -53,20 +53,22 @@ import { useAuth } from "@/hooks/use-auth";
 
 interface Campaign {
   id: string;
-  track_name: string;
-  artist_name: string;
-  track_url: string;
-  campaign_type: string;
+  track_info: string;
+  track_name: string;   // parsed from track_info
+  artist_name: string;  // parsed from track_info
+  track_url: string;    // mapped from `url`
+  campaign_type: string; // mapped from `service_type`
   status: string;
-  goals: number;
-  remaining_metrics: number;
-  sales_price: number;
-  invoice_status: string;
+  goals: number;         // parsed from `goal` text
+  remaining_metrics: number; // parsed from `remaining` text
+  sales_price: number;   // parsed from `sale_price` text
+  invoice_status: string; // mapped from `invoice`
   source_invoice_id?: string;
   start_date: string;
-  submission_date: string;
-  client_id: string;
+  submission_date: string; // mapped from `submit_date`
   notes: string;
+  internal_notes?: string;
+  client_notes?: string;
   weekly_reporting_enabled?: boolean;
   client: {
     name: string;
@@ -90,56 +92,6 @@ export default function CampaignsPage() {
   const { user } = useAuth();
   const { getTotalReach, loading: reachLoading } = useCampaignReachData();
 
-  // Helper function to extract clean track name from SoundCloud URL
-  const extractTrackName = (url: string): string => {
-    if (!url) return 'Unknown Track';
-    
-    try {
-      // Get the last part of the URL path
-      const urlPath = url.split('?')[0]; // Remove query parameters
-      const trackSlug = urlPath.split('/').pop() || '';
-      
-      if (!trackSlug) return 'Unknown Track';
-      
-      // Check if it looks like a hash/ID (mostly numbers/random characters)
-      // If it has more than 50% non-alphabetic characters or is very short, it's likely a hash
-      const alphaChars = trackSlug.replace(/[^a-zA-Z]/g, '').length;
-      const totalChars = trackSlug.length;
-      const alphaRatio = alphaChars / totalChars;
-      
-      // If less than 30% alphabetic characters, it's probably a hash/ID
-      if (alphaRatio < 0.3 || trackSlug.length < 5) {
-        return 'Untitled Track';
-      }
-      
-      // URL decode
-      let decoded = decodeURIComponent(trackSlug);
-      
-      // Replace hyphens and underscores with spaces
-      decoded = decoded.replace(/[-_]/g, ' ');
-      
-      // Clean up extra spaces
-      decoded = decoded.replace(/\s+/g, ' ').trim();
-      
-      // Capitalize first letter of each word
-      decoded = decoded.split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      
-      // Final check - if result looks like a hash (too many numbers/special chars)
-      const finalAlphaChars = decoded.replace(/[^a-zA-Z\s]/g, '').length;
-      const finalTotalChars = decoded.length;
-      if (finalAlphaChars / finalTotalChars < 0.4) {
-        return 'Untitled Track';
-      }
-      
-      return decoded || 'Unknown Track';
-    } catch (error) {
-      console.warn('Failed to parse track name from URL:', url);
-      return 'Unknown Track';
-    }
-  };
-
   useEffect(() => {
     fetchCampaigns();
   }, []);
@@ -148,69 +100,72 @@ export default function CampaignsPage() {
     filterCampaigns();
   }, [campaigns, searchTerm, statusFilter, sortBy, sortDirection]);
 
+  /** Parse "Artist - Track" from track_info string */
+  const parseTrackInfo = (trackInfo: string): { artist: string; track: string } => {
+    if (!trackInfo) return { artist: 'Unknown Artist', track: 'Unknown Track' };
+    const dashIdx = trackInfo.indexOf(' - ');
+    if (dashIdx > 0) {
+      return {
+        artist: trackInfo.substring(0, dashIdx).trim(),
+        track: trackInfo.substring(dashIdx + 3).trim(),
+      };
+    }
+    return { artist: 'Unknown Artist', track: trackInfo.trim() };
+  };
+
+  /** Parse text number like "20000000.0" → 20000000 */
+  const parseGoalNumber = (val: string | number | null): number => {
+    if (!val) return 0;
+    if (typeof val === 'number') return val;
+    return Math.round(parseFloat(val.replace(/,/g, '')) || 0);
+  };
+
+  /** Parse "$1000" or "1000" → 1000 */
+  const parseSalePrice = (val: string | number | null): number => {
+    if (!val) return 0;
+    if (typeof val === 'number') return val;
+    return parseFloat(val.replace(/[$,]/g, '')) || 0;
+  };
+
   const fetchCampaigns = async () => {
     try {
-      // Query soundcloud_submissions since that's where the imported campaigns are
-      // Add cache-busting timestamp to force fresh data
+      // Query soundcloud_campaigns (flat text columns — actual production schema)
       const { data, error } = await supabase
-        .from('soundcloud_submissions' as any)
+        .from('soundcloud_campaigns')
         .select('*')
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Transform submissions to match campaign structure
-      // Map database status values to UI display values
-      const displayStatusMap: Record<string, string> = {
-        pending: 'Pending',
-        ready: 'Ready',
-        active: 'Active',
-        complete: 'Complete',
-        on_hold: 'On Hold',
-        new: 'Pending',
-        approved: 'Active',
-        rejected: 'On Hold',
-      };
-      
-      const transformedData = ((data || []) as any[]).map((submission: any, idx: number) => {
-        // Debug: Log first few records to see what we're getting from DB
-        if (idx < 3) {
-          console.log('📊 Submission from DB:', {
-            id: submission.id,
-            track_name_from_db: submission.track_name,
-            track_url: submission.track_url?.substring(0, 60),
-            artist_name: submission.artist_name
-          });
-        }
-        
+
+      const transformedData = ((data || []) as any[]).map((row: any) => {
+        const { artist, track } = parseTrackInfo(row.track_info);
+
         return {
-          id: submission.id,
-          // Use stored track_name if available, otherwise extract from URL
-          track_name: submission.track_name || extractTrackName(submission.track_url),
-          track_url: submission.track_url,
-          artist_name: submission.artist_name || 'Unknown Artist',
-          campaign_type: 'Repost Network', // Default for SoundCloud submissions
-          status: displayStatusMap[submission.status] || 'Pending',
-          goals: submission.expected_reach_planned || 0, // Map to expected field name
-          remaining_metrics: 0,
-          sales_price: 0,
-          invoice_status: submission.invoice_status || 'pending',
-          source_invoice_id: submission.source_invoice_id || undefined,
-          start_date: submission.support_date,
-          submission_date: submission.submitted_at,
-          notes: submission.notes || '',
-          internal_notes: submission.internal_notes || '',
-          client_notes: submission.client_notes || '',
-          created_at: submission.created_at,
-          client_id: submission.client_id || submission.member_id || '',
-          track_url: submission.track_url,
+          id: String(row.id),
+          track_info: row.track_info || '',
+          track_name: track,
+          artist_name: artist,
+          track_url: row.url || '',
+          campaign_type: row.service_type || 'Reposts',
+          status: row.status || 'Active',
+          goals: parseGoalNumber(row.goal),
+          remaining_metrics: parseGoalNumber(row.remaining),
+          sales_price: parseSalePrice(row.sale_price),
+          invoice_status: row.invoice || 'TBD',
+          source_invoice_id: row.source_invoice_id || undefined,
+          start_date: row.start_date || '',
+          submission_date: row.submit_date || '',
+          notes: row.notes || '',
+          internal_notes: row.internal_notes || '',
+          client_notes: row.client_notes || '',
+          weekly_reporting_enabled: row.weekly_reporting_enabled || false,
           client: {
-            name: submission.client_name || submission.artist_name || 'Unknown',
-            email: submission.client_email || ''
-          }
+            name: row.client || 'Unknown',
+            email: row.salesperson_email || '',
+          },
         };
       });
-      
+
       setCampaigns(transformedData);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
@@ -293,7 +248,7 @@ export default function CampaignsPage() {
   const deleteCampaign = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('soundcloud_submissions')
+        .from('soundcloud_campaigns')
         .delete()
         .eq('id', id);
 
@@ -325,32 +280,14 @@ export default function CampaignsPage() {
     }
   };
 
-  // Map database status to UI display status
+  // In the actual DB, status is stored as plain text ("Active", "Complete", etc.)
+  // so display and DB values are the same
   const getDisplayStatus = (dbStatus: string): string => {
-    const displayMap: Record<string, string> = {
-      pending: 'Pending',
-      ready: 'Ready',
-      active: 'Active',
-      complete: 'Complete',
-      on_hold: 'On Hold',
-      new: 'Pending',
-      approved: 'Active',
-      rejected: 'On Hold',
-    };
-    return displayMap[dbStatus] || dbStatus;
+    return dbStatus || 'Pending';
   };
 
-  // Map UI status to database status
   const getDbStatus = (uiStatus: string): string => {
-    const dbMap: Record<string, string> = {
-      'Pending': 'pending',
-      'Ready': 'ready',
-      'Active': 'active',
-      'Complete': 'complete',
-      'On Hold': 'on_hold',
-      'Cancelled': 'on_hold',
-    };
-    return dbMap[uiStatus] || uiStatus;
+    return uiStatus;
   };
 
   const updateCampaignStatus = async (campaignId: string, newStatus: string) => {
@@ -361,7 +298,7 @@ export default function CampaignsPage() {
       console.log('📝 Updating to DB status:', dbStatus);
       
       const { data, error } = await supabase
-        .from('soundcloud_submissions')
+        .from('soundcloud_campaigns')
         .update({ status: dbStatus, updated_at: new Date().toISOString() })
         .eq('id', campaignId)
         .select();
@@ -385,7 +322,7 @@ export default function CampaignsPage() {
       });
 
       // Auto-send tracking link email when campaign is activated
-      if (dbStatus === 'active') {
+      if (dbStatus === 'Active') {
         const campaign = campaigns.find(c => c.id === campaignId);
         if (campaign?.client?.email) {
           try {
@@ -408,10 +345,13 @@ export default function CampaignsPage() {
             );
 
             if (!emailError) {
-              // Update tracking_link_sent_at timestamp
+              // Update tracking_link_sent_at
               await supabase
-                .from('soundcloud_submissions')
-                .update({ tracking_link_sent_at: new Date().toISOString() })
+                .from('soundcloud_campaigns')
+                .update({ 
+                  tracking_link_sent_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
                 .eq('id', campaignId);
 
               toast({

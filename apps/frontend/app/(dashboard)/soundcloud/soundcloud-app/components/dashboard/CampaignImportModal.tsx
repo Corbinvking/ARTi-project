@@ -43,28 +43,38 @@ interface CampaignImportModalProps {
   onImportComplete?: () => void;
 }
 
-// SoundCloud submission field definitions
+// SoundCloud campaign field definitions (targets soundcloud_campaigns table)
 const REQUIRED_FIELDS = [
   { key: 'track_url', label: 'Track URL', required: true },
+  { key: 'track_info', label: 'Track Info (Artist - Track)', required: false },
   { key: 'artist_name', label: 'Artist Name', required: false },
   { key: 'track_name', label: 'Track Name', required: false },
+  { key: 'client', label: 'Client', required: false },
   { key: 'status', label: 'Status', required: false },
-  { key: 'support_date', label: 'Support Date', required: false },
-  { key: 'expected_reach_planned', label: 'Goal (Expected Reach)', required: false },
+  { key: 'start_date', label: 'Start Date', required: false },
+  { key: 'submission_date', label: 'Submit Date', required: false },
+  { key: 'goals', label: 'Goal (Reach)', required: false },
+  { key: 'remaining', label: 'Remaining', required: false },
+  { key: 'campaign_type', label: 'Service Type', required: false },
+  { key: 'invoice_status', label: 'Invoice Status', required: false },
   { key: 'notes', label: 'Notes', required: false },
-  { key: 'family', label: 'Family/Genre', required: false },
 ];
 
 // Column auto-detection patterns
 const COLUMN_PATTERNS: ColumnPattern[] = [
   { field: 'track_url', pattern: /^(track\s*url|url|link|soundcloud\s*url|soundcloud\s*link)$/i },
-  { field: 'artist_name', pattern: /^(artist|artist\s*name|client|name)$/i },
+  { field: 'track_info', pattern: /^(track\s*info)$/i },
+  { field: 'artist_name', pattern: /^(artist|artist\s*name)$/i },
   { field: 'track_name', pattern: /^(track|track\s*name|song|title)$/i },
+  { field: 'client', pattern: /^(client|client\s*name|label)$/i },
   { field: 'status', pattern: /^(status|state)$/i },
-  { field: 'support_date', pattern: /^(support\s*date|date|start\s*date|launch\s*date)$/i },
-  { field: 'expected_reach_planned', pattern: /^(goal|expected\s*reach|reach|target|reposts?)$/i },
+  { field: 'start_date', pattern: /^(start\s*date|launch\s*date)$/i },
+  { field: 'submission_date', pattern: /^(submit\s*date|submission\s*date|date\s*submitted)$/i },
+  { field: 'goals', pattern: /^(goal|goals|expected\s*reach|reach|target|reposts?)$/i },
+  { field: 'remaining', pattern: /^(remaining|remaining\s*metrics|left)$/i },
+  { field: 'campaign_type', pattern: /^(service\s*type|campaign\s*type|type)$/i },
+  { field: 'invoice_status', pattern: /^(invoice|invoice\s*status|payment)$/i },
   { field: 'notes', pattern: /^(notes?|comments?|description)$/i },
-  { field: 'family', pattern: /^(family|genre|subgenre|category)$/i },
 ];
 
 type ImportStep = 'upload' | 'mapping' | 'importing';
@@ -88,42 +98,9 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
   // Fetch existing count
   const fetchExistingCount = async () => {
     const { count } = await supabase
-      .from('soundcloud_submissions' as any)
+      .from('soundcloud_campaigns')
       .select('*', { count: 'exact', head: true });
     setExistingCount(count || 0);
-  };
-
-  // Get or create the CSV Import member (placeholder for imports)
-  const getOrCreateImportMember = async (): Promise<string> => {
-    // Check if CSV Import member exists
-    const { data: existingMember } = await supabase
-      .from('soundcloud_members')
-      .select('id')
-      .eq('name', 'CSV Import')
-      .single();
-
-    if (existingMember) {
-      return existingMember.id;
-    }
-
-    // Create CSV Import member
-    const { data: newMember, error } = await supabase
-      .from('soundcloud_members')
-      .insert({
-        name: 'CSV Import',
-        status: 'active',
-        primary_email: 'csv-import@placeholder.local',
-        size_tier: 'medium',
-      })
-      .select('id')
-      .single();
-
-    if (error) {
-      console.error('Error creating CSV Import member:', error);
-      throw new Error('Failed to create import placeholder member');
-    }
-
-    return newMember.id;
   };
 
   // Export backup
@@ -131,18 +108,18 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
     setIsExportingBackup(true);
     try {
       const { data } = await supabase
-        .from('soundcloud_submissions' as any)
+        .from('soundcloud_campaigns')
         .select('*')
         .order('created_at');
 
       if (!data || data.length === 0) {
-        toast({ title: "No Submissions", description: "No submissions to backup." });
+        toast({ title: "No Campaigns", description: "No campaigns to backup." });
         return;
       }
 
       const timestamp = new Date().toISOString().split('T')[0];
-      downloadCSV(data, `soundcloud_submissions_backup_${timestamp}.csv`);
-      toast({ title: "Backup Exported", description: `Exported ${data.length} submissions.` });
+      downloadCSV(data, `soundcloud_campaigns_backup_${timestamp}.csv`);
+      toast({ title: "Backup Exported", description: `Exported ${data.length} campaigns.` });
     } catch (error: any) {
       toast({ title: "Export Failed", description: error.message, variant: "destructive" });
     } finally {
@@ -150,15 +127,15 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
     }
   };
 
-  // Delete all existing submissions
-  const deleteAllSubmissions = async () => {
+  // Delete all existing campaigns
+  const deleteAllCampaigns = async () => {
     const { error } = await supabase
-      .from('soundcloud_submissions' as any)
+      .from('soundcloud_campaigns')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000');
+      .gt('id', 0);
 
     if (error) {
-      console.error('Error deleting submissions:', error);
+      console.error('Error deleting campaigns:', error);
       throw error;
     }
   };
@@ -195,24 +172,30 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
   const downloadTemplate = () => {
     const templateData = [
       {
+        'Track Info': 'Artist Name - Track Title',
+        'Client': 'Client Name',
         'Track URL': 'https://soundcloud.com/artist/track-name',
-        'Artist Name': 'Artist Name',
-        'Track Name': 'Track Title',
-        'Status': 'new',
-        'Support Date': '2025-01-01',
-        'Goal': '10000',
+        'Status': 'active',
+        'Start Date': '1/15/2026',
+        'Submit Date': '1/10/2026',
+        'Goal': '10000000',
+        'Remaining': '5000000',
+        'Service Type': 'Reposts',
+        'Invoice': 'Sent',
         'Notes': 'Campaign notes',
-        'Family': 'Electronic',
       },
       {
+        'Track Info': 'Another Artist - Another Track',
+        'Client': 'Another Client',
         'Track URL': 'https://soundcloud.com/another-artist/another-track',
-        'Artist Name': 'Another Artist',
-        'Track Name': 'Another Track',
-        'Status': 'approved',
-        'Support Date': '2025-01-15',
-        'Goal': '5000',
+        'Status': 'active',
+        'Start Date': '2/1/2026',
+        'Submit Date': '1/28/2026',
+        'Goal': '20000000',
+        'Remaining': '15000000',
+        'Service Type': 'Reposts',
+        'Invoice': 'TBD',
         'Notes': '',
-        'Family': 'Hip Hop',
       },
     ];
     downloadCSV(templateData, 'soundcloud_campaign_import_template.csv');
@@ -229,6 +212,19 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
     }
 
     return errors;
+  };
+
+  /** Parse "Artist - Track" format from Track Info column */
+  const parseTrackInfo = (trackInfo: string): { artist: string; track: string } => {
+    if (!trackInfo) return { artist: '', track: '' };
+    const dashIdx = trackInfo.indexOf(' - ');
+    if (dashIdx > 0) {
+      return {
+        artist: trackInfo.substring(0, dashIdx).trim(),
+        track: trackInfo.substring(dashIdx + 3).trim(),
+      };
+    }
+    return { artist: '', track: trackInfo.trim() };
   };
 
   const processImport = async () => {
@@ -251,70 +247,89 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
     try {
       // PHASE 0: Delete existing if replace mode
       if (replaceMode) {
-        setImportProgress({ current: 0, total: 1, phase: 'Deleting existing submissions...', phaseNum: 0, totalPhases: 3 });
-        await deleteAllSubmissions();
+        setImportProgress({ current: 0, total: 1, phase: 'Deleting existing campaigns...', phaseNum: 0, totalPhases: 3 });
+        await deleteAllCampaigns();
       }
 
-      // PHASE 1: Get or create import member
-      setImportProgress({ current: 0, total: 1, phase: 'Preparing import...', phaseNum: 1, totalPhases: 3 });
-      setImportStatus('Phase 1/3: Creating import placeholder...');
+      // PHASE 1: Create clients from CSV data
+      setImportProgress({ current: 0, total: 1, phase: 'Preparing clients...', phaseNum: 1, totalPhases: 3 });
+      setImportStatus('Phase 1/3: Creating clients...');
 
-      const importMemberId = await getOrCreateImportMember();
+      // Build a cache of client_name → client_id
+      const clientCache = new Map<string, string>();
+      const clientColumn = columnMappings.client;
+      if (clientColumn && clientColumn !== '__SKIP__') {
+        const uniqueClients = new Set(csvData!.rows.map(r => (r[clientColumn] || '').trim()).filter(Boolean));
+        let clientIdx = 0;
+        for (const clientName of uniqueClients) {
+          clientIdx++;
+          setImportStatus(`Phase 1/3: Creating client ${clientIdx}/${uniqueClients.size}: ${clientName}`);
+          try {
+            const clientId = await getOrCreateClient(clientName);
+            clientCache.set(clientName, clientId);
+          } catch (err: any) {
+            errors.push(`Client "${clientName}": ${err.message}`);
+          }
+        }
+      }
 
-      // Status mapping from display values to database values
-      const statusMap: Record<string, string> = {
-        'pending': 'new',
-        'active': 'approved',
-        'live': 'approved',
-        'complete': 'complete',
-        'completed': 'complete',
-        'cancelled': 'rejected',
-        'rejected': 'rejected',
-        'new': 'new',
-        'approved': 'approved',
-      };
+      // PHASE 2: Prepare and insert campaigns (actual DB schema: flat text columns)
+      setImportProgress({ current: 0, total: csvData!.rows.length, phase: 'Importing campaigns...', phaseNum: 2, totalPhases: 3 });
+      setImportStatus('Phase 2/3: Preparing campaign data...');
 
-      // PHASE 2: Prepare and insert submissions
-      setImportProgress({ current: 0, total: csvData!.rows.length, phase: 'Importing submissions...', phaseNum: 2, totalPhases: 3 });
-      setImportStatus('Phase 2/3: Preparing submission data...');
+      const campaignRows = csvData!.rows.map(row => {
+        // Build track_info from either track_info column or artist + track
+        let trackInfo = '';
+        if (columnMappings.track_info && columnMappings.track_info !== '__SKIP__') {
+          trackInfo = row[columnMappings.track_info] || '';
+        }
+        if (!trackInfo) {
+          const artist = row[columnMappings.artist_name] || '';
+          const track = row[columnMappings.track_name] || '';
+          trackInfo = artist && track ? `${artist} - ${track}` : artist || track;
+        }
 
-      const submissionRows = csvData!.rows.map(row => {
-        const rawStatus = (row[columnMappings.status] || 'new').toLowerCase().trim();
-        const dbStatus = statusMap[rawStatus] || 'new';
+        // Client name
+        const clientName = clientColumn && clientColumn !== '__SKIP__'
+          ? (row[clientColumn] || '').trim()
+          : '';
 
         return {
-          member_id: importMemberId,
-          track_url: row[columnMappings.track_url] || '',
-          artist_name: row[columnMappings.artist_name] || '',
-          track_name: row[columnMappings.track_name] || '',
-          status: dbStatus,
-          support_date: parseDateString(row[columnMappings.support_date]),
-          expected_reach_planned: parseGoalString(row[columnMappings.expected_reach_planned]),
+          track_info: trackInfo || null,
+          client: clientName,
+          url: row[columnMappings.track_url] || '',
+          service_type: row[columnMappings.campaign_type] || 'Reposts',
+          status: row[columnMappings.status] || 'Active',
+          start_date: row[columnMappings.start_date] || '',
+          submit_date: row[columnMappings.submission_date] || '',
+          goal: row[columnMappings.goals] || '',
+          remaining: row[columnMappings.remaining] || '',
+          invoice: row[columnMappings.invoice_status] || 'TBD',
           notes: row[columnMappings.notes] || '',
-          family: row[columnMappings.family] || '',
+          internal_notes: row[columnMappings.notes] || null,
         };
-      }).filter(row => row.track_url);
+      }).filter(row => row.url);
 
       // Batch insert
       let createdCount = 0;
-      const totalBatches = Math.ceil(submissionRows.length / BATCH_SIZE);
+      const totalBatches = Math.ceil(campaignRows.length / BATCH_SIZE);
 
       for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
         const start = batchIdx * BATCH_SIZE;
-        const end = Math.min(start + BATCH_SIZE, submissionRows.length);
-        const batch = submissionRows.slice(start, end);
+        const end = Math.min(start + BATCH_SIZE, campaignRows.length);
+        const batch = campaignRows.slice(start, end);
 
         setImportProgress({
           current: end,
-          total: submissionRows.length,
-          phase: `Importing submissions (batch ${batchIdx + 1}/${totalBatches})...`,
+          total: campaignRows.length,
+          phase: `Importing campaigns (batch ${batchIdx + 1}/${totalBatches})...`,
           phaseNum: 2,
           totalPhases: 3,
         });
-        setImportStatus(`Phase 2/3: Importing submissions ${start + 1}-${end} of ${submissionRows.length}...`);
+        setImportStatus(`Phase 2/3: Importing campaigns ${start + 1}-${end} of ${campaignRows.length}...`);
 
         const { data, error } = await supabase
-          .from('soundcloud_submissions' as any)
+          .from('soundcloud_campaigns')
           .insert(batch)
           .select('id');
 
@@ -334,12 +349,12 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
       setImportErrors(errors);
 
       // Success
-      const summary = `Import complete! ${createdCount} submissions created.${errors.length > 0 ? ` (${errors.length} warnings)` : ''}${replaceMode ? ' (replaced existing)' : ''}`;
+      const summary = `Import complete! ${createdCount} campaigns created (${clientCache.size} clients).${errors.length > 0 ? ` (${errors.length} warnings)` : ''}${replaceMode ? ' (replaced existing)' : ''}`;
       setImportStatus(summary);
       setImportProgress({ current: 1, total: 1, phase: 'Complete!', phaseNum: 3, totalPhases: 3 });
 
       // Refresh data
-      queryClient.invalidateQueries({ queryKey: ['soundcloud-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['soundcloud-campaigns'] });
 
       toast({ title: "Import Successful", description: summary });
 
@@ -393,15 +408,15 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
         <CardContent className="pt-0">
           <p className="text-sm text-muted-foreground">
             {replaceMode
-              ? "All existing submissions will be deleted before importing."
-              : "New submissions will be added alongside existing ones."}
+              ? "All existing campaigns will be deleted before importing."
+              : "New campaigns will be added alongside existing ones."}
           </p>
           {replaceMode && existingCount > 0 && (
             <Alert variant="destructive" className="mt-3">
               <Trash2 className="h-4 w-4" />
               <AlertTitle>Warning</AlertTitle>
               <AlertDescription>
-                This will delete <strong>{existingCount}</strong> existing submissions.
+                This will delete <strong>{existingCount}</strong> existing campaigns.
               </AlertDescription>
             </Alert>
           )}
@@ -437,7 +452,7 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
         <CardContent>
           <div className="text-sm space-y-1">
             <p><Badge variant="default" className="mr-2">Required</Badge> Track URL</p>
-            <p><Badge variant="outline" className="mr-2">Optional</Badge> Artist Name, Track Name, Status, Support Date, Goal, Notes, Family/Genre</p>
+            <p><Badge variant="outline" className="mr-2">Optional</Badge> Track Info, Artist Name, Track Name, Client, Status, Start Date, Submit Date, Goal, Remaining, Service Type, Invoice Status, Notes</p>
           </div>
         </CardContent>
       </Card>
@@ -640,9 +655,9 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete All Submissions?</AlertDialogTitle>
+            <AlertDialogTitle>Delete All Campaigns?</AlertDialogTitle>
             <AlertDialogDescription>
-              You are about to delete <strong>{existingCount}</strong> existing submissions.
+              You are about to delete <strong>{existingCount}</strong> existing campaigns.
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

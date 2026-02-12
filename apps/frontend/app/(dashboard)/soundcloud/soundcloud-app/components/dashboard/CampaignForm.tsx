@@ -16,9 +16,7 @@ import { supabase } from "../../integrations/supabase/client";
 import { useToast } from "../../hooks/use-toast";
 
 interface Client {
-  id: string;
   name: string;
-  email: string;
 }
 
 interface Campaign {
@@ -76,13 +74,17 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
 
   const fetchClients = async () => {
     try {
+      // Get unique client names from existing campaigns (no soundcloud_clients table)
       const { data, error } = await supabase
-        .from('soundcloud_clients')
-        .select('id, name, email')
-        .order('name');
+        .from('soundcloud_campaigns')
+        .select('client')
+        .order('client');
 
       if (error) throw error;
-      setClients(data || []);
+      
+      // Deduplicate
+      const uniqueNames = [...new Set((data || []).map((r: any) => r.client).filter(Boolean))];
+      setClients(uniqueNames.map(name => ({ name })));
     } catch (error) {
       console.error('Error fetching clients:', error);
     }
@@ -95,98 +97,36 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
     }));
   };
 
-  const createClient = async () => {
-    if (!newClient.name || !newClient.email) {
-      toast({
-        title: "Error",
-        description: "Please fill in all client fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('soundcloud_clients')
-        .insert([newClient])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setClients(prev => [...prev, data]);
-      setFormData(prev => ({ ...prev, client_id: data.id }));
-      setNewClient({ name: "", email: "" });
-      setShowNewClientForm(false);
-
-      toast({
-        title: "Success",
-        description: "Client created successfully",
-      });
-    } catch (error) {
-      console.error('Error creating client:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create client",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Default org ID (Artist Influence)
-      const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
-      
-      // Map form data to soundcloud_submissions schema
-      // Status mapping: Form uses capitalized values, database uses lowercase enum
-      const statusMap: Record<string, string> = {
-        'Pending': 'new',
-        'Active': 'approved',
-        'Complete': 'approved',
-        'Cancelled': 'rejected',
-      };
-      
-      const submissionData = {
-        org_id: DEFAULT_ORG_ID,
-        client_id: formData.client_id || null,
-        member_id: null, // Client campaigns don't have member_id
-        track_url: formData.track_url,
-        artist_name: formData.artist_name,
-        track_name: formData.track_name,
-        status: statusMap[formData.status] || 'new',
-        expected_reach_planned: formData.goals,
-        support_date: formData.start_date || null,
-        notes: formData.internal_notes || formData.notes || null,
-        internal_notes: formData.internal_notes || null,
-        client_notes: formData.client_notes || null,
-        qa_flag: false,
-        need_live_link: false,
-        suggested_supporters: [],
-        expected_reach_min: 0,
-        expected_reach_max: 0,
-      };
+      // Build track_info from artist + track name
+      const trackInfo = formData.artist_name && formData.track_name
+        ? `${formData.artist_name} - ${formData.track_name}`
+        : formData.track_name || formData.artist_name || '';
 
       if (campaign?.id) {
-        // Update existing campaign in soundcloud_submissions
-        const updateData = {
-          track_url: formData.track_url,
-          artist_name: formData.artist_name,
-          track_name: formData.track_name,
-          status: statusMap[formData.status] || 'new',
-          expected_reach_planned: formData.goals,
-          support_date: formData.start_date || null,
-          notes: formData.internal_notes || formData.notes || null,
-          internal_notes: formData.internal_notes || null,
-          client_notes: formData.client_notes || null,
+        // Update existing campaign (actual DB schema: flat text columns)
+        const updateData: Record<string, any> = {
+          track_info: trackInfo,
+          url: formData.track_url,
+          service_type: formData.campaign_type,
+          status: formData.status,
+          goal: String(formData.goals || 0),
+          remaining: String(formData.remaining_metrics || 0),
+          sale_price: formData.sales_price ? `$${formData.sales_price}` : '',
+          invoice: formData.invoice_status,
+          start_date: formData.start_date || '',
+          notes: formData.notes || '',
+          internal_notes: formData.internal_notes || '',
+          client_notes: formData.client_notes || '',
           updated_at: new Date().toISOString(),
         };
 
         const { error } = await supabase
-          .from('soundcloud_submissions' as any)
+          .from('soundcloud_campaigns')
           .update(updateData)
           .eq('id', campaign.id);
 
@@ -197,15 +137,26 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
           description: "Campaign updated successfully",
         });
       } else {
-        // Create new campaign in soundcloud_submissions
-        const insertData = {
-          ...submissionData,
-          submitted_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
+        // Create new campaign (actual DB schema: flat text columns)
+        const insertData: Record<string, any> = {
+          track_info: trackInfo,
+          client: formData.client_id || '', // client_id here is actually the client name from the dropdown
+          url: formData.track_url,
+          service_type: formData.campaign_type,
+          status: formData.status || 'Active',
+          goal: String(formData.goals || 0),
+          remaining: String(formData.remaining_metrics || 0),
+          sale_price: formData.sales_price ? `$${formData.sales_price}` : '',
+          invoice: formData.invoice_status,
+          start_date: formData.start_date || '',
+          submit_date: new Date().toLocaleDateString('en-US'),
+          notes: formData.notes || '',
+          internal_notes: formData.internal_notes || '',
+          client_notes: formData.client_notes || '',
         };
 
         const { error } = await supabase
-          .from('soundcloud_submissions' as any)
+          .from('soundcloud_campaigns')
           .insert([insertData]);
 
         if (error) throw error;
@@ -245,8 +196,8 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
               </SelectTrigger>
               <SelectContent>
                 {clients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name} ({client.email})
+                  <SelectItem key={client.name} value={client.name}>
+                    {client.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -266,15 +217,20 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
               value={newClient.name}
               onChange={(e) => setNewClient(prev => ({ ...prev, name: e.target.value }))}
             />
-            <Input
-              placeholder="Client email"
-              type="email"
-              value={newClient.email}
-              onChange={(e) => setNewClient(prev => ({ ...prev, email: e.target.value }))}
-            />
             <div className="flex gap-2">
-              <Button type="button" onClick={createClient} size="sm">
-                Create Client
+              <Button 
+                type="button" 
+                onClick={() => {
+                  if (newClient.name) {
+                    setClients(prev => [...prev, { name: newClient.name }]);
+                    handleInputChange('client_id', newClient.name);
+                    setNewClient({ name: "", email: "" });
+                    setShowNewClientForm(false);
+                  }
+                }} 
+                size="sm"
+              >
+                Add Client
               </Button>
               <Button 
                 type="button" 

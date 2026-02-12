@@ -95,14 +95,14 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
   ) => {
     setSavingNotes(true);
     try {
-      const updatePayload =
+      const updatePayload: Record<string, any> =
         fieldKey === 'internal_notes'
           ? { internal_notes: value.trim() || null, notes: value.trim() || null }
           : { client_notes: value.trim() || null };
 
       const { error } = await supabase
-        .from('soundcloud_submissions')
-        .update(updatePayload)
+        .from('soundcloud_campaigns')
+        .update({ ...updatePayload, updated_at: new Date().toISOString() })
         .eq('id', campaign.id);
 
       if (error) throw error;
@@ -143,14 +143,14 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
     const suggested = fieldKey === 'internal_notes' ? suggestedInternalNotes : suggestedClientNotes;
     setSavingNotes(true);
     try {
-      const updatePayload =
+      const updatePayload: Record<string, any> =
         fieldKey === 'internal_notes'
           ? { internal_notes: suggested || null, notes: suggested || null }
           : { client_notes: suggested || null };
 
       const { error } = await supabase
-        .from('soundcloud_submissions')
-        .update(updatePayload)
+        .from('soundcloud_campaigns')
+        .update({ ...updatePayload, updated_at: new Date().toISOString() })
         .eq('id', campaign.id);
 
       if (error) throw error;
