@@ -1818,14 +1818,14 @@ export default function InstagramCampaignsPage() {
                       <div className="flex items-center gap-2">
                         <Label className="text-xs text-muted-foreground whitespace-nowrap">Link to page:</Label>
                         <Select
-                          value={selectedCreatorForPost}
-                          onValueChange={setSelectedCreatorForPost}
+                          value={selectedCreatorForPost || "__none__"}
+                          onValueChange={(v) => setSelectedCreatorForPost(v === "__none__" ? "" : v)}
                         >
                           <SelectTrigger className="h-8 text-sm">
                             <SelectValue placeholder="Select page (optional)" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">No page link</SelectItem>
+                            <SelectItem value="__none__">No page link</SelectItem>
                             {campaignCreators.map((creator) => (
                               <SelectItem key={creator.id} value={creator.id}>
                                 @{creator.instagram_handle}
