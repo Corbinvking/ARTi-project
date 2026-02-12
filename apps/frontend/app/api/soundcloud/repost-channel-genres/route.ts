@@ -92,6 +92,20 @@ export async function PUT(request: Request) {
       );
 
     if (insertError) {
+      const msg = String(insertError.message ?? "");
+      // 23505 = unique_violation: usually means migration for multiple genres per channel not applied
+      const isDuplicate =
+        (insertError as { code?: string }).code === "23505" ||
+        (msg.includes("duplicate key") && msg.includes("ip_user_id"));
+      if (isDuplicate) {
+        return NextResponse.json(
+          {
+            error:
+              "Only one genre per channel is allowed. To allow multiple genres, run the database migration 20260216_repost_channel_genres_multiple.sql on the server.",
+          },
+          { status: 409 }
+        );
+      }
       return NextResponse.json(
         { error: insertError.message },
         { status: 500 }
