@@ -294,28 +294,12 @@ export function UserManagement() {
         return
       }
 
-      // PUT updates Auth (login password) + DB; PATCH only DB. Use PUT when changing password.
-      const method = body.password ? 'PUT' : 'PATCH'
-      let response = await fetch(`/api/admin/users/${editUser.id}`, {
-        method,
+      // Static route avoids 404 on dynamic /api/admin/users/[id] (Auth + DB updated)
+      const response = await fetch('/api/admin/users/update', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ id: editUser.id, ...body })
       })
-
-      // If PUT returns 404 (Auth unreachable / different Supabase), fall back to PATCH so at least DB is saved
-      if (response.status === 404 && method === 'PUT') {
-        response = await fetch(`/api/admin/users/${editUser.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        })
-        if (response.ok) {
-          toast.warning('Name, role and displayed password saved. Login password could not be updated; ensure your deployment uses the same Supabase URL as your app (e.g. api.artistinfluence.com).')
-          setEditUser(null)
-          await loadUsers()
-          return
-        }
-      }
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
