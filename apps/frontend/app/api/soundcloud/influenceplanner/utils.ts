@@ -56,8 +56,10 @@ export const getAuthorizedUser = async (request: Request) => {
     ...(singleRole ? [singleRole] : []),
   ];
 
-  if (roles.length > 0 && !roles.includes("admin") && !roles.includes("moderator")) {
-    return { error: "Forbidden - admin access required", status: 403 };
+  const allowedPlatformRoles = ["admin", "moderator", "manager", "operator"];
+  const hasAllowedRole = roles.some((r) => allowedPlatformRoles.includes(r));
+  if (roles.length > 0 && !hasAllowedRole) {
+    return { error: "Forbidden - platform access required", status: 403 };
   }
 
   return { user, status: 200, token };
