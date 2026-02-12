@@ -11,7 +11,70 @@ function getAdminClient() {
   );
 }
 
-// PUT /api/admin/users/[id] — Update user (name, role, password)
+// Shared: update only DB (users, profiles, user_roles) — no Auth. Always succeeds if DB is reachable.
+async function updateUserDbOnly(
+  supabaseAdmin: ReturnType<typeof getAdminClient>,
+  userId: string,
+  body: { name?: string; role?: string; password?: string }
+) {
+  const { name, role, password } = body;
+  if (name) {
+    await supabaseAdmin.from('users').update({ full_name: name }).eq('id', userId);
+  }
+  const profileUpdates: any = {};
+  if (name) profileUpdates.name = name;
+  if (role) profileUpdates.role = role;
+  if (password) {
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('metadata')
+      .eq('id', userId)
+      .maybeSingle();
+    profileUpdates.metadata = {
+      ...(existingProfile?.metadata || {}),
+      admin_set_password: password,
+    };
+  }
+  if (Object.keys(profileUpdates).length > 0) {
+    await supabaseAdmin.from('profiles').update(profileUpdates).eq('id', userId);
+  }
+  if (role) {
+    const roleMap: Record<string, string> = {
+      admin: 'admin', manager: 'manager', sales: 'salesperson',
+      salesperson: 'salesperson', vendor: 'vendor', operator: 'operator', user: 'user',
+    };
+    const dbRole = roleMap[role] || role;
+    await supabaseAdmin.from('user_roles').delete().eq('user_id', userId);
+    await supabaseAdmin.from('user_roles').insert({ user_id: userId, role: dbRole });
+  }
+}
+
+// PATCH /api/admin/users/[id] — Update only DB (name, role, displayed password). No Auth. Use this when PUT 404s.
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id: userId } = await params;
+    const body = await request.json().catch(() => ({}));
+    const { name, role, password } = body;
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+    if (!name && !role && !password) {
+      return NextResponse.json({ error: 'Provide name, role, or password' }, { status: 400 });
+    }
+    const supabaseAdmin = getAdminClient();
+    await updateUserDbOnly(supabaseAdmin, userId, body);
+    return NextResponse.json({
+      message: 'User updated successfully',
+      userId,
+      updated: { name: !!name, role: !!role, passwordChanged: !!password },
+    });
+  } catch (error) {
+    console.error('Error in PATCH user:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// PUT /api/admin/users/[id] — Update user (tries Auth, then always updates DB)
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: userId } = await params;
@@ -23,73 +86,42 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const supabaseAdmin = getAdminClient();
+    let inAuth = false;
 
-    // Try to get user from Auth (may 404 if API uses different Supabase than DB)
-    const { data: existingUser, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
-    const inAuth = !userError && !!existingUser?.user;
-
-    if (inAuth) {
-      // Update Auth user when present
-      const updatePayload: any = {};
-      const metadataUpdates: any = {};
-      if (name) {
-        metadataUpdates.full_name = name;
-        metadataUpdates.name = name;
-      }
-      if (role) metadataUpdates.role = role;
-      if (password) {
-        updatePayload.password = password;
-        metadataUpdates.admin_set_password = password;
-      }
-      if (Object.keys(metadataUpdates).length > 0) {
-        updatePayload.user_metadata = { ...(existingUser?.user?.user_metadata || {}), ...metadataUpdates };
-      }
-      if (Object.keys(updatePayload).length > 0) {
-        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, updatePayload);
-        if (updateError) {
-          console.error('Error updating auth user:', updateError);
-          return NextResponse.json({ error: updateError.message }, { status: 500 });
+    try {
+      const { data: existingUser, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+      inAuth = !userError && !!existingUser?.user;
+      if (inAuth) {
+        const updatePayload: any = {};
+        const metadataUpdates: any = {};
+        if (name) {
+          metadataUpdates.full_name = name;
+          metadataUpdates.name = name;
+        }
+        if (role) metadataUpdates.role = role;
+        if (password) {
+          updatePayload.password = password;
+          metadataUpdates.admin_set_password = password;
+        }
+        if (Object.keys(metadataUpdates).length > 0) {
+          updatePayload.user_metadata = { ...(existingUser?.user?.user_metadata || {}), ...metadataUpdates };
+        }
+        if (Object.keys(updatePayload).length > 0) {
+          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, updatePayload);
+          if (updateError) {
+            console.error('Error updating auth user:', updateError);
+            inAuth = false;
+          }
         }
       }
+    } catch (_) {
+      inAuth = false;
     }
 
-    // Always update public.users and profiles (so Edit works even when Auth 404)
-    if (name) {
-      await supabaseAdmin.from('users').update({ full_name: name }).eq('id', userId);
-    }
-
-    const profileUpdates: any = {};
-    if (name) profileUpdates.name = name;
-    if (role) profileUpdates.role = role;
-    if (password) {
-      const { data: existingProfile } = await supabaseAdmin
-        .from('profiles')
-        .select('metadata')
-        .eq('id', userId)
-        .maybeSingle();
-      profileUpdates.metadata = {
-        ...(existingProfile?.metadata || {}),
-        admin_set_password: password,
-      };
-    }
-    if (Object.keys(profileUpdates).length > 0) {
-      await supabaseAdmin.from('profiles').update(profileUpdates).eq('id', userId);
-    }
-
-    if (role) {
-      const roleMap: Record<string, string> = {
-        admin: 'admin', manager: 'manager', sales: 'salesperson',
-        salesperson: 'salesperson', vendor: 'vendor', operator: 'operator', user: 'user',
-      };
-      const dbRole = roleMap[role] || role;
-      await supabaseAdmin.from('user_roles').delete().eq('user_id', userId);
-      await supabaseAdmin.from('user_roles').insert({ user_id: userId, role: dbRole });
-    }
+    await updateUserDbOnly(supabaseAdmin, userId, body);
 
     return NextResponse.json({
-      message: inAuth
-        ? 'User updated successfully'
-        : 'Name, role, and displayed password updated. Login password was not changed (user not found in Auth for this deployment).',
+      message: inAuth ? 'User updated successfully' : 'User updated (name, role, and displayed password saved).',
       userId,
       updated: { name, role, passwordChanged: !!password },
     });

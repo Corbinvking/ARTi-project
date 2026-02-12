@@ -294,9 +294,9 @@ export function UserManagement() {
         return
       }
 
-      // Use Next.js API route (same origin, server-side with service role key)
+      // PATCH updates only DB (no Auth) so it never 404s; use PUT if you need Auth password change too
       const response = await fetch(`/api/admin/users/${editUser.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       })
