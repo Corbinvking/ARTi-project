@@ -48,8 +48,7 @@ interface ChannelSuggestion {
   score: number
   suggested: boolean
   reason: string
-  genre_family_id?: string | null
-  genre_family_name?: string | null
+  genre_family_names?: string[]
 }
 
 interface ScheduleSuggestionPanelProps {
@@ -634,22 +633,15 @@ export const ScheduleSuggestionPanel = ({
                       />
                     )}
                     <div>
-                      <div className="text-sm font-medium flex items-center gap-2">
-                        {channel.name}
-                        {channel.genre_family_name && (
-                          <Badge variant="secondary" className="text-xs font-normal">
-                            {channel.genre_family_name}
-                          </Badge>
-                        )}
-                      </div>
+                      <div className="text-sm font-medium">{channel.name}</div>
                       <div className="text-xs text-muted-foreground flex items-center gap-2">
                         <span>{channel.followers.toLocaleString()} followers</span>
-                        {channel.genre_family_name && (
+                        {channel.genre_family_names?.length ? (
                           <>
                             <span className="text-muted-foreground/60">·</span>
-                            <span>{channel.genre_family_name}</span>
+                            <span>{channel.genre_family_names.join(", ")}</span>
                           </>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   </div>

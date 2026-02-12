@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "../../hooks/use-toast";
-import { Loader2, Music, RefreshCw } from "lucide-react";
+import { Loader2, Music, RefreshCw, X } from "lucide-react";
 
 interface IPNetworkMember {
   user_id: string;
@@ -30,7 +31,7 @@ const MEMBERS_PAGE_SIZE = 200;
 export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCardProps) {
   const [members, setMembers] = useState<IPNetworkMember[]>([]);
   const [genreFamilies, setGenreFamilies] = useState<GenreFamily[]>([]);
-  const [assignments, setAssignments] = useState<Record<string, string>>({});
+  const [assignments, setAssignments] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -60,9 +61,10 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
     });
     if (!res.ok) throw new Error("Failed to load genre assignments");
     const list: { ip_user_id: string; genre_family_id: string }[] = await res.json();
-    const map: Record<string, string> = {};
+    const map: Record<string, string[]> = {};
     list.forEach((item) => {
-      map[item.ip_user_id] = item.genre_family_id;
+      if (!map[item.ip_user_id]) map[item.ip_user_id] = [];
+      map[item.ip_user_id].push(item.genre_family_id);
     });
     setAssignments(map);
   }, [sessionToken]);
@@ -119,7 +121,7 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
     load();
   }, [load]);
 
-  const handleGenreClear = async (ipUserId: string) => {
+  const handleGenreRemove = async (ipUserId: string, genreFamilyId: string) => {
     if (!sessionToken) return;
     setSavingId(ipUserId);
     try {
@@ -129,22 +131,21 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionToken}`,
         },
-        body: JSON.stringify({ ip_user_id: ipUserId }),
+        body: JSON.stringify({ ip_user_id: ipUserId, genre_family_id: genreFamilyId }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error || "Failed to clear");
+        throw new Error(err?.error || "Failed to remove");
       }
-      setAssignments((prev) => {
-        const next = { ...prev };
-        delete next[ipUserId];
-        return next;
-      });
-      toast({ title: "Cleared", description: "Genre tag removed." });
+      setAssignments((prev) => ({
+        ...prev,
+        [ipUserId]: (prev[ipUserId] || []).filter((id) => id !== genreFamilyId),
+      }));
+      toast({ title: "Removed", description: "Genre tag removed." });
     } catch (e: any) {
       toast({
         title: "Error",
-        description: e.message || "Failed to clear genre",
+        description: e.message || "Failed to remove genre",
         variant: "destructive",
       });
     } finally {
@@ -152,7 +153,7 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
     }
   };
 
-  const handleGenreChange = async (ipUserId: string, genreFamilyId: string) => {
+  const handleGenreAdd = async (ipUserId: string, genreFamilyId: string) => {
     if (!sessionToken) return;
     setSavingId(ipUserId);
     try {
@@ -168,8 +169,11 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
         const err = await res.json().catch(() => ({}));
         throw new Error(err?.error || "Failed to save");
       }
-      setAssignments((prev) => ({ ...prev, [ipUserId]: genreFamilyId }));
-      toast({ title: "Saved", description: "Genre tag updated." });
+      setAssignments((prev) => ({
+        ...prev,
+        [ipUserId]: [...(prev[ipUserId] || []), genreFamilyId],
+      }));
+      toast({ title: "Added", description: "Genre tag added." });
     } catch (e: any) {
       toast({
         title: "Error",
@@ -245,26 +249,52 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
                     {member.followers.toLocaleString()} followers
                   </p>
                 </div>
-                <Select
-                  value={assignments[member.user_id] ?? "__none__"}
-                  onValueChange={(value) => {
-                    if (value === "__none__") handleGenreClear(member.user_id);
-                    else if (value) handleGenreChange(member.user_id, value);
-                  }}
-                  disabled={!!savingId}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select genre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">No genre</SelectItem>
-                    {genreFamilies.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {f.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap items-center gap-2">
+                  {(assignments[member.user_id] || []).map((genreId) => {
+                    const family = genreFamilies.find((f) => f.id === genreId);
+                    return (
+                      <Badge
+                        key={genreId}
+                        variant="secondary"
+                        className="text-xs font-normal pr-1 gap-1"
+                      >
+                        {family?.name ?? genreId}
+                        <button
+                          type="button"
+                          onClick={() => handleGenreRemove(member.user_id, genreId)}
+                          disabled={!!savingId}
+                          className="rounded-full hover:bg-muted-foreground/20 p-0.5"
+                          aria-label="Remove genre"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                  {genreFamilies.some((f) => !(assignments[member.user_id] || []).includes(f.id)) && (
+                    <Select
+                      key={`${member.user_id}-${(assignments[member.user_id] || []).length}`}
+                      value=""
+                      onValueChange={(value) => {
+                        if (value) handleGenreAdd(member.user_id, value);
+                      }}
+                      disabled={!!savingId}
+                    >
+                      <SelectTrigger className="w-[140px] h-8">
+                        <SelectValue placeholder="Add genre" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {genreFamilies
+                          .filter((f) => !(assignments[member.user_id] || []).includes(f.id))
+                          .map((f) => (
+                            <SelectItem key={f.id} value={f.id}>
+                              {f.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
                 {savingId === member.user_id && (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 )}

@@ -24,8 +24,7 @@ interface ChannelSuggestion {
   score: number;
   suggested: boolean;
   reason: string;
-  genre_family_id?: string | null;
-  genre_family_name?: string | null;
+  genre_family_names?: string[];
 }
 
 async function enrichChannelsWithGenres(
@@ -45,19 +44,23 @@ async function enrichChannelsWithGenres(
     if (!genFamilies.error && genFamilies.data) {
       (genFamilies.data || []).forEach((f: { id: string; name: string }) => familyMap.set(f.id, f.name));
     }
-    const genreByUser = new Map<string, { id: string; name: string }>();
+    const genreByUser = new Map<string, string[]>();
     (genreRows || []).forEach((r: { ip_user_id: string; genre_family_id: string }) => {
-      genreByUser.set(r.ip_user_id, { id: r.genre_family_id, name: familyMap.get(r.genre_family_id) || "" });
+      const name = familyMap.get(r.genre_family_id) || "";
+      if (!name) return;
+      const key = r.ip_user_id;
+      if (!genreByUser.has(key)) genreByUser.set(key, []);
+      genreByUser.get(key)!.push(name);
     });
 
     return channels.map((ch) => {
-      const g =
+      const names =
         genreByUser.get(ch.user_id) ??
-        genreByUser.get("SOUNDCLOUD-USER-" + ch.user_id);
+        genreByUser.get("SOUNDCLOUD-USER-" + ch.user_id) ??
+        [];
       return {
         ...ch,
-        genre_family_id: g?.id ?? null,
-        genre_family_name: g?.name ?? null,
+        genre_family_names: names.length ? names : undefined,
       };
     });
   } catch {

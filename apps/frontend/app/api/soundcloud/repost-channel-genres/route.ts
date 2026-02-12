@@ -80,7 +80,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { error: upsertError } = await supabase
+    const { error: insertError } = await supabase
       .from("soundcloud_repost_channel_genres")
       .upsert(
         {
@@ -88,12 +88,12 @@ export async function PUT(request: Request) {
           genre_family_id: genre_family_id.trim(),
           updated_at: new Date().toISOString(),
         },
-        { onConflict: "ip_user_id" }
+        { onConflict: "ip_user_id,genre_family_id" }
       );
 
-    if (upsertError) {
+    if (insertError) {
       return NextResponse.json(
-        { error: upsertError.message },
+        { error: insertError.message },
         { status: 500 }
       );
     }
@@ -121,6 +121,7 @@ export async function DELETE(request: Request) {
   }
 
   const ip_user_id = body?.ip_user_id;
+  const genre_family_id = body?.genre_family_id;
   if (typeof ip_user_id !== "string" || !ip_user_id.trim()) {
     return NextResponse.json(
       { error: "ip_user_id is required" },
@@ -130,10 +131,14 @@ export async function DELETE(request: Request) {
 
   try {
     const supabase = createAdminClient(auth.token);
-    const { error: deleteError } = await supabase
+    let q = supabase
       .from("soundcloud_repost_channel_genres")
       .delete()
       .eq("ip_user_id", ip_user_id.trim());
+    if (typeof genre_family_id === "string" && genre_family_id.trim()) {
+      q = q.eq("genre_family_id", genre_family_id.trim());
+    }
+    const { error: deleteError } = await q;
 
     if (deleteError) {
       return NextResponse.json(
