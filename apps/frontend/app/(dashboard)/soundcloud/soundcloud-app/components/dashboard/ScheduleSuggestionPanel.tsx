@@ -345,7 +345,7 @@ export const ScheduleSuggestionPanel = ({
 
       toast({
         title: "Schedule Created",
-        description: `Campaign scheduled for ${format(new Date(selectedSlot), "MMM d, yyyy")} with ${selectedChannels.size} channels`,
+        description: `Campaign scheduled for ${selectedSlot && !isNaN(new Date(selectedSlot).getTime()) ? format(new Date(selectedSlot), "MMM d, yyyy") : selectedSlot} with ${selectedChannels.size} channels`,
       })
 
       onScheduleCreated?.(scheduleUrls)
@@ -470,7 +470,7 @@ export const ScheduleSuggestionPanel = ({
                       />
                       <div>
                         <div className="text-sm font-medium">
-                          {format(new Date(slot.date + "T00:00:00"), "EEE, MMM d, yyyy")}
+                          {slot.date && !isNaN(new Date(slot.date + "T00:00:00").getTime()) ? format(new Date(slot.date + "T00:00:00"), "EEE, MMM d, yyyy") : slot.date || "TBD"}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {slot.reason}
@@ -691,7 +691,7 @@ export const ScheduleSuggestionPanel = ({
               <>
                 <Zap className="h-4 w-4 mr-2" />
                 Schedule Campaign
-                {selectedSlot && (
+                {selectedSlot && !isNaN(new Date(selectedSlot + "T00:00:00").getTime()) && (
                   <span className="ml-1 text-xs opacity-75">
                     ({format(new Date(selectedSlot + "T00:00:00"), "MMM d")} - {selectedChannels.size} channels)
                   </span>

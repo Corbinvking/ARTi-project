@@ -23,8 +23,6 @@ import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/auth"
 import { toast } from "sonner"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com'
-
 const PLATFORMS = [
   { id: 'dashboard', name: 'Dashboard', icon: '📊' },
   { id: 'instagram', name: 'Instagram', icon: '📸' },
@@ -128,36 +126,9 @@ export function UserManagement() {
     try {
       setLoading(true)
 
-      // Try admin API first (returns auth metadata including passwords)
+      // Query public.users + user_roles + profiles directly
       let usersArray: AdminUser[] = []
-      let usedApi = false
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/admin/users`, { 
-          credentials: 'include',
-          signal: AbortSignal.timeout(5000),
-        })
-        if (response.ok) {
-          const data = await response.json()
-          usersArray = (data.users || []).map((u: any) => ({
-            id: u.id,
-            email: u.email,
-            name: u.name || u.email?.split('@')[0] || 'Unknown',
-            role: u.role || 'vendor',
-            created_at: u.created_at,
-            last_sign_in_at: u.last_sign_in_at,
-            email_confirmed_at: u.email_confirmed_at,
-            admin_set_password: u.admin_set_password || null,
-            permissions: u.permissions || [],
-          }))
-          usedApi = true
-        }
-      } catch {
-        console.log('Admin API unavailable, falling back to direct DB query')
-      }
-
-      // Fallback: query public.users + user_roles + profiles directly
-      if (!usedApi) {
+      {
         const { data: allUsersData, error: usersError } = await supabase
           .from('users')
           .select('id, email, full_name, created_at, avatar_url')
@@ -172,7 +143,7 @@ export function UserManagement() {
           .from('user_roles')
           .select('user_id, role')
 
-        // Get profiles (has admin_set_password via metadata or role)
+        // Get profiles (has admin_set_password in metadata JSONB)
         const { data: profilesData } = await supabase
           .from('profiles')
           .select('id, role, metadata')
@@ -224,6 +195,7 @@ export function UserManagement() {
       }
 
       setUsers(usersArray)
+      console.log('Loaded', usersArray.length, 'users')
     } catch (error) {
       console.error('Failed to load users:', error)
       toast.error('Failed to load users')
@@ -241,16 +213,50 @@ export function UserManagement() {
       return
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+      // Use Next.js API route (same origin, server-side with service role key)
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch(`/api/admin/users/create`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(newUser)
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+        },
+        body: JSON.stringify({
+          email: newUser.email,
+          password: newUser.password,
+          roles: [newUser.role === 'sales' ? 'salesperson' : newUser.role],
+        })
       })
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
         throw new Error(err.error || 'Failed to create user')
       }
+      
+      const data = await response.json()
+      
+      // Also update public.users + user_roles + profiles for the new user
+      if (data.user?.id) {
+        await supabase.from('users').upsert({
+          id: data.user.id,
+          email: newUser.email,
+          full_name: newUser.name,
+        }, { onConflict: 'id' })
+        
+        const roleMap: Record<string, string> = { sales: 'salesperson', admin: 'admin', manager: 'manager', vendor: 'vendor', operator: 'operator' }
+        await supabase.from('user_roles').upsert({
+          user_id: data.user.id,
+          role: roleMap[newUser.role] || newUser.role,
+        }, { onConflict: 'user_id' }).select()
+
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          email: newUser.email,
+          name: newUser.name,
+          role: newUser.role,
+          metadata: { admin_set_password: newUser.password },
+        }, { onConflict: 'id' })
+      }
+
       toast.success('User created successfully')
       setIsAddDialogOpen(false)
       setNewUser({ email: "", password: "", name: "", role: "sales" })
@@ -289,10 +295,10 @@ export function UserManagement() {
         return
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/users/${editUser.id}`, {
+      // Use Next.js API route (same origin, server-side with service role key)
+      const response = await fetch(`/api/admin/users/${editUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(body)
       })
 
@@ -323,9 +329,9 @@ export function UserManagement() {
 
     try {
       setIsDeleting(userId)
-      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+      // Use Next.js API route (same origin, server-side with service role key)
+      const response = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
-        credentials: 'include'
       })
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
