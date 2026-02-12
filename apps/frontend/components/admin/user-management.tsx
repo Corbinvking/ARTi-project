@@ -326,19 +326,24 @@ export function UserManagement() {
     try {
       setSettingPasswordId(userId)
       const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        toast.error('You must be logged in to set a password')
+        return
+      }
       const response = await fetch(`/api/admin/users/${userId}/set-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({}),
+        credentials: 'same-origin',
       })
+      const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}))
-        throw new Error(err.error || 'Failed to set password')
+        throw new Error(data.error || `Failed to set password (${response.status})`)
       }
-      const { password } = await response.json()
+      const { password } = data
       await loadUsers()
       copyToClipboard(password, 'Password')
       toast.success('Password set and copied to clipboard')

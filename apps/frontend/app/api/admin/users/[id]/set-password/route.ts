@@ -24,6 +24,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json(
+        { error: 'Server misconfiguration: SUPABASE_SERVICE_ROLE_KEY is not set' },
+        { status: 500 }
+      );
+    }
+
     const { id: userId } = await params;
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -32,13 +39,17 @@ export async function POST(
     const authHeader = request.headers.get('Authorization');
     const authToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
     if (!authToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
     }
 
     const supabaseAdmin = getAdminClient();
-    const { data: { user } } = await supabaseAdmin.auth.getUser(authToken);
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authToken);
+    if (authError) {
+      console.error('set-password auth getUser:', authError);
+      return NextResponse.json({ error: authError.message || 'Invalid or expired session' }, { status: 401 });
+    }
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
     }
 
     const { data: roles } = await supabaseAdmin
@@ -46,7 +57,7 @@ export async function POST(
       .select('role')
       .eq('user_id', user.id);
     if (!roles?.some((r: { role: string }) => r.role === 'admin')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: 'Admin role required' }, { status: 403 });
     }
 
     const body = await request.json().catch(() => ({}));
@@ -54,15 +65,18 @@ export async function POST(
       ? body.password
       : generatePassword();
 
-    const { error: userErr } = await supabaseAdmin.auth.admin.getUserById(userId);
-    if (userErr) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    const { data: targetUser, error: userErr } = await supabaseAdmin.auth.admin.getUserById(userId);
+    if (userErr || !targetUser?.user) {
+      return NextResponse.json({ error: userErr?.message || 'User not found' }, { status: 404 });
     }
 
     const { error: updateAuth } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });
     if (updateAuth) {
       console.error('set-password auth update:', updateAuth);
-      return NextResponse.json({ error: updateAuth.message }, { status: 500 });
+      return NextResponse.json(
+        { error: updateAuth.message || 'Failed to update password in auth' },
+        { status: 500 }
+      );
     }
 
     const { data: existingProfile } = await supabaseAdmin
@@ -83,11 +97,26 @@ export async function POST(
 
     if (profileErr) {
       console.warn('set-password profile update:', profileErr);
+      // If profile row doesn't exist, upsert with required columns (email NOT NULL)
+      const u = targetUser.user;
+      const { error: upsertErr } = await supabaseAdmin
+        .from('profiles')
+        .upsert(
+          {
+            id: userId,
+            email: u.email ?? '',
+            name: (u.user_metadata?.name ?? u.user_metadata?.full_name ?? u.email ?? '') as string,
+            metadata: { ...(existingProfile?.metadata || {}), admin_set_password: password },
+          },
+          { onConflict: 'id' }
+        );
+      if (upsertErr) console.warn('set-password profile upsert:', upsertErr);
     }
 
     return NextResponse.json({ password });
   } catch (e) {
+    const message = e instanceof Error ? e.message : 'Internal server error';
     console.error('set-password error:', e);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
