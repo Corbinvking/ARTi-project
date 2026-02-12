@@ -483,6 +483,7 @@ export function UserManagement() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Vendor</TableHead>
               <TableHead>Password</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Login</TableHead>
@@ -492,7 +493,7 @@ export function UserManagement() {
           <TableBody>
             {filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   {searchQuery || roleFilter !== "all" ? 'No users match your filters' : 'No users found'}
                 </TableCell>
               </TableRow>
@@ -512,6 +513,11 @@ export function UserManagement() {
                     <Badge className={getRoleColor(user.role)} variant="secondary">
                       {user.role === 'salesperson' ? 'sales' : user.role}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {user.role === 'vendor' && user.vendor_name
+                      ? <span className="font-medium">{user.vendor_name}</span>
+                      : <span className="text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell>
                     {user.admin_set_password ? (
