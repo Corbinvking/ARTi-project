@@ -642,8 +642,14 @@ export const ScheduleSuggestionPanel = ({
                           </Badge>
                         )}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {channel.followers.toLocaleString()} followers
+                      <div className="text-xs text-muted-foreground flex items-center gap-2">
+                        <span>{channel.followers.toLocaleString()} followers</span>
+                        {channel.genre_family_name && (
+                          <>
+                            <span className="text-muted-foreground/60">·</span>
+                            <span>{channel.genre_family_name}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

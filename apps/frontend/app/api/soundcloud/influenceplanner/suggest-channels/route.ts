@@ -30,10 +30,11 @@ interface ChannelSuggestion {
 
 async function enrichChannelsWithGenres(
   channels: ChannelSuggestion[],
-  authToken: string
+  _authToken: string
 ): Promise<ChannelSuggestion[]> {
   try {
-    const supabase = createAdminClient(authToken);
+    // Use service-role client so genre data is returned for all roles (admin and operator)
+    const supabase = createAdminClient();
     const { data: genreRows } = await supabase
       .from("soundcloud_repost_channel_genres")
       .select("ip_user_id, genre_family_id");
@@ -50,7 +51,9 @@ async function enrichChannelsWithGenres(
     });
 
     return channels.map((ch) => {
-      const g = genreByUser.get(ch.user_id);
+      const g =
+        genreByUser.get(ch.user_id) ??
+        genreByUser.get("SOUNDCLOUD-USER-" + ch.user_id);
       return {
         ...ch,
         genre_family_id: g?.id ?? null,
