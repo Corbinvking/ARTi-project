@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useToast } from "../../hooks/use-toast";
-import { supabase } from "../../integrations/supabase/client";
 import { Loader2, Music, RefreshCw } from "lucide-react";
 
 interface IPNetworkMember {
@@ -37,25 +36,22 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
   const { toast } = useToast();
 
   const fetchGenreFamilies = useCallback(async () => {
-    // Prefer soundcloud_genre_families; fallback to genre_families (used elsewhere in app) if empty
-    const { data: scData, error: scError } = await supabase
-      .from("soundcloud_genre_families")
-      .select("id, name")
-      .order("name");
-    if (!scError && scData && scData.length > 0) {
-      setGenreFamilies(scData);
+    // Use server API so genre list is not blocked by RLS and both tables are merged
+    if (!sessionToken) {
+      setGenreFamilies([]);
       return;
     }
-    const { data: genData, error: genError } = await supabase
-      .from("genre_families")
-      .select("id, name")
-      .order("name");
-    if (!genError && genData && genData.length > 0) {
-      setGenreFamilies(genData);
-      return;
+    try {
+      const res = await fetch("/api/soundcloud/genre-families", {
+        headers: { Authorization: `Bearer ${sessionToken}` },
+      });
+      if (!res.ok) throw new Error("Failed to load genres");
+      const data = await res.json();
+      setGenreFamilies(Array.isArray(data) ? data : []);
+    } catch {
+      setGenreFamilies([]);
     }
-    setGenreFamilies(scData ?? genData ?? []);
-  }, []);
+  }, [sessionToken]);
 
   const fetchAssignments = useCallback(async () => {
     if (!sessionToken) return;
