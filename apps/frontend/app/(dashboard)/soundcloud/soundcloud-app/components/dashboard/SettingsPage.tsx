@@ -639,6 +639,8 @@ export const SettingsPage = () => {
             </CardContent>
           </Card>
 
+          <RepostChannelGenresCard sessionToken={sessionToken} />
+
           {/* InfluencePlanner API */}
           <Card>
             <CardHeader>
@@ -972,8 +974,6 @@ export const SettingsPage = () => {
               )}
             </CardContent>
           </Card>
-
-          <RepostChannelGenresCard sessionToken={sessionToken} />
 
           {/* SLA Settings */}
           <Card>
