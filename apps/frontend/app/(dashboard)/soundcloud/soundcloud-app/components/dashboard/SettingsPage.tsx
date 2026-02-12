@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "../../hooks/use-toast";
 import { Loader2, Save, Settings2, Clock, Users, Bell, Plus, Trash2 } from "lucide-react";
+import { RepostChannelGenresCard } from "./RepostChannelGenresCard";
 
 const tierSchema = z.object({
   name: z.string().min(1, "Tier name is required"),
@@ -971,6 +972,8 @@ export const SettingsPage = () => {
               )}
             </CardContent>
           </Card>
+
+          <RepostChannelGenresCard sessionToken={sessionToken} />
 
           {/* SLA Settings */}
           <Card>

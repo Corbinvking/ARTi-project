@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthorizedUser } from "../utils";
+import { createAdminClient, getAuthorizedUser } from "../utils";
 import { influencePlannerFetch } from "../../../../(dashboard)/soundcloud/soundcloud-app/integrations/influenceplannerClient";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +24,41 @@ interface ChannelSuggestion {
   score: number;
   suggested: boolean;
   reason: string;
+  genre_family_id?: string | null;
+  genre_family_name?: string | null;
+}
+
+async function enrichChannelsWithGenres(
+  channels: ChannelSuggestion[],
+  authToken: string
+): Promise<ChannelSuggestion[]> {
+  try {
+    const supabase = createAdminClient(authToken);
+    const { data: genreRows } = await supabase
+      .from("soundcloud_repost_channel_genres")
+      .select("ip_user_id, genre_family_id");
+    const { data: families } = await supabase
+      .from("soundcloud_genre_families")
+      .select("id, name");
+
+    const familyMap = new Map<string, string>();
+    (families || []).forEach((f: { id: string; name: string }) => familyMap.set(f.id, f.name));
+    const genreByUser = new Map<string, { id: string; name: string }>();
+    (genreRows || []).forEach((r: { ip_user_id: string; genre_family_id: string }) => {
+      genreByUser.set(r.ip_user_id, { id: r.genre_family_id, name: familyMap.get(r.genre_family_id) || "" });
+    });
+
+    return channels.map((ch) => {
+      const g = genreByUser.get(ch.user_id);
+      return {
+        ...ch,
+        genre_family_id: g?.id ?? null,
+        genre_family_name: g?.name ?? null,
+      };
+    });
+  } catch {
+    return channels;
+  }
 }
 
 /**
@@ -180,6 +215,7 @@ export async function GET(request: Request) {
           send({ type: "progress", phase: "scoring", membersLoaded: allMembers.length, totalMembers: allMembers.length, page, totalPages: page });
 
           const result = scoreAndRank(allMembers);
+          result.channels = await enrichChannelsWithGenres(result.channels, auth.token);
           send({ type: "result", ...result });
         } catch (error: any) {
           send({ type: "error", error: error.message || "Failed to fetch channel suggestions" });
@@ -226,6 +262,7 @@ export async function GET(request: Request) {
     }
 
     const result = scoreAndRank(allMembers);
+    result.channels = await enrichChannelsWithGenres(result.channels, auth.token);
     return NextResponse.json(result);
   } catch (error: any) {
     return NextResponse.json(
