@@ -111,11 +111,8 @@ export function UserManagement() {
   const [showEditPassword, setShowEditPassword] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  // Password visibility per row
-  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set())
-
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
-  const [settingPasswordId, setSettingPasswordId] = useState<string | null>(null)
+  const [backfilling, setBackfilling] = useState(false)
   const { user: currentUser } = useAuth()
 
   useEffect(() => { loadUsers() }, [])
@@ -320,37 +317,34 @@ export function UserManagement() {
   }
 
   // --------------------------------------------------------------------------
-  // Set password (for users showing "Not set" — generates password, stores in Auth + profiles)
+  // Backfill passwords for admin/operator/vendor users that don't have one stored
   // --------------------------------------------------------------------------
-  const handleSetPassword = async (userId: string) => {
+  const handleBackfillPasswords = async () => {
     try {
-      setSettingPasswordId(userId)
+      setBackfilling(true)
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
-        toast.error('You must be logged in to set a password')
+        toast.error('You must be logged in')
         return
       }
-      const response = await fetch(`/api/admin/users/${userId}/set-password`, {
+      const response = await fetch('/api/admin/users/backfill-passwords', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({}),
         credentials: 'same-origin',
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        throw new Error(data.error || `Failed to set password (${response.status})`)
+        throw new Error(data.error || `Backfill failed (${response.status})`)
       }
-      const { password } = data
+      toast.success(data.message || 'Passwords backfilled')
       await loadUsers()
-      copyToClipboard(password, 'Password')
-      toast.success('Password set and copied to clipboard')
     } catch (error: any) {
-      toast.error(error.message || 'Failed to set password')
+      toast.error(error.message || 'Backfill failed')
     } finally {
-      setSettingPasswordId(null)
+      setBackfilling(false)
     }
   }
 
@@ -386,15 +380,6 @@ export function UserManagement() {
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-  const togglePasswordVisibility = (userId: string) => {
-    setVisiblePasswords(prev => {
-      const next = new Set(prev)
-      if (next.has(userId)) next.delete(userId)
-      else next.add(userId)
-      return next
-    })
-  }
-
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
     toast.success(`${label} copied to clipboard`)
@@ -451,10 +436,15 @@ export function UserManagement() {
             <span>User Management</span>
             <Badge variant="secondary" className="ml-2">{users.length}</Badge>
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" />Add User</Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={backfilling} onClick={handleBackfillPasswords}>
+              {backfilling ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4 mr-1" />}
+              {backfilling ? 'Backfilling…' : 'Backfill passwords'}
+            </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button><Plus className="h-4 w-4 mr-2" />Add User</Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add New User</DialogTitle>
@@ -494,6 +484,7 @@ export function UserManagement() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -556,32 +547,14 @@ export function UserManagement() {
                     {user.admin_set_password ? (
                       <div className="flex items-center gap-1">
                         <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">
-                          {visiblePasswords.has(user.id) ? user.admin_set_password : '••••••••••'}
+                          {user.admin_set_password}
                         </code>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => togglePasswordVisibility(user.id)}>
-                          {visiblePasswords.has(user.id) ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                        </Button>
                         <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard(user.admin_set_password!, 'Password')}>
                           <Copy className="h-3 w-3" />
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs text-muted-foreground">Not set</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs"
-                          disabled={settingPasswordId === user.id}
-                          onClick={() => handleSetPassword(user.id)}
-                        >
-                          {settingPasswordId === user.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            'Set password'
-                          )}
-                        </Button>
-                      </div>
+                      <span className="text-xs text-muted-foreground">Not set</span>
                     )}
                   </TableCell>
                   <TableCell>

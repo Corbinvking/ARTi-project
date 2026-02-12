@@ -15,7 +15,7 @@ function getAdminClient() {
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: userId } = await params;
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const { name, role, password } = body;
 
     if (!userId) {
@@ -27,7 +27,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     // Verify user exists
     const { data: existingUser, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
     if (userError || !existingUser.user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found in Auth' }, { status: 404 });
     }
 
     // Build update payload
