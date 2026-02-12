@@ -110,6 +110,18 @@ export function useInstagramCampaigns() {
 
       console.log(`✅ Fetched ${data.length} Instagram campaigns from database`);
 
+      // Fetch creator counts from instagram_campaign_creators
+      const { data: creatorsData } = await supabase
+        .from('instagram_campaign_creators')
+        .select('campaign_id');
+
+      // Build a map of campaign_id -> creator count
+      const creatorCountMap: Record<string, number> = {};
+      (creatorsData || []).forEach((c: any) => {
+        const key = String(c.campaign_id);
+        creatorCountMap[key] = (creatorCountMap[key] || 0) + 1;
+      });
+
       // Transform the TEXT-based data to match frontend expectations
       const formatted: FormattedCampaign[] = data.map((row: any) => {
         const price = parseCurrency(row.price);
@@ -123,7 +135,7 @@ export function useInstagramCampaigns() {
           budget: price,
           status: parseStatus(row.status),
           startDate: parseDate(row.start_date),
-          creatorCount: 0, // This would come from campaign_creators table
+          creatorCount: creatorCountMap[String(row.id)] || 0,
           totalSpend: spend,
           remaining: remaining,
           soundUrl: row.sound_url || '',

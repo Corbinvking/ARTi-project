@@ -25,21 +25,31 @@ interface PipelineStage {
 }
 
 export const ProgressTrackingPipeline = () => {
-  // Fetch campaign creators data
+  // Fetch campaign creators data (separate queries - no JOIN)
   const { data: campaignCreators = [], isLoading } = useQuery({
     queryKey: ['pipeline-progress'],
     queryFn: async () => {
+      // First get active campaign IDs from instagram_campaigns
+      const { data: campaigns, error: campaignsError } = await supabase
+        .from('instagram_campaigns')
+        .select('id')
+        .eq('status', 'active');
+
+      if (campaignsError) throw campaignsError;
+      const activeCampaignIds = (campaigns || []).map(c => String(c.id));
+
+      if (activeCampaignIds.length === 0) return [];
+
       const { data, error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .select(`
           id,
           payment_status,
           post_status,
-          approval_status,
-          campaigns!inner(name, status)
+          approval_status
         `)
-        .eq('campaigns.status', 'active');
-      
+        .in('campaign_id', activeCampaignIds);
+
       if (error) throw error;
       return data || [];
     }

@@ -33,20 +33,8 @@ export const usePaymentTracking = () => {
       setLoading(true);
       
       let query = supabase
-        .from('campaign_creators')
-        .select(`
-          id,
-          campaign_id,
-          creator_id,
-          instagram_handle,
-          rate,
-          posts_count,
-          payment_status,
-          due_date,
-          payment_notes,
-          created_at,
-          campaigns!inner(name)
-        `);
+        .from('instagram_campaign_creators')
+        .select('*');
 
       // Apply status filter - exclude paid creators by default unless specifically requested
       if (filters.status === 'paid') {
@@ -60,13 +48,6 @@ export const usePaymentTracking = () => {
         query = query.in('payment_status', ['unpaid', 'pending']);
       }
 
-      // Apply date range filter
-      if (filters.dateRange) {
-        query = query
-          .gte('due_date', filters.dateRange.from.toISOString().split('T')[0])
-          .lte('due_date', filters.dateRange.to.toISOString().split('T')[0]);
-      }
-
       // Apply amount range filter
       if (filters.amountRange) {
         query = query
@@ -74,13 +55,23 @@ export const usePaymentTracking = () => {
           .lte('rate', filters.amountRange.max);
       }
 
-      const { data, error } = await query.order('due_date', { ascending: true });
+      const { data, error } = await query.order('created_at', { ascending: true });
 
       if (error) throw error;
 
+      // Fetch campaign names from instagram_campaigns
+      const campaignIds = [...new Set((data || []).map(c => c.campaign_id))];
+      const { data: campaigns } = await supabase
+        .from('instagram_campaigns')
+        .select('id, campaign')
+        .in('id', campaignIds.map(Number));
+
+      const campaignMap: Record<string, string> = {};
+      (campaigns || []).forEach(c => { campaignMap[String(c.id)] = c.campaign; });
+
       const formattedCreators = data?.map(creator => ({
         ...creator,
-        campaign_name: creator.campaigns.name
+        campaign_name: campaignMap[creator.campaign_id] || 'Unknown Campaign'
       })) || [];
 
       setCreators(formattedCreators);
@@ -102,7 +93,7 @@ export const usePaymentTracking = () => {
       if (notes !== undefined) updates.payment_notes = notes;
 
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update(updates)
         .eq('id', creatorId);
 
@@ -141,7 +132,7 @@ export const usePaymentTracking = () => {
   const bulkUpdatePaymentStatus = async (creatorIds: string[], status: string) => {
     try {
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update({ payment_status: status })
         .in('id', creatorIds);
 

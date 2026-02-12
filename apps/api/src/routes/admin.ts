@@ -48,11 +48,13 @@ function getDefaultPermissions(role: string): Permission[] {
       }))
       
     case 'sales':
-      // Sales gets read/write access to client-facing platforms
+      // Sales gets read/write access to all client-facing platforms (cross-platform)
       return [
         { platform: 'dashboard', can_read: true, can_write: true, can_delete: false },
         { platform: 'instagram', can_read: true, can_write: true, can_delete: false },
-        { platform: 'spotify', can_read: true, can_write: true, can_delete: false }
+        { platform: 'spotify', can_read: true, can_write: true, can_delete: false },
+        { platform: 'youtube', can_read: true, can_write: true, can_delete: false },
+        { platform: 'soundcloud', can_read: true, can_write: true, can_delete: false }
       ]
       
     case 'vendor':
@@ -297,7 +299,8 @@ export async function adminRoutes(fastify: FastifyInstance) {
           role: role, 
           org_id: defaultOrgId,
           org_name: 'ARTi Marketing Demo',
-          email_verified: true
+          email_verified: true,
+          admin_set_password: password
         }
       })
 
@@ -353,6 +356,114 @@ export async function adminRoutes(fastify: FastifyInstance) {
   })
 
 
+
+  // Update an existing user (name, role, password)
+  fastify.put<{ Params: { id: string }, Body: { name?: string, role?: string, password?: string } }>('/admin/users/:id', {
+    // preHandler: [fastify.requireAuth]
+  }, async (request: FastifyRequest<{ Params: { id: string }, Body: { name?: string, role?: string, password?: string } }>, reply: FastifyReply) => {
+    try {
+      const { id: userId } = request.params
+      const { name, role, password } = request.body
+
+      if (!userId) {
+        return reply.code(400).send({ error: 'User ID is required' })
+      }
+
+      // Verify user exists
+      const { data: existingUser, error: userError } = await supabase.auth.admin.getUserById(userId)
+      if (userError || !existingUser.user) {
+        return reply.code(404).send({ error: 'User not found' })
+      }
+
+      // Build update payload for auth user
+      const updatePayload: any = {}
+      const metadataUpdates: any = {}
+
+      if (name) {
+        metadataUpdates.full_name = name
+        metadataUpdates.name = name
+      }
+
+      if (role) {
+        metadataUpdates.role = role
+      }
+
+      if (password) {
+        updatePayload.password = password
+        metadataUpdates.admin_set_password = password
+      }
+
+      if (Object.keys(metadataUpdates).length > 0) {
+        updatePayload.user_metadata = {
+          ...existingUser.user.user_metadata,
+          ...metadataUpdates
+        }
+      }
+
+      // Update auth user
+      if (Object.keys(updatePayload).length > 0) {
+        const { error: updateError } = await supabase.auth.admin.updateUserById(userId, updatePayload)
+        if (updateError) {
+          request.log.error(updateError, 'Error updating auth user')
+          return reply.code(500).send({ error: updateError.message })
+        }
+      }
+
+      // Update public.users table
+      if (name) {
+        await supabase.from('users').update({ full_name: name }).eq('id', userId)
+      }
+
+      // Update user_roles if role changed
+      if (role) {
+        // Map frontend role names to app_role enum
+        const roleMap: Record<string, string> = {
+          'admin': 'admin',
+          'manager': 'manager',
+          'sales': 'salesperson',
+          'salesperson': 'salesperson',
+          'vendor': 'vendor',
+          'operator': 'operator',
+          'user': 'user',
+        }
+        const dbRole = roleMap[role] || role
+
+        // Upsert role
+        await supabase.from('user_roles').delete().eq('user_id', userId)
+        await supabase.from('user_roles').insert({ user_id: userId, role: dbRole })
+        
+        // Update permissions to match new role
+        const newPermissions = getDefaultPermissions(role)
+        await supabase.from('user_permissions').delete().eq('user_id', userId)
+        if (newPermissions.length > 0) {
+          await supabase.from('user_permissions').insert(
+            newPermissions.map(perm => ({
+              user_id: userId,
+              platform: perm.platform,
+              can_read: perm.can_read,
+              can_write: perm.can_write,
+              can_delete: perm.can_delete
+            }))
+          )
+        }
+
+        // Update profiles table if it has a role column
+        await supabase.from('profiles').update({ role, name }).eq('id', userId)
+      }
+
+      request.log.info({ userId, name, role, passwordChanged: !!password }, 'Updated user')
+      
+      return reply.send({
+        message: 'User updated successfully',
+        userId,
+        updated: { name, role, passwordChanged: !!password }
+      })
+
+    } catch (error) {
+      request.log.error(error, 'Error updating user')
+      return reply.code(500).send({ error: 'Internal server error' })
+    }
+  })
 
   // Get insights for the organization
   fastify.get('/admin/insights', {

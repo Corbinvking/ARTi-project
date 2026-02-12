@@ -32,20 +32,8 @@ export const usePostStatusTracking = () => {
       setLoading(true);
       
       let query = supabase
-        .from('campaign_creators')
-        .select(`
-          id,
-          campaign_id,
-          creator_id,
-          instagram_handle,
-          rate,
-          posts_count,
-          post_status,
-          due_date,
-          approval_notes,
-          created_at,
-          campaigns!inner(name)
-        `);
+        .from('instagram_campaign_creators')
+        .select('*');
 
       // Apply status filter
       if (filters.status === 'not_posted') {
@@ -63,16 +51,26 @@ export const usePostStatusTracking = () => {
 
       // Apply campaign filter
       if (filters.campaigns && filters.campaigns.length > 0) {
-        query = query.in('campaign_id', filters.campaigns);
+        query = query.in('campaign_id', filters.campaigns.map(String));
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
+      // Fetch campaign names from instagram_campaigns
+      const campaignIds = [...new Set((data || []).map(c => c.campaign_id))];
+      const { data: campaigns } = await supabase
+        .from('instagram_campaigns')
+        .select('id, campaign')
+        .in('id', campaignIds.map(Number));
+
+      const campaignMap: Record<string, string> = {};
+      (campaigns || []).forEach(c => { campaignMap[String(c.id)] = c.campaign; });
+
       const formattedCreators = data?.map(creator => ({
         ...creator,
-        campaign_name: creator.campaigns.name
+        campaign_name: campaignMap[creator.campaign_id] || 'Unknown Campaign'
       })) || [];
 
       setCreators(formattedCreators);
@@ -99,7 +97,7 @@ export const usePostStatusTracking = () => {
       }
 
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update(updates)
         .eq('id', creatorId);
 
@@ -146,7 +144,7 @@ export const usePostStatusTracking = () => {
       }
 
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update(updates)
         .in('id', creatorIds);
 
@@ -226,15 +224,20 @@ export const usePostStatusTracking = () => {
   const getCompletionStats = async () => {
     try {
       const { data, error } = await supabase
-        .from('campaign_creators')
-        .select(`
-          id,
-          campaign_id,
-          post_status,
-          campaigns!inner(name)
-        `);
+        .from('instagram_campaign_creators')
+        .select('id, campaign_id, post_status');
 
       if (error) throw error;
+
+      // Fetch campaign names
+      const campaignIds = [...new Set((data || []).map(c => c.campaign_id))];
+      const { data: campaigns } = await supabase
+        .from('instagram_campaigns')
+        .select('id, campaign')
+        .in('id', campaignIds.map(Number));
+
+      const campaignMap: Record<string, string> = {};
+      (campaigns || []).forEach(c => { campaignMap[String(c.id)] = c.campaign; });
 
       const totalPosts = data?.length || 0;
       const posted = data?.filter(c => c.post_status === 'posted').length || 0;
@@ -243,7 +246,7 @@ export const usePostStatusTracking = () => {
 
       // Calculate per-campaign completion rates
       const campaignStats = data?.reduce((acc, creator) => {
-        const campaignName = creator.campaigns.name;
+        const campaignName = campaignMap[creator.campaign_id] || 'Unknown';
         if (!acc[campaignName]) {
           acc[campaignName] = { total: 0, posted: 0 };
         }

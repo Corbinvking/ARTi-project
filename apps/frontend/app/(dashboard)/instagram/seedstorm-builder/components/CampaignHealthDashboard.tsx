@@ -25,19 +25,26 @@ interface HealthAlert {
 }
 
 export const CampaignHealthDashboard = () => {
-  // Fetch campaign creators with their status
+  // Fetch campaign creators with their status (separate queries - no JOIN)
   const { data: campaignCreators = [], isLoading } = useQuery({
     queryKey: ['campaign-creators-health'],
     queryFn: async () => {
+      // First get active campaign IDs from instagram_campaigns
+      const { data: campaigns, error: campaignsError } = await supabase
+        .from('instagram_campaigns')
+        .select('id')
+        .eq('status', 'active');
+
+      if (campaignsError) throw campaignsError;
+      const activeCampaignIds = (campaigns || []).map(c => String(c.id));
+
+      if (activeCampaignIds.length === 0) return [];
+
       const { data, error } = await supabase
-        .from('campaign_creators')
-        .select(`
-          *,
-          campaign_id,
-          campaigns!inner(name, status, budget)
-        `)
-        .eq('campaigns.status', 'active');
-      
+        .from('instagram_campaign_creators')
+        .select('*')
+        .in('campaign_id', activeCampaignIds);
+
       if (error) throw error;
       return Array.isArray(data) ? data : [];
     }

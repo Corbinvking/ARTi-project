@@ -97,38 +97,41 @@ const QualityAssurance = () => {
   const loadCampaignsAndCreators = async () => {
     setLoading(true);
     try {
-      // Load Instagram campaigns from Supabase that have associated creators
-      const { data: campaignsData, error: campaignsError } = await supabase
-        .from('campaigns')
-        .select(`
-          id, name, status, campaign_type, totals, budget,
-          campaign_creators!inner(id)
-        `)
-        .eq('campaign_type', 'instagram')
-        .order('created_at', { ascending: false });
-
-      if (campaignsError) throw campaignsError;
-      
-      // Transform the data to match the expected QACampaign interface
-      const transformedCampaigns: QACampaign[] = (campaignsData || []).map(campaign => ({
-        id: campaign.id,
-        name: campaign.name,
-        status: campaign.status,
-        campaign_type: campaign.campaign_type,
-        campaign_name: campaign.name, // Add compatibility field
-        totals: campaign.totals as any || {},
-        budget: campaign.budget || 0
-      }));
-      
-      setCampaigns(transformedCampaigns);
-
-      // Load all campaign creators from Supabase
+      // Load all campaign creators from instagram_campaign_creators first
       const { data: creators, error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      const campaignIds = [...new Set((creators || []).map(c => c.campaign_id).filter(Boolean))];
+      const numericIds = campaignIds.map(Number).filter(n => !isNaN(n));
+
+      // Load instagram campaigns that have creators (separate query - no JOIN)
+      let campaignsData: { id: number; campaign: string | null; status: string | null }[] = [];
+      if (numericIds.length > 0) {
+        const { data, error: campaignsError } = await supabase
+          .from('instagram_campaigns')
+          .select('id, campaign, status')
+          .in('id', numericIds)
+          .order('created_at', { ascending: false });
+        if (campaignsError) throw campaignsError;
+        campaignsData = data || [];
+      }
+
+      // Transform the data to match the expected QACampaign interface
+      const transformedCampaigns: QACampaign[] = campaignsData.map(campaign => ({
+        id: String(campaign.id),
+        name: campaign.campaign || 'Unnamed Campaign',
+        status: campaign.status || 'active',
+        campaign_type: 'instagram',
+        campaign_name: campaign.campaign || 'Unnamed Campaign',
+        totals: {},
+        budget: 0
+      }));
+
+      setCampaigns(transformedCampaigns);
       
       setAllCreators((creators || []).map(creator => ({
         ...creator,
@@ -213,8 +216,8 @@ const QualityAssurance = () => {
           bValue = b.instagram_handle.toLowerCase();
           break;
         case 'campaign':
-          const aCampaign = campaigns.find(c => c.id === a.campaign_id);
-          const bCampaign = campaigns.find(c => c.id === b.campaign_id);
+          const aCampaign = campaigns.find(c => c.id === String(a.campaign_id));
+          const bCampaign = campaigns.find(c => c.id === String(b.campaign_id));
           aValue = (aCampaign?.name || aCampaign?.campaign_name || '').toLowerCase();
           bValue = (bCampaign?.name || bCampaign?.campaign_name || '').toLowerCase();
           break;
@@ -261,7 +264,7 @@ const QualityAssurance = () => {
       const updates = { [field]: value };
       
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update(updates)
         .eq('id', creatorId);
 
@@ -376,17 +379,17 @@ const QualityAssurance = () => {
 
     if (campaignFilter === 'active') {
       const activeCampaignIds = campaigns
-        .filter(c => c.status === 'Active')
+        .filter(c => (c.status || '').toLowerCase() === 'active')
         .map(c => c.id);
       filtered = filtered.filter(creator => 
-        activeCampaignIds.includes(creator.campaign_id)
+        activeCampaignIds.includes(String(creator.campaign_id))
       );
     } else if (campaignFilter === 'completed') {
       const completedCampaignIds = campaigns
-        .filter(c => c.status === 'Completed')
+        .filter(c => (c.status || '').toLowerCase() === 'complete')
         .map(c => c.id);
       filtered = filtered.filter(creator => 
-        completedCampaignIds.includes(creator.campaign_id)
+        completedCampaignIds.includes(String(creator.campaign_id))
       );
     }
 
@@ -462,7 +465,7 @@ const QualityAssurance = () => {
         </TableHeader>
         <TableBody>
           {sortedCreators.map((creator) => {
-            const campaign = campaigns.find(c => c.id === creator.campaign_id);
+            const campaign = campaigns.find(c => c.id === String(creator.campaign_id));
             return (
               <TableRow key={creator.id}>
                 <TableCell>

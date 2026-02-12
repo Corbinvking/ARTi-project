@@ -8,7 +8,7 @@ import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useCreateSalesGoal, useCreateTeamGoal } from "../hooks/useSalesGoals";
-import { useSalespeople } from "../hooks/useSalespeople";
+import { useSalespeople } from '@/hooks/use-salespeople';
 
 interface GoalSettingModalProps {
   open: boolean;

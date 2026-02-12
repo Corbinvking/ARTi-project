@@ -25,7 +25,7 @@ import {
   Users
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { SalespeopleManager } from "../components/SalespeopleManager";
+import { SalespeopleManager } from "@/components/salespeople";
 import { ActiveVendorsCard } from "../components/ActiveVendorsCard";
 import { ExecutiveDashboard } from "../components/ExecutiveDashboard";
 import { QuickActions } from "../components/QuickActions";

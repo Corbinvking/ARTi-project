@@ -17,7 +17,7 @@ import { VendorAssignmentStep } from '../components/VendorAssignmentStep';
 import { useClients } from '../hooks/useClients';
 import { useIsVendorManager } from '../hooks/useIsVendorManager';
 import { useCreateCampaignSubmission } from '../hooks/useCampaignSubmissions';
-import { useSalespeople } from '../hooks/useSalespeople';
+import { useSalespeople } from '@/hooks/use-salespeople';
 import { useToast } from '../hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';

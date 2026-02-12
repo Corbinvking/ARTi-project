@@ -49,7 +49,7 @@ import { PlaylistSelector } from './PlaylistSelector';
 import { useCampaignVendorResponses } from '../hooks/useCampaignVendorResponses';
 import { useIsVendorManager } from '../hooks/useIsVendorManager';
 import { useAuth } from '../hooks/useAuth';
-import { useSalespeople } from '../hooks/useSalespeople';
+import { useSalespeople } from '@/hooks/use-salespeople';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { VendorGroupedPlaylistView } from './VendorGroupedPlaylistView';
 import { VendorPerformanceChart } from './VendorPerformanceChart';

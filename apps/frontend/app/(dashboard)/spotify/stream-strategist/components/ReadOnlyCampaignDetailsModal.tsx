@@ -27,7 +27,7 @@ import { useCampaignVendorResponses } from '../hooks/useCampaignVendorResponses'
 import { useToast } from '../hooks/use-toast';
 import { useIsVendorManager } from '../hooks/useIsVendorManager';
 import { useAuth } from '../hooks/useAuth';
-import { useSalespeople } from '../hooks/useSalespeople';
+import { useSalespeople } from '@/hooks/use-salespeople';
 
 interface PlaylistWithStatus {
   id: string;

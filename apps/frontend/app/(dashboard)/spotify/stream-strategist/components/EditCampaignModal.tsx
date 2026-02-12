@@ -24,7 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
-import { useSalespeople } from '../hooks/useSalespeople';
+import { useSalespeople } from '@/hooks/use-salespeople';
 import { useClients } from '../hooks/useClients';
 import { ClientSelector } from './ClientSelector';
 import { UNIFIED_GENRES, APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_TYPE } from '../lib/constants';

@@ -262,7 +262,7 @@ export const authService = {
       case "operator":
         return ["dashboard", "spotify", "soundcloud", "youtube", "instagram", "operator"].includes(platform)
       case "sales":
-        return ["dashboard", "spotify", "youtube", "instagram"].includes(platform)
+        return ["dashboard", "spotify", "youtube", "instagram", "soundcloud"].includes(platform)
       case "vendor":
         return ["dashboard", "spotify", "soundcloud"].includes(platform)
       case "member":

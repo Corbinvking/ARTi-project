@@ -96,7 +96,7 @@ export const useWorkflowOrchestration = () => {
       // Apply cascade updates if any
       if (Object.keys(cascadeUpdates).length > 0) {
         const { error } = await supabase
-          .from('campaign_creators')
+          .from('instagram_campaign_creators')
           .update(cascadeUpdates)
           .eq('id', creatorId);
 
@@ -124,28 +124,31 @@ export const useWorkflowOrchestration = () => {
   const checkDeadlineAlerts = useCallback(async (): Promise<DeadlineAlert[]> => {
     try {
       const { data: creators, error } = await supabase
-        .from('campaign_creators')
-        .select(`
-          id,
-          campaign_id,
-          instagram_handle,
-          due_date,
-          expected_post_date,
-          payment_status,
-          post_status,
-          approval_status,
-          campaigns!inner(name, status)
-        `)
-        .in('campaigns.status', ['Active', 'Draft'])
+        .from('instagram_campaign_creators')
+        .select('*')
         .in('post_status', ['not_posted', 'scheduled']);
 
       if (error) throw error;
+
+      // Fetch campaign names for display
+      const campaignIds = [...new Set((creators || []).map(c => c.campaign_id))];
+      const { data: campaigns } = await supabase
+        .from('instagram_campaigns')
+        .select('id, campaign, status')
+        .in('id', campaignIds.map(Number));
+
+      const campaignMap: Record<string, any> = {};
+      (campaigns || []).forEach(c => { campaignMap[String(c.id)] = c; });
 
       const alerts: DeadlineAlert[] = [];
       const today = new Date();
 
       creators?.forEach(creator => {
-        const dueDate = new Date(creator.due_date || creator.expected_post_date);
+        const campaign = campaignMap[creator.campaign_id];
+        if (!campaign || !['Active', 'Draft'].includes(campaign.status || '')) return;
+
+        const dueDate = creator.due_date ? new Date(creator.due_date) : null;
+        if (!dueDate) return;
         const daysUntil = differenceInDays(dueDate, today);
         
         let alertType: DeadlineAlert['type'] | null = null;
@@ -172,7 +175,7 @@ export const useWorkflowOrchestration = () => {
             creatorId: creator.id,
             campaignId: creator.campaign_id,
             creatorHandle: creator.instagram_handle,
-            campaignName: creator.campaigns.name
+            campaignName: campaign?.campaign || 'Unknown Campaign'
           });
         }
       });
@@ -188,9 +191,9 @@ export const useWorkflowOrchestration = () => {
   const checkCampaignCompletion = useCallback(async (campaignId: string) => {
     try {
       const { data: creators, error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .select('approval_status, post_status')
-        .eq('campaign_id', campaignId);
+        .eq('campaign_id', String(campaignId));
 
       if (error) throw error;
 
@@ -207,9 +210,9 @@ export const useWorkflowOrchestration = () => {
 
         if (newStatus) {
           const { error: updateError } = await supabase
-            .from('campaigns')
+            .from('instagram_campaigns')
             .update({ status: newStatus })
-            .eq('id', campaignId);
+            .eq('id', Number(campaignId));
 
           if (!updateError) {
             toast({
@@ -228,9 +231,9 @@ export const useWorkflowOrchestration = () => {
   const calculateOptimalDeadlines = useCallback(async (campaignId: string, campaignEndDate: string) => {
     try {
       const { data: creators, error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .select('id, posts_count, post_type')
-        .eq('campaign_id', campaignId);
+        .eq('campaign_id', String(campaignId));
 
       if (error) throw error;
 
@@ -251,7 +254,7 @@ export const useWorkflowOrchestration = () => {
       // Batch update deadlines
       for (const update of updates) {
         await supabase
-          .from('campaign_creators')
+          .from('instagram_campaign_creators')
           .update({
             due_date: update.due_date,
             expected_post_date: update.expected_post_date

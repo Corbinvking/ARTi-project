@@ -31,9 +31,9 @@ export const useCampaignCreators = (campaignId?: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .select('*')
-        .eq('campaign_id', campaignId)
+        .eq('campaign_id', String(campaignId))
         .order('instagram_handle');
 
       if (error) throw error;
@@ -64,7 +64,7 @@ export const useCampaignCreators = (campaignId?: string) => {
       const currentCreator = creators.find(c => c.id === creatorId);
       
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update(updates)
         .eq('id', creatorId);
 
@@ -106,7 +106,7 @@ export const useCampaignCreators = (campaignId?: string) => {
   ) => {
     try {
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update(updates)
         .in('id', creatorIds);
 
@@ -143,22 +143,21 @@ export const useCampaignCreators = (campaignId?: string) => {
 
       // Get existing creators for this campaign
       const { data: existing, error: fetchError } = await supabase
-        .from('campaign_creators')
-        .select('creator_id')
-        .eq('campaign_id', campaignId);
+        .from('instagram_campaign_creators')
+        .select('instagram_handle')
+        .eq('campaign_id', String(campaignId));
 
       if (fetchError) throw fetchError;
 
-      const existingIds = new Set(existing?.map(c => c.creator_id) || []);
-      const newCreators = selectedCreators.filter(creator => !existingIds.has(creator.id));
+      const existingHandles = new Set(existing?.map(c => c.instagram_handle) || []);
+      const newCreators = selectedCreators.filter(creator => !existingHandles.has(creator.instagram_handle));
 
       if (newCreators.length > 0) {
         const { error: insertError } = await supabase
-          .from('campaign_creators')
+          .from('instagram_campaign_creators')
           .insert(
             newCreators.map(creator => ({
-              campaign_id: campaignId,
-              creator_id: creator.id,
+              campaign_id: String(campaignId),
               instagram_handle: creator.instagram_handle,
               rate: creator.campaign_rate || creator.reel_rate || 0,
               posts_count: creator.posts_count || 1,

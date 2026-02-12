@@ -32,24 +32,35 @@ export const QuickActionsPanel = () => {
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch actionable items
+  // Fetch actionable items (separate queries - no JOIN)
   const { data: actionableItems = [], isLoading } = useQuery({
     queryKey: ['actionable-items'],
     queryFn: async () => {
+      // First get active campaign IDs from instagram_campaigns
+      const { data: campaigns, error: campaignsError } = await supabase
+        .from('instagram_campaigns')
+        .select('id')
+        .eq('status', 'active');
+
+      if (campaignsError) throw campaignsError;
+      const activeCampaignIds = (campaigns || []).map(c => String(c.id));
+
+      if (activeCampaignIds.length === 0) return [];
+
       const { data, error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .select(`
           id,
+          campaign_id,
           payment_status,
           post_status,
           approval_status,
           due_date,
           expected_post_date,
-          rate,
-          campaigns!inner(name, status)
+          rate
         `)
-        .eq('campaigns.status', 'active');
-      
+        .in('campaign_id', activeCampaignIds);
+
       if (error) throw error;
       return data || [];
     }
@@ -59,7 +70,7 @@ export const QuickActionsPanel = () => {
   const bulkUpdateMutation = useMutation({
     mutationFn: async ({ ids, updates }: { ids: string[], updates: any }) => {
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update(updates)
         .in('id', ids);
       

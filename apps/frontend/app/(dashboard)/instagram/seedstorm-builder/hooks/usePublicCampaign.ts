@@ -48,9 +48,9 @@ export const usePublicCampaign = (token: string | undefined) => {
 
         // Fetch campaign creators data
         const { data: creatorsData, error: creatorsError } = await supabase
-          .from('campaign_creators')
+          .from('instagram_campaign_creators')
           .select('*')
-          .eq('campaign_id', campaignData.id);
+          .eq('campaign_id', String(campaignData.id));
 
         if (creatorsError) {
           throw new Error('Failed to fetch campaign creators');
@@ -62,12 +62,12 @@ export const usePublicCampaign = (token: string | undefined) => {
         const totalCreators = creatorsData?.length || 0;
 
         if (creatorsData && creatorsData.length > 0) {
-          const creatorIds = creatorsData.map(cc => cc.creator_id);
+          const creatorHandles = creatorsData.map(cc => cc.instagram_handle);
           
           const { data: creatorDetails, error: creatorDetailsError } = await supabase
             .from('creators')
-            .select('id, median_views_per_video, engagement_rate')
-            .in('id', creatorIds);
+            .select('id, instagram_handle, median_views_per_video, engagement_rate')
+            .in('instagram_handle', creatorHandles);
 
           if (!creatorDetailsError && creatorDetails) {
             // Create a map for quick lookup

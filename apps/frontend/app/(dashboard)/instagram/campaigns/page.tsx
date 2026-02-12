@@ -113,9 +113,9 @@ export default function InstagramCampaignsPage() {
     queryFn: async () => {
       if (!selectedCampaign?.id) return [];
       const { data, error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .select('*')
-        .eq('campaign_id', selectedCampaign.id)
+        .eq('campaign_id', String(selectedCampaign.id))
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as CampaignCreator[];
@@ -127,7 +127,7 @@ export default function InstagramCampaignsPage() {
   const updateCreatorStatus = async (creatorId: string, updates: Partial<CampaignCreator>) => {
     try {
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update(updates)
         .eq('id', creatorId);
       if (error) throw error;
@@ -142,7 +142,7 @@ export default function InstagramCampaignsPage() {
   const bulkUpdateCreators = async (creatorIds: string[], updates: Partial<CampaignCreator>) => {
     try {
       const { error } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .update(updates)
         .in('id', creatorIds);
       if (error) throw error;
@@ -256,18 +256,18 @@ export default function InstagramCampaignsPage() {
       
       // Fetch all campaign creators with payment status
       const { data: creatorsData, error: creatorsError } = await supabase
-        .from('campaign_creators')
+        .from('instagram_campaign_creators')
         .select('campaign_id, rate, posts_count, payment_status');
       
       if (creatorsError) {
-        console.warn('⚠️ Could not fetch campaign_creators:', creatorsError);
+        console.warn('⚠️ Could not fetch instagram_campaign_creators:', creatorsError);
       }
       
       // Calculate spend and remaining for each campaign
       const campaignsWithCalculatedSpend = (campaignsData || []).map(campaign => {
-        // Get creators for this campaign
+        // Get creators for this campaign (campaign_id is TEXT in instagram_campaign_creators)
         const campaignCreators = (creatorsData || []).filter(
-          (c: any) => c.campaign_id === campaign.id
+          (c: any) => String(c.campaign_id) === String(campaign.id)
         );
         
         // Calculate total paid (sum of rate * posts_count for paid creators)
