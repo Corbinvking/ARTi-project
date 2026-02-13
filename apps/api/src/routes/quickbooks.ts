@@ -42,17 +42,29 @@ export async function quickbooksRoutes(server: FastifyInstance) {
   });
 
   // ========================================================================
-  // OAuth — Callback
+  // OAuth — Callback (Intuit redirects here with code, realmId/realm_id, state)
+  // Docs: https://developer.intuit.com/app/developer/qbo/docs/develop/authentication-and-authorization/oauth-2.0
   // ========================================================================
 
   server.get('/quickbooks/callback', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const query = request.query as Record<string, string>;
-      const fullUrl = `${request.protocol}://${request.hostname}${request.url}`;
+      // Build callback URL from INTUIT_REDIRECT_URI + query so it matches Keys tab exactly
+      // (avoids proxy giving wrong protocol/host and causing redirect_uri mismatch)
+      const redirectBase = process.env.INTUIT_REDIRECT_URI;
+      if (!redirectBase) {
+        return reply.code(500).send({ error: 'INTUIT_REDIRECT_URI not configured' });
+      }
+      const queryIndex = request.url.indexOf('?');
+      const queryString = queryIndex >= 0 ? request.url.slice(queryIndex) : '';
+      const fullUrl = redirectBase + queryString;
 
-      // Extract realmId from query params as a sanity check
-      if (!query.code || !query.realmId) {
-        return reply.code(400).send({ error: 'Missing code or realmId in callback' });
+      const realmId = query.realmId ?? query.realm_id;
+      if (!query.code || !realmId) {
+        return reply.code(400).send({
+          error: 'Missing code or realmId in callback',
+          hint: 'Intuit sends code, realmId (or realm_id), and state. Ensure redirect_uri in Keys tab matches INTUIT_REDIRECT_URI exactly.',
+        });
       }
 
       // TODO: validate `state` against stored value for CSRF protection

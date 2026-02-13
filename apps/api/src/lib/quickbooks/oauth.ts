@@ -60,7 +60,11 @@ export async function handleCallback(
   const authResponse = await client.createToken(redirectUrl);
   const tokenJson = authResponse.getJson();
 
-  const realmId = new URL(redirectUrl).searchParams.get('realmId')!;
+  const params = new URL(redirectUrl).searchParams;
+  const realmId = params.get('realmId') ?? params.get('realm_id');
+  if (!realmId) {
+    throw new Error('Callback URL missing realmId or realm_id (required for Accounting scope)');
+  }
   const environment = process.env.INTUIT_ENVIRONMENT || 'sandbox';
 
   // Upsert connection
