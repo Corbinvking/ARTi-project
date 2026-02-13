@@ -142,6 +142,64 @@ export const ScheduleSuggestionPanel = ({
     }
   }, [selectedSlot])
 
+  // Same APIs + keying as genre tagging flow (Settings > Repost Channel Genres) so genres stay identical
+  const fetchRepostChannelGenresAndFamilies = useCallback(
+    async (token: string): Promise<{ assignments: Record<string, string[]>; genreIdToName: Record<string, string> }> => {
+      const [genresRes, familiesRes] = await Promise.all([
+        fetch("/api/soundcloud/repost-channel-genres", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        }),
+        fetch("/api/soundcloud/genre-families", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        }),
+      ])
+      if (!genresRes.ok || !familiesRes.ok) return { assignments: {}, genreIdToName: {} }
+      const list: { ip_user_id: string; genre_family_id: string }[] = await genresRes.json()
+      const families: { id: string; name: string }[] = await familiesRes.json()
+      const assignments: Record<string, string[]> = {}
+      list.forEach((item) => {
+        if (!assignments[item.ip_user_id]) assignments[item.ip_user_id] = []
+        assignments[item.ip_user_id].push(item.genre_family_id)
+      })
+      const genreIdToName: Record<string, string> = {}
+      families.forEach((f) => {
+        genreIdToName[f.id] = f.name
+      })
+      return { assignments, genreIdToName }
+    },
+    []
+  )
+
+  // Enrich channels with genre names using same key logic as genre tagging flow (ip_user_id / user_id)
+  const enrichChannelsWithGenresClient = useCallback(
+    (
+      channels: ChannelSuggestion[],
+      assignments: Record<string, string[]>,
+      genreIdToName: Record<string, string>
+    ): ChannelSuggestion[] => {
+      return channels.map((ch) => {
+        const uid = ch.user_id != null ? String(ch.user_id) : ""
+        const genreIds =
+          assignments[uid] ??
+          (uid.startsWith("SOUNDCLOUD-USER-")
+            ? assignments[uid.replace(/^SOUNDCLOUD-USER-/, "")]
+            : assignments["SOUNDCLOUD-USER-" + uid]) ??
+          []
+        const names = genreIds
+          .map((id) => genreIdToName[id])
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b))
+        return {
+          ...ch,
+          genre_family_names: names.length ? names : undefined,
+        }
+      })
+    },
+    []
+  )
+
   // ----- Fetch Channel Suggestions (streaming with progress) -----
   const fetchChannelSuggestions = useCallback(async () => {
     setLoadingChannels(true)
@@ -150,10 +208,13 @@ export const ScheduleSuggestionPanel = ({
       const token = await getAuthToken()
       if (!token) throw new Error("Not authenticated")
 
+      // Fetch genre data from same APIs as genre tagging flow so display is identical
+      const { assignments, genreIdToName } = await fetchRepostChannelGenresAndFamilies(token)
+
       const params = new URLSearchParams()
       if (goalReposts > 0) params.set("targetReach", String(goalReposts))
       params.set("stream", "true")
-      params.set("_t", String(Date.now())) // cache-bust so genres always match Settings
+      params.set("_t", String(Date.now()))
 
       const res = await fetch(
         `/api/soundcloud/influenceplanner/suggest-channels?${params.toString()}`,
@@ -174,7 +235,6 @@ export const ScheduleSuggestionPanel = ({
 
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split("\n")
-        // Keep the last incomplete line in the buffer
         buffer = lines.pop() || ""
 
         for (const line of lines) {
@@ -190,10 +250,16 @@ export const ScheduleSuggestionPanel = ({
                 totalPages: event.totalPages,
               })
             } else if (event.type === "result") {
-              setChannelSuggestions(event.channels || [])
-              const suggested = (event.channels || [])
-                .filter((c: ChannelSuggestion) => c.suggested)
-                .map((c: ChannelSuggestion) => c.user_id)
+              const rawChannels = event.channels || []
+              const channelsWithGenres = enrichChannelsWithGenresClient(
+                rawChannels,
+                assignments,
+                genreIdToName
+              )
+              setChannelSuggestions(channelsWithGenres)
+              const suggested = (rawChannels as ChannelSuggestion[])
+                .filter((c) => c.suggested)
+                .map((c) => c.user_id)
               setSelectedChannels(new Set(suggested))
             } else if (event.type === "error") {
               throw new Error(event.error)
@@ -215,7 +281,7 @@ export const ScheduleSuggestionPanel = ({
     } finally {
       setLoadingChannels(false)
     }
-  }, [goalReposts])
+  }, [goalReposts, fetchRepostChannelGenresAndFamilies, enrichChannelsWithGenresClient])
 
   // Load suggestions when panel is visible (e.g. modal opened); refetch when visibility becomes true so genre deletes in Settings are reflected
   useEffect(() => {
