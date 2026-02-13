@@ -343,6 +343,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
                 });
               }}
               onUpdate={onCampaignUpdate}
+              isVisible={isOpen}
             />
           )}
 

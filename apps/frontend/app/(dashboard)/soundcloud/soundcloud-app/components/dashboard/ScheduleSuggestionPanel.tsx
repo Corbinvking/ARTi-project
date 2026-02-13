@@ -60,6 +60,8 @@ interface ScheduleSuggestionPanelProps {
   goalReposts?: number
   onScheduleCreated?: (scheduleUrls: string[]) => void
   onUpdate?: () => void
+  /** When true (e.g. modal opened), refetches channels so genre tags stay in sync after Settings changes */
+  isVisible?: boolean
 }
 
 // ----- Component -----
@@ -73,6 +75,7 @@ export const ScheduleSuggestionPanel = ({
   goalReposts = 0,
   onScheduleCreated,
   onUpdate,
+  isVisible = true,
 }: ScheduleSuggestionPanelProps) => {
   const { toast } = useToast()
 
@@ -213,11 +216,13 @@ export const ScheduleSuggestionPanel = ({
     }
   }, [goalReposts])
 
-  // Load suggestions on mount
+  // Load suggestions when panel is visible (e.g. modal opened); refetch when visibility becomes true so genre deletes in Settings are reflected
   useEffect(() => {
-    fetchSlotSuggestions()
-    fetchChannelSuggestions()
-  }, [])
+    if (isVisible) {
+      fetchSlotSuggestions()
+      fetchChannelSuggestions()
+    }
+  }, [isVisible])
 
   // ----- Handlers -----
 

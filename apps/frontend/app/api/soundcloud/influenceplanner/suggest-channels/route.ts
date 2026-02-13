@@ -32,8 +32,8 @@ async function enrichChannelsWithGenres(
   _authToken: string
 ): Promise<ChannelSuggestion[]> {
   try {
-    // Use service-role client so genre data is returned for all roles (admin and operator)
-    const supabase = createAdminClient();
+    // Prefer service-role so genre data is returned for all roles; fallback to auth token for RLS
+    const supabase = createAdminClient(_authToken);
     const { data: genreRows } = await supabase
       .from("soundcloud_repost_channel_genres")
       .select("ip_user_id, genre_family_id");
@@ -52,11 +52,19 @@ async function enrichChannelsWithGenres(
       if (!genreByUser.has(key)) genreByUser.set(key, []);
       genreByUser.get(key)!.push(name);
     });
+    // Normalize keys so lookup works whether IP API returns "SOUNDCLOUD-USER-123", "123", or 123
+    for (const [k, v] of Array.from(genreByUser.entries())) {
+      if (k.startsWith("SOUNDCLOUD-USER-")) {
+        const numeric = k.replace(/^SOUNDCLOUD-USER-/, "");
+        if (!genreByUser.has(numeric)) genreByUser.set(numeric, v);
+      }
+    }
 
     return channels.map((ch) => {
+      const uid = ch.user_id != null ? String(ch.user_id) : "";
       const names =
-        genreByUser.get(ch.user_id) ??
-        genreByUser.get("SOUNDCLOUD-USER-" + ch.user_id) ??
+        genreByUser.get(uid) ??
+        genreByUser.get("SOUNDCLOUD-USER-" + uid) ??
         [];
       return {
         ...ch,
