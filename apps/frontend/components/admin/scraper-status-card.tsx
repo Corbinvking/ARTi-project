@@ -225,9 +225,14 @@ export function ScraperStatusCard() {
               )}
             </div>
             {status?.keepalive?.sessionActive === false && status.keepalive.sessionExpiredAt && (
-              <p className="text-xs text-red-500">
-                Expired {formatDistanceToNow(new Date(status.keepalive.sessionExpiredAt), { addSuffix: true })}
-              </p>
+              <>
+                <p className="text-xs text-red-500">
+                  Expired {formatDistanceToNow(new Date(status.keepalive.sessionExpiredAt), { addSuffix: true })}
+                </p>
+                <p className="text-xs text-muted-foreground max-w-[240px]">
+                  Re-login via VNC on the server: <code className="text-foreground">bash start_vnc_and_login.sh</code> then log in to Spotify for Artists in the browser. See spotify_scraper/VNC-LOGIN-GUIDE.md.
+                </p>
+              </>
             )}
             {status?.keepalive?.sessionActive && status.keepalive.lastKeepaliveAt && (
               <p className="text-xs text-muted-foreground">

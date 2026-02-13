@@ -1480,7 +1480,14 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
         
         logger.info("✓ Valid session found - proceeding with scraping")
         logger.info("  (Automated re-login is disabled to avoid bot detection)")
-        
+        # Clear session-expired flag so dashboard shows Active after this run
+        session_flag = Path(__file__).parent / 'logs' / 'session_expired.flag'
+        if session_flag.exists():
+            try:
+                session_flag.unlink()
+                logger.info("  Cleared session_expired.flag (session is valid)")
+            except Exception:
+                pass
         # Create Spotify page helper
         spotify_page = SpotifyArtistsPage(page)
         
@@ -1791,13 +1798,14 @@ async def _main_inner(limit=None):
         total_failure += failure
         
         # EARLY ABORT: If an entire batch failed with 0 successes, the session is dead
-        # Don't waste time looping through the remaining 13 batches
+        # Don't waste time looping through the remaining batches
         if success == 0 and failure == len(batch_campaigns):
             remaining = total_campaigns - batch_end
             logger.error("="*60)
-            logger.error("ABORTING: Session is invalid - no campaigns succeeded in this batch")
-            logger.error(f"Skipping remaining {remaining} campaigns across {total_batches - batch_num} batches")
-            logger.error("Please login via VNC and run the scraper again.")
+            logger.error("ABORTING: Session invalid - no campaigns succeeded in this batch")
+            logger.error(f"  {remaining} campaigns were NOT scraped (still showing older 'last update' times)")
+            logger.error(f"  Skipping remaining {total_batches - batch_num} batches.")
+            logger.error("  Fix: Re-login via VNC (start_vnc_and_login.sh), then run the scraper again to update all.")
             logger.error("="*60)
             total_failure += remaining
             break

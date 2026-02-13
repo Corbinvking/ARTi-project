@@ -15,13 +15,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Use service role when available so all genres (including operator-created) are always visible after refresh
-    let supabase: ReturnType<typeof createAdminClient>;
-    try {
-      supabase = createAdminClient();
-    } catch {
-      supabase = createAdminClient(auth.token);
-    }
+    const supabase = createAdminClient(auth.token);
     const seen = new Set<string>();
     const list: { id: string; name: string }[] = [];
 
@@ -89,12 +83,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    let supabase: ReturnType<typeof createAdminClient>;
-    try {
-      supabase = createAdminClient();
-    } catch {
-      supabase = createAdminClient(auth.token);
-    }
+    const supabase = createAdminClient(auth.token);
 
     const { data: existing } = await supabase
       .from("soundcloud_genre_families")
