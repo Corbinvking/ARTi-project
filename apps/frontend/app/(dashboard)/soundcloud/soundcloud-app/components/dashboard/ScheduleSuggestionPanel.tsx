@@ -153,10 +153,11 @@ export const ScheduleSuggestionPanel = ({
       const params = new URLSearchParams()
       if (goalReposts > 0) params.set("targetReach", String(goalReposts))
       params.set("stream", "true")
+      params.set("_t", String(Date.now())) // cache-bust so genres always match Settings
 
       const res = await fetch(
         `/api/soundcloud/influenceplanner/suggest-channels?${params.toString()}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
       )
 
       if (!res.ok) throw new Error("Failed to fetch channels")

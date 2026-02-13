@@ -77,9 +77,11 @@ async function enrichChannelsWithGenres(
           ? genreByUser.get(uid.replace(/^SOUNDCLOUD-USER-/, ""))
           : genreByUser.get("SOUNDCLOUD-USER-" + uid)) ??
         [];
+      // Sort so display order matches genre tagging flow and is deterministic
+      const sorted = names.length ? [...names].sort((a, b) => a.localeCompare(b)) : undefined;
       return {
         ...ch,
-        genre_family_names: names.length ? names : undefined,
+        genre_family_names: sorted,
       };
     });
   } catch {
@@ -254,7 +256,7 @@ export async function GET(request: Request) {
     return new Response(stream, {
       headers: {
         "Content-Type": "application/x-ndjson",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-store, no-cache",
         "Transfer-Encoding": "chunked",
       },
     });
