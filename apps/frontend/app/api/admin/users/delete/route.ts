@@ -1,74 +1,55 @@
 import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
 export async function DELETE(request: Request) {
   try {
-    const body = await request.json();
-    const { userId } = body;
+    const body = await request.json().catch(() => ({}));
+    const userId = body.userId ?? body.id;
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'User ID is required (body: { userId } or { id })' }, { status: 400 });
     }
 
-    // Create admin client with service role
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
+      { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Get the auth token from Authorization header
     const authHeader = request.headers.get('Authorization');
-    
-    let authToken: string | undefined;
-    if (authHeader?.startsWith('Bearer ')) {
-      authToken = authHeader.substring(7);
-    }
-    
-    if (!authToken) {
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized - No auth token' }, { status: 401 });
     }
-
-    // Verify the token and get the user
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authToken);
-    
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 });
     }
-
-    // Check if user has admin role
-    const { data: userRoles, error: roleError } = await supabaseAdmin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id);
-
-    if (roleError || !userRoles?.some((r: any) => r.role === 'admin')) {
+    const { data: roles } = await supabaseAdmin.from('user_roles').select('role').eq('user_id', user.id);
+    if (!roles?.some((r: any) => r.role === 'admin')) {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    // Delete user using admin client
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    // Delete from public tables first (same order as [id] route)
+    await supabaseAdmin.from('user_permissions').delete().eq('user_id', userId);
+    await supabaseAdmin.from('user_roles').delete().eq('user_id', userId);
+    await supabaseAdmin.from('vendor_users').delete().eq('user_id', userId);
+    await supabaseAdmin.from('profiles').delete().eq('id', userId);
+    await supabaseAdmin.from('salespeople').update({ auth_user_id: null }).eq('auth_user_id', userId);
+    await supabaseAdmin.from('users').delete().eq('id', userId);
 
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
     if (deleteError) {
-      console.error('Error deleting user:', deleteError);
+      console.error('Error deleting auth user:', deleteError);
       return NextResponse.json({ error: deleteError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ message: 'User deleted successfully', userId });
   } catch (error) {
     console.error('Unexpected error in delete user API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 

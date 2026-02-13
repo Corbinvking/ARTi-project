@@ -365,9 +365,14 @@ export function UserManagement() {
 
     try {
       setIsDeleting(userId)
-      // Use Next.js API route (same origin, server-side with service role key)
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch('/api/admin/users/delete', {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ userId }),
       })
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
