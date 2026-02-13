@@ -63,6 +63,9 @@ async function enrichChannelsWithGenres(
       if (k.startsWith("SOUNDCLOUD-USER-")) {
         const numeric = k.replace(/^SOUNDCLOUD-USER-/, "");
         if (!genreByUser.has(numeric)) genreByUser.set(numeric, v);
+      } else {
+        const prefixed = "SOUNDCLOUD-USER-" + k;
+        if (!genreByUser.has(prefixed)) genreByUser.set(prefixed, v);
       }
     }
 
@@ -70,7 +73,9 @@ async function enrichChannelsWithGenres(
       const uid = ch.user_id != null ? String(ch.user_id) : "";
       const names =
         genreByUser.get(uid) ??
-        genreByUser.get("SOUNDCLOUD-USER-" + uid) ??
+        (uid.startsWith("SOUNDCLOUD-USER-")
+          ? genreByUser.get(uid.replace(/^SOUNDCLOUD-USER-/, ""))
+          : genreByUser.get("SOUNDCLOUD-USER-" + uid)) ??
         [];
       return {
         ...ch,
