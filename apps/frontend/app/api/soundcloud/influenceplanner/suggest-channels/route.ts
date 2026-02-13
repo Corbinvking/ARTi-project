@@ -32,8 +32,14 @@ async function enrichChannelsWithGenres(
   _authToken: string
 ): Promise<ChannelSuggestion[]> {
   try {
-    // Prefer service-role so genre data is returned for all roles; fallback to auth token for RLS
-    const supabase = createAdminClient(_authToken);
+    // Use service-role when available so RLS is bypassed and admin + operator both see the same genre data
+    // (admin can be blocked by org/memberships policies when using their JWT)
+    let supabase: ReturnType<typeof createAdminClient>;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = createAdminClient(_authToken);
+    }
     const { data: genreRows } = await supabase
       .from("soundcloud_repost_channel_genres")
       .select("ip_user_id, genre_family_id");
