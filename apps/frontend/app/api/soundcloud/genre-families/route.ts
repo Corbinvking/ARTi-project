@@ -19,10 +19,31 @@ export async function GET(request: Request) {
     const seen = new Set<string>();
     const list: { id: string; name: string }[] = [];
 
-    const { data: scData } = await supabase
+    let { data: scData } = await supabase
       .from("soundcloud_genre_families")
       .select("id, name")
       .order("name");
+
+    // If no base genres exist, seed them (same list as migration 20260215_seed_soundcloud_genre_families)
+    if (!scData || scData.length === 0) {
+      const rows = BASE_GENRE_NAMES.map((name) => ({
+        org_id: DEFAULT_ORG_ID,
+        name,
+        active: true,
+      }));
+      const { error: insertErr } = await supabase
+        .from("soundcloud_genre_families")
+        .insert(rows);
+      if (!insertErr) {
+        const { data: after } = await supabase
+          .from("soundcloud_genre_families")
+          .select("id, name")
+          .order("name");
+        scData = after || [];
+      }
+      // If insert failed (e.g. org missing, RLS), continue and return empty/merged list
+    }
+
     (scData || []).forEach((r: { id: string; name: string }) => {
       if (!seen.has(r.id)) {
         seen.add(r.id);
@@ -53,6 +74,25 @@ export async function GET(request: Request) {
 
 const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
 const MAX_GENRE_NAME_LENGTH = 100;
+
+/** Base genres seeded when soundcloud_genre_families is empty (matches migration 20260215). */
+const BASE_GENRE_NAMES = [
+  "Ambient",
+  "Drum & Bass",
+  "Dubstep",
+  "Electronic",
+  "Hip-Hop",
+  "House",
+  "Indie",
+  "Jazz",
+  "Metal",
+  "Other",
+  "Pop",
+  "R&B",
+  "Rock",
+  "Techno",
+  "Trap",
+];
 
 /**
  * POST /api/soundcloud/genre-families
