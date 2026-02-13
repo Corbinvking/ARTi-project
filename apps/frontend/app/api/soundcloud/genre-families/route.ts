@@ -50,3 +50,80 @@ export async function GET(request: Request) {
     );
   }
 }
+
+const DEFAULT_ORG_ID = "00000000-0000-0000-0000-000000000001";
+const MAX_GENRE_NAME_LENGTH = 100;
+
+/**
+ * POST /api/soundcloud/genre-families
+ * Create a new genre family (operator-created genres). Idempotent: if name exists for org, returns existing row.
+ */
+export async function POST(request: Request) {
+  const auth = await getAuthorizedUser(request);
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  let body: { name?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+  }
+
+  const rawName = typeof body?.name === "string" ? body.name.trim() : "";
+  if (!rawName) {
+    return NextResponse.json({ error: "name is required and must be non-empty" }, { status: 400 });
+  }
+  if (rawName.length > MAX_GENRE_NAME_LENGTH) {
+    return NextResponse.json(
+      { error: `name must be at most ${MAX_GENRE_NAME_LENGTH} characters` },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const supabase = createAdminClient(auth.token);
+
+    const { data: existing } = await supabase
+      .from("soundcloud_genre_families")
+      .select("id, name")
+      .eq("org_id", DEFAULT_ORG_ID)
+      .eq("name", rawName)
+      .maybeSingle();
+
+    if (existing) {
+      return NextResponse.json({ id: existing.id, name: existing.name });
+    }
+
+    const { data: inserted, error } = await supabase
+      .from("soundcloud_genre_families")
+      .insert({
+        org_id: DEFAULT_ORG_ID,
+        name: rawName,
+        active: true,
+      })
+      .select("id, name")
+      .single();
+
+    if (error) {
+      if (error.code === "23505") {
+        const { data: row } = await supabase
+          .from("soundcloud_genre_families")
+          .select("id, name")
+          .eq("org_id", DEFAULT_ORG_ID)
+          .eq("name", rawName)
+          .single();
+        if (row) return NextResponse.json({ id: row.id, name: row.name });
+      }
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ id: inserted!.id, name: inserted!.name });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || "Failed to create genre" },
+      { status: 500 }
+    );
+  }
+}

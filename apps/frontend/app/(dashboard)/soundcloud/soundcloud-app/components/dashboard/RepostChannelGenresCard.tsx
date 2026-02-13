@@ -5,8 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "../../hooks/use-toast";
 import { Loader2, Music, RefreshCw, X } from "lucide-react";
+
+const CREATE_GENRE_SENTINEL = "__create__";
 
 interface IPNetworkMember {
   user_id: string;
@@ -34,6 +44,10 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
   const [assignments, setAssignments] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [createGenreOpen, setCreateGenreOpen] = useState(false);
+  const [createGenreForMemberId, setCreateGenreForMemberId] = useState<string | null>(null);
+  const [newGenreName, setNewGenreName] = useState("");
+  const [creatingGenre, setCreatingGenre] = useState(false);
   const { toast } = useToast();
 
   const fetchGenreFamilies = useCallback(async () => {
@@ -185,6 +199,58 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
     }
   };
 
+  const handleCreateGenreSubmit = async () => {
+    const name = newGenreName.trim();
+    if (!name || !sessionToken) return;
+    setCreatingGenre(true);
+    try {
+      const res = await fetch("/api/soundcloud/genre-families", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 400 && data?.error?.toLowerCase().includes("already")) {
+          toast({ title: "Genre already exists", description: data.error, variant: "destructive" });
+        } else {
+          toast({
+            title: "Error",
+            description: data?.error || "Failed to create genre",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+      const { id, name: createdName } = data as { id: string; name: string };
+      await fetchGenreFamilies();
+      setCreateGenreOpen(false);
+      setCreateGenreForMemberId(null);
+      setNewGenreName("");
+      if (createGenreForMemberId) {
+        await handleGenreAdd(createGenreForMemberId, id);
+      }
+      toast({ title: "Created", description: `Genre "${createdName}" added and available for all channels.` });
+    } catch (e: any) {
+      toast({
+        title: "Error",
+        description: e.message || "Failed to create genre",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingGenre(false);
+    }
+  };
+
+  const openCreateGenreDialog = (memberUserId: string) => {
+    setCreateGenreForMemberId(memberUserId);
+    setCreateGenreOpen(true);
+    setNewGenreName("");
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -271,29 +337,34 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
                       </Badge>
                     );
                   })}
-                  {genreFamilies.some((f) => !(assignments[member.user_id] || []).includes(f.id)) && (
-                    <Select
-                      key={`${member.user_id}-${(assignments[member.user_id] || []).length}`}
-                      value=""
-                      onValueChange={(value) => {
-                        if (value) handleGenreAdd(member.user_id, value);
-                      }}
-                      disabled={!!savingId}
-                    >
-                      <SelectTrigger className="w-[140px] h-8">
-                        <SelectValue placeholder="Add genre" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {genreFamilies
-                          .filter((f) => !(assignments[member.user_id] || []).includes(f.id))
-                          .map((f) => (
-                            <SelectItem key={f.id} value={f.id}>
-                              {f.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <Select
+                    key={`${member.user_id}-${(assignments[member.user_id] || []).length}`}
+                    value={createGenreForMemberId === member.user_id ? "" : undefined}
+                    onValueChange={(value) => {
+                      if (value === CREATE_GENRE_SENTINEL) {
+                        openCreateGenreDialog(member.user_id);
+                        return;
+                      }
+                      if (value) handleGenreAdd(member.user_id, value);
+                    }}
+                    disabled={!!savingId}
+                  >
+                    <SelectTrigger className="w-[140px] h-8">
+                      <SelectValue placeholder="Add genre" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={CREATE_GENRE_SENTINEL}>
+                        Create new genre...
+                      </SelectItem>
+                      {genreFamilies
+                        .filter((f) => !(assignments[member.user_id] || []).includes(f.id))
+                        .map((f) => (
+                          <SelectItem key={f.id} value={f.id}>
+                            {f.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 {savingId === member.user_id && (
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -303,6 +374,50 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
           </div>
         )}
       </CardContent>
+      <Dialog open={createGenreOpen} onOpenChange={(open) => {
+        if (!open) {
+          setCreateGenreOpen(false);
+          setCreateGenreForMemberId(null);
+          setNewGenreName("");
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>New genre</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="new-genre-name">Genre name</Label>
+              <Input
+                id="new-genre-name"
+                value={newGenreName}
+                onChange={(e) => setNewGenreName(e.target.value)}
+                placeholder="e.g. Future Bass"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCreateGenreSubmit();
+                  }
+                }}
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={handleCreateGenreSubmit}
+              disabled={!newGenreName.trim() || creatingGenre}
+            >
+              {creatingGenre ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
