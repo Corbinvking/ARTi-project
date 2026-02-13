@@ -289,9 +289,28 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        ) : members.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No repost channel members found. Check Influence Planner connection.</p>
         ) : (
+          <div className="space-y-4">
+            {/* Visible list of available genres */}
+            <div className="rounded-lg border bg-muted/30 p-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Available genres</p>
+              {genreFamilies.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No genres yet. Use &quot;Add genre&quot; on any channel below and choose &quot;Create new genre...&quot; to add the first.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {genreFamilies.map((f) => (
+                    <Badge key={f.id} variant="outline" className="font-normal">
+                      {f.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+            {members.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No repost channel members found. Check Influence Planner connection.</p>
+            ) : (
           <div className="space-y-2 max-h-[480px] overflow-y-auto pr-2">
             {members.map((member) => (
               <div
@@ -371,6 +390,8 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
                 )}
               </div>
             ))}
+          </div>
+            )}
           </div>
         )}
       </CardContent>
