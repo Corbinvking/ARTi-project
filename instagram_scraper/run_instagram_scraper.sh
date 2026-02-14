@@ -1,10 +1,11 @@
 #!/bin/bash
 # Instagram Scraper Cron Job Script
-# This script is called by cron to run the Instagram scraper daily
+# This script is called by cron to run the Instagram scraper 3x daily (same idea as YouTube)
 #
 # Setup:
 # 1. chmod +x /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh
-# 2. Add to crontab: 0 6 * * * /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh >> /var/log/instagram_scraper.log 2>&1
+# 2. Add to crontab (3x daily at 6:00, 14:00, 22:00 UTC):
+#    0 6,14,22 * * * /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh >> /var/log/instagram_scraper.log 2>&1
 
 set -e
 

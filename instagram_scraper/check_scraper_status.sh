@@ -78,7 +78,7 @@ else
     echo ""
     echo "   To set up cron job:"
     echo "   crontab -e"
-    echo "   # Add: 0 3 * * * /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh >> /var/log/instagram_scraper.log 2>&1"
+    echo "   # Add (3x daily): 0 6,14,22 * * * /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh >> /var/log/instagram_scraper.log 2>&1"
 fi
 echo ""
 

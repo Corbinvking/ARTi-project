@@ -37,14 +37,12 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
       const { resultsLimit = 30, dryRun = false } = request.body || {};
       
       logger.info({ resultsLimit, dryRun }, '🚀 Starting batch Instagram scraper');
-      
-      // Fetch ALL campaigns with instagram_url set (except inactive ones)
-      // We track all active campaigns automatically - no opt-in required
+
+      // Fetch ALL active campaigns that have instagram_url, tracker, or sound_url (any can contain Instagram links)
       const { data: allCampaigns, error: fetchError } = await supabase
         .from('instagram_campaigns')
-        .select('id, campaign, clients, instagram_url, status, last_scraped_at')
-        .not('instagram_url', 'is', null);
-      
+        .select('id, campaign, clients, instagram_url, tracker, sound_url, status, last_scraped_at');
+
       if (fetchError) {
         logger.error({ error: fetchError }, '❌ Error fetching campaigns for batch scrape');
         return reply.status(500).send({
@@ -52,20 +50,38 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
           error: 'Failed to fetch campaigns',
         });
       }
-      
-      // Filter out inactive campaigns - only skip if status explicitly contains 'inactive'
-      const campaigns = allCampaigns?.filter(c => {
+
+      // Filter out inactive campaigns
+      const activeCampaigns = allCampaigns?.filter(c => {
         const status = (c.status || '').toLowerCase();
         return !status.includes('inactive') && !status.includes('cancelled') && !status.includes('canceled');
       }) || [];
-      
-      const skippedCount = (allCampaigns?.length || 0) - campaigns.length;
-      if (skippedCount > 0) {
-        logger.info({ skippedCount }, `⏭️ Skipped ${skippedCount} inactive/cancelled campaigns`);
+
+      // Resolve scrape URL per campaign: instagram_url first, else Instagram URLs from tracker, else sound_url if Instagram
+      const campaignsWithUrls = activeCampaigns
+        .map((c: any) => {
+          let urls: string[] = [];
+          if (c.instagram_url?.trim()) {
+            urls = [c.instagram_url.trim()];
+          } else if (c.tracker?.trim()) {
+            urls = extractInstagramUrls(c.tracker);
+          }
+          if (urls.length === 0 && c.sound_url?.trim()) {
+            const fromSound = extractInstagramUrls(c.sound_url);
+            if (fromSound.length > 0) urls = fromSound;
+          }
+          return { ...c, _scrapeUrls: urls };
+        })
+        .filter((c: any) => c._scrapeUrls.length > 0);
+
+      const skippedCount = (allCampaigns?.length || 0) - activeCampaigns.length;
+      const noUrlCount = activeCampaigns.length - campaignsWithUrls.length;
+      if (skippedCount > 0 || noUrlCount > 0) {
+        logger.info({ skippedCount, noUrlCount }, `⏭️ Skipped ${skippedCount} inactive, ${noUrlCount} with no Instagram URL`);
       }
-      
-      if (!campaigns || campaigns.length === 0) {
-        logger.info('📭 No active campaigns with Instagram URLs found');
+
+      if (campaignsWithUrls.length === 0) {
+        logger.info('📭 No active campaigns with Instagram URLs (instagram_url, tracker, or sound_url) found');
         return reply.send({
           success: true,
           message: 'No campaigns to scrape',
@@ -73,31 +89,31 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
             processed: 0,
             succeeded: 0,
             failed: 0,
-            skipped: skippedCount,
+            skipped: skippedCount + noUrlCount,
             campaigns: [],
           },
         });
       }
-      
-      logger.info({ campaignCount: campaigns.length }, `📋 Found ${campaigns.length} campaigns to scrape`);
-      
+
+      logger.info({ campaignCount: campaignsWithUrls.length }, `📋 Found ${campaignsWithUrls.length} campaigns to scrape`);
+
       if (dryRun) {
         return reply.send({
           success: true,
           message: 'Dry run - no scraping performed',
           data: {
-            campaigns: campaigns.map(c => ({
+            campaigns: campaignsWithUrls.map((c: any) => ({
               id: c.id,
               name: c.campaign,
               client: c.clients,
               instagram_url: c.instagram_url,
+              scrape_urls: c._scrapeUrls,
               last_scraped_at: c.last_scraped_at,
             })),
           },
         });
       }
-      
-      // Process each campaign
+
       const results: {
         campaignId: number;
         name: string;
@@ -105,21 +121,18 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
         postsScraped?: number;
         error?: string;
       }[] = [];
-      
-      for (const campaign of campaigns) {
+
+      for (const campaign of campaignsWithUrls) {
+        const urls = campaign._scrapeUrls as string[];
         try {
-          logger.info({ 
-            campaignId: campaign.id, 
+          logger.info({
+            campaignId: campaign.id,
             name: campaign.campaign,
-            url: campaign.instagram_url 
+            urls,
           }, `📸 Scraping campaign: ${campaign.campaign}`);
           
-          // Parse the instagram_url (could be profile URL or post URL)
-          const urls = [campaign.instagram_url];
-          
-          // Scrape posts
           const result = await scrapeInstagramPosts(urls, resultsLimit);
-          
+
           if (result.error) {
             results.push({
               campaignId: campaign.id,
@@ -164,22 +177,23 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
       const failed = results.filter(r => r.status === 'failed').length;
       const totalPosts = results.reduce((sum, r) => sum + (r.postsScraped || 0), 0);
       
-      logger.info({ 
-        processed: campaigns.length, 
-        succeeded, 
-        failed, 
+      const processedCount = campaignsWithUrls.length;
+      logger.info({
+        processed: processedCount,
+        succeeded,
+        failed,
         totalPosts,
-        skipped: skippedCount
+        skipped: skippedCount + noUrlCount,
       }, '✅ Batch scraping complete');
-      
+
       return reply.send({
         success: true,
-        message: `Batch scraping complete: ${succeeded} succeeded, ${failed} failed, ${skippedCount} skipped (inactive)`,
+        message: `Batch scraping complete: ${succeeded} succeeded, ${failed} failed, ${skippedCount + noUrlCount} skipped`,
         data: {
-          processed: campaigns.length,
+          processed: processedCount,
           succeeded,
           failed,
-          skipped: skippedCount,
+          skipped: skippedCount + noUrlCount,
           totalPosts,
           results,
         },
@@ -251,6 +265,102 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({
         success: false,
         error: error.message,
+      });
+    }
+  });
+
+  /**
+   * GET /api/instagram-scraper/posts-by-sound
+   * Search posts by sound (campaign name) and/or creator (clients). Returns posts with campaign_name and clients attached.
+   */
+  fastify.get('/posts-by-sound', async (
+    request: FastifyRequest<{ Querystring: { sound?: string; creator?: string; limit?: string } }>,
+    reply: FastifyReply
+  ) => {
+    try {
+      const { sound, creator, limit: limitParam } = request.query || {};
+      const limit = Math.min(Math.max(parseInt(limitParam || '100', 10) || 100, 1), 200);
+
+      let campaignsQuery = supabase
+        .from('instagram_campaigns')
+        .select('id, campaign, clients');
+
+      if (sound?.trim()) {
+        campaignsQuery = campaignsQuery.ilike('campaign', `%${sound.trim()}%`);
+      }
+      if (creator?.trim()) {
+        campaignsQuery = campaignsQuery.ilike('clients', `%${creator.trim()}%`);
+      }
+
+      const { data: campaigns, error: campaignsError } = await campaignsQuery;
+
+      if (campaignsError) {
+        logger.error({ error: campaignsError }, '❌ Error fetching campaigns for posts-by-sound');
+        return reply.status(500).send({
+          success: false,
+          error: 'Failed to fetch campaigns',
+        });
+      }
+
+      if (!campaigns || campaigns.length === 0) {
+        return reply.send({
+          success: true,
+          data: { posts: [], total: 0 },
+        });
+      }
+
+      const campaignIds = campaigns.map((c: any) => c.id);
+      const campaignById = new Map(campaigns.map((c: any) => [c.id, c]));
+
+      const { data: postsRows, error: postsError } = await supabase
+        .from('instagram_posts')
+        .select('*')
+        .in('campaign_id', campaignIds)
+        .order('timestamp', { ascending: false })
+        .limit(limit);
+
+      if (postsError) {
+        logger.error({ error: postsError }, '❌ Error fetching posts for posts-by-sound');
+        return reply.status(500).send({
+          success: false,
+          error: 'Failed to fetch posts',
+        });
+      }
+
+      const posts = (postsRows || []).map((p: any) => {
+        const campaign = campaignById.get(p.campaign_id);
+        return {
+          id: p.instagram_post_id,
+          shortCode: p.short_code,
+          caption: p.caption || '',
+          commentsCount: p.comments_count || 0,
+          likesCount: p.likes_count || 0,
+          timestamp: p.timestamp || p.created_at,
+          ownerUsername: p.owner_username || '',
+          ownerId: p.owner_id || '',
+          displayUrl: p.display_url || '',
+          videoUrl: p.video_url,
+          videoViewCount: p.video_view_count,
+          isVideo: p.is_video || false,
+          hashtags: p.hashtags || [],
+          mentions: p.mentions || [],
+          locationName: p.location_name,
+          url: p.post_url,
+          type: p.post_type || 'image',
+          campaign_name: campaign?.campaign || '',
+          clients: campaign?.clients || '',
+        };
+      });
+
+      return reply.send({
+        success: true,
+        data: { posts, total: posts.length },
+      });
+    } catch (error: any) {
+      logger.error({ error: error.message }, '❌ Error in posts-by-sound');
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Internal server error',
       });
     }
   });

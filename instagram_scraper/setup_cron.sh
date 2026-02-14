@@ -7,14 +7,14 @@
 # This will:
 # 1. Make the scraper script executable
 # 2. Create the log file
-# 3. Add the cron job to run at 6 AM UTC daily
+# 3. Add the cron job to run 3x daily (6:00, 14:00, 22:00 UTC) like YouTube
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRAPER_SCRIPT="${SCRIPT_DIR}/run_instagram_scraper.sh"
 LOG_FILE="/var/log/instagram_scraper.log"
-CRON_TIME="0 6 * * *"  # 6:00 AM UTC daily
+CRON_TIME="0 6,14,22 * * *"  # 6:00, 14:00, 22:00 UTC (3x daily)
 
 echo "=========================================="
 echo "Instagram Scraper Cron Job Setup"
@@ -46,7 +46,7 @@ else
     echo "   Adding new cron job..."
     (crontab -l 2>/dev/null; echo "${CRON_ENTRY}") | crontab -
 fi
-echo "   ✅ Cron job added: ${CRON_TIME} (6:00 AM UTC daily)"
+echo "   ✅ Cron job added: ${CRON_TIME} (6:00, 14:00, 22:00 UTC - 3x daily)"
 
 # 4. Verify
 echo ""
@@ -60,7 +60,7 @@ echo "=========================================="
 echo "Setup Complete!"
 echo "=========================================="
 echo ""
-echo "The scraper will run automatically at 6:00 AM UTC every day."
+echo "The scraper will run automatically 3x daily at 6:00, 14:00, and 22:00 UTC."
 echo ""
 echo "Useful commands:"
 echo "  - View logs:     tail -f ${LOG_FILE}"

@@ -107,8 +107,8 @@ echo '{
 ## ⏰ Cron Job Configuration
 
 ### Schedule
-- **Time:** 6:00 AM UTC daily
-- **Cron Expression:** `0 6 * * *`
+- **Times:** 6:00, 14:00, 22:00 UTC (3x daily, same idea as YouTube)
+- **Cron Expression:** `0 6,14,22 * * *`
 
 ### Setup Location
 ```
@@ -120,8 +120,11 @@ echo '{
 
 ### Current Crontab Entry
 ```cron
-0 6 * * * /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh >> /var/log/instagram_scraper.log 2>&1
+0 6,14,22 * * * /root/arti-marketing-ops/instagram_scraper/run_instagram_scraper.sh >> /var/log/instagram_scraper.log 2>&1
 ```
+
+### Batch URL resolution
+The batch job scrapes campaigns that have **any** of: `instagram_url`, or Instagram links in `tracker`, or Instagram link in `sound_url`. So campaigns with only "Music/Sound" or "Campaign Tracker" links to Instagram will be included and get data 3x daily.
 
 ### Log Location
 ```
