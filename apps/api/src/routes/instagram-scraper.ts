@@ -526,18 +526,19 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // If no usernames provided, try to get from campaign tracker/sound_url
+      // If no usernames provided, use campaign instagram_url first, then tracker
       let targetUsernames = usernames;
-      
+
       if (!targetUsernames || targetUsernames.length === 0) {
         const { data: campaign } = await supabase
           .from('instagram_campaigns')
-          .select('tracker, sound_url')
+          .select('instagram_url, tracker, sound_url')
           .eq('id', campaignId)
           .single();
 
-        if (campaign?.tracker) {
-          // Extract Instagram URLs from tracker
+        if (campaign?.instagram_url) {
+          targetUsernames = [campaign.instagram_url];
+        } else if (campaign?.tracker) {
           const urls = extractInstagramUrls(campaign.tracker);
           if (urls.length > 0) {
             targetUsernames = urls;

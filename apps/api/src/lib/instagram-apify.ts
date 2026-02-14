@@ -55,22 +55,35 @@ export interface InstagramScraperResult {
 }
 
 /**
+ * Options for scrapeInstagramPosts (Apify actor input)
+ */
+export interface ScrapeInstagramPostsOptions {
+  /** If true, pinned posts are skipped when they don't match the date filter (per Apify docs) */
+  skipPinnedPosts?: boolean;
+}
+
+/**
  * Scrape Instagram posts for a given username or URL
  * @param usernames Array of Instagram usernames or URLs
  * @param resultsLimit Number of posts to fetch per account (default: 30)
+ * @param options Optional: skipPinnedPosts (per insta-scraper docs)
  */
 export async function scrapeInstagramPosts(
   usernames: string[],
-  resultsLimit: number = 30
+  resultsLimit: number = 30,
+  options?: ScrapeInstagramPostsOptions
 ): Promise<InstagramScraperResult> {
   try {
-    logger.info({ usernames, resultsLimit }, '🔄 Starting Instagram scraper');
+    logger.info({ usernames, resultsLimit, options }, '🔄 Starting Instagram scraper');
 
-    // Prepare Actor input
-    const input = {
+    // Prepare Actor input (align with apify/instagram-post-scraper)
+    const input: Record<string, unknown> = {
       username: usernames,
       resultsLimit,
     };
+    if (options?.skipPinnedPosts !== undefined) {
+      input.skipPinnedPosts = options.skipPinnedPosts;
+    }
 
     // Run the Actor and wait for it to finish
     const run = await client.actor(INSTAGRAM_SCRAPER_ACTOR_ID).call(input);

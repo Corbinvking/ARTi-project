@@ -90,6 +90,18 @@ curl "https://api.artistinfluence.com/api/instagram-scraper/campaign/789/analyti
 }
 ```
 
+### Manual runs (Apify CLI)
+
+For one-off runs outside the app, use the Apify CLI. See `insta-scraper-data.md` for the exact command. Example (after `apify login` and with `APIFY_API_TOKEN` set):
+
+```bash
+echo '{
+  "username": ["natgeo", "https://www.instagram.com/natgeo/", "https://www.instagram.com/p/DLNsnpUTdVS/"],
+  "resultsLimit": 24,
+  "skipPinnedPosts": false
+}' | apify call apify/instagram-post-scraper --silent --output-dataset
+```
+
 ---
 
 ## ⏰ Cron Job Configuration

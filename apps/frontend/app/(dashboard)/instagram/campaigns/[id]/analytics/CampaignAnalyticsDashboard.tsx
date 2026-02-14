@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
@@ -782,169 +782,254 @@ export default function CampaignAnalyticsDashboard({
           </TabsList>
 
           <TabsContent value="live-post" className="mt-6">
-            {/* Filters Row */}
-            <div className="flex items-center gap-4 mb-6 flex-wrap">
-              <DateRangeSelector />
-              <FilterDropdown label="Platforms" options={['All Platforms', 'Instagram', 'TikTok', 'YouTube']} />
-              <FilterDropdown label="Country" options={['Country', 'United States', 'United Kingdom', 'Global']} />
-              <FilterDropdown label="Campaigns" options={['All Campaigns', 'Active Only', 'Completed']} />
-            </div>
-
-            {/* Primary KPI Cards - Row 1 */}
-            <div className="grid grid-cols-5 gap-4 mb-4">
-              <MetricCard
-                title="Total Views"
-                value={data.totalViews}
-                icon={Eye}
-                isSelected={true}
-                color="green"
-              />
-              <MetricCard
-                title="Total Likes"
-                value={data.totalLikes}
-                icon={Heart}
-                isSelected={true}
-              />
-              <MetricCard
-                title="Total Comments"
-                value={data.totalComments}
-                icon={MessageCircle}
-                isSelected={true}
-              />
-              <MetricCard
-                title="Total Shares"
-                value={data.totalShares}
-                icon={Share2}
-                isSelected={true}
-              />
-              <MetricCard
-                title="Engagement Rate"
-                value={data.engagementRate.toFixed(2)}
-                icon={TrendingUp}
-                isSelected={true}
-                suffix="%"
-                color="orange"
-              />
-            </div>
-
-            {/* Secondary KPI Cards - Row 2 */}
-            <div className="grid grid-cols-4 gap-4">
-              <SecondaryMetricCard
-                title="Live Posts"
-                value={data.livePosts}
-                icon={Play}
-              />
-              <SecondaryMetricCard
-                title="Avg. Cost Per View"
-                value={data.avgCostPerView.toFixed(4)}
-                icon={DollarSign}
-                prefix="$"
-              />
-              <SecondaryMetricCard
-                title="Sentiment Score"
-                value={data.sentimentScore}
-                icon={Sparkles}
-                suffix="%"
-              />
-              <SecondaryMetricCard
-                title="Relevance Score"
-                value={data.relevanceScore}
-                icon={Target}
-                suffix="%"
-              />
-            </div>
-
-            {/* Computed Insights - Row 3 */}
-            <div className="grid grid-cols-4 gap-4 mt-4">
-              <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-purple-400 text-sm mb-2">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    <span>Virality Score</span>
-                  </div>
-                  <div className="text-2xl font-bold text-purple-400">
-                    {data.viralityScore}%
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Content shareability potential
+            {!hasRealData ? (
+              /* Empty state: no filler cards when there is no scraped data */
+              <Card className="py-16">
+                <CardContent className="text-center">
+                  <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">No Instagram data yet</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Add an Instagram profile or post URL to this campaign, then click Refresh Data to fetch post metrics. All cards and charts are based only on scraped data.
                   </p>
+                  {!isPublic && campaignId && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowRefreshForm(true)}
+                      className="gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Refresh Data
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
+            ) : (
+              <>
+                {/* Filters Row */}
+                <div className="flex items-center gap-4 mb-6 flex-wrap">
+                  <DateRangeSelector />
+                  <FilterDropdown label="Platforms" options={['All Platforms', 'Instagram', 'TikTok', 'YouTube']} />
+                  <FilterDropdown label="Country" options={['Country', 'United States', 'United Kingdom', 'Global']} />
+                  <FilterDropdown label="Campaigns" options={['All Campaigns', 'Active Only', 'Completed']} />
+                </div>
 
-              <Card className={`border-${data.growthRate >= 0 ? 'green' : 'red'}-500/20`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    <span>Growth Rate</span>
-                  </div>
-                  <div className={`text-2xl font-bold ${data.growthRate >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {data.growthRate >= 0 ? '+' : ''}{data.growthRate}%
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Week-over-week engagement
-                  </p>
-                </CardContent>
-              </Card>
+                {/* Primary KPI Cards - Row 1 (real data only) */}
+                <div className="grid grid-cols-5 gap-4 mb-4">
+                  <MetricCard
+                    title="Total Views"
+                    value={data.totalViews}
+                    icon={Eye}
+                    isSelected={true}
+                    color="green"
+                  />
+                  <MetricCard
+                    title="Total Likes"
+                    value={data.totalLikes}
+                    icon={Heart}
+                    isSelected={true}
+                  />
+                  <MetricCard
+                    title="Total Comments"
+                    value={data.totalComments}
+                    icon={MessageCircle}
+                    isSelected={true}
+                  />
+                  <MetricCard
+                    title="Total Shares (est.)"
+                    value={data.totalShares}
+                    icon={Share2}
+                    isSelected={true}
+                  />
+                  <MetricCard
+                    title="Engagement Rate"
+                    value={data.engagementRate.toFixed(2)}
+                    icon={TrendingUp}
+                    isSelected={true}
+                    suffix="%"
+                    color="orange"
+                  />
+                </div>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                    <Calendar className="h-3.5 w-3.5" />
-                    <span>Peak Day</span>
-                  </div>
-                  <div className="text-lg font-bold">
-                    {data.peakEngagementDay 
-                      ? format(new Date(data.peakEngagementDay), 'MMM d')
-                      : 'N/A'
-                    }
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Best performing day
-                  </p>
-                </CardContent>
-              </Card>
+                {/* Secondary KPI Cards - Row 2 */}
+                <div className="grid grid-cols-4 gap-4">
+                  <SecondaryMetricCard
+                    title="Live Posts"
+                    value={data.livePosts}
+                    icon={Play}
+                  />
+                  <SecondaryMetricCard
+                    title="Avg. Cost Per View"
+                    value={data.avgCostPerView.toFixed(4)}
+                    icon={DollarSign}
+                    prefix="$"
+                  />
+                  <SecondaryMetricCard
+                    title="Sentiment Score"
+                    value={data.sentimentScore}
+                    icon={Sparkles}
+                    suffix="%"
+                  />
+                  <SecondaryMetricCard
+                    title="Relevance Score"
+                    value={data.relevanceScore}
+                    icon={Target}
+                    suffix="%"
+                  />
+                </div>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                    <Play className="h-3.5 w-3.5" />
-                    <span>Post Frequency</span>
-                  </div>
-                  <div className="text-xl font-bold">
-                    {data.avgPostsPerDay} <span className="text-sm font-normal text-muted-foreground">/day</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Average posting rate
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+                {/* Computed Insights - Row 3 */}
+                <div className="grid grid-cols-4 gap-4 mt-4">
+                  <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-purple-400 text-sm mb-2">
+                        <TrendingUp className="h-3.5 w-3.5" />
+                        <span>Virality Score</span>
+                      </div>
+                      <div className="text-2xl font-bold text-purple-400">
+                        {data.viralityScore}%
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Content shareability potential
+                      </p>
+                    </CardContent>
+                  </Card>
 
-            {/* Top Hashtags - if available */}
-            {data.topHashtags && data.topHashtags.length > 0 && (
-              <Card className="mt-4">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
-                    <Target className="h-3.5 w-3.5" />
-                    <span>Top Performing Hashtags</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {data.topHashtags.map((tag, i) => (
-                      <Badge 
-                        key={tag} 
-                        variant="secondary" 
-                        className={i === 0 ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' : ''}
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                  <Card className={`border-${data.growthRate >= 0 ? 'green' : 'red'}-500/20`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+                        <TrendingUp className="h-3.5 w-3.5" />
+                        <span>Growth Rate</span>
+                      </div>
+                      <div className={`text-2xl font-bold ${data.growthRate >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {data.growthRate >= 0 ? '+' : ''}{data.growthRate}%
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Week-over-week engagement
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span>Peak Day</span>
+                      </div>
+                      <div className="text-lg font-bold">
+                        {data.peakEngagementDay
+                          ? format(new Date(data.peakEngagementDay), 'MMM d')
+                          : 'N/A'
+                        }
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Best performing day
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+                        <Play className="h-3.5 w-3.5" />
+                        <span>Post Frequency</span>
+                      </div>
+                      <div className="text-xl font-bold">
+                        {data.avgPostsPerDay} <span className="text-sm font-normal text-muted-foreground">/day</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Average posting rate
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Top Hashtags - if available */}
+                {data.topHashtags && data.topHashtags.length > 0 && (
+                  <Card className="mt-4">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
+                        <Target className="h-3.5 w-3.5" />
+                        <span>Top Performing Hashtags</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {data.topHashtags.map((tag, i) => (
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className={i === 0 ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white' : ''}
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Analytics Chart */}
+                <AnalyticsChart data={data.timeSeriesData} />
+
+                {/* Campaign Posts: actual post images and links */}
+                {realAnalytics?.posts && realAnalytics.posts.length > 0 && (
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Campaign Posts</CardTitle>
+                      <CardDescription>Tracked Instagram posts with links to view on Instagram</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {realAnalytics.posts.map((post) => (
+                          <a
+                            key={post.id}
+                            href={post.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group block rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow"
+                          >
+                            <div className="aspect-square bg-muted relative overflow-hidden">
+                              {post.displayUrl ? (
+                                <img
+                                  src={post.displayUrl}
+                                  alt={post.caption?.slice(0, 60) || 'Post'}
+                                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                  <Play className="h-8 w-8" />
+                                </div>
+                              )}
+                              {post.isVideo && (
+                                <Badge className="absolute bottom-2 right-2 text-xs">Video</Badge>
+                              )}
+                            </div>
+                            <div className="p-3">
+                              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                                {post.caption || 'No caption'}
+                              </p>
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Heart className="h-3 w-3" />
+                                  {post.likesCount.toLocaleString()}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <MessageCircle className="h-3 w-3" />
+                                  {post.commentsCount.toLocaleString()}
+                                </span>
+                              </div>
+                              {post.timestamp && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {format(new Date(post.timestamp), 'MMM d, yyyy')}
+                                </p>
+                              )}
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
             )}
-
-            {/* Analytics Chart */}
-            <AnalyticsChart data={data.timeSeriesData} />
           </TabsContent>
 
           <TabsContent value="sound" className="mt-6">

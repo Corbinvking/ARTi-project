@@ -12,6 +12,8 @@ from playwright.async_api import async_playwright
 
 async def main():
     """Open browser for manual login"""
+    context = None
+    playwright = None
     
     # Ensure DISPLAY is set
     os.environ['DISPLAY'] = ':99'
@@ -68,16 +70,22 @@ async def main():
         print("   (or until you press Ctrl+C)")
         print()
         
-        # Keep browser open
+        # Keep browser open; Ctrl+C sends CancelledError to the sleep
         try:
             await asyncio.sleep(900)  # 15 minutes
-        except KeyboardInterrupt:
+        except asyncio.CancelledError:
             print()
-            print("✅ Ctrl+C detected - closing browser...")
+            print("✅ Ctrl+C detected - closing browser and saving session...")
         
-        # Close browser
-        await context.close()
-        await playwright.stop()
+        # Always close browser so cookies/session are persisted (critical after Ctrl+C)
+        try:
+            await context.close()
+        except Exception:
+            pass
+        try:
+            await playwright.stop()
+        except Exception:
+            pass
         
         print()
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
@@ -102,6 +110,18 @@ async def main():
         print("  3. Check DISPLAY is set: echo $DISPLAY")
         print()
         sys.exit(1)
+    finally:
+        # Always close so session is saved (especially on Ctrl+C)
+        if context is not None:
+            try:
+                await context.close()
+            except Exception:
+                pass
+        if playwright is not None:
+            try:
+                await playwright.stop()
+            except Exception:
+                pass
 
 if __name__ == '__main__':
     asyncio.run(main())
