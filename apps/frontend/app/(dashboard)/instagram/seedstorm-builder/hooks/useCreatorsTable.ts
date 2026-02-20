@@ -53,7 +53,7 @@ export function useCreatorsTable() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('instagram_campaign_creators')
-        .select('creator_id, campaign_id, rate, posts_count, post_status, payment_status, post_type, instagram_handle');
+        .select('id, campaign_id, rate, posts_count, post_status, payment_status, post_type, instagram_handle');
       if (error) return [];
       return data || [];
     },
@@ -83,7 +83,7 @@ export function useCreatorsTable() {
 
     const placementsByCreator: Record<string, any[]> = {};
     for (const p of placementData) {
-      const key = p.creator_id || (p.instagram_handle || '').toLowerCase();
+      const key = (p.instagram_handle || '').toLowerCase();
       if (!key) continue;
       if (!placementsByCreator[key]) placementsByCreator[key] = [];
       placementsByCreator[key].push(p);

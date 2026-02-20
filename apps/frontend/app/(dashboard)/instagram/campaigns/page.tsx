@@ -977,10 +977,31 @@ export default function InstagramCampaignsPage() {
                       <TableCell className="py-2 px-2">
                         <span className="text-xs truncate block">{campaign.clients || 'N/A'}</span>
                       </TableCell>
-                      <TableCell className="py-2 px-2">
-                        <Badge className={getStatusColor(campaign.status || 'pending')} variant="outline">
-                          <span className="text-[10px]">{formatStatusLabel(campaign.status || 'pending')}</span>
-                        </Badge>
+                      <TableCell className="py-2 px-2" onClick={(e) => e.stopPropagation()}>
+                        <Select
+                          value={normalizeStatus(campaign.status)}
+                          onValueChange={async (value) => {
+                            try {
+                              await updateCampaignAsync({ id: campaign.id, updates: { status: value } });
+                              toast({ title: "Status Updated", description: `Campaign status changed to ${formatStatusLabel(value)}` });
+                            } catch {
+                              toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-7 w-24 border-0 p-0 focus:ring-0">
+                            <Badge className={getStatusColor(campaign.status || 'pending')} variant="outline">
+                              <span className="text-[10px]">{formatStatusLabel(campaign.status || 'pending')}</span>
+                            </Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="ready">Ready</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="on_hold">On Hold</SelectItem>
+                            <SelectItem value="complete">Complete</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell className="py-2 px-2">
                         <div className="space-y-0.5">

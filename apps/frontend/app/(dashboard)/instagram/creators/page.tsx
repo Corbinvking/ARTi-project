@@ -495,8 +495,10 @@ export default function InstagramCreatorsPage() {
             <div><Label className="text-xs">Email</Label><Input placeholder="email@example.com" value={addForm.email} onChange={(e) => setAddForm({ ...addForm, email: e.target.value })} /></div>
             <div><Label className="text-xs">Rate per Reel ($) *</Label><Input type="number" placeholder="0" value={addForm.reel_rate} onChange={(e) => setAddForm({ ...addForm, reel_rate: e.target.value })} /></div>
             <div>
-              <Label className="text-xs">Genres *</Label>
-              <div className="flex flex-wrap gap-1 mt-1">{ALL_GENRES.slice(0, 30).map((g) => <Badge key={g} variant={addForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setAddForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
+              <Label className="text-xs">Genres * {addForm.genres.length > 0 && <span className="text-muted-foreground">({addForm.genres.length} selected)</span>}</Label>
+              <div className="max-h-40 overflow-y-auto border rounded-md p-2 mt-1">
+                <div className="flex flex-wrap gap-1">{[...addForm.genres, ...ALL_GENRES.filter((g) => !addForm.genres.includes(g))].map((g) => <Badge key={g} variant={addForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setAddForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
+              </div>
             </div>
             <div>
               <Label className="text-xs">Content Types *</Label>
@@ -517,8 +519,10 @@ export default function InstagramCreatorsPage() {
             <div><Label className="text-xs">Email</Label><Input value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} /></div>
             <div><Label className="text-xs">Rate per Reel ($)</Label><Input type="number" value={editForm.reel_rate} onChange={(e) => setEditForm({ ...editForm, reel_rate: e.target.value })} /></div>
             <div>
-              <Label className="text-xs">Genres</Label>
-              <div className="flex flex-wrap gap-1 mt-1">{ALL_GENRES.slice(0, 30).map((g) => <Badge key={g} variant={editForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setEditForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
+              <Label className="text-xs">Genres {editForm.genres.length > 0 && <span className="text-muted-foreground">({editForm.genres.length} selected)</span>}</Label>
+              <div className="max-h-40 overflow-y-auto border rounded-md p-2 mt-1">
+                <div className="flex flex-wrap gap-1">{[...editForm.genres, ...ALL_GENRES.filter((g) => !editForm.genres.includes(g))].map((g) => <Badge key={g} variant={editForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setEditForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
+              </div>
             </div>
             <div>
               <Label className="text-xs">Content Types</Label>
