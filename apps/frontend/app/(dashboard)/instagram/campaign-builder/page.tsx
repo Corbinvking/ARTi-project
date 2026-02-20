@@ -22,7 +22,7 @@ import { useTagSync } from "../seedstorm-builder/hooks/useTagSync";
 import { TagSelectDropdown } from "../seedstorm-builder/components/TagSelectDropdown";
 import { MultiGenreSelect } from "../seedstorm-builder/components/MultiGenreSelect";
 import { useCreatorsTable } from "../seedstorm-builder/hooks/useCreatorsTable";
-import { generateCampaignV2, recalcTotals, CreatorWithPredictions, CampaignV2Result } from "../seedstorm-builder/lib/campaignAlgorithmV2";
+import { generateCampaignV2, recalcTotals, reoptimizeAllocation, CreatorWithPredictions, CampaignV2Result } from "../seedstorm-builder/lib/campaignAlgorithmV2";
 
 function Breadcrumbs() {
   return (
@@ -157,7 +157,7 @@ export default function InstagramCampaignBuilderPage() {
 
   const handleReoptimize = () => {
     if (!campaignResult) return;
-    const result = runAlgorithm();
+    const result = reoptimizeAllocation(campaignResult.eligibleCreators, formData.total_budget);
     setCampaignResult(result);
     toast({ title: "Re-optimized", description: `${result.selectedCreators.length} creators selected` });
   };
@@ -223,7 +223,7 @@ export default function InstagramCampaignBuilderPage() {
 
   const exportCampaign = () => {
     if (!campaignResult) return;
-    const headers = ["Handle", "Followers", "Engagement Rate", "Historical Median Views", "Predicted Views/Post", "Posts", "Rate/Reel", "Cost", "CP1K"];
+    const headers = ["Handle", "Followers", "Engagement Rate", "Historical Median Views", "Predicted Views/Post", "Posts", "Rate/Reel", "Cost", "CP1K", "Audience Territory", "Genres"];
     const rows = campaignResult.selectedCreators.map((c) => [
       `@${c.instagram_handle}`,
       c.followers,
@@ -234,6 +234,8 @@ export default function InstagramCampaignBuilderPage() {
       `$${c.reel_rate}`,
       `$${c.cost}`,
       c.cp1k_predicted != null ? `$${c.cp1k_predicted.toFixed(2)}` : "N/A",
+      c.audience_territory || "N/A",
+      c.music_genres?.join("; ") || "N/A",
     ]);
     const csv = [headers, ...rows].map((r) => r.map((cell) => `"${cell}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });

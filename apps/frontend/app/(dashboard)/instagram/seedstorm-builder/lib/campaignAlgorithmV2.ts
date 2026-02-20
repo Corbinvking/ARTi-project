@@ -112,8 +112,11 @@ export function generateCampaignV2(
       if (!hasGenre) return false;
     }
 
-    if (campaignType === 'Audio Seeding' && !c.content_types.some(t => t.toLowerCase().includes('audio'))) return false;
-    if (campaignType === 'Footage Seeding' && !c.content_types.some(t => t.toLowerCase().includes('footage'))) return false;
+    const hasStandardTypes = c.content_types.some(t => t.toLowerCase().includes('audio') || t.toLowerCase().includes('footage'));
+    if (hasStandardTypes) {
+      if (campaignType === 'Audio Seeding' && !c.content_types.some(t => t.toLowerCase().includes('audio'))) return false;
+      if (campaignType === 'Footage Seeding' && !c.content_types.some(t => t.toLowerCase().includes('footage'))) return false;
+    }
 
     if (contentTypePrefs.length > 0) {
       const hasType = c.content_types.some(t => contentTypePrefs.some(cp => t.toLowerCase().includes(cp.toLowerCase())));
@@ -259,7 +262,8 @@ export function generateCampaignV2(
   const totalCost = finalSelected.reduce((s, c) => s + c.cost, 0);
   const totalPosts = finalSelected.reduce((s, c) => s + c.posts_assigned, 0);
   const totalFollowers = finalSelected.reduce((s, c) => s + c.followers, 0);
-  const totalMedianViews = finalSelected.reduce((s, c) => s + (c.median_views || 0) * c.posts_assigned, 0);
+  const medianViewsArr = finalSelected.map(c => c.median_views || 0).filter(v => v > 0);
+  const totalMedianViews = medianViewsArr.length > 0 ? medianOf(medianViewsArr) : 0;
   const projectedTotalViews = finalSelected.reduce((s, c) => s + c.predicted_views_total, 0);
   const avgCp1k = projectedTotalViews > 0 ? (totalCost / projectedTotalViews) * 1000 : 0;
 
@@ -288,6 +292,83 @@ export function generateCampaignV2(
   };
 }
 
+export function reoptimizeAllocation(
+  eligibleCreators: CreatorWithPredictions[],
+  budget: number
+): CampaignV2Result {
+  const creators = eligibleCreators.map(c => ({
+    ...c,
+    posts_assigned: 0,
+    cost: 0,
+    predicted_views_total: 0,
+    selected: false,
+  }));
+
+  creators.sort((a, b) => b.ranking_score - a.ranking_score);
+
+  let remaining = budget;
+
+  for (const c of creators) {
+    if (remaining < c.reel_rate) continue;
+    c.posts_assigned = 1;
+    c.cost = c.reel_rate;
+    c.predicted_views_total = c.predicted_views_per_post;
+    c.selected = true;
+    remaining -= c.reel_rate;
+  }
+
+  const selected = creators.filter(c => c.selected);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    let bestIdx = -1;
+    let bestMarginal = -1;
+    for (let i = 0; i < selected.length; i++) {
+      const c = selected[i];
+      if (c.posts_assigned >= MAX_POSTS_PER_CREATOR) continue;
+      if (remaining < c.reel_rate) continue;
+      const marginal = c.predicted_views_per_post / c.reel_rate;
+      if (marginal > bestMarginal) {
+        bestMarginal = marginal;
+        bestIdx = i;
+      }
+    }
+    if (bestIdx >= 0) {
+      const c = selected[bestIdx];
+      c.posts_assigned += 1;
+      c.cost = c.reel_rate * c.posts_assigned;
+      c.predicted_views_total = c.predicted_views_per_post * c.posts_assigned;
+      remaining -= c.reel_rate;
+      changed = true;
+    }
+  }
+
+  const cheapestRate = Math.min(...creators.filter(c => !c.selected).map(c => c.reel_rate), Infinity);
+  if (remaining >= cheapestRate * 1.5) {
+    for (const c of creators) {
+      if (c.selected) continue;
+      if (remaining < c.reel_rate) continue;
+      c.posts_assigned = 1;
+      c.cost = c.reel_rate;
+      c.predicted_views_total = c.predicted_views_per_post;
+      c.selected = true;
+      remaining -= c.reel_rate;
+    }
+  }
+
+  const finalSelected = creators.filter(c => c.selected);
+  const totals = recalcTotals(creators, budget);
+
+  return {
+    selectedCreators: finalSelected,
+    eligibleCreators: creators,
+    totals,
+    allocationInsight: finalSelected.length > 0
+      ? `Re-optimized allocation: ${finalSelected.length} creators, ${totals.total_posts} posts, $${(totals.avg_cp1k || 0).toFixed(2)} avg CP1K.`
+      : 'No creators could be allocated within budget.',
+  };
+}
+
 export function recalcTotals(
   creators: CreatorWithPredictions[],
   budget: number
@@ -296,7 +377,8 @@ export function recalcTotals(
   const totalCost = sel.reduce((s, c) => s + c.cost, 0);
   const totalPosts = sel.reduce((s, c) => s + c.posts_assigned, 0);
   const totalFollowers = sel.reduce((s, c) => s + c.followers, 0);
-  const totalMedianViews = sel.reduce((s, c) => s + (c.median_views || 0) * c.posts_assigned, 0);
+  const medianViewsArr = sel.map(c => c.median_views || 0).filter(v => v > 0);
+  const totalMedianViews = medianViewsArr.length > 0 ? medianOf(medianViewsArr) : 0;
   const projectedTotalViews = sel.reduce((s, c) => s + c.predicted_views_total, 0);
   const avgCp1k = projectedTotalViews > 0 ? (totalCost / projectedTotalViews) * 1000 : 0;
 

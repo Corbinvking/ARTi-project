@@ -99,7 +99,8 @@ export function useCreatorsTable() {
       const viewValues = creatorPosts
         .map((p: any) => p.video_view_count || (p.likes_count ? p.likes_count * 10 : 0))
         .filter((v: number) => v > 0);
-      const medianViews = median(viewValues);
+      const computedMedian = median(viewValues);
+      const medianViews = computedMedian ?? (c.median_views_per_video > 0 ? c.median_views_per_video : null);
 
       const placements = placementsByCreator[c.id] || placementsByCreator[handle] || [];
       const recentPlacements = placements.filter((p: any) => {
