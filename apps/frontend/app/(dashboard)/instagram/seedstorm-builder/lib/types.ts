@@ -36,11 +36,15 @@ export interface PerformanceHistory {
 export interface CampaignForm {
   campaign_name: string;
   total_budget: number;
-  selected_genres: string[];  // Changed from primary_genre to selected_genres array
+  selected_genres: string[];
   campaign_type: 'Audio Seeding' | 'Footage Seeding';
   post_type_preference: string[];
   territory_preferences: string[];
   content_type_preferences: string[];
+  // Guardrail filters (optional)
+  min_median_views?: number;
+  max_cp1k?: number;
+  min_engagement_rate?: number;
 }
 
 export interface CampaignTotals {
@@ -50,9 +54,11 @@ export interface CampaignTotals {
   total_followers: number;
   total_median_views: number;
   total_predicted_views?: number;
+  projected_total_views?: number;
   baseline_cpv?: number;
   predicted_cpv?: number;
   average_cpv: number;
+  avg_cp1k?: number;
   budget_remaining: number;
   budget_utilization?: number;
 }
