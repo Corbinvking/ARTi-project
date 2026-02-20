@@ -34,7 +34,7 @@ const instagramNavItems = [
     icon: CheckCircle,
   },
   {
-    title: "Workflow",
+    title: "Business Rules",
     href: "/instagram/workflow",
     icon: Workflow,
   },

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle, Clock, AlertCircle, FileCheck, DollarSign, Upload, BarChart3, Filter, ArrowUpDown, ArrowUp, ArrowDown, TrendingDown, Users, StickyNote } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle, AlertTriangle, FileCheck, DollarSign, Upload, BarChart3, Filter, ArrowUpDown, ArrowUp, ArrowDown, TrendingDown, Users, StickyNote } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
@@ -42,6 +42,9 @@ interface CampaignCreator {
   approval_status: 'pending' | 'approved' | 'revision_requested' | 'rejected';
   payment_notes?: string;
   approval_notes?: string;
+  created_at?: string;
+  posted_at?: string;
+  expected_post_date?: string;
 }
 
 // Status Indicator Component
@@ -84,6 +87,7 @@ type SortDirection = 'asc' | 'desc' | null;
 export default function InstagramQAPage() {
   const [activeTab, setActiveTab] = useState('pending-approval');
   const [campaignFilter, setCampaignFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
   const [campaigns, setCampaigns] = useState<QACampaign[]>([]);
   const [allCreators, setAllCreators] = useState<CampaignCreator[]>([]);
   const [loading, setLoading] = useState(true);
@@ -220,6 +224,17 @@ export default function InstagramQAPage() {
     field: 'payment_status' | 'post_status' | 'approval_status',
     value: string
   ) => {
+    const creator = allCreators.find(c => c.id === creatorId);
+    if (creator && creator.approval_status !== 'approved') {
+      if (field === 'payment_status' && value === 'paid') {
+        toast({ title: "Cannot Mark Paid", description: "Approval must be 'Approved' before marking as Paid", variant: "destructive" });
+        return;
+      }
+      if (field === 'post_status' && value === 'posted') {
+        toast({ title: "Cannot Mark Posted", description: "Approval must be 'Approved' before marking as Posted", variant: "destructive" });
+        return;
+      }
+    }
     try {
       const { error } = await supabase
         .from('instagram_campaign_creators')
@@ -253,17 +268,32 @@ export default function InstagramQAPage() {
     value: string
   ) => {
     if (selectedCreators.length === 0) return;
-    
+
+    let idsToUpdate = selectedCreators;
+    if ((field === 'payment_status' && value === 'paid') || (field === 'post_status' && value === 'posted')) {
+      idsToUpdate = selectedCreators.filter(id => {
+        const c = allCreators.find(cr => cr.id === id);
+        return c && c.approval_status === 'approved';
+      });
+      if (idsToUpdate.length === 0) {
+        toast({ title: "Cannot Update", description: "None of the selected placements are approved", variant: "destructive" });
+        return;
+      }
+      if (idsToUpdate.length < selectedCreators.length) {
+        toast({ title: "Partial Update", description: `Only ${idsToUpdate.length} approved placements will be updated (${selectedCreators.length - idsToUpdate.length} skipped)` });
+      }
+    }
+
     try {
       const { error } = await supabase
         .from('instagram_campaign_creators')
         .update({ [field]: value })
-        .in('id', selectedCreators);
+        .in('id', idsToUpdate);
 
       if (error) throw error;
 
       setAllCreators(prev => prev.map(creator => 
-        selectedCreators.includes(creator.id)
+        idsToUpdate.includes(creator.id)
           ? { ...creator, [field]: value }
           : creator
       ));
@@ -271,7 +301,7 @@ export default function InstagramQAPage() {
       setSelectedCreators([]);
       toast({
         title: "Bulk Update Complete",
-        description: `Updated ${selectedCreators.length} creators`,
+        description: `Updated ${idsToUpdate.length} placements`,
       });
     } catch (error) {
       toast({
@@ -308,20 +338,26 @@ export default function InstagramQAPage() {
   const getFilteredCreators = () => {
     let filtered = allCreators;
 
-    if (campaignFilter === 'active') {
-      const activeCampaignIds = campaigns
-        .filter(c => (c.status || '').toLowerCase() === 'active')
+    if (campaignFilter !== 'all') {
+      const statusMap: Record<string, string> = { active: 'active', draft: 'draft', completed: 'complete' };
+      const targetStatus = statusMap[campaignFilter] || campaignFilter;
+      const matchingIds = campaigns
+        .filter(c => {
+          const s = (c.status || '').toLowerCase();
+          if (targetStatus === 'draft') return s === 'draft' || s === 'pending' || s === 'pending_approval';
+          return s === targetStatus;
+        })
         .map(c => c.id);
-      filtered = filtered.filter(creator => 
-        activeCampaignIds.includes(String(creator.campaign_id))
-      );
-    } else if (campaignFilter === 'completed') {
-      const completedCampaignIds = campaigns
-        .filter(c => (c.status || '').toLowerCase() === 'complete')
-        .map(c => c.id);
-      filtered = filtered.filter(creator => 
-        completedCampaignIds.includes(String(creator.campaign_id))
-      );
+      filtered = filtered.filter(creator => matchingIds.includes(String(creator.campaign_id)));
+    }
+
+    if (dateFilter !== 'all') {
+      const days = parseInt(dateFilter);
+      const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(creator => {
+        const created = creator.created_at ? new Date(creator.created_at) : null;
+        return created && created >= cutoff;
+      });
     }
 
     return filtered;
@@ -381,8 +417,7 @@ export default function InstagramQAPage() {
                 }}
               />
             </TableHead>
-            <SortableTableHead field="creator">Creator</SortableTableHead>
-            <SortableTableHead field="campaign">Campaign</SortableTableHead>
+            <SortableTableHead field="creator">Placement</SortableTableHead>
             <SortableTableHead field="rate">Rate</SortableTableHead>
             {showAllColumns && <SortableTableHead field="payment_status">Payment</SortableTableHead>}
             {showAllColumns && <SortableTableHead field="post_status">Post Status</SortableTableHead>}
@@ -422,14 +457,7 @@ export default function InstagramQAPage() {
                 <TableCell>
                   <div>
                     <div className="font-medium">@{creator.instagram_handle}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {creator.posts_count} post{creator.posts_count > 1 ? 's' : ''} • {creator.post_type}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="text-sm">
-                    {campaign?.name || 'Unknown Campaign'}
+                    <div className="text-xs text-muted-foreground">{campaign?.name || 'Unknown'}</div>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -449,7 +477,7 @@ export default function InstagramQAPage() {
                       <SelectContent>
                         <SelectItem value="unpaid"><StatusIndicator type="payment" status="unpaid" /></SelectItem>
                         <SelectItem value="pending"><StatusIndicator type="payment" status="pending" /></SelectItem>
-                        <SelectItem value="paid"><StatusIndicator type="payment" status="paid" /></SelectItem>
+                        <SelectItem value="paid" disabled={creator.approval_status !== 'approved'}><StatusIndicator type="payment" status="paid" /></SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -466,7 +494,7 @@ export default function InstagramQAPage() {
                       <SelectContent>
                         <SelectItem value="not_posted"><StatusIndicator type="post" status="not_posted" /></SelectItem>
                         <SelectItem value="scheduled"><StatusIndicator type="post" status="scheduled" /></SelectItem>
-                        <SelectItem value="posted"><StatusIndicator type="post" status="posted" /></SelectItem>
+                        <SelectItem value="posted" disabled={creator.approval_status !== 'approved'}><StatusIndicator type="post" status="posted" /></SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -518,7 +546,7 @@ export default function InstagramQAPage() {
                         <SelectContent>
                           <SelectItem value="unpaid"><StatusIndicator type="payment" status="unpaid" /></SelectItem>
                           <SelectItem value="pending"><StatusIndicator type="payment" status="pending" /></SelectItem>
-                          <SelectItem value="paid"><StatusIndicator type="payment" status="paid" /></SelectItem>
+                          <SelectItem value="paid" disabled={creator.approval_status !== 'approved'}><StatusIndicator type="payment" status="paid" /></SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -533,7 +561,7 @@ export default function InstagramQAPage() {
                         <SelectContent>
                           <SelectItem value="not_posted"><StatusIndicator type="post" status="not_posted" /></SelectItem>
                           <SelectItem value="scheduled"><StatusIndicator type="post" status="scheduled" /></SelectItem>
-                          <SelectItem value="posted"><StatusIndicator type="post" status="posted" /></SelectItem>
+                          <SelectItem value="posted" disabled={creator.approval_status !== 'approved'}><StatusIndicator type="post" status="posted" /></SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -548,6 +576,28 @@ export default function InstagramQAPage() {
   };
 
   const overviewStats = getOverviewStats();
+
+  const getSmartAlerts = () => {
+    const now = Date.now();
+    const day = 24 * 60 * 60 * 1000;
+    const unpaidOverdue = allCreators.filter(c => {
+      if (c.payment_status === 'paid' || c.post_status !== 'posted') return false;
+      const postedAt = c.posted_at ? new Date(c.posted_at).getTime() : null;
+      return postedAt && (now - postedAt) > 14 * day;
+    }).length;
+    const overduePost = allCreators.filter(c => {
+      if (c.post_status === 'posted') return false;
+      const expected = c.expected_post_date ? new Date(c.expected_post_date).getTime() : null;
+      return expected && expected < now;
+    }).length;
+    const stalePending = allCreators.filter(c => {
+      if (c.approval_status !== 'pending') return false;
+      const created = c.created_at ? new Date(c.created_at).getTime() : null;
+      return created && (now - created) > 7 * day;
+    }).length;
+    return { unpaidOverdue, overduePost, stalePending, total: unpaidOverdue + overduePost + stalePending };
+  };
+  const smartAlerts = getSmartAlerts();
 
   if (loading) {
     return (
@@ -575,13 +625,25 @@ export default function InstagramQAPage() {
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Select value={campaignFilter} onValueChange={setCampaignFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Campaigns</SelectItem>
-                <SelectItem value="active">Active Only</SelectItem>
-                <SelectItem value="completed">Completed Only</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="completed">Complete</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="7">Last 7 Days</SelectItem>
+                <SelectItem value="30">Last 30 Days</SelectItem>
+                <SelectItem value="90">Last 90 Days</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -610,6 +672,30 @@ export default function InstagramQAPage() {
                 <Button size="sm" variant="ghost" onClick={() => setSelectedCreators([])}>
                   Clear
                 </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Smart Alerts Banner */}
+      {smartAlerts.total > 0 && (
+        <Card className="mb-6 border-orange-500/30 bg-orange-500/5">
+          <CardContent className="py-3 px-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0" />
+              <div className="flex items-center gap-3 flex-wrap text-sm">
+                {smartAlerts.unpaidOverdue > 0 && (
+                  <span className="font-medium text-orange-700">{smartAlerts.unpaidOverdue} unpaid &gt;14 days after posting</span>
+                )}
+                {smartAlerts.unpaidOverdue > 0 && smartAlerts.overduePost > 0 && <span className="text-muted-foreground">|</span>}
+                {smartAlerts.overduePost > 0 && (
+                  <span className="font-medium text-red-600">{smartAlerts.overduePost} overdue post{smartAlerts.overduePost > 1 ? 's' : ''}</span>
+                )}
+                {(smartAlerts.unpaidOverdue > 0 || smartAlerts.overduePost > 0) && smartAlerts.stalePending > 0 && <span className="text-muted-foreground">|</span>}
+                {smartAlerts.stalePending > 0 && (
+                  <span className="font-medium text-yellow-700">{smartAlerts.stalePending} approval{smartAlerts.stalePending > 1 ? 's' : ''} pending &gt;7 days</span>
+                )}
               </div>
             </div>
           </CardContent>
