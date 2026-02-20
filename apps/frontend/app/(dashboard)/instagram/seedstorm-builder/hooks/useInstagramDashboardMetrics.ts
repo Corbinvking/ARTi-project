@@ -66,7 +66,7 @@ export function useInstagramDashboardMetrics(): InstagramDashboardMetrics {
         (async () => {
           const { data: posts, error } = await (supabase as any)
             .from('instagram_posts')
-            .select('campaign_id, timestamp')
+            .select('campaign_id, timestamp, video_view_count, likes_count')
             .not('timestamp', 'is', null);
           if (error) return [];
           return Array.isArray(posts) ? posts : [];

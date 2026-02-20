@@ -26,7 +26,7 @@ import {
 } from 'recharts';
 import { useInstagramDashboardMetrics } from '../hooks/useInstagramDashboardMetrics';
 
-const MAX_ALERTS_VISIBLE = 5;
+const MAX_ALERTS_VISIBLE = 3;
 
 export function InstagramDashboardTab() {
   const router = useRouter();
@@ -43,9 +43,9 @@ export function InstagramDashboardTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Section 1 — Global Status */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
         <Card className="border-border/50 bg-card/50">
           <CardHeader className="p-3 pb-1">
             <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
@@ -94,25 +94,12 @@ export function InstagramDashboardTab() {
           <CardHeader className="p-3 pb-1">
             <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
               <TrendingUp className="h-3.5 w-3.5" />
-              Avg Cost Per 1k Views
+              Avg Cost Per View
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <p className="text-xl font-bold">
               {m.avgCostPer1kViews != null ? `$${m.avgCostPer1kViews.toFixed(2)}` : '—'}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/50 bg-card/50">
-          <CardHeader className="p-3 pb-1">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              Avg Time to Post (30d)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <p className="text-xl font-bold">
-              {m.avgTimeToPostDays != null ? `${m.avgTimeToPostDays.toFixed(1)} days` : '—'}
             </p>
           </CardContent>
         </Card>
@@ -134,13 +121,13 @@ export function InstagramDashboardTab() {
 
       {/* Section 2 — Posting Velocity */}
       <Card className="border-border/50 bg-card/50">
-        <CardHeader className="pb-2">
+        <CardHeader className="py-2 px-4 pb-1">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-primary" />
             Posting Velocity (last 30 days)
           </CardTitle>
         </CardHeader>
-        <CardContent className="h-[220px]">
+        <CardContent className="h-[160px] px-4">
           {m.velocity.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -168,21 +155,21 @@ export function InstagramDashboardTab() {
 
       {/* Section 3 — Operational Alerts */}
       <Card className="border-border/50 bg-card/50">
-        <CardHeader className="pb-2">
+        <CardHeader className="py-2 px-4 pb-1">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-primary" />
             Operational Alerts
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 pb-4 pt-0">
           {visibleAlerts.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {visibleAlerts.map((alert) => (
                 <button
                   key={alert.id}
                   type="button"
                   onClick={() => router.push(`/instagram/campaigns?open=${alert.campaign_id}`)}
-                  className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors text-left"
+                  className="w-full flex items-center justify-between p-2.5 rounded-lg bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors text-left"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <Badge variant={alert.type === 'critical' ? 'destructive' : 'secondary'} className="shrink-0">
@@ -209,7 +196,7 @@ export function InstagramDashboardTab() {
               )}
             </div>
           ) : (
-            <div className="text-center py-8 text-sm text-muted-foreground">
+            <div className="text-center py-4 text-sm text-muted-foreground">
               No operational alerts. Campaigns are running smoothly.
             </div>
           )}
