@@ -114,7 +114,7 @@ export const getGenreCompatibilityScore = (creatorGenres: string[], campaignPrim
   return maxScore;
 };
 
-// Content type compatibility
+// Content type compatibility (legacy, used by Campaign Builder algorithms)
 export const CONTENT_TYPES = [
   "DJ Footage",
   "Festival Content", 
@@ -133,6 +133,12 @@ export const CONTENT_TYPES = [
   "Ibiza",
   "Rave Content"
 ].sort();
+
+// Standardized content types for Creators tab
+export const CREATOR_CONTENT_TYPES = ["Audio Seeding", "Footage Seeding"] as const;
+
+// Standard territory buckets for geo display
+export const TERRITORY_BUCKETS = ["US", "UK", "CA", "LATAM", "EU", "Global", "Unknown"] as const;
 
 // Post types
 export const POST_TYPES = ["Reel", "Carousel", "Story"] as const;

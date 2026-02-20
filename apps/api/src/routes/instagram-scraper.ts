@@ -702,6 +702,156 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
       });
     }
   });
+
+  /**
+   * POST /api/instagram-scraper/creator-refresh
+   * Scrape one or more creator handles to update followers, engagement, and geo.
+   */
+  fastify.post('/creator-refresh', async (
+    request: FastifyRequest<{ Body: { handles: string[] } }>,
+    reply: FastifyReply
+  ) => {
+    try {
+      const { handles } = request.body || {};
+      if (!handles || !Array.isArray(handles) || handles.length === 0) {
+        return reply.status(400).send({ success: false, error: 'handles[] is required' });
+      }
+
+      const cleanHandles = handles
+        .map(h => h.replace(/^@/, '').trim().toLowerCase())
+        .filter(Boolean)
+        .slice(0, 50);
+
+      logger.info({ count: cleanHandles.length }, '🔄 Starting creator-refresh scrape');
+
+      const results: any[] = [];
+
+      for (const handle of cleanHandles) {
+        try {
+          const scrapeResult = await scrapeInstagramPosts([handle], 12);
+          const posts = scrapeResult.posts || [];
+
+          if (posts.length === 0) {
+            await supabase
+              .from('creators')
+              .update({ scrape_status: 'error' })
+              .eq('instagram_handle', handle);
+            results.push({ handle, success: false, reason: 'no posts returned' });
+            continue;
+          }
+
+          const owner = posts[0];
+          const totalLikes = posts.reduce((s, p) => s + p.likesCount, 0);
+          const totalComments = posts.reduce((s, p) => s + p.commentsCount, 0);
+          const currentFollowers = owner.videoViewCount
+            ? undefined
+            : undefined;
+
+          const { data: existing } = await supabase
+            .from('creators')
+            .select('followers')
+            .eq('instagram_handle', handle)
+            .single();
+
+          const followers = existing?.followers || 0;
+          const engagementRate = followers > 0
+            ? ((totalLikes + totalComments) / posts.length) / followers
+            : 0;
+
+          const locationNames = posts
+            .map(p => p.locationName)
+            .filter(Boolean) as string[];
+          const captions = posts.map(p => p.caption || '').join(' ');
+
+          const accountTerritory = inferTerritory(locationNames, captions);
+          const audienceTerritory = { territory: 'Unknown', confidence: 'Low' };
+
+          const now = new Date().toISOString();
+          const updates: Record<string, any> = {
+            engagement_rate: Math.round(engagementRate * 10000) / 10000,
+            engagement_last_updated_at: now,
+            followers_last_updated_at: now,
+            account_territory: accountTerritory.territory,
+            account_territory_confidence: accountTerritory.confidence,
+            audience_territory: audienceTerritory.territory,
+            audience_territory_confidence: audienceTerritory.confidence,
+            scrape_status: 'complete',
+          };
+
+          const { error: updateError } = await supabase
+            .from('creators')
+            .update(updates)
+            .eq('instagram_handle', handle);
+
+          if (updateError) {
+            logger.error({ handle, error: updateError }, '❌ Error updating creator');
+            results.push({ handle, success: false, reason: updateError.message });
+          } else {
+            results.push({ handle, success: true, engagement_rate: updates.engagement_rate, territory: accountTerritory.territory });
+          }
+        } catch (err: any) {
+          logger.error({ handle, error: err.message }, '❌ Error scraping creator');
+          results.push({ handle, success: false, reason: err.message });
+        }
+      }
+
+      return reply.send({ success: true, results });
+    } catch (error: any) {
+      logger.error({ error: error.message }, '❌ Error in /creator-refresh');
+      return reply.status(500).send({ success: false, error: error.message });
+    }
+  });
+}
+
+const TERRITORY_KEYWORDS: Record<string, string[]> = {
+  US: ['united states', 'usa', 'us', 'new york', 'los angeles', 'chicago', 'miami', 'la', 'nyc', 'atlanta', 'houston', 'dallas', 'san francisco', 'seattle', 'boston', 'denver', 'austin', 'nashville', 'portland', 'philadelphia', 'phoenix', 'vegas', 'orlando', 'san diego', 'detroit', 'minneapolis'],
+  UK: ['united kingdom', 'uk', 'london', 'manchester', 'birmingham', 'liverpool', 'leeds', 'bristol', 'glasgow', 'edinburgh', 'cardiff', 'belfast', 'brighton', 'nottingham', 'sheffield'],
+  CA: ['canada', 'toronto', 'vancouver', 'montreal', 'calgary', 'ottawa', 'edmonton', 'winnipeg'],
+  LATAM: ['brasil', 'brazil', 'mexico', 'argentina', 'colombia', 'chile', 'peru', 'venezuela', 'são paulo', 'rio de janeiro', 'buenos aires', 'bogota', 'lima', 'santiago', 'cdmx', 'ciudad de mexico', 'medellin', 'cartagena'],
+  EU: ['germany', 'france', 'spain', 'italy', 'netherlands', 'belgium', 'sweden', 'norway', 'denmark', 'berlin', 'paris', 'madrid', 'barcelona', 'amsterdam', 'rome', 'milan', 'vienna', 'munich', 'hamburg', 'zurich', 'brussels', 'copenhagen', 'stockholm', 'oslo', 'lisbon', 'prague', 'warsaw', 'budapest', 'dublin', 'ibiza'],
+};
+
+const LANGUAGE_TERRITORY: Record<string, string> = {
+  es: 'LATAM', pt: 'LATAM', de: 'EU', fr: 'EU', it: 'EU', nl: 'EU', sv: 'EU', da: 'EU', no: 'EU',
+};
+
+function inferTerritory(
+  locations: string[],
+  captionText: string
+): { territory: string; confidence: string } {
+  const combined = [...locations, captionText].join(' ').toLowerCase();
+
+  const scores: Record<string, number> = {};
+  for (const [territory, keywords] of Object.entries(TERRITORY_KEYWORDS)) {
+    const hits = keywords.filter(kw => combined.includes(kw)).length;
+    if (hits > 0) scores[territory] = hits;
+  }
+
+  if (Object.keys(scores).length > 0) {
+    const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+    return { territory: best[0], confidence: best[1] >= 3 ? 'High' : 'Med' };
+  }
+
+  const spanishRe = /\b(el|la|los|las|del|con|por|para|que|una|esto|como|pero)\b/gi;
+  const portugueseRe = /\b(o|os|as|da|do|na|no|com|por|para|que|uma|isso|como|mas)\b/gi;
+  const germanRe = /\b(der|die|das|und|ist|ein|eine|nicht|auf|für|mit)\b/gi;
+  const frenchRe = /\b(le|la|les|des|un|une|est|dans|pour|avec|sur|pas)\b/gi;
+
+  const langScores: Record<string, number> = {};
+  langScores.es = (combined.match(spanishRe) || []).length;
+  langScores.pt = (combined.match(portugueseRe) || []).length;
+  langScores.de = (combined.match(germanRe) || []).length;
+  langScores.fr = (combined.match(frenchRe) || []).length;
+
+  const bestLang = Object.entries(langScores)
+    .filter(([, v]) => v >= 5)
+    .sort((a, b) => b[1] - a[1])[0];
+
+  if (bestLang && LANGUAGE_TERRITORY[bestLang[0]]) {
+    return { territory: LANGUAGE_TERRITORY[bestLang[0]], confidence: 'Low' };
+  }
+
+  return { territory: 'Unknown', confidence: 'Low' };
 }
 
 /**

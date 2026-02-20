@@ -101,9 +101,9 @@ export interface CreatorResult {
 export { 
   ALL_GENRES as MUSIC_GENRES,
   CONTENT_TYPES,
+  CREATOR_CONTENT_TYPES,
+  TERRITORY_BUCKETS,
   COUNTRIES,
   POST_TYPES,
   TERRITORY_PREFERENCES
 } from './genreSystem';
-
-// All constants now imported from genreSystem.ts for consistency
