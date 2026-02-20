@@ -202,7 +202,7 @@ def log_scraper_run(status, campaigns_total=0, campaigns_success=0, campaigns_fa
     logger.info(f"📊 Run status logged: {status}")
 
 
-async def check_if_logged_in(page):
+async def check_if_logged_in(page, max_retries=3):
     """Check if already logged in from previous session.
     
     IMPORTANT: This function TRUSTS the URL-based detection.
@@ -211,79 +211,98 @@ async def check_if_logged_in(page):
     1. The cookie may be HttpOnly and not visible to Playwright
     2. Session can be valid even without visible cookie
     3. Forcing re-login triggers bot detection
+    
+    Retries on transient network errors (ERR_NETWORK_CHANGED, timeout, etc.)
+    so a brief network blip doesn't abort the entire scrape run.
     """
-    try:
-        logger.info("Checking for existing session...")
-        await page.goto('https://artists.spotify.com', timeout=30000, wait_until='domcontentloaded')
-        await asyncio.sleep(5)  # Give time for redirects
-        
-        # Check current URL after redirects
-        current_url = page.url
-        logger.info(f"Current URL: {current_url}")
-        
-        # FIRST: Check if we're on the login page (definitely not logged in)
-        if 'accounts.spotify.com' in current_url or 'login' in current_url.lower():
-            logger.info("Redirected to login page - not logged in")
-            return False
-        
-        # SECOND: Check if we're on the dashboard - TRUST THE URL COMPLETELY
-        # Dashboard URLs like /c/roster, /home, /c/artist etc. mean we're logged in
-        # DO NOT check for cookies - this causes bot detection when we try to re-login
-        dashboard_patterns = [
-            'artists.spotify.com/c/',
-            'artists.spotify.com/home',
-            'artists.spotify.com/roster',
-            'artists.spotify.com/team',
-            'artists.spotify.com/profile',
-        ]
-        
-        for pattern in dashboard_patterns:
-            if pattern in current_url:
-                logger.info("✓ Existing session found! Already logged in.")
-                logger.info(f"✓ On S4A dashboard ({pattern}) - session is valid")
-                # Verify session by attempting to access an authenticated route
+    TRANSIENT_PATTERNS = [
+        'ERR_NETWORK_CHANGED',
+        'ERR_CONNECTION_RESET',
+        'ERR_CONNECTION_REFUSED',
+        'ERR_CONNECTION_TIMED_OUT',
+        'ERR_NAME_NOT_RESOLVED',
+        'ERR_INTERNET_DISCONNECTED',
+        'ERR_TIMED_OUT',
+        'Timeout',
+        'net::',
+    ]
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            logger.info(f"Checking for existing session...{f' (attempt {attempt}/{max_retries})' if attempt > 1 else ''}")
+            await page.goto('https://artists.spotify.com', timeout=30000, wait_until='domcontentloaded')
+            await asyncio.sleep(5)  # Give time for redirects
+            
+            # Check current URL after redirects
+            current_url = page.url
+            logger.info(f"Current URL: {current_url}")
+            
+            # FIRST: Check if we're on the login page (definitely not logged in)
+            if 'accounts.spotify.com' in current_url or 'login' in current_url.lower():
+                logger.info("Redirected to login page - not logged in")
+                return False
+            
+            # SECOND: Check if we're on the dashboard - TRUST THE URL COMPLETELY
+            dashboard_patterns = [
+                'artists.spotify.com/c/',
+                'artists.spotify.com/home',
+                'artists.spotify.com/roster',
+                'artists.spotify.com/team',
+                'artists.spotify.com/profile',
+            ]
+            
+            for pattern in dashboard_patterns:
+                if pattern in current_url:
+                    logger.info("✓ Existing session found! Already logged in.")
+                    logger.info(f"✓ On S4A dashboard ({pattern}) - session is valid")
+                    try:
+                        await page.goto('https://artists.spotify.com/c/roster', timeout=15000, wait_until='domcontentloaded')
+                        await asyncio.sleep(2)
+                        if 'accounts.spotify.com' in page.url or 'login' in page.url.lower():
+                            logger.warning("Session check failed: redirected to login from /c/roster")
+                            return False
+                    except Exception as e:
+                        logger.warning(f"Session check encountered an error: {e}")
+                    return True
+            
+            # THIRD: Check if we got redirected to any artists.spotify.com page that's not login
+            if 'artists.spotify.com' in current_url and 'login' not in current_url.lower():
                 try:
-                    await page.goto('https://artists.spotify.com/c/roster', timeout=15000, wait_until='domcontentloaded')
-                    await asyncio.sleep(2)
-                    if 'accounts.spotify.com' in page.url or 'login' in page.url.lower():
-                        logger.warning("Session check failed: redirected to login from /c/roster")
+                    login_btn = page.locator('button:has-text("Log in"), a:has-text("Log in")')
+                    if await login_btn.count() > 0 and await login_btn.first.is_visible():
+                        logger.info("On landing page with login button - not logged in")
                         return False
-                except Exception as e:
-                    logger.warning(f"Session check encountered an error: {e}")
+                except:
+                    pass
+                
+                logger.info("✓ On S4A site without login prompt - assuming logged in")
                 return True
-        
-        # THIRD: Check if we got redirected to any artists.spotify.com page that's not login
-        if 'artists.spotify.com' in current_url and 'login' not in current_url.lower():
-            # Check if there's a login button visible (indicates landing page, not logged in)
+            
+            # FOURTH: Only check for login form if we're on an ambiguous URL
             try:
-                login_btn = page.locator('button:has-text("Log in"), a:has-text("Log in")')
-                if await login_btn.count() > 0 and await login_btn.first.is_visible():
-                    logger.info("On landing page with login button - not logged in")
-                    return False
+                login_form = page.locator('form[action*="login"], input[id="login-username"], input[autocomplete="username"]')
+                if await login_form.count() > 0:
+                    is_visible = await login_form.first.is_visible()
+                    if is_visible:
+                        logger.info("Login form detected - not logged in")
+                        return False
             except:
                 pass
             
-            # If no login button, we might be logged in
-            logger.info("✓ On S4A site without login prompt - assuming logged in")
-            return True
-        
-        # FOURTH: Only check for login form if we're on an ambiguous URL
-        try:
-            login_form = page.locator('form[action*="login"], input[id="login-username"], input[autocomplete="username"]')
-            if await login_form.count() > 0:
-                is_visible = await login_form.first.is_visible()
-                if is_visible:
-                    logger.info("Login form detected - not logged in")
-                    return False
-        except:
-            pass
-        
-        logger.info("No existing session - need to login")
-        return False
-            
-    except Exception as e:
-        logger.warning(f"Could not verify existing session: {e}")
-        return False
+            logger.info("No existing session - need to login")
+            return False
+                
+        except Exception as e:
+            error_str = str(e)
+            is_transient = any(p in error_str for p in TRANSIENT_PATTERNS)
+            if is_transient and attempt < max_retries:
+                wait = 5 * attempt
+                logger.warning(f"Transient network error during session check (attempt {attempt}/{max_retries}): {e}")
+                logger.info(f"Retrying in {wait}s...")
+                await asyncio.sleep(wait)
+                continue
+            logger.warning(f"Could not verify existing session: {e}")
+            return False
 
 
 async def login_to_spotify(page, force_fresh=False):

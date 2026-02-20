@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,10 @@ export default function InstagramCampaignsPage() {
   const [modalTab, setModalTab] = useState("details");
   const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
   const [importModalOpen, setImportModalOpen] = useState(false);
+
+  const searchParams = useSearchParams();
+  const openParam = searchParams.get("open");
+  const filterParam = searchParams.get("filter");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -307,6 +312,52 @@ export default function InstagramCampaignsPage() {
       return campaignsWithCalculatedSpend;
     }
   });
+
+  // Campaign IDs that need attention (for filter=attention)
+  const { data: attentionCampaignIds = [] } = useQuery({
+    queryKey: ["instagram-attention-campaign-ids", filterParam],
+    queryFn: async (): Promise<string[]> => {
+      if (filterParam !== "attention") return [];
+      const now = new Date();
+      const { data: campaignsData } = await supabase
+        .from("instagram_campaigns")
+        .select("id, tracker");
+      const { data: creatorsData } = await supabase
+        .from("instagram_campaign_creators")
+        .select("campaign_id, post_status, payment_status, expected_post_date");
+      const campaigns = campaignsData || [];
+      const creators = creatorsData || [];
+      const ids = new Set<string>();
+      for (const c of creators) {
+        const cid = String(c.campaign_id);
+        const posted = c.post_status === "posted";
+        const unpaid = c.payment_status === "unpaid" || c.payment_status === "pending";
+        const expected = c.expected_post_date ? new Date(c.expected_post_date) : null;
+        const overdue = expected && !isNaN(expected.getTime()) && expected < now && c.post_status !== "posted";
+        if ((posted && unpaid) || overdue) ids.add(cid);
+      }
+      for (const camp of campaigns) {
+        const cid = String(camp.id);
+        const hasPlacements = creators.some((c: any) => String(c.campaign_id) === cid);
+        const noTracker = !camp.tracker || String(camp.tracker).trim() === "";
+        if (hasPlacements && noTracker) ids.add(cid);
+      }
+      return Array.from(ids);
+    },
+    enabled: filterParam === "attention",
+  });
+
+  // Open campaign panel when ?open=<id> is present
+  useEffect(() => {
+    if (!openParam || !campaigns.length) return;
+    const campaign = campaigns.find((c: any) => String(c.id) === openParam);
+    if (campaign) {
+      setSelectedCampaign(campaign);
+      setEditForm(campaign);
+      setIsEditMode(false);
+      setIsDetailsOpen(true);
+    }
+  }, [openParam, campaigns]);
 
   const handleViewDetails = (campaign: any) => {
     setSelectedCampaign(campaign);
@@ -571,7 +622,7 @@ export default function InstagramCampaignsPage() {
     return sortConfig.direction === 'asc' ? '↑' : '↓';
   };
 
-  // Filter campaigns based on search and status
+  // Filter campaigns based on search, status, and optional attention filter
   const filteredCampaigns = campaigns
     .filter((campaign: any) => {
     const matchesSearch = 
@@ -581,7 +632,9 @@ export default function InstagramCampaignsPage() {
     
     const matchesStatus = statusFilter === "all" || normalizeStatus(campaign.status) === statusFilter.toLowerCase();
     
-    return matchesSearch && matchesStatus;
+    const matchesAttention = filterParam !== "attention" || attentionCampaignIds.includes(String(campaign.id));
+    
+    return matchesSearch && matchesStatus && matchesAttention;
     })
     .sort((a: any, b: any) => {
       if (!sortConfig) return 0;
@@ -859,6 +912,7 @@ export default function InstagramCampaignsPage() {
                 Showing {filteredCampaigns.length} of {campaigns.length} campaigns
               </CardTitle>
               <CardDescription>
+                {filterParam === "attention" && "Needs attention • "}
                 {statusFilter !== 'all' && `Filtered by: ${statusFilter}`}
                 {searchTerm && ` • Search: "${searchTerm}"`}
               </CardDescription>
