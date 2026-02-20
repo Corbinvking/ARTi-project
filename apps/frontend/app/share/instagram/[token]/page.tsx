@@ -4,10 +4,9 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Instagram, Calendar, FileText, CheckCircle } from "lucide-react";
+import { ExternalLink, Instagram, Calendar, FileText, CheckCircle, Eye, TrendingUp } from "lucide-react";
 import { createClient } from '@supabase/supabase-js';
 
-// Create a public Supabase client for unauthenticated access
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const publicSupabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -18,6 +17,7 @@ interface CampaignPost {
   post_type: string;
   instagram_handle: string;
   status: string;
+  tracked_views?: number;
   posted_at?: string;
   created_at: string;
 }
@@ -32,61 +32,72 @@ interface Campaign {
   public_token?: string;
   posting_window_start?: string;
   posting_window_end?: string;
+  price?: string;
   created_at: string;
 }
 
 export default function InstagramClientPortalPage() {
   const params = useParams();
   const token = params.token as string;
-  
+
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [posts, setPosts] = useState<CampaignPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalSpend, setTotalSpend] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       setError(null);
-      
+
       try {
-        // First try to fetch by public_token
         let { data: campaignData, error: campaignError } = await publicSupabase
           .from('instagram_campaigns')
-          .select('id, campaign, name, client_notes, status, public_access_enabled, public_token, posting_window_start, posting_window_end, created_at')
+          .select('id, campaign, name, client_notes, status, public_access_enabled, public_token, posting_window_start, posting_window_end, price, created_at')
           .eq('public_token', token)
           .eq('public_access_enabled', true)
           .single();
 
-        // If not found by token, try by ID (for backwards compatibility)
         if (campaignError || !campaignData) {
           const { data: byIdData, error: byIdError } = await publicSupabase
             .from('instagram_campaigns')
-            .select('id, campaign, name, client_notes, status, public_access_enabled, public_token, posting_window_start, posting_window_end, created_at')
+            .select('id, campaign, name, client_notes, status, public_access_enabled, public_token, posting_window_start, posting_window_end, price, created_at')
             .eq('id', token)
             .single();
-          
+
           if (byIdError || !byIdData) {
             setError('Campaign not found or access denied');
             setLoading(false);
             return;
           }
-          
+
           campaignData = byIdData;
         }
 
         setCampaign(campaignData);
 
-        // Fetch campaign posts (only live ones)
-        const { data: postsData, error: postsError } = await publicSupabase
+        const { data: postsData } = await publicSupabase
           .from('campaign_posts')
-          .select('id, post_url, post_type, instagram_handle, status, posted_at, created_at')
+          .select('id, post_url, post_type, instagram_handle, status, tracked_views, posted_at, created_at')
           .eq('campaign_id', campaignData.id)
           .eq('status', 'live')
           .order('created_at', { ascending: false });
 
-        if (!postsError && postsData) {
+        if (postsData) {
           setPosts(postsData);
+        }
+
+        const { data: creatorsData } = await publicSupabase
+          .from('instagram_campaign_creators')
+          .select('rate, posts_count, payment_status, post_status')
+          .eq('campaign_id', String(campaignData.id));
+
+        if (creatorsData) {
+          const paid = creatorsData
+            .filter((c: any) => c.payment_status === 'paid')
+            .reduce((s: number, c: any) => s + ((c.rate || 0) * (c.posts_count || 1)), 0);
+          setTotalSpend(paid);
         }
       } catch (err) {
         setError('Failed to load campaign data');
@@ -128,10 +139,11 @@ export default function InstagramClientPortalPage() {
   }
 
   const campaignName = campaign.campaign || campaign.name || 'Instagram Campaign';
+  const totalViews = posts.reduce((s, p) => s + (p.tracked_views || 0), 0);
+  const campaignCp1k = totalViews > 0 && totalSpend > 0 ? (totalSpend / (totalViews / 1000)) : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
-      {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container max-w-4xl mx-auto py-4 px-4">
           <div className="flex items-center gap-3">
@@ -147,6 +159,35 @@ export default function InstagramClientPortalPage() {
       </header>
 
       <main className="container max-w-4xl mx-auto py-8 px-4 space-y-6">
+        {/* Live Post Analytics */}
+        <div className="grid grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <Eye className="h-5 w-5 text-purple-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-800">
+                {totalViews > 0 ? totalViews.toLocaleString() : '—'}
+              </div>
+              <div className="text-sm text-muted-foreground">Total Views</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <TrendingUp className="h-5 w-5 text-green-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-800">
+                {campaignCp1k > 0 ? `$${campaignCp1k.toFixed(2)}` : '—'}
+              </div>
+              <div className="text-sm text-muted-foreground">Campaign CP1K</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <Instagram className="h-5 w-5 text-pink-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-gray-800">{posts.length}</div>
+              <div className="text-sm text-muted-foreground">Posts Live</div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Campaign Status */}
         <Card>
           <CardContent className="pt-6">
@@ -155,7 +196,7 @@ export default function InstagramClientPortalPage() {
                 <CheckCircle className="h-5 w-5 text-green-500" />
                 <span className="font-medium">Campaign Status</span>
               </div>
-              <Badge 
+              <Badge
                 className={
                   campaign.status === 'complete' ? 'bg-green-500' :
                   campaign.status === 'active' ? 'bg-blue-500' :
@@ -216,12 +257,12 @@ export default function InstagramClientPortalPage() {
           </Card>
         )}
 
-        {/* Posts Grid */}
+        {/* Live Posts */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Instagram className="h-5 w-5 text-pink-500" />
-              Campaign Posts ({posts.length})
+              Live Posts ({posts.length})
             </CardTitle>
             <CardDescription>
               Live posts from this campaign
@@ -247,21 +288,21 @@ export default function InstagramClientPortalPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline" className="shrink-0">
-                            {post.post_type || 'post'}
-                          </Badge>
                           {post.instagram_handle && post.instagram_handle !== 'pending' && (
                             <span className="text-sm font-medium text-gray-700">
                               @{post.instagram_handle}
                             </span>
                           )}
+                          <Badge variant="outline" className="shrink-0 text-xs">
+                            {post.post_type || 'post'}
+                          </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground truncate">
                           {post.post_url}
                         </p>
-                        {post.posted_at && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Posted {new Date(post.posted_at).toLocaleDateString()}
+                        {(post.tracked_views ?? 0) > 0 && (
+                          <p className="text-xs font-medium text-purple-600 mt-1">
+                            {post.tracked_views!.toLocaleString()} views
                           </p>
                         )}
                       </div>
@@ -274,7 +315,6 @@ export default function InstagramClientPortalPage() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <div className="text-center py-8 text-sm text-muted-foreground">
           <p>Powered by Artist Influence</p>
         </div>

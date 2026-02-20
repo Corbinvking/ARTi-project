@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus, ExternalLink, Music, DollarSign, Calendar, User, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Copy, Check, Instagram, Loader2, RefreshCw, Users, CheckCircle, Clock, AlertCircle, Upload } from "lucide-react";
+import { Plus, ExternalLink, Music, DollarSign, Calendar, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Check, Instagram, Loader2, Users, CheckCircle, Clock, AlertCircle, Upload } from "lucide-react";
 import { CampaignImportModal } from "./components/CampaignImportModal";
 import { ReportingScheduleCard } from "./components/ReportingScheduleCard";
 import { Label } from "@/components/ui/label";
@@ -97,9 +97,7 @@ export default function InstagramCampaignsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [copiedLink, setCopiedLink] = useState(false);
-  const [isScrapingCampaign, setIsScrapingCampaign] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
-  const [modalTab, setModalTab] = useState("details");
   const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
@@ -495,50 +493,6 @@ export default function InstagramCampaignsPage() {
       ...prev,
       [field]: value
     }));
-  };
-
-  // Trigger scraping for the current campaign
-  const handleScrapeCampaign = async () => {
-    if (!selectedCampaign?.instagram_url) {
-      toast({
-        title: "No Instagram URL",
-        description: "Please add an Instagram URL first and save changes.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsScrapingCampaign(true);
-    try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/api/instagram-scraper/campaign/${selectedCampaign.id}/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          usernames: [selectedCampaign.instagram_url],
-          resultsLimit: 30,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast({
-          title: "Scraping Complete!",
-          description: `Successfully scraped ${data.data?.count || 0} posts for this campaign.`,
-        });
-      } else {
-        throw new Error(data.error || 'Scraping failed');
-      }
-    } catch (error: any) {
-      toast({
-        title: "Scraping Failed",
-        description: error.message || "Failed to scrape Instagram posts. Try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsScrapingCampaign(false);
-    }
   };
 
   const normalizeStatus = (status?: string) => {
@@ -1097,21 +1051,11 @@ export default function InstagramCampaignsPage() {
               </div>
               {!isEditMode && (
                 <div className="flex gap-2">
-                  <Link href={`/instagram/campaigns/${selectedCampaign?.id}/analytics`}>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                      View Analytics
-                    </Button>
-                  </Link>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const shareUrl = `${window.location.origin}/share/campaign/${selectedCampaign?.id}`;
+                      const shareUrl = `${window.location.origin}/share/instagram/${selectedCampaign?.public_token || selectedCampaign?.id}`;
                       navigator.clipboard.writeText(shareUrl);
                       setCopiedLink(true);
                       setTimeout(() => setCopiedLink(false), 2000);
@@ -1172,7 +1116,26 @@ export default function InstagramCampaignsPage() {
             </div>
           </DialogHeader>
 
-          {selectedCampaign && (
+          {selectedCampaign && (() => {
+            const budgetNum = parseFloat(selectedCampaign.price?.replace(/[^0-9.]/g, '') || '0');
+            const totalPaid = campaignCreators
+              .filter((c: CampaignCreator) => c.payment_status === 'paid')
+              .reduce((s: number, c: CampaignCreator) => s + ((c.rate || 0) * (c.posts_count || 1)), 0);
+            const totalCommitted = campaignCreators
+              .reduce((s: number, c: CampaignCreator) => s + ((c.rate || 0) * (c.posts_count || 1)), 0);
+            const totalOwed = campaignCreators
+              .filter((c: CampaignCreator) => c.payment_status !== 'paid' && c.post_status === 'posted')
+              .reduce((s: number, c: CampaignCreator) => s + ((c.rate || 0) * (c.posts_count || 1)), 0);
+            const autoSpend = totalPaid;
+            const autoRemaining = Math.max(0, budgetNum - totalCommitted);
+            const totalPostsAgreed = campaignCreators.reduce((s: number, c: CampaignCreator) => s + (c.posts_count || 1), 0);
+            const postsPosted = campaignCreators.filter((c: CampaignCreator) => c.post_status === 'posted').length;
+            const postsPending = campaignCreators.filter((c: CampaignCreator) => c.post_status !== 'posted').length;
+            const totalViews = campaignPosts.reduce((s: number, p: any) => s + (p.tracked_views || 0), 0);
+            const campaignCp1k = totalViews > 0 && autoSpend > 0 ? (autoSpend / (totalViews / 1000)) : 0;
+            const budgetUtil = budgetNum > 0 ? Math.round((totalCommitted / budgetNum) * 1000) / 10 : 0;
+
+            return (
             <div className="space-y-6">
               {/* Status Badge */}
               <div>
@@ -1195,7 +1158,7 @@ export default function InstagramCampaignsPage() {
                 )}
               </div>
 
-              {/* Financial Details */}
+              {/* Financial Details (Auto-Calculated) */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -1203,9 +1166,9 @@ export default function InstagramCampaignsPage() {
                     Financial Details
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
+                <CardContent className="grid grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Price</p>
+                    <p className="text-sm text-muted-foreground mb-1">Price (Budget)</p>
                     {isEditMode ? (
                       <Input
                         value={editForm.price || ''}
@@ -1218,84 +1181,27 @@ export default function InstagramCampaignsPage() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Spend</p>
-                    {isEditMode ? (
-                      <Input
-                        value={editForm.spend || ''}
-                        onChange={(e) => updateField('spend', e.target.value)}
-                        placeholder="$0"
-                      />
-                    ) : (
-                      <p className="text-xl font-bold">{selectedCampaign.spend || '$0'}</p>
-                    )}
+                    <p className="text-xl font-bold">${autoSpend.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                    <p className="text-xs text-muted-foreground">Auto-calculated from paid placements</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Remaining</p>
-                    {isEditMode ? (
-                      <Input
-                        value={editForm.remaining || ''}
-                        onChange={(e) => updateField('remaining', e.target.value)}
-                        placeholder="$0"
-                      />
-                    ) : (
-                      <p className="text-xl font-bold">{selectedCampaign.remaining || '$0'}</p>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Invoice Status</p>
-                    {isEditMode ? (
-                      <Input
-                        value={editForm.invoice || ''}
-                        onChange={(e) => updateField('invoice', e.target.value)}
-                        placeholder="N/A"
-                      />
-                    ) : (
-                      <p className="text-lg font-medium">
-                        {selectedCampaign.invoice_status || selectedCampaign.invoice || 'N/A'}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Invoice ID</p>
-                    <p className="text-lg font-medium">{selectedCampaign.source_invoice_id || 'N/A'}</p>
+                    <p className="text-xl font-bold">${autoRemaining.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Campaign Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Calendar className="h-5 w-5" />
-                    Campaign Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {selectedCampaign.start_date && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Start Date:</span>
-                      <span className="font-medium">{selectedCampaign.start_date}</span>
-                    </div>
-                  )}
-                  {selectedCampaign.salespeople && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Salesperson:</span>
-                      <span className="font-medium">{selectedCampaign.salespeople}</span>
-                    </div>
-                  )}
-                  {selectedCampaign.campaign_started && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Campaign Started:</span>
-                      <span className="font-medium">{selectedCampaign.campaign_started}</span>
-                    </div>
-                  )}
-                  {selectedCampaign.paid_ops && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Paid Ops:</span>
-                      <span className="font-medium">{selectedCampaign.paid_ops}</span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              {/* Campaign Summary Metrics */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Total Posts Agreed</div><div className="text-2xl font-bold">{totalPostsAgreed}</div></CardContent></Card>
+                <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Posts Posted</div><div className="text-2xl font-bold text-green-600">{postsPosted}</div></CardContent></Card>
+                <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Posts Pending</div><div className="text-2xl font-bold text-yellow-600">{postsPending}</div></CardContent></Card>
+                <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Total Views</div><div className="text-2xl font-bold">{totalViews > 0 ? totalViews.toLocaleString() : '—'}</div></CardContent></Card>
+                <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Campaign CP1K</div><div className="text-2xl font-bold">{campaignCp1k > 0 ? `$${campaignCp1k.toFixed(2)}` : '—'}</div></CardContent></Card>
+                <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Total Paid</div><div className="text-2xl font-bold text-green-600">${totalPaid.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div></CardContent></Card>
+                <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Total Owed</div><div className="text-2xl font-bold text-orange-600">${totalOwed.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div></CardContent></Card>
+                <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Budget Utilization</div><div className="text-2xl font-bold">{budgetUtil}%</div></CardContent></Card>
+              </div>
 
               {/* Seeding Configuration */}
               <Card className="border-purple-500/20">
@@ -1323,15 +1229,15 @@ export default function InstagramCampaignsPage() {
                       </Badge>
                     )}
                   </div>
-                  
+
                   {(selectedCampaign.preferred_pages?.length > 0 || isEditMode) && (
                     <div>
                       <span className="text-muted-foreground text-sm">Preferred Pages:</span>
                       {isEditMode ? (
                         <Input
                           className="mt-1"
-                          value={Array.isArray(editForm.preferred_pages) 
-                            ? editForm.preferred_pages.join(', ') 
+                          value={Array.isArray(editForm.preferred_pages)
+                            ? editForm.preferred_pages.join(', ')
                             : editForm.preferred_pages || ''}
                           onChange={(e) => updateField('preferred_pages', e.target.value)}
                           placeholder="@page1, @page2, @page3"
@@ -1369,299 +1275,30 @@ export default function InstagramCampaignsPage() {
                 </CardContent>
               </Card>
 
-              {/* Sound/Music Details */}
-              {selectedCampaign.sound_url && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Music className="h-5 w-5" />
-                      Music/Sound
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <a 
-                      href={selectedCampaign.sound_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-blue-600 hover:underline"
-                    >
-                      View Sound/Track
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Tracker */}
-              {selectedCampaign.tracker && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Campaign Tracker</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <a 
-                      href={selectedCampaign.tracker} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-blue-600 hover:underline"
-                    >
-                      View Tracker
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Instagram Scraper Settings */}
-              <Card className="border-pink-500/20 bg-gradient-to-br from-pink-500/5 to-purple-500/5">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Instagram className="h-5 w-5 text-pink-500" />
-                    Instagram Analytics Tracking
-                  </CardTitle>
-                  <CardDescription>
-                    {(() => {
-                      const status = (selectedCampaign.status || '').toLowerCase();
-                      const isInactive = status.includes('inactive') || status.includes('cancelled') || status.includes('canceled');
-                      if (isInactive) {
-                        return "This campaign is inactive - not being tracked";
-                      } else if (selectedCampaign.instagram_url) {
-                        return "✓ Automatically tracked daily at 6 AM UTC";
-                      } else {
-                        return "Add an Instagram URL to enable automatic tracking";
-                      }
-                    })()}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Tracking Status */}
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <span className="text-sm font-medium">Tracking Status:</span>
-                    {(() => {
-                      const status = (selectedCampaign.status || '').toLowerCase();
-                      const isInactive = status.includes('inactive') || status.includes('cancelled') || status.includes('canceled');
-                      if (isInactive) {
-                        return <Badge variant="secondary">Inactive - Not Tracked</Badge>;
-                      } else if (selectedCampaign.instagram_url) {
-                        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Active - Tracking</Badge>;
-                      } else {
-                        return <Badge variant="outline" className="border-yellow-500/50 text-yellow-600">Needs URL</Badge>;
-                      }
-                    })()}
-                  </div>
-
-                  {/* Instagram URL Input */}
-                  <div>
-                    <Label htmlFor="instagram_url" className="text-sm font-medium mb-2 block">
-                      Instagram Profile or Post URL
-                    </Label>
-                    {isEditMode ? (
-                      <Input
-                        id="instagram_url"
-                        value={editForm.instagram_url || ''}
-                        onChange={(e) => updateField('instagram_url', e.target.value)}
-                        placeholder="https://www.instagram.com/username or https://www.instagram.com/p/..."
-                        className="font-mono text-sm"
-                      />
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        {selectedCampaign.instagram_url ? (
-                          <>
-                            <a 
-                              href={selectedCampaign.instagram_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline font-mono truncate flex-1"
-                            >
-                              {selectedCampaign.instagram_url}
-                            </a>
-                            <ExternalLink className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                          </>
-                        ) : (
-                          <span className="text-sm text-muted-foreground italic">
-                            No Instagram URL set - Click Edit to add one
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      All active campaigns with a valid Instagram URL are automatically tracked daily
-                    </p>
-                  </div>
-
-                  {/* Last Scraped Info */}
-                  {selectedCampaign.last_scraped_at && (
-                    <div className="flex items-center justify-between py-2 border-t">
-                      <span className="text-sm text-muted-foreground">Last Scraped:</span>
-                      <span className="text-sm font-medium">
-                        {new Date(selectedCampaign.last_scraped_at).toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Manual Scrape Button */}
-                  {!isEditMode && selectedCampaign.instagram_url && (
-                    <div className="pt-2 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleScrapeCampaign}
-                        disabled={isScrapingCampaign}
-                        className="w-full flex items-center gap-2"
-                      >
-                        {isScrapingCampaign ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Scraping...
-                          </>
-                        ) : (
-                          <>
-                            <RefreshCw className="h-4 w-4" />
-                            Scrape Now
-                          </>
-                        )}
-                      </Button>
-                      <p className="text-xs text-center text-muted-foreground mt-2">
-                        Manually trigger a scrape to fetch latest Instagram data
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Notes */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Notes</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Internal Notes */}
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Internal Notes (Ops Only):</p>
-                    {isEditMode ? (
-                      <Textarea
-                        value={editForm.report_notes || ''}
-                        onChange={(e) => updateField('report_notes', e.target.value)}
-                        placeholder="Add report notes..."
-                        rows={3}
-                      />
-                    ) : (
-                      <p className="text-sm">{selectedCampaign.report_notes || '-'}</p>
-                    )}
-                  </div>
-
-                  {/* Client Notes */}
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Client Notes (Visible to Clients):</p>
-                    <p className="text-xs text-muted-foreground mb-2">Brief plan, posting window, what to expect</p>
-                    {isEditMode ? (
-                      <Textarea
-                        value={editForm.client_notes || ''}
-                        onChange={(e) => updateField('client_notes', e.target.value)}
-                        placeholder="Add client-facing notes (brief, posting window, expectations)..."
-                        rows={3}
-                      />
-                    ) : (
-                      <p className="text-sm">{selectedCampaign.client_notes || '-'}</p>
-                    )}
-                  </div>
-
-                  {/* Admin Notes */}
-                  <div className="border-t pt-4">
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Admin Notes:</p>
-                    <p className="text-xs text-muted-foreground mb-2">Page selection, payment details, admin info</p>
-                    {isEditMode ? (
-                      <Textarea
-                        value={editForm.admin_notes || ''}
-                        onChange={(e) => updateField('admin_notes', e.target.value)}
-                        placeholder="Add admin notes (page/payment/admin details)..."
-                        rows={3}
-                      />
-                    ) : (
-                      <p className="text-sm">{selectedCampaign.admin_notes || '-'}</p>
-                    )}
-                  </div>
-
-                  {/* Issues Notes */}
-                  <div className="border-t pt-4">
-                    <p className="text-sm font-medium text-orange-600 mb-1">Issues / Do-Not-Use Notes:</p>
-                    <p className="text-xs text-muted-foreground mb-2">Known issues, do-not-use pages, problems</p>
-                    {isEditMode ? (
-                      <Textarea
-                        value={editForm.issues_notes || ''}
-                        onChange={(e) => updateField('issues_notes', e.target.value)}
-                        placeholder="Add issues (do-not-use pages, known problems)..."
-                        rows={3}
-                        className="border-orange-200 focus:border-orange-400"
-                      />
-                    ) : (
-                      <p className="text-sm">{selectedCampaign.issues_notes || '-'}</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Reporting Schedule */}
-              <ReportingScheduleCard 
-                campaign={selectedCampaign}
-                onUpdate={() => {
-                  queryClient.invalidateQueries({ queryKey: ['instagram-campaigns'] });
-                  setIsDetailsOpen(false);
-                }}
-              />
-
-              {/* Legacy Tracking Checkboxes */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Progress Tracking</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedCampaign.send_tracker === 'checked'} 
-                      disabled 
-                      className="h-4 w-4"
-                    />
-                    <span className="text-sm">Tracker Sent</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedCampaign.send_final_report === 'checked' || !!selectedCampaign.final_report_sent_at} 
-                      disabled 
-                      className="h-4 w-4"
-                    />
-                    <span className="text-sm">Final Report Sent</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Creator Management Section */}
+              {/* Placements (Agreed Inventory) */}
               <Card className="border-purple-500/20">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Users className="h-5 w-5 text-purple-500" />
-                    Creator Management
+                    Placements (Agreed Inventory)
                   </CardTitle>
                   <CardDescription>
-                    Track payment, post, and approval status for campaign creators
+                    Agreements, statuses, and payments for campaign creators
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {loadingCreators ? (
                     <div className="text-center py-8 text-muted-foreground">
-                      Loading creators...
+                      Loading placements...
                     </div>
                   ) : campaignCreators.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No creators assigned to this campaign yet.</p>
+                      <p>No placements assigned to this campaign yet.</p>
                       <p className="text-sm mt-1">Build a campaign to auto-select creators.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {/* Bulk Actions */}
                       {selectedCreators.length > 0 && (
                         <div className="flex items-center justify-between p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
                           <span className="text-sm font-medium">{selectedCreators.length} selected</span>
@@ -1669,7 +1306,17 @@ export default function InstagramCampaignsPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => bulkUpdateCreators(selectedCreators, { payment_status: 'paid' })}
+                              onClick={() => {
+                                const postedIds = selectedCreators.filter(id => {
+                                  const c = campaignCreators.find((cr: CampaignCreator) => cr.id === id);
+                                  return c && c.post_status === 'posted';
+                                });
+                                if (postedIds.length > 0) {
+                                  bulkUpdateCreators(postedIds, { payment_status: 'paid' });
+                                } else {
+                                  toast({ title: "Cannot Mark Paid", description: "Post Status must be 'Posted' before marking as Paid", variant: "destructive" });
+                                }
+                              }}
                               className="text-green-600"
                             >
                               <CheckCircle className="h-3 w-3 mr-1" />
@@ -1695,58 +1342,35 @@ export default function InstagramCampaignsPage() {
                         </div>
                       )}
 
-                      {/* Creator Stats */}
-                      <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div className="text-center p-3 bg-muted/50 rounded-lg">
-                          <div className="text-2xl font-bold text-green-600">
-                            {campaignCreators.filter(c => c.payment_status === 'paid').length}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Paid</div>
-                        </div>
-                        <div className="text-center p-3 bg-muted/50 rounded-lg">
-                          <div className="text-2xl font-bold text-blue-600">
-                            {campaignCreators.filter(c => c.post_status === 'posted').length}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Posted</div>
-                        </div>
-                        <div className="text-center p-3 bg-muted/50 rounded-lg">
-                          <div className="text-2xl font-bold text-purple-600">
-                            {campaignCreators.filter(c => c.approval_status === 'approved').length}
-                          </div>
-                          <div className="text-xs text-muted-foreground">Approved</div>
-                        </div>
-                      </div>
-
-                      {/* Creator Table */}
                       <ScrollArea className="h-64">
                         <Table>
                           <TableHeader>
                             <TableRow>
                               <TableHead className="w-10">
                                 <Checkbox
-                                  checked={selectedCreators.length === campaignCreators.length}
+                                  checked={selectedCreators.length === campaignCreators.length && campaignCreators.length > 0}
                                   onCheckedChange={(checked) => {
-                                    setSelectedCreators(checked ? campaignCreators.map(c => c.id) : []);
+                                    setSelectedCreators(checked ? campaignCreators.map((c: CampaignCreator) => c.id) : []);
                                   }}
                                 />
                               </TableHead>
                               <TableHead>Creator</TableHead>
-                              <TableHead className="text-right">Rate</TableHead>
-                              <TableHead className="text-right">Budget Override</TableHead>
-                              <TableHead>Page Status</TableHead>
+                              <TableHead>Post Type</TableHead>
+                              <TableHead className="text-right">Agreed Rate</TableHead>
+                              <TableHead>Post Status</TableHead>
                               <TableHead>Payment</TableHead>
-                              <TableHead>Post</TableHead>
+                              <TableHead>Notes</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {campaignCreators.map((creator) => (
-                              <TableRow key={creator.id} className={creator.do_not_use ? 'opacity-50 bg-orange-50' : ''}>
+                            {campaignCreators.map((creator: CampaignCreator) => (
+                              <TableRow key={creator.id}>
                                 <TableCell>
                                   <Checkbox
                                     checked={selectedCreators.includes(creator.id)}
                                     onCheckedChange={(checked) => {
-                                      setSelectedCreators(prev => 
-                                        checked 
+                                      setSelectedCreators(prev =>
+                                        checked
                                           ? [...prev, creator.id]
                                           : prev.filter(id => id !== creator.id)
                                       );
@@ -1754,82 +1378,54 @@ export default function InstagramCampaignsPage() {
                                   />
                                 </TableCell>
                                 <TableCell>
-                                  <div>
-                                    <div className="font-medium text-sm flex items-center gap-1">
-                                      @{creator.instagram_handle}
-                                      {creator.is_auto_selected === false && (
-                                        <Badge variant="outline" className="text-[10px] ml-1">Manual</Badge>
-                                      )}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {creator.posts_count} post{creator.posts_count > 1 ? 's' : ''} • {creator.post_type}
-                                    </div>
-                                  </div>
+                                  <span className="font-medium text-sm">@{creator.instagram_handle}</span>
                                 </TableCell>
-                                <TableCell className="text-right font-medium text-muted-foreground">
+                                <TableCell>
+                                  <Badge variant="outline" className="text-xs">{creator.post_type || 'Reel'}</Badge>
+                                </TableCell>
+                                <TableCell className="text-right font-medium">
                                   ${creator.rate?.toLocaleString() || 0}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={creator.budget_allocation ?? creator.rate ?? ''}
-                                    onChange={(e) => {
-                                      const value = parseFloat(e.target.value) || 0;
-                                      updateCreatorStatus(creator.id, { budget_allocation: value } as any);
-                                    }}
-                                    className="w-20 h-8 text-right"
-                                    placeholder={String(creator.rate || 0)}
-                                  />
                                 </TableCell>
                                 <TableCell>
                                   <Select
-                                    value={creator.page_status || 'proposed'}
-                                    onValueChange={(value) => updateCreatorStatus(creator.id, { page_status: value } as any)}
+                                    value={creator.post_status === 'not_posted' ? 'proposed' : creator.post_status}
+                                    onValueChange={(value) => {
+                                      const mapped = value === 'proposed' ? 'not_posted' : value;
+                                      updateCreatorStatus(creator.id, { post_status: mapped as PostStatus });
+                                    }}
                                   >
-                                    <SelectTrigger className="w-24 h-8">
-                                      <span className="text-xs">{(creator.page_status || 'proposed').charAt(0).toUpperCase() + (creator.page_status || 'proposed').slice(1)}</span>
+                                    <SelectTrigger className="w-28 h-8">
+                                      <StatusIndicator type="post" status={creator.post_status} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="proposed">Proposed</SelectItem>
-                                      <SelectItem value="approved">Approved</SelectItem>
-                                      <SelectItem value="paid">Paid</SelectItem>
-                                      <SelectItem value="ready">Ready</SelectItem>
-                                      <SelectItem value="posted">Posted</SelectItem>
-                                      <SelectItem value="complete">Complete</SelectItem>
+                                      <SelectItem value="proposed"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-500" /><span className="text-xs">Proposed</span></div></SelectItem>
+                                      <SelectItem value="scheduled"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /><span className="text-xs">Scheduled</span></div></SelectItem>
+                                      <SelectItem value="posted"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" /><span className="text-xs">Posted</span></div></SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </TableCell>
                                 <TableCell>
                                   <Select
-                                    value={creator.payment_status}
-                                    onValueChange={(value) => updateCreatorStatus(creator.id, { payment_status: value as PaymentStatus })}
+                                    value={creator.payment_status === 'pending' ? 'unpaid' : creator.payment_status}
+                                    onValueChange={(value) => {
+                                      if (value === 'paid' && creator.post_status !== 'posted') {
+                                        toast({ title: "Cannot Mark Paid", description: "Post Status must be 'Posted' before marking as Paid", variant: "destructive" });
+                                        return;
+                                      }
+                                      updateCreatorStatus(creator.id, { payment_status: value as PaymentStatus });
+                                    }}
                                   >
                                     <SelectTrigger className="w-24 h-8">
                                       <StatusIndicator type="payment" status={creator.payment_status} />
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="unpaid"><StatusIndicator type="payment" status="unpaid" /></SelectItem>
-                                      <SelectItem value="pending"><StatusIndicator type="payment" status="pending" /></SelectItem>
-                                      <SelectItem value="paid"><StatusIndicator type="payment" status="paid" /></SelectItem>
+                                      <SelectItem value="paid" disabled={creator.post_status !== 'posted'}><StatusIndicator type="payment" status="paid" /></SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </TableCell>
                                 <TableCell>
-                                  <Select
-                                    value={creator.post_status}
-                                    onValueChange={(value) => updateCreatorStatus(creator.id, { post_status: value as PostStatus })}
-                                  >
-                                    <SelectTrigger className="w-28 h-8">
-                                      <StatusIndicator type="post" status={creator.post_status} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="not_posted"><StatusIndicator type="post" status="not_posted" /></SelectItem>
-                                      <SelectItem value="scheduled"><StatusIndicator type="post" status="scheduled" /></SelectItem>
-                                      <SelectItem value="posted"><StatusIndicator type="post" status="posted" /></SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                  <span className="text-xs text-muted-foreground truncate max-w-[120px] block">{creator.payment_notes || '—'}</span>
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -1841,60 +1437,57 @@ export default function InstagramCampaignsPage() {
                 </CardContent>
               </Card>
 
-              {/* Post URLs Management */}
+              {/* Campaign Posts (Live Tracking) */}
               <Card className="border-pink-500/20">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Instagram className="h-5 w-5 text-pink-500" />
-                    Campaign Posts
+                    Campaign Posts (Live Tracking)
                   </CardTitle>
                   <CardDescription>
-                    Track Instagram post URLs for this campaign
+                    Track actual live Instagram posts tied to placements
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {/* Add Post URL Form */}
                   <div className="space-y-2 mb-4">
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Paste Instagram post URL (e.g., https://instagram.com/p/...)"
+                        placeholder="Paste Instagram post URL (e.g., https://instagram.com/reel/...)"
                         value={newPostUrl}
                         onChange={(e) => setNewPostUrl(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && addPostUrl()}
+                        onKeyDown={(e) => e.key === 'Enter' && selectedCreatorForPost && addPostUrl()}
                         className="flex-1"
                       />
-                      <Button onClick={addPostUrl} disabled={addingPost || !newPostUrl.trim()}>
+                      <Button onClick={addPostUrl} disabled={addingPost || !newPostUrl.trim() || !selectedCreatorForPost}>
                         {addingPost ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                       </Button>
                     </div>
-                    {/* Creator/Page Selector */}
-                    {campaignCreators.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Label className="text-xs text-muted-foreground whitespace-nowrap">Link to page:</Label>
-                        <Select
-                          value={selectedCreatorForPost || "__none__"}
-                          onValueChange={(v) => setSelectedCreatorForPost(v === "__none__" ? "" : v)}
-                        >
-                          <SelectTrigger className="h-8 text-sm">
-                            <SelectValue placeholder="Select page (optional)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">No page link</SelectItem>
-                            {campaignCreators.map((creator) => (
-                              <SelectItem key={creator.id} value={creator.id}>
-                                @{creator.instagram_handle}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs text-muted-foreground whitespace-nowrap">Linked Creator:</Label>
+                      <Select
+                        value={selectedCreatorForPost || "__none__"}
+                        onValueChange={(v) => setSelectedCreatorForPost(v === "__none__" ? "" : v)}
+                      >
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Select creator (required)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__" disabled>Select a creator</SelectItem>
+                          {campaignCreators.map((creator: CampaignCreator) => (
+                            <SelectItem key={creator.id} value={creator.id}>
+                              @{creator.instagram_handle}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {!selectedCreatorForPost && newPostUrl.trim() && (
+                      <p className="text-xs text-orange-600">A linked creator is required to add a post.</p>
                     )}
                   </div>
 
                   {loadingPosts ? (
-                    <div className="text-center py-4 text-muted-foreground">
-                      Loading posts...
-                    </div>
+                    <div className="text-center py-4 text-muted-foreground">Loading posts...</div>
                   ) : campaignPosts.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Instagram className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -1902,52 +1495,130 @@ export default function InstagramCampaignsPage() {
                       <p className="text-sm mt-1">Add Instagram post URLs to track campaign performance.</p>
                     </div>
                   ) : (
-                    <ScrollArea className="h-48">
-                      <div className="space-y-2">
-                        {campaignPosts.map((post: any) => (
-                          <div key={post.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <Badge variant="outline" className="shrink-0">
-                                {post.post_type || 'post'}
-                              </Badge>
-                              {post.instagram_handle && post.instagram_handle !== 'pending' && (
-                                <Badge variant="secondary" className="shrink-0 text-xs">
-                                  @{post.instagram_handle}
-                                </Badge>
-                              )}
-                              <a 
-                                href={post.post_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-sm text-blue-600 hover:underline truncate"
-                              >
-                                {post.post_url}
-                              </a>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              {post.creator_id && (
-                                <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-600">
-                                  Linked
-                                </Badge>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deletePost(post.id)}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    <ScrollArea className="h-56">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Post URL</TableHead>
+                            <TableHead>Creator</TableHead>
+                            <TableHead className="text-right">Views</TableHead>
+                            <TableHead>Date Added</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="w-10"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {campaignPosts.map((post: any) => (
+                            <TableRow key={post.id}>
+                              <TableCell>
+                                <a
+                                  href={post.post_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 hover:underline truncate max-w-[200px] block"
+                                >
+                                  {post.post_url.replace('https://www.instagram.com', '').replace('https://instagram.com', '')}
+                                </a>
+                              </TableCell>
+                              <TableCell>
+                                {post.instagram_handle && post.instagram_handle !== 'pending' ? (
+                                  <span className="text-sm font-medium">@{post.instagram_handle}</span>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">Unlinked</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                {post.tracked_views > 0 ? post.tracked_views.toLocaleString() : '—'}
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {post.created_at ? new Date(post.created_at).toLocaleDateString() : '—'}
+                              </TableCell>
+                              <TableCell>
+                                {(() => {
+                                  const ts = post.tracking_status || 'pending';
+                                  if (ts === 'active') return <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]">Active</Badge>;
+                                  if (ts === 'failed') return <Badge variant="destructive" className="text-[10px]">Failed</Badge>;
+                                  return <Badge variant="outline" className="text-[10px]">Pending</Badge>;
+                                })()}
+                              </TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="sm" onClick={() => deletePost(post.id)} className="text-destructive hover:text-destructive">
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </ScrollArea>
                   )}
                 </CardContent>
               </Card>
+
+              {/* Reporting Schedule */}
+              <ReportingScheduleCard
+                campaign={selectedCampaign}
+                onUpdate={() => {
+                  queryClient.invalidateQueries({ queryKey: ['instagram-campaigns'] });
+                  setIsDetailsOpen(false);
+                }}
+              />
+
+              {/* Notes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Notes</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Internal Notes (Ops):</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={editForm.report_notes || ''}
+                        onChange={(e) => updateField('report_notes', e.target.value)}
+                        placeholder="Internal notes, page selection, payment details..."
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="text-sm">{selectedCampaign.report_notes || '-'}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Client Notes (Visible to Clients):</p>
+                    <p className="text-xs text-muted-foreground mb-2">Brief plan, posting window, what to expect</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={editForm.client_notes || ''}
+                        onChange={(e) => updateField('client_notes', e.target.value)}
+                        placeholder="Add client-facing notes..."
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="text-sm">{selectedCampaign.client_notes || '-'}</p>
+                    )}
+                  </div>
+
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium text-orange-600 mb-1">Issues / Do-Not-Use Notes:</p>
+                    <p className="text-xs text-muted-foreground mb-2">Known issues, do-not-use pages, problems</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={editForm.issues_notes || ''}
+                        onChange={(e) => updateField('issues_notes', e.target.value)}
+                        placeholder="Add issues (do-not-use pages, known problems)..."
+                        rows={3}
+                        className="border-orange-200 focus:border-orange-400"
+                      />
+                    ) : (
+                      <p className="text-sm">{selectedCampaign.issues_notes || '-'}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
