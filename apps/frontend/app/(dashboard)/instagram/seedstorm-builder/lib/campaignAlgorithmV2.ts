@@ -281,8 +281,8 @@ export function generateCampaignV2(
   };
 
   const insight = finalSelected.length > 0
-    ? `Optimized for lowest CP1K while meeting genre + territory filters. ${finalSelected.length} creators selected, ${totalPosts} posts, $${avgCp1k.toFixed(2)} avg CP1K.`
-    : 'No eligible creators matched the campaign criteria. Try broadening genre, territory, or guardrail filters.';
+    ? `Optimized for lowest CP1K while meeting niche + territory filters. ${finalSelected.length} creators selected, ${totalPosts} posts, $${avgCp1k.toFixed(2)} avg CP1K.`
+    : 'No eligible creators matched the campaign criteria. Try broadening niche, territory, or guardrail filters.';
 
   return {
     selectedCreators: finalSelected,

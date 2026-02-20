@@ -208,6 +208,43 @@ export const updateCampaign = async (id: string, updates: Partial<UICampaign & {
   }
 };
 
+function buildCampaignSummary(campaign: UICampaign): string {
+  const lines: string[] = [];
+  const creators = campaign.selected_creators ?? [];
+  const totals = campaign.totals as Record<string, any> | undefined;
+  const form = campaign.form_data as Record<string, any> | undefined;
+
+  const budget = form?.total_budget ?? totals?.total_cost ?? 0;
+  const niches = form?.selected_genres ?? [];
+  const type = form?.campaign_type ?? '';
+  const territory = form?.territory_preference ?? '';
+
+  if (type) lines.push(`Type: ${type}`);
+  if (niches.length) lines.push(`Niches: ${(niches as string[]).join(', ')}`);
+  if (territory) lines.push(`Territory: ${territory}`);
+  lines.push(`Budget: $${Number(budget).toLocaleString()}`);
+
+  if (totals) {
+    const totalPosts = totals.total_posts ?? creators.reduce((s: number, c: any) => s + (c.posts_count || 1), 0);
+    lines.push(`Total posts: ${totalPosts}`);
+    if (totals.projected_total_views) lines.push(`Projected views: ${Number(totals.projected_total_views).toLocaleString()}`);
+    if (totals.avg_cp1k) lines.push(`Avg CP1K: $${Number(totals.avg_cp1k).toFixed(2)}`);
+  }
+
+  if (creators.length) {
+    lines.push('');
+    lines.push(`Selected creators (${creators.length}):`);
+    for (const c of creators as any[]) {
+      const handle = c.instagram_handle || 'unknown';
+      const posts = c.posts_count || 1;
+      const rate = c.reel_rate || c.selected_rate || 0;
+      lines.push(`  @${handle} — ${posts} post${posts !== 1 ? 's' : ''}, $${rate}/post`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
 // Save campaign to instagram_campaigns table
 // Uses the ACTUAL production schema from migration 011 (Airtable import format)
 export const saveCampaign = async (campaign: UICampaign): Promise<string> => {
@@ -223,12 +260,7 @@ export const saveCampaign = async (campaign: UICampaign): Promise<string> => {
     status: mapUIStatusToDb(campaign.status),
     sound_url: '', // Audio URL if available
     tracker: '', // Tracker URL
-    // Store JSON data in available text fields
-    report_notes: JSON.stringify({
-      selected_creators: campaign.selected_creators ?? [],
-      totals: campaign.totals ?? {},
-      form_data: campaign.form_data ?? {},
-    }),
+    report_notes: buildCampaignSummary(campaign),
   };
 
   console.log('📝 Saving to instagram_campaigns:', payload.campaign);

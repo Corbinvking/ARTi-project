@@ -17,7 +17,8 @@ import {
 import { supabase } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCreatorsTable, CreatorRow } from "../seedstorm-builder/hooks/useCreatorsTable";
-import { ALL_GENRES, CREATOR_CONTENT_TYPES, TERRITORY_BUCKETS } from "../seedstorm-builder/lib/genreSystem";
+import { CREATOR_CONTENT_TYPES, TERRITORY_BUCKETS } from "../seedstorm-builder/lib/genreSystem";
+import { useNiches } from "../seedstorm-builder/hooks/useNiches";
 import Papa from "papaparse";
 
 type SortKey = 'followers' | 'median_views' | 'engagement_rate' | 'cp1k' | 'reel_rate' | 'instagram_handle';
@@ -54,9 +55,10 @@ export default function InstagramCreatorsPage() {
   const { creators, isLoading, refetch } = useCreatorsTable();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { niches: allNiches, addNiche } = useNiches();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [genreFilter, setGenreFilter] = useState("all");
+  const [nicheFilter, setNicheFilter] = useState("all");
   const [accountTerritoryFilter, setAccountTerritoryFilter] = useState("all");
   const [audienceTerritoryFilter, setAudienceTerritoryFilter] = useState("all");
   const [contentTypeFilter, setContentTypeFilter] = useState("all");
@@ -105,7 +107,7 @@ export default function InstagramCreatorsPage() {
             c.content_types.some((t) => t.toLowerCase().includes(q));
           if (!match) return false;
         }
-        if (genreFilter !== "all" && !c.music_genres.includes(genreFilter)) return false;
+        if (nicheFilter !== "all" && !c.music_genres.includes(nicheFilter)) return false;
         if (accountTerritoryFilter !== "all" && c.account_territory !== accountTerritoryFilter) return false;
         if (audienceTerritoryFilter !== "all" && c.audience_territory !== audienceTerritoryFilter) return false;
         if (contentTypeFilter !== "all" && !c.content_types.includes(contentTypeFilter)) return false;
@@ -129,7 +131,7 @@ export default function InstagramCreatorsPage() {
         if (typeof bv === "string") bv = bv.toLowerCase();
         return sortOption.dir === "asc" ? (av < bv ? -1 : av > bv ? 1 : 0) : (av > bv ? -1 : av < bv ? 1 : 0);
       });
-  }, [creators, searchQuery, genreFilter, accountTerritoryFilter, audienceTerritoryFilter, contentTypeFilter, followersMin, followersMax, medianViewsMin, medianViewsMax, engagementMin, engagementMax, cp1kMin, cp1kMax, sortOption]);
+  }, [creators, searchQuery, nicheFilter, accountTerritoryFilter, audienceTerritoryFilter, contentTypeFilter, followersMin, followersMax, medianViewsMin, medianViewsMax, engagementMin, engagementMax, cp1kMin, cp1kMax, sortOption]);
 
   const refreshCreator = useCallback(async (handle: string) => {
     setRefreshingHandle(handle);
@@ -178,7 +180,7 @@ export default function InstagramCreatorsPage() {
     const handle = addForm.handle.replace(/^@/, "").trim();
     if (!handle) { toast({ title: "Error", description: "Handle is required", variant: "destructive" }); return; }
     if (!addForm.reel_rate || Number(addForm.reel_rate) <= 0) { toast({ title: "Error", description: "Rate per Reel is required", variant: "destructive" }); return; }
-    if (addForm.genres.length === 0) { toast({ title: "Error", description: "At least one genre required", variant: "destructive" }); return; }
+    if (addForm.genres.length === 0) { toast({ title: "Error", description: "At least one niche required", variant: "destructive" }); return; }
     if (addForm.content_types.length === 0) { toast({ title: "Error", description: "At least one content type required", variant: "destructive" }); return; }
 
     const { error } = await supabase.from("creators").insert({
@@ -280,7 +282,7 @@ export default function InstagramCreatorsPage() {
   };
 
   const handleExport = () => {
-    const headers = ["Handle", "Email", "Followers", "Median Views", "Engagement Rate", "Account Territory", "Audience Territory", "Genres", "Content Types", "Rate per Reel", "Reel Rate %", "CP1K"];
+    const headers = ["Handle", "Email", "Followers", "Median Views", "Engagement Rate", "Account Territory", "Audience Territory", "Niches", "Content Types", "Rate per Reel", "Reel Rate %", "CP1K"];
     const rows = filtered.map((c) => [
       `@${c.instagram_handle}`,
       c.email || "",
@@ -304,7 +306,7 @@ export default function InstagramCreatorsPage() {
     a.click();
   };
 
-  const uniqueGenres = useMemo(() => {
+  const uniqueNiches = useMemo(() => {
     const set = new Set<string>();
     creators.forEach((c) => c.music_genres.forEach((g) => set.add(g)));
     return Array.from(set).sort();
@@ -326,7 +328,7 @@ export default function InstagramCreatorsPage() {
     setCp1kMax("");
   };
 
-  const hasActiveFilters = genreFilter !== "all" || accountTerritoryFilter !== "all" || audienceTerritoryFilter !== "all" || contentTypeFilter !== "all" || followersMin || followersMax || medianViewsMin || medianViewsMax || engagementMin || engagementMax || cp1kMin || cp1kMax;
+  const hasActiveFilters = nicheFilter !== "all" || accountTerritoryFilter !== "all" || audienceTerritoryFilter !== "all" || contentTypeFilter !== "all" || followersMin || followersMax || medianViewsMin || medianViewsMax || engagementMin || engagementMax || cp1kMin || cp1kMax;
 
   return (
     <div className="container mx-auto p-6 space-y-4">
@@ -350,7 +352,7 @@ export default function InstagramCreatorsPage() {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search handle, email, genre, content type..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
+          <Input placeholder="Search handle, email, niche, content type..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
         </div>
         <Select value={String(sortIdx)} onValueChange={(v) => setSortIdx(Number(v))}>
           <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
@@ -369,8 +371,8 @@ export default function InstagramCreatorsPage() {
         <Card className="border-border/50">
           <CardContent className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
-              <Label className="text-xs">Genre</Label>
-              <Select value={genreFilter} onValueChange={setGenreFilter}><SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger><SelectContent>{["all", ...uniqueGenres].map((g) => <SelectItem key={g} value={g}>{g === "all" ? "All Genres" : g}</SelectItem>)}</SelectContent></Select>
+              <Label className="text-xs">Niche</Label>
+              <Select value={nicheFilter} onValueChange={setGenreFilter}><SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger><SelectContent>{["all", ...uniqueNiches].map((g) => <SelectItem key={g} value={g}>{g === "all" ? "All Niches" : g}</SelectItem>)}</SelectContent></Select>
             </div>
             <div>
               <Label className="text-xs">Account Territory</Label>
@@ -429,7 +431,7 @@ export default function InstagramCreatorsPage() {
                   <TableHead className="text-xs text-right">Engage %</TableHead>
                   <TableHead className="text-xs">Acct Territory</TableHead>
                   <TableHead className="text-xs">Audience Territory</TableHead>
-                  <TableHead className="text-xs">Genres</TableHead>
+                  <TableHead className="text-xs">Niches</TableHead>
                   <TableHead className="text-xs">Content Types</TableHead>
                   <TableHead className="text-xs text-right">Rate/Reel</TableHead>
                   <TableHead className="text-xs text-right">Reel Rate %</TableHead>
@@ -495,9 +497,9 @@ export default function InstagramCreatorsPage() {
             <div><Label className="text-xs">Email</Label><Input placeholder="email@example.com" value={addForm.email} onChange={(e) => setAddForm({ ...addForm, email: e.target.value })} /></div>
             <div><Label className="text-xs">Rate per Reel ($) *</Label><Input type="number" placeholder="0" value={addForm.reel_rate} onChange={(e) => setAddForm({ ...addForm, reel_rate: e.target.value })} /></div>
             <div>
-              <Label className="text-xs">Genres * {addForm.genres.length > 0 && <span className="text-muted-foreground">({addForm.genres.length} selected)</span>}</Label>
+              <Label className="text-xs">Niches * {addForm.genres.length > 0 && <span className="text-muted-foreground">({addForm.genres.length} selected)</span>}</Label>
               <div className="max-h-40 overflow-y-auto border rounded-md p-2 mt-1">
-                <div className="flex flex-wrap gap-1">{[...addForm.genres, ...ALL_GENRES.filter((g) => !addForm.genres.includes(g))].map((g) => <Badge key={g} variant={addForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setAddForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
+                <div className="flex flex-wrap gap-1">{[...addForm.genres, ...allNiches.filter((g) => !addForm.genres.includes(g))].map((g) => <Badge key={g} variant={addForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setAddForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
               </div>
             </div>
             <div>
@@ -519,9 +521,9 @@ export default function InstagramCreatorsPage() {
             <div><Label className="text-xs">Email</Label><Input value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} /></div>
             <div><Label className="text-xs">Rate per Reel ($)</Label><Input type="number" value={editForm.reel_rate} onChange={(e) => setEditForm({ ...editForm, reel_rate: e.target.value })} /></div>
             <div>
-              <Label className="text-xs">Genres {editForm.genres.length > 0 && <span className="text-muted-foreground">({editForm.genres.length} selected)</span>}</Label>
+              <Label className="text-xs">Niches {editForm.genres.length > 0 && <span className="text-muted-foreground">({editForm.genres.length} selected)</span>}</Label>
               <div className="max-h-40 overflow-y-auto border rounded-md p-2 mt-1">
-                <div className="flex flex-wrap gap-1">{[...editForm.genres, ...ALL_GENRES.filter((g) => !editForm.genres.includes(g))].map((g) => <Badge key={g} variant={editForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setEditForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
+                <div className="flex flex-wrap gap-1">{[...editForm.genres, ...allNiches.filter((g) => !editForm.genres.includes(g))].map((g) => <Badge key={g} variant={editForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setEditForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
               </div>
             </div>
             <div>
@@ -538,7 +540,7 @@ export default function InstagramCreatorsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Import Creators CSV</DialogTitle>
-            <DialogDescription>Upload a CSV with at minimum a "handle" column. Optional: email, genres, content_types, reel_rate. Metrics will be scraped automatically.</DialogDescription>
+            <DialogDescription>Upload a CSV with at minimum a "handle" column. Optional: email, niches, content_types, reel_rate. Metrics will be scraped automatically.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <Input type="file" accept=".csv" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportCSV(f); }} />

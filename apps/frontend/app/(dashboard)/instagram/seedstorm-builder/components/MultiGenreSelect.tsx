@@ -3,9 +3,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus } from "lucide-react";
-import { saveTagToCollection } from "../lib/tagStorage";
-import { useTagSync } from "../hooks/useTagSync";
+import { X, Plus, Trash2 } from "lucide-react";
+import { useNiches } from "../hooks/useNiches";
 
 interface MultiGenreSelectProps {
   selectedGenres: string[];
@@ -18,15 +17,15 @@ export const MultiGenreSelect = ({
   selectedGenres,
   onGenresChange,
   error,
-  placeholder = "Select genres"
+  placeholder = "Select niches"
 }: MultiGenreSelectProps) => {
-  const { tags } = useTagSync();
+  const { niches, addNiche, removeNiche } = useNiches();
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [newGenreValue, setNewGenreValue] = useState("");
+  const [newNicheValue, setNewNicheValue] = useState("");
   
-  const availableGenres = tags.genres.sort().filter(genre => !selectedGenres.includes(genre));
+  const availableNiches = niches.filter(n => !selectedGenres.includes(n));
 
-  const handleSelectGenre = (selectedValue: string) => {
+  const handleSelectNiche = (selectedValue: string) => {
     if (selectedValue === "add_new") {
       setIsAddingNew(true);
       return;
@@ -36,19 +35,31 @@ export const MultiGenreSelect = ({
     }
   };
 
-  const handleRemoveGenre = (genreToRemove: string) => {
-    onGenresChange(selectedGenres.filter(genre => genre !== genreToRemove));
+  const handleRemoveFromSelection = (nicheToRemove: string) => {
+    onGenresChange(selectedGenres.filter(n => n !== nicheToRemove));
   };
 
-  const handleAddNew = () => {
-    const trimmedValue = newGenreValue.trim();
-    if (trimmedValue && !tags.genres.includes(trimmedValue) && !selectedGenres.includes(trimmedValue)) {
-      saveTagToCollection(trimmedValue, 'genres');
-      onGenresChange([...selectedGenres, trimmedValue]);
-      // Refresh the tag sync to update all dropdowns
-      window.dispatchEvent(new CustomEvent('tagsUpdated'));
+  const handleDeleteNiche = async (nicheToDelete: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await removeNiche(nicheToDelete);
+      onGenresChange(selectedGenres.filter(n => n !== nicheToDelete));
+    } catch {
+      // silently ignore
     }
-    setNewGenreValue("");
+  };
+
+  const handleAddNew = async () => {
+    const trimmedValue = newNicheValue.trim();
+    if (trimmedValue && !niches.includes(trimmedValue) && !selectedGenres.includes(trimmedValue)) {
+      try {
+        await addNiche(trimmedValue);
+        onGenresChange([...selectedGenres, trimmedValue]);
+      } catch {
+        // silently ignore
+      }
+    }
+    setNewNicheValue("");
     setIsAddingNew(false);
   };
 
@@ -57,45 +68,43 @@ export const MultiGenreSelect = ({
       e.preventDefault();
       handleAddNew();
     } else if (e.key === "Escape") {
-      setNewGenreValue("");
+      setNewNicheValue("");
       setIsAddingNew(false);
     }
   };
 
   return (
     <div className="space-y-3">
-      {/* Selected Genres */}
       {selectedGenres.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {selectedGenres.map(genre => (
-            <Badge key={genre} variant="secondary" className="flex items-center gap-1">
-              {genre}
+          {selectedGenres.map(niche => (
+            <Badge key={niche} variant="secondary" className="flex items-center gap-1">
+              {niche}
               <X 
                 className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                onClick={() => handleRemoveGenre(genre)}
+                onClick={() => handleRemoveFromSelection(niche)}
               />
             </Badge>
           ))}
         </div>
       )}
 
-      {/* Add New Genre Input */}
       {isAddingNew ? (
         <div className="flex gap-2">
           <Input
-            value={newGenreValue}
-            onChange={(e) => setNewGenreValue(e.target.value)}
-            placeholder="Enter new genre..."
+            value={newNicheValue}
+            onChange={(e) => setNewNicheValue(e.target.value)}
+            placeholder="Enter new niche..."
             onKeyDown={handleKeyDown}
             autoFocus
             className={error ? "border-destructive" : ""}
           />
-          <Button onClick={handleAddNew} size="sm" disabled={!newGenreValue.trim()}>
+          <Button onClick={handleAddNew} size="sm" disabled={!newNicheValue.trim()}>
             <Plus className="h-4 w-4" />
           </Button>
           <Button 
             onClick={() => {
-              setNewGenreValue("");
+              setNewNicheValue("");
               setIsAddingNew(false);
             }} 
             variant="outline" 
@@ -105,20 +114,28 @@ export const MultiGenreSelect = ({
           </Button>
         </div>
       ) : (
-        /* Genre Selector */
-        <Select value="" onValueChange={handleSelectGenre}>
+        <Select value="" onValueChange={handleSelectNiche}>
           <SelectTrigger className={error ? "border-destructive" : ""}>
-            <SelectValue placeholder={selectedGenres.length > 0 ? "Add another genre..." : placeholder} />
+            <SelectValue placeholder={selectedGenres.length > 0 ? "Add another niche..." : placeholder} />
           </SelectTrigger>
           <SelectContent className="bg-background z-50">
             <SelectItem value="add_new" className="text-primary">
               <div className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Add New Genre
+                Add New Niche
               </div>
             </SelectItem>
-            {availableGenres.map(genre => (
-              <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+            {availableNiches.map(niche => (
+              <div key={niche} className="flex items-center justify-between group">
+                <SelectItem value={niche} className="flex-1">{niche}</SelectItem>
+                <button
+                  className="opacity-0 group-hover:opacity-100 p-1 mr-2 text-muted-foreground hover:text-destructive transition-opacity"
+                  onClick={(e) => handleDeleteNiche(niche, e)}
+                  title={`Remove "${niche}" from list`}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
             ))}
           </SelectContent>
         </Select>

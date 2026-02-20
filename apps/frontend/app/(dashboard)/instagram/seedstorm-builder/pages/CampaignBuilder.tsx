@@ -131,7 +131,7 @@ const CampaignBuilder = () => {
       newErrors.total_budget = 'Budget must be at least $100';
     }
     if (formData.selected_genres.length === 0) {
-      newErrors.selected_genres = 'At least one genre is required';
+      newErrors.selected_genres = 'At least one niche is required';
     }
     if (formData.post_type_preference.length === 0) {
       newErrors.post_type_preference = 'At least one post type is required';
@@ -644,12 +644,12 @@ const CampaignBuilder = () => {
               {/* Genre & Campaign Type */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label>Selected Genres</Label>
+                  <Label>Selected Niches</Label>
                   <MultiGenreSelect
                     selectedGenres={formData.selected_genres}
                     onGenresChange={(genres) => setFormData(prev => ({...prev, selected_genres: genres}))}
                     error={!!errors.selected_genres}
-                    placeholder="Select campaign genres"
+                    placeholder="Select campaign niches"
                   />
                   {errors.selected_genres && <p className="text-sm text-destructive">{errors.selected_genres}</p>}
                 </div>

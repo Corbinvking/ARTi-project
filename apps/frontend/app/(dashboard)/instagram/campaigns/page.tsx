@@ -54,6 +54,43 @@ interface CampaignCreator {
   page_status?: PageStatus;
 }
 
+function formatReportNotes(raw: string | null | undefined): string {
+  if (!raw) return '-';
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return trimmed;
+  try {
+    const parsed = JSON.parse(trimmed);
+    const lines: string[] = [];
+    const creators: any[] = parsed.selected_creators ?? [];
+    const totals = parsed.totals ?? {};
+    const form = parsed.form_data ?? {};
+
+    if (form.campaign_type) lines.push(`Type: ${form.campaign_type}`);
+    const niches: string[] = form.selected_genres ?? [];
+    if (niches.length) lines.push(`Niches: ${niches.join(', ')}`);
+    if (form.territory_preference) lines.push(`Territory: ${form.territory_preference}`);
+    const budget = form.total_budget ?? totals.total_cost ?? 0;
+    lines.push(`Budget: $${Number(budget).toLocaleString()}`);
+    if (totals.total_posts) lines.push(`Total posts: ${totals.total_posts}`);
+    if (totals.projected_total_views) lines.push(`Projected views: ${Number(totals.projected_total_views).toLocaleString()}`);
+    if (totals.avg_cp1k) lines.push(`Avg CP1K: $${Number(totals.avg_cp1k).toFixed(2)}`);
+
+    if (creators.length) {
+      lines.push('');
+      lines.push(`Selected creators (${creators.length}):`);
+      for (const c of creators) {
+        const handle = c.instagram_handle || 'unknown';
+        const posts = c.posts_count || 1;
+        const rate = c.reel_rate || c.selected_rate || 0;
+        lines.push(`  @${handle} — ${posts} post${posts !== 1 ? 's' : ''}, $${rate}/post`);
+      }
+    }
+    return lines.join('\n');
+  } catch {
+    return trimmed;
+  }
+}
+
 // Status Indicator Component
 const StatusIndicator = ({ type, status }: { type: 'payment' | 'post' | 'approval'; status: string }) => {
   const getConfig = () => {
@@ -126,6 +163,21 @@ export default function InstagramCampaignsPage() {
     enabled: !!selectedCampaign?.id && isDetailsOpen
   });
 
+  // Fetch all creators for the "Linked Creator" dropdown (post tracking)
+  const { data: allCreators = [] } = useQuery({
+    queryKey: ['all-creators-for-linking'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('creators')
+        .select('id, instagram_handle')
+        .order('instagram_handle');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: isDetailsOpen,
+    staleTime: 60_000,
+  });
+
   // Update creator status
   const updateCreatorStatus = async (creatorId: string, updates: Partial<CampaignCreator>) => {
     try {
@@ -170,7 +222,7 @@ export default function InstagramCampaignsPage() {
       const { data, error } = await supabase
         .from('campaign_posts')
         .select('*')
-        .eq('campaign_id', selectedCampaign.id)
+        .eq('campaign_id', String(selectedCampaign.id))
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
@@ -190,13 +242,15 @@ export default function InstagramCampaignsPage() {
       // Find the selected creator to get their handle
       const linkedCreator = selectedCreatorForPost 
         ? campaignCreators.find(c => c.id === selectedCreatorForPost)
+          || allCreators.find(c => c.id === selectedCreatorForPost)
         : null;
       
       const { error } = await supabase
         .from('campaign_posts')
         .insert({
-          campaign_id: selectedCampaign.id,
+          campaign_id: String(selectedCampaign.id),
           creator_id: selectedCreatorForPost || null,
+          org_id: user?.tenantId || '00000000-0000-0000-0000-000000000001',
           post_url: newPostUrl.trim(),
           post_type: postType,
           instagram_handle: linkedCreator?.instagram_handle || 'pending',
@@ -207,8 +261,9 @@ export default function InstagramCampaignsPage() {
       setSelectedCreatorForPost("");
       refetchPosts();
       
-      // Update creator post_status to posted if linked
-      if (selectedCreatorForPost) {
+      // Update placement post_status to posted if creator is a campaign placement
+      const isPlacement = campaignCreators.some((c: CampaignCreator) => c.id === selectedCreatorForPost);
+      if (selectedCreatorForPost && isPlacement) {
         await updateCreatorStatus(selectedCreatorForPost, { post_status: 'posted' });
       }
       
@@ -351,7 +406,10 @@ export default function InstagramCampaignsPage() {
     const campaign = campaigns.find((c: any) => String(c.id) === openParam);
     if (campaign) {
       setSelectedCampaign(campaign);
-      setEditForm(campaign);
+      setEditForm({
+        ...campaign,
+        report_notes: formatReportNotes(campaign.report_notes),
+      });
       setIsEditMode(false);
       setIsDetailsOpen(true);
     }
@@ -359,7 +417,10 @@ export default function InstagramCampaignsPage() {
 
   const handleViewDetails = (campaign: any) => {
     setSelectedCampaign(campaign);
-    setEditForm(campaign);
+    setEditForm({
+      ...campaign,
+      report_notes: formatReportNotes(campaign.report_notes),
+    });
     setIsEditMode(false);
     setIsDetailsOpen(true);
   };
@@ -369,7 +430,10 @@ export default function InstagramCampaignsPage() {
   };
 
   const handleCancelEdit = () => {
-    setEditForm(selectedCampaign);
+    setEditForm({
+      ...selectedCampaign,
+      report_notes: formatReportNotes(selectedCampaign?.report_notes),
+    });
     setIsEditMode(false);
   };
 
@@ -1494,11 +1558,22 @@ export default function InstagramCampaignsPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__" disabled>Select a creator</SelectItem>
-                          {campaignCreators.map((creator: CampaignCreator) => (
-                            <SelectItem key={creator.id} value={creator.id}>
-                              @{creator.instagram_handle}
-                            </SelectItem>
-                          ))}
+                          {campaignCreators.length > 0 && (
+                            <>
+                              {campaignCreators.map((creator: CampaignCreator) => (
+                                <SelectItem key={creator.id} value={creator.id}>
+                                  @{creator.instagram_handle} (placement)
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
+                          {allCreators
+                            .filter(c => !campaignCreators.some((cc: CampaignCreator) => cc.instagram_handle === c.instagram_handle))
+                            .map(creator => (
+                              <SelectItem key={creator.id} value={creator.id}>
+                                @{creator.instagram_handle}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1601,7 +1676,7 @@ export default function InstagramCampaignsPage() {
                         rows={3}
                       />
                     ) : (
-                      <p className="text-sm">{selectedCampaign.report_notes || '-'}</p>
+                      <p className="text-sm whitespace-pre-wrap">{formatReportNotes(selectedCampaign.report_notes)}</p>
                     )}
                   </div>
 

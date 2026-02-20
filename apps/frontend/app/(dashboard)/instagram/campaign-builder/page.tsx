@@ -18,7 +18,6 @@ import { generateUUID } from "../seedstorm-builder/lib/campaignAlgorithm";
 import { formatNumber, formatCurrency, saveCampaign } from "../seedstorm-builder/lib/localStorage";
 import { exportCampaignCSV } from "../seedstorm-builder/lib/csvUtils";
 import { toast } from "@/components/ui/use-toast";
-import { useTagSync } from "../seedstorm-builder/hooks/useTagSync";
 import { TagSelectDropdown } from "../seedstorm-builder/components/TagSelectDropdown";
 import { MultiGenreSelect } from "../seedstorm-builder/components/MultiGenreSelect";
 import { useCreatorsTable } from "../seedstorm-builder/hooks/useCreatorsTable";
@@ -67,13 +66,13 @@ export default function InstagramCampaignBuilderPage() {
 
   const [campaignResult, setCampaignResult] = useState<CampaignV2Result | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { tags: allTags } = useTagSync();
+
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.campaign_name.trim()) newErrors.campaign_name = "Campaign name is required";
     if (!formData.total_budget || formData.total_budget < 100) newErrors.total_budget = "Budget must be at least $100";
-    if (formData.selected_genres.length === 0) newErrors.selected_genres = "At least one genre is required";
+    if (formData.selected_genres.length === 0) newErrors.selected_genres = "At least one niche is required";
     if (formData.post_type_preference.length === 0) newErrors.post_type_preference = "At least one post type is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -223,7 +222,7 @@ export default function InstagramCampaignBuilderPage() {
 
   const exportCampaign = () => {
     if (!campaignResult) return;
-    const headers = ["Handle", "Followers", "Engagement Rate", "Historical Median Views", "Predicted Views/Post", "Posts", "Rate/Reel", "Cost", "CP1K", "Audience Territory", "Genres"];
+    const headers = ["Handle", "Followers", "Engagement Rate", "Historical Median Views", "Predicted Views/Post", "Posts", "Rate/Reel", "Cost", "CP1K", "Audience Territory", "Niches"];
     const rows = campaignResult.selectedCreators.map((c) => [
       `@${c.instagram_handle}`,
       c.followers,
@@ -288,11 +287,11 @@ export default function InstagramCampaignBuilderPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label>Selected Genres</Label>
+                  <Label>Selected Niches</Label>
                   <MultiGenreSelect
                     selectedGenres={formData.selected_genres}
                     onGenresChange={(genres) => setFormData({ ...formData, selected_genres: genres })}
-                    placeholder="Select campaign genres"
+                    placeholder="Select campaign niches"
                   />
                   {errors.selected_genres && <p className="text-sm text-destructive mt-1">{errors.selected_genres}</p>}
                 </div>

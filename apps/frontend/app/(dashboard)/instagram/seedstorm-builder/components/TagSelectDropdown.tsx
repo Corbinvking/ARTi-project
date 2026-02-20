@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 import { saveTagToCollection, TagCollections } from "../lib/tagStorage";
 import { useTagSync } from "../hooks/useTagSync";
+import { useNiches } from "../hooks/useNiches";
 
 interface TagSelectDropdownProps {
   label: string;
@@ -28,10 +29,13 @@ export const TagSelectDropdown = ({
   maxTags
 }: TagSelectDropdownProps) => {
   const { tags } = useTagSync();
+  const { niches, addNiche, removeNiche } = useNiches();
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newTagValue, setNewTagValue] = useState("");
-  
-  const availableTags = tags[tagType].sort();
+
+  const isNicheType = tagType === 'genres';
+  const sourceList = isNicheType ? niches : tags[tagType];
+  const availableTags = sourceList.sort();
   const unselectedTags = availableTags.filter(tag => !selectedTags.includes(tag));
 
   const handleSelectTag = (value: string) => {
@@ -45,10 +49,18 @@ export const TagSelectDropdown = ({
     }
   };
 
-  const handleAddNew = () => {
+  const handleAddNew = async () => {
     const trimmedValue = newTagValue.trim();
     if (trimmedValue && !availableTags.includes(trimmedValue) && !selectedTags.includes(trimmedValue)) {
-      saveTagToCollection(trimmedValue, tagType);
+      if (isNicheType) {
+        try {
+          await addNiche(trimmedValue);
+        } catch {
+          // silently ignore
+        }
+      } else {
+        saveTagToCollection(trimmedValue, tagType);
+      }
       onTagsChange([...selectedTags, trimmedValue]);
     }
     setNewTagValue("");
@@ -57,6 +69,18 @@ export const TagSelectDropdown = ({
 
   const handleRemoveTag = (tagToRemove: string) => {
     onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleDeleteFromList = async (tagToDelete: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isNicheType) {
+      try {
+        await removeNiche(tagToDelete);
+        onTagsChange(selectedTags.filter(t => t !== tagToDelete));
+      } catch {
+        // silently ignore
+      }
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -109,17 +133,27 @@ export const TagSelectDropdown = ({
             <SelectItem value="add_new" className="text-primary">
               <div className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Add New {label.slice(0, -1)}
+                Add New {label.endsWith('s') ? label.slice(0, -1) : label}
               </div>
             </SelectItem>
             {unselectedTags.map(tag => (
-              <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+              <div key={tag} className="flex items-center justify-between group">
+                <SelectItem value={tag} className="flex-1">{tag}</SelectItem>
+                {isNicheType && (
+                  <button
+                    className="opacity-0 group-hover:opacity-100 p-1 mr-2 text-muted-foreground hover:text-destructive transition-opacity"
+                    onClick={(e) => handleDeleteFromList(tag, e)}
+                    title={`Remove "${tag}" from list`}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
             ))}
           </SelectContent>
         </Select>
       )}
 
-      {/* Selected Tags */}
       {selectedTags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
           {selectedTags.map(tag => (
