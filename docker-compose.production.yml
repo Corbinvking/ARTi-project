@@ -125,10 +125,12 @@ services:
       PGRST_DB_URI: postgres://postgres:MySecurePass123!@postgres:5432/postgres
       PGRST_DB_SCHEMAS: public,storage,graphql_public
       PGRST_DB_ANON_ROLE: anon
-      PGRST_JWT_SECRET: "@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw"
+      PGRST_JWT_SECRET: "@/etc/postgrest/jwt_secret"
       PGRST_DB_USE_LEGACY_GUCS: false
-      PGRST_APP_SETTINGS_JWT_SECRET: "@+pq>3NccTdu2%{d0JnQQTOd)12g_Gw"
+      PGRST_APP_SETTINGS_JWT_SECRET: "@/etc/postgrest/jwt_secret"
       PGRST_APP_SETTINGS_JWT_EXP: 3600
+    volumes:
+      - ./secrets/jwt_secret:/etc/postgrest/jwt_secret:ro
     depends_on:
       postgres:
         condition: service_healthy

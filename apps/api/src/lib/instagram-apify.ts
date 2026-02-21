@@ -3,7 +3,8 @@ import { logger } from './logger';
 
 // Apify configuration - API token must be set in environment
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN || '';
-const INSTAGRAM_SCRAPER_ACTOR_ID = 'nH2AHrwxeTRJoN5hX';
+const INSTAGRAM_PROFILE_SCRAPER_ID = 'nH2AHrwxeTRJoN5hX';
+const INSTAGRAM_REEL_SCRAPER_ID = 'vUkc7KycIhJrcicvR';
 
 if (!APIFY_API_TOKEN) {
   console.warn('⚠️ APIFY_API_TOKEN is not set. Instagram scraping will fail.');
@@ -86,7 +87,7 @@ export async function scrapeInstagramPosts(
     }
 
     // Run the Actor and wait for it to finish
-    const run = await client.actor(INSTAGRAM_SCRAPER_ACTOR_ID).call(input);
+    const run = await client.actor(INSTAGRAM_PROFILE_SCRAPER_ID).call(input);
 
     logger.info({ runId: run.id, status: run.status }, '✅ Apify Actor run completed');
 
@@ -105,7 +106,7 @@ export async function scrapeInstagramPosts(
       ownerId: item.ownerId || item.owner_id || '',
       displayUrl: item.displayUrl || item.display_url || item.thumbnail_url || '',
       videoUrl: item.videoUrl || item.video_url || undefined,
-      videoViewCount: item.videoViewCount || item.video_view_count || undefined,
+      videoViewCount: item.videoPlayCount || item.videoViewCount || item.video_view_count || item.video_play_count || undefined,
       isVideo: item.isVideo || item.is_video || false,
       hashtags: item.hashtags || [],
       mentions: item.mentions || [],
@@ -127,15 +128,113 @@ export async function scrapeInstagramPosts(
 }
 
 /**
- * Scrape Instagram post by direct URL
- * @param postUrl Instagram post URL (e.g., https://www.instagram.com/p/ABC123/)
+ * Scrape a single Instagram post/reel by direct URL.
+ * Tries the dedicated reel scraper actor first (vUkc7KycIhJrcicvR) for best accuracy,
+ * then falls back to the profile scraper if the reel actor isn't available.
  */
 export async function scrapeInstagramPost(postUrl: string): Promise<InstagramPost | null> {
+  const post = await scrapeWithReelActor(postUrl);
+  if (post) return post;
+
+  logger.info({ postUrl }, '🔄 Falling back to profile scraper for individual post');
   try {
     const result = await scrapeInstagramPosts([postUrl], 1);
     return result.posts[0] || null;
-  } catch (error) {
-    logger.error({ error, postUrl }, '❌ Error scraping single Instagram post');
+  } catch (error: any) {
+    logger.error({ error: error.message, postUrl }, '❌ Fallback scraper also failed');
+    return null;
+  }
+}
+
+function mapRawItemToPost(item: any, fallbackUrl: string): InstagramPost {
+  return {
+    id: item.id || item.pk || item.shortCode || '',
+    shortCode: item.shortCode || item.code || '',
+    caption: item.caption || item.text || '',
+    commentsCount: item.commentsCount ?? item.comments_count ?? 0,
+    likesCount: item.likesCount ?? item.likes_count ?? item.like_count ?? 0,
+    timestamp: item.timestamp || item.taken_at || new Date().toISOString(),
+    ownerUsername: item.ownerUsername || item.username || item.user?.username || '',
+    ownerId: item.ownerId || item.owner_id || item.user?.pk || '',
+    displayUrl: item.displayUrl || item.display_url || item.thumbnail_url || item.image_versions2?.candidates?.[0]?.url || '',
+    videoUrl: item.videoUrl || item.video_url || item.video_versions?.[0]?.url || undefined,
+    videoViewCount: item.videoPlayCount ?? item.videoViewCount ?? item.video_play_count ?? item.view_count ?? item.play_count ?? undefined,
+    isVideo: item.isVideo ?? item.is_video ?? (item.media_type === 2 || item.type === 'Video'),
+    hashtags: item.hashtags || [],
+    mentions: item.mentions || [],
+    locationName: item.locationName || item.location?.name || undefined,
+    url: item.url || fallbackUrl,
+    type: item.type || item.product_type || (item.isVideo ? 'video' : 'image'),
+  };
+}
+
+async function scrapeWithReelActor(postUrl: string): Promise<InstagramPost | null> {
+  try {
+    logger.info({ postUrl }, '🔄 Scraping individual post via reel scraper');
+
+    const input = {
+      urls: [postUrl],
+      maxResults: 1,
+      proxyConfiguration: {
+        useApifyProxy: true,
+        apifyProxyGroups: ['RESIDENTIAL'],
+        apifyProxyCountry: 'US',
+      },
+    };
+
+    const run = await client.actor(INSTAGRAM_REEL_SCRAPER_ID).call(input);
+    logger.info({ runId: run.id, status: run.status }, '✅ Reel scraper run completed');
+
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+
+    if (!items || items.length === 0) {
+      logger.warn({ postUrl }, '⚠️ Reel scraper returned no data');
+      return null;
+    }
+
+    const raw: any = items[0];
+
+    // Actor returns nested structure: { media_info: { items: [mediaData] }, comments, ... }
+    const media = raw.media_info?.items?.[0];
+    if (!media) {
+      logger.warn({ postUrl }, '⚠️ Reel scraper returned empty media_info');
+      return null;
+    }
+
+    const captionText = typeof media.caption === 'object' ? media.caption?.text : media.caption;
+
+    const post: InstagramPost = {
+      id: media.id || media.pk || media.code || '',
+      shortCode: media.code || media.shortCode || '',
+      caption: captionText || '',
+      commentsCount: media.comment_count ?? media.commentsCount ?? 0,
+      likesCount: media.like_count ?? media.likesCount ?? 0,
+      timestamp: media.taken_at
+        ? new Date(media.taken_at * 1000).toISOString()
+        : new Date().toISOString(),
+      ownerUsername: media.user?.username || '',
+      ownerId: media.user?.pk || media.user?.id || media.owner?.id || '',
+      displayUrl: media.display_uri || media.image_versions2?.candidates?.[0]?.url || '',
+      videoUrl: media.video_versions?.[0]?.url || undefined,
+      videoViewCount: media.play_count ?? media.view_count ?? media.video_play_count ?? undefined,
+      isVideo: media.media_type === 2 || media.product_type === 'clips',
+      hashtags: captionText?.match(/#\w+/g)?.map((t: string) => t.slice(1)) || [],
+      mentions: captionText?.match(/@\w+/g)?.map((t: string) => t.slice(1)) || [],
+      locationName: media.location?.name || undefined,
+      url: raw.url || postUrl,
+      type: media.product_type || (media.media_type === 2 ? 'video' : 'image'),
+    };
+
+    logger.info({
+      shortCode: post.shortCode,
+      views: post.videoViewCount,
+      likes: post.likesCount,
+      comments: post.commentsCount,
+    }, '📊 Reel scrape result');
+
+    return post;
+  } catch (error: any) {
+    logger.warn({ error: error.message, postUrl }, '⚠️ Reel scraper unavailable, will try fallback');
     return null;
   }
 }

@@ -47,6 +47,22 @@ else
     exit 1
 fi
 
+# Track individual campaign post URLs (views/likes/comments)
+log "Starting campaign post tracking..."
+TRACK_RESPONSE=$(curl -s -X POST "${API_URL}/api/instagram-scraper/track-campaign-posts" \
+    -H "Content-Type: application/json" \
+    -d '{}')
+
+TRACK_SUCCESS=$(echo "$TRACK_RESPONSE" | grep -o '"success":true' || true)
+
+if [ -n "$TRACK_SUCCESS" ]; then
+    log "✅ Campaign post tracking completed"
+    log "Response: $TRACK_RESPONSE"
+else
+    log "⚠️ Campaign post tracking failed (non-fatal)"
+    log "Response: $TRACK_RESPONSE"
+fi
+
 log "=========================================="
 log "Instagram Scraper Cron Job Complete"
 log "=========================================="

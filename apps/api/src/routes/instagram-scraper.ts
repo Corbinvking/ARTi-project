@@ -801,6 +801,126 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ success: false, error: error.message });
     }
   });
+
+  /**
+   * POST /api/instagram-scraper/track-campaign-posts
+   * Scrape individual post URLs stored in campaign_posts and update their
+   * tracked_views / tracked_likes / tracked_comments / tracking_status.
+   *
+   * Body params (all optional):
+   *   campaignId – only track posts for this campaign
+   *   postIds    – only track these specific post rows
+   */
+  fastify.post('/track-campaign-posts', async (
+    request: FastifyRequest<{
+      Body: { campaignId?: string; postIds?: string[] }
+    }>,
+    reply: FastifyReply
+  ) => {
+    try {
+      const { campaignId, postIds } = request.body || {};
+
+      logger.info({ campaignId, postIds }, '🔄 Starting campaign-post tracking');
+
+      // Manual refresh / immediate scrape retries failed posts too
+      const statuses = (postIds || campaignId)
+        ? ['pending', 'active', 'failed']
+        : ['pending', 'active'];
+
+      let query = supabase
+        .from('campaign_posts')
+        .select('id, post_url, tracking_status')
+        .in('tracking_status', statuses);
+
+      if (postIds && postIds.length > 0) {
+        query = query.in('id', postIds);
+      } else if (campaignId) {
+        query = query.eq('campaign_id', String(campaignId));
+      }
+
+      const { data: posts, error: fetchErr } = await query;
+
+      if (fetchErr) {
+        logger.error({ error: fetchErr }, '❌ Error fetching campaign_posts');
+        return reply.status(500).send({ success: false, error: fetchErr.message });
+      }
+
+      if (!posts || posts.length === 0) {
+        return reply.send({
+          success: true,
+          message: 'No posts to track',
+          data: { processed: 0, succeeded: 0, failed: 0 },
+        });
+      }
+
+      logger.info({ count: posts.length }, `📋 Found ${posts.length} posts to track`);
+
+      const results: { id: string; status: 'success' | 'failed'; views?: number; error?: string }[] = [];
+
+      for (const row of posts) {
+        try {
+          const scraped = await scrapeInstagramPost(row.post_url);
+
+          if (!scraped) {
+            await supabase
+              .from('campaign_posts')
+              .update({ tracking_status: 'failed', updated_at: new Date().toISOString() })
+              .eq('id', row.id);
+            results.push({ id: row.id, status: 'failed', error: 'Post not found or private' });
+            continue;
+          }
+
+          const views = scraped.videoViewCount ?? Math.round(scraped.likesCount * 10);
+          const likes = scraped.likesCount ?? 0;
+          const comments = scraped.commentsCount ?? 0;
+
+          const { error: updateErr } = await supabase
+            .from('campaign_posts')
+            .update({
+              tracked_views: views,
+              tracked_likes: likes,
+              tracked_comments: comments,
+              tracking_status: 'active',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', row.id);
+
+          if (updateErr) {
+            logger.error({ id: row.id, error: updateErr }, '❌ Error updating campaign_post');
+            results.push({ id: row.id, status: 'failed', error: updateErr.message });
+          } else {
+            results.push({ id: row.id, status: 'success', views });
+          }
+        } catch (err: any) {
+          logger.error({ id: row.id, error: err.message }, '❌ Error scraping post');
+          await supabase
+            .from('campaign_posts')
+            .update({ tracking_status: 'failed', updated_at: new Date().toISOString() })
+            .eq('id', row.id);
+          results.push({ id: row.id, status: 'failed', error: err.message });
+        }
+
+        // Rate limit between posts
+        if (posts.indexOf(row) < posts.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+
+      const succeeded = results.filter(r => r.status === 'success').length;
+      const failed = results.filter(r => r.status === 'failed').length;
+
+      logger.info({ processed: posts.length, succeeded, failed }, '✅ Campaign-post tracking complete');
+
+      return reply.send({
+        success: true,
+        message: `Tracked ${succeeded} posts, ${failed} failed`,
+        data: { processed: posts.length, succeeded, failed, results },
+      });
+    } catch (error: any) {
+      logger.error({ error: error.message }, '❌ Fatal error in track-campaign-posts');
+      return reply.status(500).send({ success: false, error: error.message });
+    }
+  });
 }
 
 const TERRITORY_KEYWORDS: Record<string, string[]> = {

@@ -213,6 +213,7 @@ export default function InstagramCampaignsPage() {
   const [newPostUrl, setNewPostUrl] = useState("");
   const [addingPost, setAddingPost] = useState(false);
   const [selectedCreatorForPost, setSelectedCreatorForPost] = useState<string>("");
+  const [refreshingTracking, setRefreshingTracking] = useState(false);
 
   // Fetch campaign posts
   const { data: campaignPosts = [], isLoading: loadingPosts, refetch: refetchPosts } = useQuery({
@@ -245,7 +246,7 @@ export default function InstagramCampaignsPage() {
           || allCreators.find(c => c.id === selectedCreatorForPost)
         : null;
       
-      const { error } = await supabase
+      const { data: insertedPost, error } = await supabase
         .from('campaign_posts')
         .insert({
           campaign_id: String(selectedCampaign.id),
@@ -255,7 +256,9 @@ export default function InstagramCampaignsPage() {
           post_type: postType,
           instagram_handle: linkedCreator?.instagram_handle || 'pending',
           status: 'live'
-        });
+        })
+        .select('id')
+        .single();
       if (error) throw error;
       setNewPostUrl("");
       setSelectedCreatorForPost("");
@@ -266,12 +269,23 @@ export default function InstagramCampaignsPage() {
       if (selectedCreatorForPost && isPlacement) {
         await updateCreatorStatus(selectedCreatorForPost, { post_status: 'posted' });
       }
+
+      // Fire background scrape to immediately fetch post metrics
+      if (insertedPost?.id) {
+        fetch('/api/instagram-scraper/track-campaign-posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postIds: [insertedPost.id] }),
+        })
+          .then(() => { setTimeout(() => refetchPosts(), 5000); })
+          .catch(() => {});
+      }
       
       toast({ 
         title: "Post Added", 
         description: linkedCreator 
-          ? `Instagram post linked to @${linkedCreator.instagram_handle}` 
-          : "Instagram post URL added successfully" 
+          ? `Instagram post linked to @${linkedCreator.instagram_handle} — tracking will start shortly` 
+          : "Instagram post URL added — tracking will start shortly" 
       });
     } catch (error) {
       toast({ title: "Error", description: "Failed to add post URL", variant: "destructive" });
@@ -1524,14 +1538,46 @@ export default function InstagramCampaignsPage() {
 
               {/* Campaign Posts (Live Tracking) */}
               <Card className="border-pink-500/20">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Instagram className="h-5 w-5 text-pink-500" />
-                    Campaign Posts (Live Tracking)
-                  </CardTitle>
-                  <CardDescription>
-                    Track actual live Instagram posts tied to placements
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Instagram className="h-5 w-5 text-pink-500" />
+                      Campaign Posts (Live Tracking)
+                    </CardTitle>
+                    <CardDescription className="mt-1">
+                      Track actual live Instagram posts tied to placements
+                    </CardDescription>
+                  </div>
+                  {campaignPosts.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={refreshingTracking}
+                      onClick={async () => {
+                        setRefreshingTracking(true);
+                        try {
+                          const res = await fetch('/api/instagram-scraper/track-campaign-posts', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ campaignId: String(selectedCampaign?.id) }),
+                          });
+                          const json = await res.json();
+                          refetchPosts();
+                          toast({
+                            title: 'Tracking Refreshed',
+                            description: json.message || 'Post metrics updated',
+                          });
+                        } catch {
+                          toast({ title: 'Error', description: 'Failed to refresh tracking', variant: 'destructive' });
+                        } finally {
+                          setRefreshingTracking(false);
+                        }
+                      }}
+                    >
+                      {refreshingTracking ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <TrendingUp className="h-4 w-4 mr-1" />}
+                      Refresh Tracking
+                    </Button>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 mb-4">
