@@ -4,7 +4,7 @@ import { logger } from './logger';
 // Apify configuration - API token must be set in environment
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN || '';
 const INSTAGRAM_PROFILE_SCRAPER_ID = 'nH2AHrwxeTRJoN5hX';
-const INSTAGRAM_REEL_SCRAPER_ID = 'vUkc7KycIhJrcicvR';
+const INSTAGRAM_REEL_SCRAPER_ID = 'xMc5Ga1oCONPmWJIa';
 
 if (!APIFY_API_TOKEN) {
   console.warn('⚠️ APIFY_API_TOKEN is not set. Instagram scraping will fail.');
@@ -129,8 +129,8 @@ export async function scrapeInstagramPosts(
 
 /**
  * Scrape a single Instagram post/reel by direct URL.
- * Tries the dedicated reel scraper actor first (vUkc7KycIhJrcicvR) for best accuracy,
- * then falls back to the profile scraper if the reel actor isn't available.
+ * Tries the official apify/instagram-reel-scraper (xMc5Ga1oCONPmWJIa) first,
+ * then falls back to the profile scraper if it fails.
  */
 export async function scrapeInstagramPost(postUrl: string): Promise<InstagramPost | null> {
   const post = await scrapeWithReelActor(postUrl);
@@ -170,16 +170,15 @@ function mapRawItemToPost(item: any, fallbackUrl: string): InstagramPost {
 
 async function scrapeWithReelActor(postUrl: string): Promise<InstagramPost | null> {
   try {
-    logger.info({ postUrl }, '🔄 Scraping individual post via reel scraper');
+    logger.info({ postUrl }, '🔄 Scraping reel via apify/instagram-reel-scraper');
 
     const input = {
-      urls: [postUrl],
-      maxResults: 1,
-      proxyConfiguration: {
-        useApifyProxy: true,
-        apifyProxyGroups: ['RESIDENTIAL'],
-        apifyProxyCountry: 'US',
-      },
+      username: [postUrl],
+      resultsLimit: 1,
+      skipPinnedPosts: false,
+      includeSharesCount: false,
+      includeTranscript: false,
+      includeDownloadedVideo: false,
     };
 
     const run = await client.actor(INSTAGRAM_REEL_SCRAPER_ID).call(input);
@@ -192,40 +191,25 @@ async function scrapeWithReelActor(postUrl: string): Promise<InstagramPost | nul
       return null;
     }
 
-    const raw: any = items[0];
-
-    // Actor returns nested structure: { media_info: { items: [mediaData] }, comments, ... }
-    const media = raw.media_info?.items?.[0];
-    if (!media) {
-      logger.warn({ postUrl }, '⚠️ Reel scraper returned empty media_info');
-      return null;
-    }
-
-    const captionText = typeof media.caption === 'object' ? media.caption?.text : media.caption;
+    const item: any = items[0];
 
     const post: InstagramPost = {
-      id: media.id || media.pk || media.code || '',
-      shortCode: media.code || media.shortCode || '',
-      caption: captionText || '',
-      commentsCount: media.comment_count ?? media.commentsCount ?? 0,
-      likesCount: media.like_count ?? media.likesCount ?? 0,
-      timestamp: media.taken_at
-        ? new Date(media.taken_at * 1000).toISOString()
-        : new Date().toISOString(),
-      ownerUsername: media.user?.username || '',
-      ownerId: media.user?.pk || media.user?.id || media.owner?.id || '',
-      displayUrl: media.display_uri || media.image_versions2?.candidates?.[0]?.url || '',
-      videoUrl: media.video_versions?.[0]?.url || undefined,
-      videoViewCount: media.play_count ?? media.view_count ?? media.video_play_count
-        ?? media.video_view_count ?? media.organic_play_count ?? media.organic_view_count
-        ?? (typeof media.clips_metadata?.video_view_count === 'number' ? media.clips_metadata.video_view_count : undefined)
-        ?? undefined,
-      isVideo: media.media_type === 2 || media.product_type === 'clips',
-      hashtags: captionText?.match(/#\w+/g)?.map((t: string) => t.slice(1)) || [],
-      mentions: captionText?.match(/@\w+/g)?.map((t: string) => t.slice(1)) || [],
-      locationName: media.location?.name || undefined,
-      url: raw.url || postUrl,
-      type: media.product_type || (media.media_type === 2 ? 'video' : 'image'),
+      id: item.id || item.shortCode || '',
+      shortCode: item.shortCode || '',
+      caption: item.caption || '',
+      commentsCount: item.commentsCount ?? 0,
+      likesCount: item.likesCount ?? 0,
+      timestamp: item.timestamp || new Date().toISOString(),
+      ownerUsername: item.ownerUsername || '',
+      ownerId: item.ownerId || '',
+      displayUrl: item.displayUrl || item.images?.[0] || '',
+      videoUrl: item.videoUrl || undefined,
+      videoViewCount: item.videoPlayCount ?? item.videoViewCount ?? undefined,
+      isVideo: item.type === 'Video' || item.productType === 'clips',
+      hashtags: item.hashtags || [],
+      mentions: item.mentions || [],
+      url: item.url || postUrl,
+      type: item.productType || item.type || 'video',
     };
 
     logger.info({
@@ -233,6 +217,7 @@ async function scrapeWithReelActor(postUrl: string): Promise<InstagramPost | nul
       views: post.videoViewCount,
       likes: post.likesCount,
       comments: post.commentsCount,
+      displayUrl: post.displayUrl ? 'present' : 'missing',
     }, '📊 Reel scrape result');
 
     return post;
