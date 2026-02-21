@@ -966,6 +966,9 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
         .header('Content-Type', contentType)
         .header('Cache-Control', 'public, max-age=3600, s-maxage=86400')
         .header('Access-Control-Allow-Origin', '*')
+        .header('Cross-Origin-Resource-Policy', 'cross-origin')
+        .header('Cross-Origin-Embedder-Policy', 'unsafe-none')
+        .header('X-Content-Type-Options', 'nosniff')
         .send(buffer);
     } catch (err: any) {
       logger.error({ error: err.message, url: imageUrl }, '❌ Image proxy error');
