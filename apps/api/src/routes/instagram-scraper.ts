@@ -735,25 +735,23 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
             await supabase
               .from('creators')
               .update({ scrape_status: 'error' })
-              .eq('instagram_handle', handle);
+              .ilike('instagram_handle', handle);
             results.push({ handle, success: false, reason: 'no posts returned' });
             continue;
           }
 
-          const owner = posts[0];
           const totalLikes = posts.reduce((s, p) => s + p.likesCount, 0);
           const totalComments = posts.reduce((s, p) => s + p.commentsCount, 0);
-          const currentFollowers = owner.videoViewCount
-            ? undefined
-            : undefined;
+
+          const scrapedFollowers = scrapeResult.profile?.followersCount;
 
           const { data: existing } = await supabase
             .from('creators')
             .select('followers')
-            .eq('instagram_handle', handle)
+            .ilike('instagram_handle', handle)
             .single();
 
-          const followers = existing?.followers || 0;
+          const followers = scrapedFollowers ?? existing?.followers ?? 0;
           const engagementRate = followers > 0
             ? ((totalLikes + totalComments) / posts.length) / followers
             : 0;
@@ -778,10 +776,14 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
             scrape_status: 'complete',
           };
 
+          if (scrapedFollowers != null && scrapedFollowers > 0) {
+            updates.followers = scrapedFollowers;
+          }
+
           const { error: updateError } = await supabase
             .from('creators')
             .update(updates)
-            .eq('instagram_handle', handle);
+            .ilike('instagram_handle', handle);
 
           if (updateError) {
             logger.error({ handle, error: updateError }, '❌ Error updating creator');

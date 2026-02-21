@@ -117,7 +117,29 @@ export async function scrapeInstagramPosts(
 
     logger.info({ postCount: posts.length }, '📊 Processed Instagram posts');
 
-    return { posts };
+    // Extract profile info from the first raw item if available
+    const firstItem: any = items[0];
+    let profile: InstagramProfile | undefined;
+    if (firstItem) {
+      const followersCount = firstItem.followersCount ?? firstItem.ownerFollowersCount ?? firstItem.followers_count;
+      if (followersCount != null) {
+        profile = {
+          id: firstItem.ownerId || firstItem.owner_id || firstItem.id || '',
+          username: firstItem.ownerUsername || firstItem.username || usernames[0] || '',
+          fullName: firstItem.ownerFullName || firstItem.full_name || '',
+          biography: firstItem.biography || '',
+          followersCount: Number(followersCount),
+          followsCount: Number(firstItem.followsCount ?? firstItem.followingCount ?? 0),
+          postsCount: Number(firstItem.postsCount ?? firstItem.mediaCount ?? 0),
+          profilePicUrl: firstItem.profilePicUrl || firstItem.profile_pic_url || '',
+          isVerified: firstItem.isVerified ?? firstItem.verified ?? false,
+          isPrivate: firstItem.isPrivate ?? firstItem.is_private ?? false,
+        };
+        logger.info({ username: profile.username, followers: profile.followersCount }, '👤 Extracted profile info');
+      }
+    }
+
+    return { posts, profile };
   } catch (error: any) {
     logger.error({ error: error.message }, '❌ Instagram scraper error');
     return {

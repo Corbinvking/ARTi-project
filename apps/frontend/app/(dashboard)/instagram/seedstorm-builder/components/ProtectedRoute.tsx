@@ -1,8 +1,12 @@
 "use client"
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
+
+const PERMISSION_ROLE_MAP: Record<string, string[]> = {
+  view_instagram: ['admin', 'manager', 'operator'],
+};
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -17,22 +21,31 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
-
-  console.log('ProtectedRoute - user:', user?.email, 'requiredPermissions:', requiredPermissions, 'loading:', loading);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
-    if (loading) return; // Wait for auth state to load
+    if (loading) return;
 
     if (!user) {
-      console.log('No user found, redirecting to auth');
       router.push(fallbackPath);
       return;
     }
 
-    // TODO: Add permission checking if needed
     if (requiredPermissions && requiredPermissions.length > 0) {
-      // For now, just allow authenticated users
-      console.log('Permissions check would go here:', requiredPermissions);
+      const userRole = (
+        user.user_metadata?.role ||
+        user.app_metadata?.role ||
+        ''
+      ).toLowerCase();
+
+      const hasPermission = requiredPermissions.every((perm) => {
+        const allowed = PERMISSION_ROLE_MAP[perm];
+        return allowed ? allowed.includes(userRole) : true;
+      });
+
+      if (!hasPermission) {
+        setDenied(true);
+      }
     }
   }, [user, loading, requiredPermissions, router, fallbackPath]);
 
@@ -52,7 +65,17 @@ export function ProtectedRoute({
     );
   }
 
-  console.log('Access granted');
+  if (denied) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-2">
+          <h2 className="text-xl font-semibold">Access Denied</h2>
+          <p className="text-muted-foreground text-sm">You do not have permission to view this page.</p>
+        </div>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }
 

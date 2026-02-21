@@ -257,9 +257,6 @@ export default function InstagramCreatorsPage() {
             music_genres: (row.genres || row.music_genres || "").split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean),
             content_types: (row.content_types || row.content_type || "").split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean),
             base_country: row.country || row.base_country || "",
-            followers: 0,
-            median_views_per_video: 0,
-            engagement_rate: 0,
             scrape_status: "pending",
           }, { onConflict: "instagram_handle" });
           if (!error) {
@@ -314,7 +311,7 @@ export default function InstagramCreatorsPage() {
 
   const clearFilters = () => {
     setSearchQuery("");
-    setGenreFilter("all");
+    setNicheFilter("all");
     setAccountTerritoryFilter("all");
     setAudienceTerritoryFilter("all");
     setContentTypeFilter("all");
@@ -372,7 +369,7 @@ export default function InstagramCreatorsPage() {
           <CardContent className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
               <Label className="text-xs">Niche</Label>
-              <Select value={nicheFilter} onValueChange={setGenreFilter}><SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger><SelectContent>{["all", ...uniqueNiches].map((g) => <SelectItem key={g} value={g}>{g === "all" ? "All Niches" : g}</SelectItem>)}</SelectContent></Select>
+              <Select value={nicheFilter} onValueChange={setNicheFilter}><SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger><SelectContent>{["all", ...uniqueNiches].map((g) => <SelectItem key={g} value={g}>{g === "all" ? "All Niches" : g}</SelectItem>)}</SelectContent></Select>
             </div>
             <div>
               <Label className="text-xs">Account Territory</Label>

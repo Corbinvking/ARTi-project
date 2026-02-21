@@ -94,7 +94,7 @@ export function InstagramDashboardTab() {
           <CardHeader className="p-3 pb-1">
             <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
               <TrendingUp className="h-3.5 w-3.5" />
-              Avg Cost Per View
+              Avg Cost Per 1K Views
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0">
