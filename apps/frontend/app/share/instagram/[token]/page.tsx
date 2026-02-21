@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,6 +17,16 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { createClient } from '@supabase/supabase-js';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -47,6 +57,13 @@ interface Campaign {
   created_at: string;
 }
 
+interface ChartDataPoint {
+  date: string;
+  views: number;
+  likes: number;
+  comments: number;
+}
+
 function MetricCard({
   title,
   value,
@@ -54,7 +71,7 @@ function MetricCard({
   prefix = '',
   suffix = '',
   color = 'default',
-  isSelected = false,
+  statusColor,
 }: {
   title: string;
   value: string | number;
@@ -62,7 +79,7 @@ function MetricCard({
   prefix?: string;
   suffix?: string;
   color?: 'default' | 'green' | 'blue' | 'purple' | 'orange' | 'pink';
-  isSelected?: boolean;
+  statusColor?: 'green' | 'blue' | 'orange' | 'red';
 }) {
   const colorClasses: Record<string, string> = {
     default: 'text-foreground',
@@ -73,21 +90,97 @@ function MetricCard({
     pink: 'text-pink-500',
   };
 
+  const statusDot: Record<string, string> = {
+    green: 'bg-emerald-500',
+    blue: 'bg-blue-500',
+    orange: 'bg-orange-500',
+    red: 'bg-red-500',
+  };
+
   return (
-    <Card className={`relative transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-primary' : ''}`}>
+    <Card className="relative transition-all hover:shadow-md">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 text-muted-foreground text-sm">
-            <Sparkles className="h-3.5 w-3.5" />
+          <div className="flex items-center gap-2 text-muted-foreground text-xs">
+            <Sparkles className="h-3 w-3" />
             <span>{title}</span>
           </div>
-          {isSelected && <CheckCircle2 className="h-4 w-4 text-primary" />}
+          {statusColor && (
+            <div className={`h-2.5 w-2.5 rounded-full ${statusDot[statusColor]}`} />
+          )}
         </div>
         <div className={`text-2xl font-bold ${colorClasses[color]}`}>
           {prefix}{typeof value === 'number' ? value.toLocaleString() : value}{suffix}
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function buildChartData(posts: CampaignPost[], campaignCreatedAt: string): ChartDataPoint[] {
+  if (posts.length === 0) return [];
+
+  const sortedPosts = [...posts].sort(
+    (a, b) => new Date(a.posted_at || a.created_at).getTime() - new Date(b.posted_at || b.created_at).getTime()
+  );
+
+  const startDate = new Date(campaignCreatedAt);
+  const endDate = new Date();
+  const dayMs = 86400000;
+
+  const days: string[] = [];
+  for (let d = new Date(startDate); d <= endDate; d = new Date(d.getTime() + dayMs)) {
+    days.push(d.toISOString().split('T')[0]);
+  }
+  if (days.length < 2) {
+    const prev = new Date(startDate.getTime() - dayMs);
+    days.unshift(prev.toISOString().split('T')[0]);
+  }
+
+  return days.map((day) => {
+    const postsOnOrBefore = sortedPosts.filter((p) => {
+      const pDate = (p.posted_at || p.created_at).split('T')[0];
+      return pDate <= day;
+    });
+    return {
+      date: day,
+      views: postsOnOrBefore.reduce((s, p) => s + (p.tracked_views || 0), 0),
+      likes: postsOnOrBefore.reduce((s, p) => s + (p.tracked_likes || 0), 0),
+      comments: postsOnOrBefore.reduce((s, p) => s + (p.tracked_comments || 0), 0),
+    };
+  });
+}
+
+function formatChartDate(dateStr: string) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatNumber(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'k';
+  return n.toString();
+}
+
+function PostThumbnail({ src, alt }: { src?: string; alt: string }) {
+  const [imgError, setImgError] = useState(false);
+
+  if (!src || imgError) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900 text-muted-foreground">
+        <Play className="h-8 w-8" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
+      onError={() => setImgError(true)}
+      loading="lazy"
+    />
   );
 }
 
@@ -203,21 +296,20 @@ export default function InstagramClientPortalPage() {
   const totalComments = posts.reduce((s, p) => s + (p.tracked_comments || 0), 0);
   const campaignCp1k = totalViews > 0 && totalSpend > 0 ? (totalSpend / (totalViews / 1000)) : 0;
   const engagementRate = totalViews > 0 ? ((totalLikes + totalComments) / totalViews) * 100 : 0;
+  const chartData = buildChartData(posts, campaign.created_at);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-10">
-        <div className="container max-w-5xl mx-auto py-4 px-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 px-3 py-1 text-xs font-semibold tracking-wider">
-                ARTIST INFLUENCE
-              </Badge>
-              <div>
-                <h1 className="text-lg font-bold">{campaignName}</h1>
-                <p className="text-xs text-muted-foreground">Instagram Seeding Campaign</p>
-              </div>
+        <div className="container max-w-5xl mx-auto py-3 px-4">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 px-3 py-1 text-xs font-semibold tracking-wider">
+              ARTIST INFLUENCE
+            </Badge>
+            <div>
+              <h1 className="text-lg font-bold">{campaignName}</h1>
+              <p className="text-xs text-muted-foreground">Instagram Seeding Campaign</p>
             </div>
           </div>
         </div>
@@ -226,28 +318,30 @@ export default function InstagramClientPortalPage() {
       <main className="container max-w-5xl mx-auto py-6 px-4 space-y-6">
         {/* Section: Live Post Analytics */}
         <div>
-          <h2 className="text-sm font-medium text-muted-foreground mb-4 tracking-wide uppercase">Live Post Analytics</h2>
+          <h2 className="text-sm font-medium text-muted-foreground mb-4 tracking-wide uppercase">
+            Live Post Analytics
+          </h2>
 
-          {/* Primary KPI Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-4">
+          {/* KPI Row 1 - Primary */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-3">
             <MetricCard
               title="Total Views"
               value={totalViews > 0 ? totalViews : '—'}
               icon={Eye}
-              isSelected
               color="green"
+              statusColor="green"
             />
             <MetricCard
               title="Total Likes"
               value={totalLikes > 0 ? totalLikes : '—'}
               icon={Heart}
-              isSelected
+              statusColor="blue"
             />
             <MetricCard
               title="Total Comments"
               value={totalComments > 0 ? totalComments : '—'}
               icon={MessageCircle}
-              isSelected
+              statusColor="blue"
             />
             <MetricCard
               title="Campaign CP1K"
@@ -261,35 +355,121 @@ export default function InstagramClientPortalPage() {
               icon={TrendingUp}
               suffix={engagementRate > 0 ? '%' : ''}
               color="orange"
+              statusColor={engagementRate >= 5 ? 'green' : engagementRate > 0 ? 'orange' : undefined}
             />
           </div>
 
-          {/* Secondary row */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="hover:shadow-md transition-all">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>Posts Live</span>
-                </div>
-                <div className="text-xl font-semibold">{posts.length}</div>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-md transition-all">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>Avg. Views Per Post</span>
-                </div>
-                <div className="text-xl font-semibold">
-                  {posts.length > 0 && totalViews > 0
-                    ? Math.round(totalViews / posts.length).toLocaleString()
-                    : '—'}
-                </div>
-              </CardContent>
-            </Card>
+          {/* KPI Row 2 - Secondary */}
+          <div className="grid grid-cols-2 gap-3">
+            <MetricCard title="Posts Live" value={posts.length} icon={Play} />
+            <MetricCard
+              title="Avg. Views Per Post"
+              value={posts.length > 0 && totalViews > 0 ? Math.round(totalViews / posts.length) : '—'}
+              icon={Eye}
+            />
           </div>
         </div>
+
+        {/* Section: Performance Chart */}
+        {chartData.length >= 2 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground tracking-wide uppercase">
+                  Performance Over Time
+                </CardTitle>
+                <div className="flex items-center gap-4 text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" /> Views
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-blue-500" /> Likes
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-purple-500" /> Comments
+                  </span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="viewsGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="likesGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="commentsGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={formatChartDate}
+                      tick={{ fontSize: 11, fill: '#888' }}
+                      axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tickFormatter={formatNumber}
+                      tick={{ fontSize: 11, fill: '#888' }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={50}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                      }}
+                      labelFormatter={formatChartDate}
+                      formatter={(value: number, name: string) => [
+                        value.toLocaleString(),
+                        name.charAt(0).toUpperCase() + name.slice(1),
+                      ]}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="views"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      fill="url(#viewsGrad)"
+                      dot={false}
+                      activeDot={{ r: 4, strokeWidth: 0 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="likes"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      fill="url(#likesGrad)"
+                      dot={false}
+                      activeDot={{ r: 4, strokeWidth: 0 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="comments"
+                      stroke="#a855f7"
+                      strokeWidth={2}
+                      fill="url(#commentsGrad)"
+                      dot={false}
+                      activeDot={{ r: 4, strokeWidth: 0 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Section: Live Posts Grid */}
         <Card>
@@ -316,17 +496,10 @@ export default function InstagramClientPortalPage() {
                   >
                     {/* Thumbnail */}
                     <div className="aspect-square bg-muted relative overflow-hidden">
-                      {post.thumbnail_url ? (
-                        <img
-                          src={post.thumbnail_url}
-                          alt={post.instagram_handle ? `@${post.instagram_handle}` : 'Post'}
-                          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          <Play className="h-8 w-8" />
-                        </div>
-                      )}
+                      <PostThumbnail
+                        src={post.thumbnail_url}
+                        alt={campaignName}
+                      />
                       {(post.post_type === 'reel' || post.post_type === 'video') && (
                         <Badge className="absolute bottom-2 right-2 text-xs">Video</Badge>
                       )}
@@ -334,8 +507,9 @@ export default function InstagramClientPortalPage() {
 
                     {/* Post info */}
                     <div className="p-3">
+                      <p className="text-sm font-medium mb-1 truncate">{campaignName}</p>
                       {post.instagram_handle && post.instagram_handle !== 'pending' && (
-                        <p className="text-sm font-medium mb-1 truncate">
+                        <p className="text-xs text-muted-foreground mb-1 truncate">
                           @{post.instagram_handle}
                         </p>
                       )}
