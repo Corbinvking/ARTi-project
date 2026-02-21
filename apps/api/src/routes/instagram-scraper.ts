@@ -870,7 +870,8 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
             continue;
           }
 
-          const views = scraped.videoViewCount ?? Math.round(scraped.likesCount * 10);
+          // Only store real view count; do not use likes*10 fallback (was showing wrong e.g. 270)
+          const views = scraped.videoViewCount ?? 0;
           const likes = scraped.likesCount ?? 0;
           const comments = scraped.commentsCount ?? 0;
 

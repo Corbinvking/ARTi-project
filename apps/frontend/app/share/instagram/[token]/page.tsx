@@ -18,6 +18,8 @@ interface CampaignPost {
   instagram_handle: string;
   status: string;
   tracked_views?: number;
+  tracked_likes?: number;
+  tracked_comments?: number;
   posted_at?: string;
   created_at: string;
 }
@@ -85,7 +87,7 @@ export default function InstagramClientPortalPage() {
 
         const { data: postsData } = await publicSupabase
           .from('campaign_posts')
-          .select('id, post_url, post_type, instagram_handle, status, tracked_views, posted_at, created_at')
+          .select('id, post_url, post_type, instagram_handle, status, tracked_views, tracked_likes, tracked_comments, posted_at, created_at')
           .eq('campaign_id', campaignData.id)
           .eq('status', 'live')
           .order('created_at', { ascending: false });
@@ -306,11 +308,20 @@ export default function InstagramClientPortalPage() {
                         <p className="text-sm text-muted-foreground truncate">
                           {post.post_url}
                         </p>
-                        {(post.tracked_views ?? 0) > 0 && (
-                          <p className="text-xs font-medium text-purple-600 mt-1">
-                            {post.tracked_views!.toLocaleString()} views
-                          </p>
-                        )}
+                        <p className="text-xs font-medium text-purple-600 mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                          {(post.tracked_views ?? 0) > 0 && (
+                            <span>{(post.tracked_views ?? 0).toLocaleString()} views</span>
+                          )}
+                          {(post.tracked_likes ?? 0) > 0 && (
+                            <span>{(post.tracked_likes ?? 0).toLocaleString()} likes</span>
+                          )}
+                          {(post.tracked_comments ?? 0) > 0 && (
+                            <span>{(post.tracked_comments ?? 0).toLocaleString()} comments</span>
+                          )}
+                          {(post.tracked_views ?? 0) === 0 && (post.tracked_likes ?? 0) === 0 && (post.tracked_comments ?? 0) === 0 && (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </p>
                       </div>
                       <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-pink-500 transition-colors shrink-0" />
                     </div>

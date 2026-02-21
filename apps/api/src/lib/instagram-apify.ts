@@ -216,7 +216,10 @@ async function scrapeWithReelActor(postUrl: string): Promise<InstagramPost | nul
       ownerId: media.user?.pk || media.user?.id || media.owner?.id || '',
       displayUrl: media.display_uri || media.image_versions2?.candidates?.[0]?.url || '',
       videoUrl: media.video_versions?.[0]?.url || undefined,
-      videoViewCount: media.play_count ?? media.view_count ?? media.video_play_count ?? undefined,
+      videoViewCount: media.play_count ?? media.view_count ?? media.video_play_count
+        ?? media.video_view_count ?? media.organic_play_count ?? media.organic_view_count
+        ?? (typeof media.clips_metadata?.video_view_count === 'number' ? media.clips_metadata.video_view_count : undefined)
+        ?? undefined,
       isVideo: media.media_type === 2 || media.product_type === 'clips',
       hashtags: captionText?.match(/#\w+/g)?.map((t: string) => t.slice(1)) || [],
       mentions: captionText?.match(/@\w+/g)?.map((t: string) => t.slice(1)) || [],
