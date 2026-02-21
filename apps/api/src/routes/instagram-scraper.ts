@@ -882,6 +882,7 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
               tracked_likes: likes,
               tracked_comments: comments,
               tracking_status: 'active',
+              thumbnail_url: scraped.displayUrl || null,
               updated_at: new Date().toISOString(),
             })
             .eq('id', row.id);
