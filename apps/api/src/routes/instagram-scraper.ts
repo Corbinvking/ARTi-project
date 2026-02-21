@@ -923,6 +923,55 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ success: false, error: error.message });
     }
   });
+
+  /**
+   * GET /api/instagram-scraper/image-proxy?url=<encoded_url>
+   * Proxies Instagram CDN images to bypass cross-origin blocking.
+   * Caches the response for 1 hour.
+   */
+  fastify.get('/image-proxy', async (
+    request: FastifyRequest<{ Querystring: { url?: string } }>,
+    reply: FastifyReply,
+  ) => {
+    const imageUrl = request.query.url;
+    if (!imageUrl) {
+      return reply.status(400).send({ error: 'Missing url parameter' });
+    }
+
+    try {
+      const parsed = new URL(imageUrl);
+      const isInstagramCdn =
+        parsed.hostname.endsWith('.cdninstagram.com') ||
+        parsed.hostname.endsWith('.fbcdn.net');
+      if (!isInstagramCdn) {
+        return reply.status(403).send({ error: 'Only Instagram CDN URLs are allowed' });
+      }
+
+      const response = await fetch(imageUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+          'Referer': 'https://www.instagram.com/',
+        },
+      });
+
+      if (!response.ok) {
+        return reply.status(response.status).send({ error: 'Upstream image fetch failed' });
+      }
+
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      const buffer = Buffer.from(await response.arrayBuffer());
+
+      reply
+        .header('Content-Type', contentType)
+        .header('Cache-Control', 'public, max-age=3600, s-maxage=86400')
+        .header('Access-Control-Allow-Origin', '*')
+        .send(buffer);
+    } catch (err: any) {
+      logger.error({ error: err.message, url: imageUrl }, '❌ Image proxy error');
+      return reply.status(502).send({ error: 'Failed to fetch image' });
+    }
+  });
 }
 
 const TERRITORY_KEYWORDS: Record<string, string[]> = {

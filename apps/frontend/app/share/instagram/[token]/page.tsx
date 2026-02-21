@@ -162,6 +162,12 @@ function formatNumber(n: number): string {
   return n.toString();
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.artistinfluence.com';
+
+function proxyImageUrl(originalUrl: string): string {
+  return `${API_BASE}/api/instagram-scraper/image-proxy?url=${encodeURIComponent(originalUrl)}`;
+}
+
 function PostThumbnail({ src, alt }: { src?: string; alt: string }) {
   const [imgError, setImgError] = useState(false);
 
@@ -173,9 +179,11 @@ function PostThumbnail({ src, alt }: { src?: string; alt: string }) {
     );
   }
 
+  const proxiedSrc = proxyImageUrl(src);
+
   return (
     <img
-      src={src}
+      src={proxiedSrc}
       alt={alt}
       className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-200"
       onError={() => setImgError(true)}
