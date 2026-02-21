@@ -60,19 +60,25 @@ export default function InstagramClientPortalPage() {
           .single();
 
         if (campaignError || !campaignData) {
-          const { data: byIdData, error: byIdError } = await publicSupabase
-            .from('instagram_campaigns')
-            .select('id, campaign, name, client_notes, status, public_access_enabled, public_token, posting_window_start, posting_window_end, price, created_at')
-            .eq('id', token)
-            .single();
+          // Fallback: only query by id when token is numeric (e.g. /share/instagram/797)
+          // id column is integer; using id=eq.<hex string> causes 400 Bad Request
+          const tokenIsNumeric = /^\d+$/.test(String(token).trim());
+          if (tokenIsNumeric) {
+            const { data: byIdData, error: byIdError } = await publicSupabase
+              .from('instagram_campaigns')
+              .select('id, campaign, name, client_notes, status, public_access_enabled, public_token, posting_window_start, posting_window_end, price, created_at')
+              .eq('id', parseInt(token, 10))
+              .single();
 
-          if (byIdError || !byIdData) {
+            if (!byIdError && byIdData) {
+              campaignData = byIdData;
+            }
+          }
+          if (!campaignData) {
             setError('Campaign not found or access denied');
             setLoading(false);
             return;
           }
-
-          campaignData = byIdData;
         }
 
         setCampaign(campaignData);
