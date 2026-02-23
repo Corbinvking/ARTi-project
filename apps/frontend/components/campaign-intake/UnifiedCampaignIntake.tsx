@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,8 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { useSalespeopleOptions } from "@/hooks/use-salespeople"
 import { ClientSelector } from "@/app/(dashboard)/spotify/stream-strategist/components/ClientSelector"
 import { useClients, useCreateClient } from "@/app/(dashboard)/spotify/stream-strategist/hooks/useClients"
 import { useCreateCampaignSubmission } from "@/app/(dashboard)/spotify/stream-strategist/hooks/useCampaignSubmissions"
@@ -19,9 +24,8 @@ import { MultiServiceTypeSelector } from "@/app/(dashboard)/youtube/vidi-health-
 import type { Database } from "@/app/(dashboard)/youtube/vidi-health-flow/integrations/supabase/types"
 import { useInstagramCampaignMutations } from "@/app/(dashboard)/instagram/seedstorm-builder/hooks/useInstagramCampaignMutations"
 import { supabase as coreSupabase } from "@/lib/auth"
-import { saveOverride } from "@/lib/overrides"
-import { OverrideField } from "@/components/overrides/OverrideField"
 import { notifyOpsStatusChange } from "@/lib/status-notify"
+import { UNIFIED_GENRES } from "@/app/(dashboard)/spotify/stream-strategist/lib/constants"
 
 type ServiceKey = "spotify" | "soundcloud" | "youtube" | "instagram"
 type ServiceType = Database["public"]["Enums"]["service_type"]
@@ -40,12 +44,6 @@ const SERVICE_OPTIONS: Array<{ key: ServiceKey; label: string }> = [
   { key: "youtube", label: "YouTube" },
 ]
 
-const parseEmailList = (value: string) =>
-  value
-    .split(",")
-    .map((email) => email.trim())
-    .filter((email) => email.length > 0)
-
 const extractYouTubeVideoId = (url: string) => {
   const match = url.match(
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
@@ -53,30 +51,51 @@ const extractYouTubeVideoId = (url: string) => {
   return match?.[1] || ""
 }
 
+const extractSpotifyTrackId = (url: string): string | null => {
+  const match = url.match(/spotify\.com\/track\/([a-zA-Z0-9]+)/)
+  return match?.[1] || null
+}
+
+const daysBetween = (start: string, end: string): number => {
+  const s = new Date(start)
+  const e = new Date(end)
+  const diff = Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24))
+  return Math.max(diff, 1)
+}
+
 export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard" | "invoice" }) {
   const { toast } = useToast()
   const { user } = useAuth()
   const { data: clients = [] } = useClients()
+  const { data: salespeopleOptions = [] } = useSalespeopleOptions()
   const createClient = useCreateClient()
   const createSpotifySubmission = useCreateCampaignSubmission()
   const youtube = useYouTubeCampaigns()
   const instagramMutations = useInstagramCampaignMutations()
 
+
   const [selectedServices, setSelectedServices] = useState<ServiceKey[]>(["spotify"])
   const [activeService, setActiveService] = useState<ServiceKey>("spotify")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoadingSpotifyGenres, setIsLoadingSpotifyGenres] = useState(false)
   const [submitResults, setSubmitResults] = useState<
-    Array<{ service: ServiceKey; success: boolean; message: string }>
+    Array<{ service: ServiceKey; success: boolean; message: string; campaignId?: string; link?: string }>
   >([])
 
+  // ── Shared state ──────────────────────────────────────────────────────
   const [shared, setShared] = useState({
     campaignName: "",
-    budget: "",
+    salespersonId: "",
+    clientMode: "existing" as "existing" | "new",
+    clientId: "",
+    newClientCompany: "",
+    newClientEmail1: "",
+    newClientEmail2: "",
+    newClientEmail3: "",
+    newClientAddress: "",
+    saleAmount: "",
     startDate: "",
     endDate: "",
-    internalNotes: "",
-    clientNotes: "",
-    salesperson: "",
   })
 
   const [invoice, setInvoice] = useState({
@@ -88,82 +107,75 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
     notes: "",
   })
 
+  // ── Spotify state ─────────────────────────────────────────────────────
   const [spotifyData, setSpotifyData] = useState({
-    clientMode: "existing" as "existing" | "new",
-    clientId: "",
-    clientName: "",
-    clientEmails: "",
-    trackUrl: "",
-    sfaUrl: "",
+    streamUrl: "",
+    timeframe: "90" as "30" | "60" | "90",
     streamGoal: "",
-    durationDays: "90",
-    genres: "",
-    territories: "",
+    status: "active" as "active" | "unreleased" | "pending",
+    genres: [] as string[],
+    autoDetectedGenres: [] as string[],
+    internalNotes: "",
   })
 
+  // ── SoundCloud state ──────────────────────────────────────────────────
   const [soundcloudData, setSoundcloudData] = useState({
-    clientId: "",
-    newClientName: "",
-    newClientEmail: "",
-    artistName: "",
-    trackName: "",
-    trackUrl: "",
-    expectedReach: "",
-    supportDate: "",
-    ownerId: "",
+    reachGoalMillions: "",
+    status: "released" as "released" | "unreleased" | "pending",
+    streamUrl: "",
   })
 
+  // ── YouTube state ─────────────────────────────────────────────────────
   const [youtubeData, setYoutubeData] = useState({
     youtubeUrl: "",
-    genre: "",
-    salePrice: "",
-    salespersonId: "",
-    clientId: "",
-    opsOwner: "",
-    adsOwner: "",
-    campaignOwner: "",
+    desiredDailyViews: "",
+    desiredDailyViewsOverridden: false,
   })
   const [youtubeServiceTypes, setYoutubeServiceTypes] = useState<ServiceTypeGoal[]>([
     { id: "1", service_type: "" as ServiceType, goal_views: 0 },
   ])
 
+  // ── Instagram state ───────────────────────────────────────────────────
   const [instagramData, setInstagramData] = useState({
-    soundUrl: "",
-    paidOps: "",
-    salespeople: "",
     seedingType: "audio" as "audio" | "footage",
-    brief: "",
-    preferredPages: "",
+    salesPrice: "",
+    adSpend: "",
+    adSpendOverridden: false,
+    status: "active" as "active" | "unreleased" | "pending",
+    internalNotes: "",
   })
-
-  const [soundcloudClients, setSoundcloudClients] = useState<
-    Array<{ id: string; name: string; email: string | null }>
-  >([])
-
-  const [intakeOverrides, setIntakeOverrides] = useState<
-    Record<string, { overridden: boolean; original?: string; reason?: string }>
-  >({})
 
   const opsOwner = user?.email || user?.name || ""
   const opsOwnerId = user?.id || null
   const orgId = user?.tenantId || "00000000-0000-0000-0000-000000000001"
 
-  const isOverridden = (fieldKey: string) => Boolean(intakeOverrides[fieldKey]?.overridden)
+  const selectedSalesperson = useMemo(
+    () => salespeopleOptions.find((sp) => sp.value === shared.salespersonId),
+    [salespeopleOptions, shared.salespersonId],
+  )
 
-  const recordOverride = (fieldKey: string, originalValue: string, reason?: string) => {
-    setIntakeOverrides((prev) => ({
-      ...prev,
-      [fieldKey]: { overridden: true, original: originalValue, reason },
-    }))
-  }
+  const selectedClient = useMemo(
+    () => clients.find((c) => c.id === shared.clientId),
+    [clients, shared.clientId],
+  )
 
-  const clearOverride = (fieldKey: string) => {
-    setIntakeOverrides((prev) => ({
-      ...prev,
-      [fieldKey]: { overridden: false, original: prev[fieldKey]?.original, reason: undefined },
-    }))
-  }
+  const clientEmails = useMemo(() => {
+    if (shared.clientMode === "existing" && selectedClient) {
+      return selectedClient.emails || []
+    }
+    return [shared.newClientEmail1, shared.newClientEmail2, shared.newClientEmail3].filter(
+      (e) => e.trim().length > 0,
+    )
+  }, [shared, selectedClient])
 
+  const clientName = useMemo(() => {
+    if (shared.clientMode === "existing" && selectedClient) {
+      return selectedClient.name
+    }
+    return shared.newClientCompany
+  }, [shared, selectedClient])
+
+  // ── Note history helper ───────────────────────────────────────────────
   const addNoteHistory = async ({
     service,
     campaignId,
@@ -186,182 +198,209 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
     })
   }
 
-  const persistOverrides = async ({
-    service,
-    campaignId,
-    entries,
-  }: {
-    service: ServiceKey
-    campaignId: string
-    entries: Array<{ fieldKey: string; value: unknown; originalValue?: unknown }>
-  }) => {
-    for (const entry of entries) {
-      const override = intakeOverrides[entry.fieldKey]
-      if (!override?.overridden) continue
-      await saveOverride({
-        service,
-        campaignId,
-        fieldKey: entry.fieldKey,
-        originalValue: override.original ?? entry.originalValue,
-        overrideValue: entry.value,
-        overrideReason: override.reason,
-        orgId,
-        overriddenBy: opsOwnerId,
-      })
-    }
-  }
-
+  // ── Invoice → sale amount sync ────────────────────────────────────────
   useEffect(() => {
-    if (!shared.salesperson && user?.email && !isOverridden("salesperson")) {
-      setShared((prev) => ({ ...prev, salesperson: user.email || "" }))
+    if (mode === "invoice" && invoice.amount && !shared.saleAmount) {
+      setShared((prev) => ({ ...prev, saleAmount: invoice.amount }))
     }
-  }, [shared.salesperson, user?.email, intakeOverrides])
+  }, [mode, invoice.amount, shared.saleAmount])
 
-  useEffect(() => {
-    if (mode === "invoice" && invoice.amount && !shared.budget) {
-      setShared((prev) => ({ ...prev, budget: invoice.amount }))
-    }
-  }, [mode, invoice.amount, shared.budget])
-
-  useEffect(() => {
-    if (spotifyData.clientMode === "existing" && spotifyData.clientId) {
-      const selected = clients.find((client) => client.id === spotifyData.clientId)
-      if (selected) {
-        setSpotifyData((prev) => ({
-          ...prev,
-          clientName: isOverridden("client_name") ? prev.clientName : selected.name,
-          clientEmails: isOverridden("client_emails")
-            ? prev.clientEmails
-            : (selected.emails || []).join(", "),
-        }))
-      }
-    }
-  }, [clients, spotifyData.clientId, spotifyData.clientMode, intakeOverrides])
-
-  useEffect(() => {
-    if (!opsOwner) return
-    setYoutubeData((prev) => ({
-      ...prev,
-      opsOwner: isOverridden("ops_owner") ? prev.opsOwner : prev.opsOwner || opsOwner,
-      adsOwner: isOverridden("ads_owner") ? prev.adsOwner : prev.adsOwner || opsOwner,
-      campaignOwner: isOverridden("campaign_owner") ? prev.campaignOwner : prev.campaignOwner || opsOwner,
-    }))
-  }, [opsOwner, intakeOverrides])
-
-  useEffect(() => {
-    if (!opsOwner) return
-    setInstagramData((prev) => ({
-      ...prev,
-      paidOps: isOverridden("paid_ops") ? prev.paidOps : prev.paidOps || opsOwner,
-      salespeople: isOverridden("salespeople")
-        ? prev.salespeople
-        : prev.salespeople || shared.salesperson || opsOwner,
-    }))
-  }, [opsOwner, shared.salesperson, intakeOverrides])
-
-  useEffect(() => {
-    if (opsOwnerId && !isOverridden("owner_id")) {
-      setSoundcloudData((prev) => ({
-        ...prev,
-        ownerId: prev.ownerId || opsOwnerId,
-      }))
-    }
-  }, [opsOwnerId, intakeOverrides])
-
-  useEffect(() => {
-    let mounted = true
-    const loadClients = async () => {
-      const { data } = await soundcloudSupabase
-        .from("soundcloud_clients")
-        .select("id, name, email")
-        .order("name")
-      if (mounted && data) {
-        setSoundcloudClients(data)
-      }
-    }
-    loadClients()
-    return () => {
-      mounted = false
-    }
-  }, [])
-
+  // ── Active tab sync ───────────────────────────────────────────────────
   useEffect(() => {
     if (selectedServices.length > 0 && !selectedServices.includes(activeService)) {
       setActiveService(selectedServices[0])
     }
   }, [activeService, selectedServices])
 
+  // ── Instagram: pre-fill salesPrice from saleAmount ────────────────────
+  useEffect(() => {
+    if (shared.saleAmount && !instagramData.salesPrice) {
+      setInstagramData((prev) => ({ ...prev, salesPrice: shared.saleAmount }))
+    }
+  }, [shared.saleAmount, instagramData.salesPrice])
+
+  // ── Instagram: auto-calculate ad spend as 70% of sales price ──────────
+  useEffect(() => {
+    if (instagramData.adSpendOverridden) return
+    const price = Number(instagramData.salesPrice)
+    if (price > 0) {
+      setInstagramData((prev) => ({
+        ...prev,
+        adSpend: String(Math.round(price * 0.7 * 100) / 100),
+      }))
+    }
+  }, [instagramData.salesPrice, instagramData.adSpendOverridden])
+
+  // ── YouTube: auto-calculate desired daily views ───────────────────────
+  useEffect(() => {
+    if (youtubeData.desiredDailyViewsOverridden) return
+    if (!shared.startDate || !shared.endDate) return
+    const totalGoalViews = youtubeServiceTypes.reduce(
+      (sum, st) => sum + (st.goal_views || 0),
+      0,
+    )
+    if (totalGoalViews <= 0) return
+    const days = daysBetween(shared.startDate, shared.endDate)
+    setYoutubeData((prev) => ({
+      ...prev,
+      desiredDailyViews: String(Math.round(totalGoalViews / days)),
+    }))
+  }, [shared.startDate, shared.endDate, youtubeServiceTypes, youtubeData.desiredDailyViewsOverridden])
+
+  // ── Spotify: auto-detect genres from track URL ────────────────────────
+  const handleSpotifyUrlChange = useCallback(
+    (url: string) => {
+      setSpotifyData((prev) => ({ ...prev, streamUrl: url }))
+
+      if (!url.includes("spotify.com/track/")) return
+      const trackId = extractSpotifyTrackId(url)
+      if (!trackId) return
+
+      // #region agent log
+      console.log("[Intake] Spotify URL detected, fetching track:", trackId)
+      // #endregion
+
+      setSpotifyData((prev) => ({ ...prev, autoDetectedGenres: [], genres: [] }))
+      setIsLoadingSpotifyGenres(true)
+
+      const apiBaseUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        "https://api.artistinfluence.com"
+
+      fetch(`${apiBaseUrl}/api/spotify-web-api/track/${trackId}`)
+        .then((response) => {
+          // #region agent log
+          console.log("[Intake] Spotify API response:", response.status, response.ok)
+          // #endregion
+          if (!response.ok) {
+            toast({
+              title: "Spotify Error",
+              description: `Could not fetch track info (status ${response.status}). Select genres manually.`,
+              variant: "destructive",
+            })
+            return null
+          }
+          return response.json()
+        })
+        .then((result) => {
+          if (!result?.success || !result.data) return
+          // #region agent log
+          console.log("[Intake] Spotify track data:", result.data.name, result.data.genres)
+          // #endregion
+
+          const rawGenres: string[] = result.data.genres || []
+          setSpotifyData((prev) => ({
+            ...prev,
+            autoDetectedGenres: rawGenres,
+            genres: rawGenres.length > 0 ? rawGenres : prev.genres,
+          }))
+
+          if (result.data.name) {
+            const artist = result.data.artists?.[0]?.name
+            const track = result.data.name
+            const autoName = artist && track ? `${artist} - ${track}` : track
+            if (autoName) {
+              setShared((prev) => ({
+                ...prev,
+                campaignName: prev.campaignName || autoName,
+              }))
+            }
+          }
+
+          if (rawGenres.length > 0) {
+            toast({
+              title: "Genres Auto-Detected",
+              description: `Found: ${rawGenres.join(", ")}. You can edit the selection below.`,
+            })
+          } else {
+            toast({
+              title: "No Genres Found",
+              description: "This artist doesn't have genre tags in Spotify. Select genres manually.",
+            })
+          }
+        })
+        .catch((err) => {
+          // #region agent log
+          console.error("[Intake] Spotify fetch error:", err)
+          // #endregion
+          toast({
+            title: "Spotify Error",
+            description: "Could not fetch track information. Select genres manually.",
+            variant: "destructive",
+          })
+        })
+        .finally(() => {
+          setIsLoadingSpotifyGenres(false)
+        })
+    },
+    [toast],
+  )
+
+  const toggleGenre = (genre: string) => {
+    setSpotifyData((prev) => {
+      const has = prev.genres.includes(genre)
+      return {
+        ...prev,
+        genres: has ? prev.genres.filter((g) => g !== genre) : [...prev.genres, genre],
+      }
+    })
+  }
+
+  // ── Service toggle ────────────────────────────────────────────────────
   const handleServiceToggle = (service: ServiceKey, checked: boolean) => {
     setSelectedServices((prev) => {
-      if (checked) {
-        return prev.includes(service) ? prev : [...prev, service]
-      }
+      if (checked) return prev.includes(service) ? prev : [...prev, service]
       return prev.filter((item) => item !== service)
     })
-    if (checked) {
-      setActiveService(service)
-    }
+    if (checked) setActiveService(service)
   }
 
   const selectedTabs = useMemo(
-    () => SERVICE_OPTIONS.filter((service) => selectedServices.includes(service.key)),
+    () => SERVICE_OPTIONS.filter((s) => selectedServices.includes(s.key)),
     [selectedServices],
   )
 
-  const selectedSpotifyClient = useMemo(
-    () => clients.find((client) => client.id === spotifyData.clientId),
-    [clients, spotifyData.clientId],
-  )
-
-  const ensureSpotifyClient = async () => {
-    if (spotifyData.clientMode === "existing") {
-      const selected = clients.find((client) => client.id === spotifyData.clientId)
-      return selected || null
+  // ── Client resolution ─────────────────────────────────────────────────
+  const ensureClient = async () => {
+    console.log("[Intake:ensureClient] mode:", shared.clientMode)
+    if (shared.clientMode === "existing") {
+      console.log("[Intake:ensureClient] using existing client:", selectedClient?.id, selectedClient?.name)
+      return selectedClient || null
     }
-
-    if (!spotifyData.clientName.trim()) {
-      return null
-    }
-
-    const emails = parseEmailList(spotifyData.clientEmails)
+    if (!shared.newClientCompany.trim()) return null
+    const emails = [shared.newClientEmail1, shared.newClientEmail2, shared.newClientEmail3]
+      .map((e) => e.trim())
+      .filter((e) => e.length > 0)
+    console.log("[Intake:ensureClient] creating new client:", shared.newClientCompany.trim(), "emails:", emails)
     const newClient = await createClient.mutateAsync({
-      name: spotifyData.clientName.trim(),
+      name: shared.newClientCompany.trim(),
       emails,
       credit_balance: 0,
     })
+    console.log("[Intake:ensureClient] new client result:", JSON.stringify(newClient))
     return newClient
   }
 
+  // ── Validation ────────────────────────────────────────────────────────
   const validateShared = () => {
-    if (selectedServices.length === 0) {
-      return "Select at least one service to submit."
-    }
-    if (!shared.campaignName.trim()) {
-      return "Campaign name is required."
-    }
-    if (!shared.budget || Number(shared.budget) <= 0) {
-      return "Budget must be greater than $0."
-    }
-    if (!shared.startDate) {
-      return "Start date is required."
-    }
+    if (selectedServices.length === 0) return "Select at least one service to submit."
+    if (!shared.campaignName.trim()) return "Campaign name is required."
+    if (!shared.saleAmount || Number(shared.saleAmount) <= 0) return "Sale amount must be greater than $0."
+    if (!shared.startDate) return "Start date is required."
+    if (shared.clientMode === "existing" && !shared.clientId) return "Select an existing client or switch to New Client."
+    if (shared.clientMode === "new" && !shared.newClientCompany.trim()) return "Company name is required for a new client."
+    if (shared.clientMode === "new" && !shared.newClientEmail1.trim()) return "At least one client email is required."
     if (mode === "invoice") {
-      if (!invoice.invoiceNumber.trim()) {
-        return "Invoice number is required."
-      }
-      if (!invoice.amount || Number(invoice.amount) <= 0) {
-        return "Invoice amount must be greater than $0."
-      }
-      if (!invoice.clientName.trim()) {
-        return "Invoice client name is required."
-      }
-      if (!invoice.clientEmail.trim()) {
-        return "Invoice client email is required."
-      }
+      if (!invoice.invoiceNumber.trim()) return "Invoice number is required."
+      if (!invoice.amount || Number(invoice.amount) <= 0) return "Invoice amount must be greater than $0."
+      if (!invoice.clientName.trim()) return "Invoice client name is required."
+      if (!invoice.clientEmail.trim()) return "Invoice client email is required."
     }
     return null
   }
 
+  // ── Submit ────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     const sharedError = validateShared()
     if (sharedError) {
@@ -371,7 +410,7 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
 
     setIsSubmitting(true)
     setSubmitResults([])
-    const results: Array<{ service: ServiceKey; success: boolean; message: string }> = []
+    const results: Array<{ service: ServiceKey; success: boolean; message: string; campaignId?: string; link?: string }> = []
 
     try {
       let sourceInvoiceId: string | null = null
@@ -408,182 +447,125 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
         sourceInvoiceId = invoiceRecord?.id || null
       }
 
-      const sharedClient = selectedServices.includes("spotify") ? await ensureSpotifyClient() : null
-
-      if (selectedServices.includes("spotify") && !sharedClient) {
-        throw new Error("Unable to resolve Spotify client details.")
+      const resolvedClient = await ensureClient()
+      console.log("[Intake:submit] resolvedClient:", resolvedClient?.id, resolvedClient?.name, "org_id:", (resolvedClient as any)?.org_id)
+      if (!resolvedClient) {
+        throw new Error("Unable to resolve client details. Please check client information.")
       }
 
+      const salespersonLabel = selectedSalesperson?.label || opsOwner
+      console.log("[Intake:submit] clientName:", clientName, "clientEmails:", clientEmails, "salesperson:", salespersonLabel)
+
+      // ── Spotify submission ──────────────────────────────────────────
       if (selectedServices.includes("spotify")) {
-        if (!shared.salesperson && !opsOwner) {
-          results.push({
-            service: "spotify",
-            success: false,
-            message: "Unable to determine ops owner for Spotify.",
-          })
-        } else if (spotifyData.clientMode === "existing" && !spotifyData.clientId) {
-          results.push({
-            service: "spotify",
-            success: false,
-            message: "Select an existing Spotify client.",
-          })
-        } else if (spotifyData.clientMode === "new" && !spotifyData.clientName.trim()) {
-          results.push({
-            service: "spotify",
-            success: false,
-            message: "Enter a new Spotify client name.",
-          })
-        } else if (spotifyData.clientMode === "new" && !spotifyData.clientEmails.trim()) {
-          results.push({
-            service: "spotify",
-            success: false,
-            message: "Enter at least one Spotify client email.",
-          })
-        } else if (!spotifyData.trackUrl || !spotifyData.streamGoal) {
-          results.push({
-            service: "spotify",
-            success: false,
-            message: "Spotify track URL and stream goal are required.",
-          })
-        } else if (parseEmailList(spotifyData.clientEmails).length === 0) {
-          results.push({
-            service: "spotify",
-            success: false,
-            message: "Spotify requires at least one client email.",
-          })
+        if (!spotifyData.streamUrl) {
+          results.push({ service: "spotify", success: false, message: "Spotify stream URL is required." })
+        } else if (!spotifyData.streamGoal) {
+          results.push({ service: "spotify", success: false, message: "Spotify stream goal is required." })
         } else {
           try {
-            const submission = await createSpotifySubmission.mutateAsync({
-              client_id: sharedClient?.id || null,
-              client_name: spotifyData.clientName || sharedClient?.name || "",
-              client_emails: parseEmailList(spotifyData.clientEmails),
+            const spotifyPayload: Record<string, any> = {
+              client_id: resolvedClient.id || null,
+              client_name: clientName,
+              client_emails: clientEmails,
               campaign_name: shared.campaignName,
-              price_paid: Number(shared.budget),
+              price_paid: Number(shared.saleAmount),
               stream_goal: Number(spotifyData.streamGoal),
               start_date: shared.startDate,
-              duration_days: Number(spotifyData.durationDays || 90),
-              track_url: spotifyData.trackUrl,
-              sfa_url: spotifyData.sfaUrl || null,
-              notes: shared.internalNotes,
-              internal_notes: shared.internalNotes || null,
-              client_notes: shared.clientNotes || null,
-              source_invoice_id: sourceInvoiceId,
-              invoice_status: mode === "invoice" ? "pending" : undefined,
-              salesperson: shared.salesperson || opsOwner,
-              music_genres: parseEmailList(spotifyData.genres),
-              territory_preferences: parseEmailList(spotifyData.territories),
-            })
-            if (submission?.id) {
+              duration_days: Number(spotifyData.timeframe),
+              track_url: spotifyData.streamUrl,
+              sfa_url: null,
+              notes: spotifyData.internalNotes || null,
+              salesperson: salespersonLabel,
+              music_genres: spotifyData.genres,
+              territory_preferences: [],
+            }
+            console.log("[Intake:spotify] payload:", JSON.stringify(spotifyPayload))
+            const submission = await createSpotifySubmission.mutateAsync(spotifyPayload as any)
+            console.log("[Intake:spotify] submission result:", JSON.stringify(submission))
+            console.log("[Intake:spotify] submission id:", submission?.id, "type:", typeof submission?.id)
+            if (submission?.id && spotifyData.internalNotes) {
               await addNoteHistory({
                 service: "spotify",
                 campaignId: submission.id,
                 noteType: "internal",
-                content: shared.internalNotes,
-              })
-              await addNoteHistory({
-                service: "spotify",
-                campaignId: submission.id,
-                noteType: "client",
-                content: shared.clientNotes,
-              })
-              await persistOverrides({
-                service: "spotify",
-                campaignId: submission.id,
-                entries: [
-                  {
-                    fieldKey: "salesperson",
-                    value: shared.salesperson,
-                    originalValue: opsOwner,
-                  },
-                  {
-                    fieldKey: "client_name",
-                    value: spotifyData.clientName,
-                    originalValue: selectedSpotifyClient?.name || "",
-                  },
-                  {
-                    fieldKey: "client_emails",
-                    value: spotifyData.clientEmails,
-                    originalValue: (selectedSpotifyClient?.emails || []).join(", "),
-                  },
-                ],
+                content: spotifyData.internalNotes,
               })
             }
-            results.push({
-              service: "spotify",
-              success: true,
-              message: "Spotify submission created.",
-            })
+            results.push({ service: "spotify", success: true, message: "Spotify submission created.", campaignId: submission?.id, link: "/dashboard/spotify/submissions" })
           } catch (error: any) {
-            results.push({
-              service: "spotify",
-              success: false,
-              message: error?.message || "Spotify submission failed.",
-            })
+            console.error("[Intake:spotify] ERROR:", error?.message, error?.code, error?.details, error?.hint)
+            results.push({ service: "spotify", success: false, message: error?.message || "Spotify submission failed." })
           }
         }
       }
 
+      // ── SoundCloud submission ───────────────────────────────────────
       if (selectedServices.includes("soundcloud")) {
-          if (!soundcloudData.ownerId && !opsOwnerId) {
-          results.push({
-            service: "soundcloud",
-            success: false,
-            message: "Unable to determine ops owner for SoundCloud.",
-          })
-        } else if (
-          !soundcloudData.trackUrl ||
-          !soundcloudData.artistName ||
-          !soundcloudData.trackName ||
-          !soundcloudData.expectedReach
-        ) {
-          results.push({
-            service: "soundcloud",
-            success: false,
-            message: "SoundCloud requires artist, track, URL, and expected reach.",
-          })
+        if (!soundcloudData.streamUrl) {
+          results.push({ service: "soundcloud", success: false, message: "SoundCloud stream URL is required." })
+        } else if (!soundcloudData.reachGoalMillions) {
+          results.push({ service: "soundcloud", success: false, message: "SoundCloud reach goal is required." })
         } else {
           try {
-            let clientId = soundcloudData.clientId
-            if (!clientId && soundcloudData.newClientName.trim()) {
-              const { data: newClient, error: clientError } = await soundcloudSupabase
+            // Parse artist and track from campaign name ("Artist - Track")
+            const nameParts = shared.campaignName.split(" - ")
+            const artistName = nameParts[0]?.trim() || shared.campaignName
+            const trackName = nameParts.slice(1).join(" - ").trim() || shared.campaignName
+
+            let scClientId = ""
+            // Try to create or find a SoundCloud client from the shared client info
+            const { data: existingSc, error: scLookupErr } = await soundcloudSupabase
+              .from("soundcloud_clients")
+              .select("id")
+              .eq("name", clientName)
+              .limit(1)
+              .maybeSingle()
+
+            if (existingSc) {
+              scClientId = existingSc.id
+            } else {
+              const { data: newScClient, error: scClientErr } = await soundcloudSupabase
                 .from("soundcloud_clients")
                 .insert({
-                  name: soundcloudData.newClientName.trim(),
-                  email: soundcloudData.newClientEmail.trim() || null,
+                  name: clientName,
+                  email: clientEmails[0] || null,
                 })
                 .select()
                 .single()
-              if (clientError) throw clientError
-              clientId = newClient?.id || ""
+              if (scClientErr) throw scClientErr
+              scClientId = newScClient?.id || ""
             }
 
-            if (!clientId) {
-              throw new Error("SoundCloud client is required.")
+            const reachPlanned = Number(soundcloudData.reachGoalMillions) * 1_000_000
+
+            const statusMap: Record<string, string> = {
+              released: "new",
+              unreleased: "unreleased",
+              pending: "pending",
             }
 
-            const submissionData = {
-              org_id: "00000000-0000-0000-0000-000000000001",
-              client_id: clientId,
-              member_id: null,
-              owner_id: soundcloudData.ownerId || opsOwnerId,
-              track_url: soundcloudData.trackUrl,
-              artist_name: soundcloudData.artistName,
-              track_name: soundcloudData.trackName,
-              status: "new",
-              expected_reach_planned: Number(soundcloudData.expectedReach) || 0,
-              support_date: soundcloudData.supportDate || shared.startDate || null,
-              notes: shared.internalNotes || null,
-              internal_notes: shared.internalNotes || null,
-              client_notes: shared.clientNotes || null,
-              source_invoice_id: sourceInvoiceId,
-              invoice_status: mode === "invoice" ? "pending" : undefined,
+            const submissionData: Record<string, any> = {
+              client_id: scClientId || undefined,
+              owner_id: opsOwnerId,
+              track_url: soundcloudData.streamUrl,
+              artist_name: artistName,
+              track_name: trackName,
+              status: statusMap[soundcloudData.status] || "pending",
+              expected_reach_planned: reachPlanned,
+              support_date: shared.startDate || null,
+              notes: null,
               qa_flag: false,
-              need_live_link: false,
+              need_live_link: soundcloudData.status === "unreleased",
               suggested_supporters: [],
               expected_reach_min: 0,
               expected_reach_max: 0,
               submitted_at: new Date().toISOString(),
               created_at: new Date().toISOString(),
+            }
+            if (sourceInvoiceId) {
+              submissionData.source_invoice_id = sourceInvoiceId
+              submissionData.invoice_status = "pending"
             }
 
             const { error, data } = await soundcloudSupabase
@@ -592,97 +574,43 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
               .select()
               .single()
             if (error) throw error
-            if (data?.id) {
-              await addNoteHistory({
-                service: "soundcloud",
-                campaignId: data.id,
-                noteType: "internal",
-                content: shared.internalNotes,
-              })
-              await addNoteHistory({
-                service: "soundcloud",
-                campaignId: data.id,
-                noteType: "client",
-                content: shared.clientNotes,
-              })
-              await persistOverrides({
-                service: "soundcloud",
-                campaignId: data.id,
-                entries: [
-                  {
-                    fieldKey: "owner_id",
-                    value: soundcloudData.ownerId || opsOwnerId,
-                    originalValue: opsOwnerId,
-                  },
-                ],
-              })
-            }
-
-            results.push({
-              service: "soundcloud",
-              success: true,
-              message: "SoundCloud submission created.",
-            })
+            results.push({ service: "soundcloud", success: true, message: "SoundCloud submission created.", campaignId: data?.id, link: "/dashboard/soundcloud/dashboard/campaigns" })
           } catch (error: any) {
-            results.push({
-              service: "soundcloud",
-              success: false,
-              message: error?.message || "SoundCloud submission failed.",
-            })
+            results.push({ service: "soundcloud", success: false, message: error?.message || "SoundCloud submission failed." })
           }
         }
       }
 
+      // ── YouTube submission ──────────────────────────────────────────
       if (selectedServices.includes("youtube")) {
-          if (!youtubeData.opsOwner && !opsOwner) {
-          results.push({
-            service: "youtube",
-            success: false,
-            message: "Unable to determine ops owner for YouTube.",
-          })
-        } else if (!youtubeData.youtubeUrl) {
-          results.push({
-            service: "youtube",
-            success: false,
-            message: "YouTube video URL is required.",
-          })
+        if (!youtubeData.youtubeUrl) {
+          results.push({ service: "youtube", success: false, message: "YouTube video URL is required." })
         } else if (youtubeServiceTypes.every((st) => !st.service_type)) {
-          results.push({
-            service: "youtube",
-            success: false,
-            message: "Add at least one YouTube service type.",
-          })
+          results.push({ service: "youtube", success: false, message: "Add at least one YouTube service type." })
         } else {
           try {
             const goalIssue = youtubeServiceTypes.some(
               (st) => st.service_type !== "engagements_only" && st.goal_views <= 0,
             )
-            if (goalIssue) {
-              throw new Error("Each YouTube service type requires a goal value.")
-            }
+            if (goalIssue) throw new Error("Each YouTube service type requires a goal value.")
 
-            let youtubeClientId = youtubeData.clientId
-            if (!youtubeClientId && spotifyData.clientName) {
-              const clientResult = await youtube.createClient({
-                name: spotifyData.clientName,
-                email: parseEmailList(spotifyData.clientEmails)[0] || "",
-                company: "",
-              })
-              if (clientResult.error) throw clientResult.error
-              youtubeClientId = clientResult.data?.id || ""
-            }
+            let youtubeClientId = ""
+            const clientResult = await youtube.createClient({
+              name: clientName,
+              email: clientEmails[0] || "",
+              company: shared.newClientCompany || clientName,
+            })
+            if (clientResult.error) throw clientResult.error
+            youtubeClientId = clientResult.data?.id || ""
 
             const totalGoalViews = youtubeServiceTypes.reduce(
-              (sum, serviceType) => sum + (serviceType.goal_views || 0),
+              (sum, st) => sum + (st.goal_views || 0),
               0,
             )
 
-            const ownershipNote = `OpsOwner:${youtubeData.opsOwner || opsOwner};AdsOwner:${youtubeData.adsOwner || opsOwner};CampaignOwner:${youtubeData.campaignOwner || opsOwner}`
-            const customServiceType = [shared.internalNotes?.trim(), ownershipNote]
-              .filter(Boolean)
-              .join(" | ")
+            const desiredDaily = Number(youtubeData.desiredDailyViews) || 0
 
-            const { error, data } = await youtube.createCampaign({
+            const ytPayload: Record<string, any> = {
               campaign_name: shared.campaignName,
               youtube_url: youtubeData.youtubeUrl,
               video_id: extractYouTubeVideoId(youtubeData.youtubeUrl) || null,
@@ -691,133 +619,69 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
                 "ww_display",
               goal_views: totalGoalViews,
               service_types: youtubeServiceTypes as any,
-              sale_price: Number(youtubeData.salePrice || shared.budget) || null,
+              sale_price: Number(shared.saleAmount) || null,
               start_date: shared.startDate || null,
               end_date: shared.endDate || null,
-              desired_daily: 0,
-              genre: youtubeData.genre || null,
+              desired_daily: desiredDaily,
+              genre: null,
               client_id: youtubeClientId || null,
-              salesperson_id: youtubeData.salespersonId || null,
+              salesperson_id: shared.salespersonId || null,
               status: "pending",
               technical_setup_complete: false,
-              custom_service_type: customServiceType || null,
-              internal_notes: shared.internalNotes || null,
-              client_notes: shared.clientNotes || null,
-              source_invoice_id: sourceInvoiceId,
-              invoice_status: mode === "invoice" ? "sent" : undefined,
-            })
+              custom_service_type: null,
+              internal_notes: null,
+              client_notes: null,
+            }
+            if (sourceInvoiceId) {
+              ytPayload.source_invoice_id = sourceInvoiceId
+              ytPayload.invoice_status = "sent"
+            }
+            const { error, data } = await youtube.createCampaign(ytPayload as any)
 
             if (error) throw error
-            if (data?.id) {
-              await addNoteHistory({
-                service: "youtube",
-                campaignId: data.id,
-                noteType: "internal",
-                content: shared.internalNotes,
-              })
-              await addNoteHistory({
-                service: "youtube",
-                campaignId: data.id,
-                noteType: "client",
-                content: shared.clientNotes,
-              })
-              await persistOverrides({
-                service: "youtube",
-                campaignId: data.id,
-                entries: [
-                  {
-                    fieldKey: "ops_owner",
-                    value: youtubeData.opsOwner || opsOwner,
-                    originalValue: opsOwner,
-                  },
-                  {
-                    fieldKey: "ads_owner",
-                    value: youtubeData.adsOwner || opsOwner,
-                    originalValue: opsOwner,
-                  },
-                  {
-                    fieldKey: "campaign_owner",
-                    value: youtubeData.campaignOwner || opsOwner,
-                    originalValue: opsOwner,
-                  },
-                ],
-              })
-            }
-
-            results.push({
-              service: "youtube",
-              success: true,
-              message: "YouTube campaign created.",
-            })
+            results.push({ service: "youtube", success: true, message: "YouTube campaign created.", campaignId: data?.id, link: "/dashboard/youtube/campaigns" })
           } catch (error: any) {
-            results.push({
-              service: "youtube",
-              success: false,
-              message: error?.message || "YouTube submission failed.",
-            })
+            results.push({ service: "youtube", success: false, message: error?.message || "YouTube submission failed." })
           }
         }
       }
 
+      // ── Instagram submission ────────────────────────────────────────
       if (selectedServices.includes("instagram")) {
         try {
-          if (!instagramData.paidOps && !opsOwner) {
-            throw new Error("Unable to determine ops owner for Instagram.")
+          const statusMap: Record<string, string> = {
+            active: "Active",
+            unreleased: "Unreleased",
+            pending: "Pending",
           }
-          // Parse preferred pages into array
-          const preferredPagesArray = instagramData.preferredPages
-            .split(",")
-            .map((p) => p.trim().replace(/^@/, ""))
-            .filter((p) => p.length > 0)
 
-          const campaign = await instagramMutations.createCampaignAsync({
+          const igPayload: Record<string, any> = {
             campaign: shared.campaignName,
-            clients: spotifyData.clientName || spotifyData.clientEmails || "Unknown Client",
+            clients: clientName || "Unknown Client",
             start_date: shared.startDate,
-            price: shared.budget,
-            sound_url: instagramData.soundUrl || undefined,
-            status: "Draft",
-            salespeople: instagramData.salespeople || shared.salesperson || opsOwner,
-            paid_ops: instagramData.paidOps || opsOwner,
-            report_notes: shared.internalNotes || undefined,
-            client_notes: shared.clientNotes || undefined,
-            source_invoice_id: sourceInvoiceId || undefined,
-            invoice_status: mode === "invoice" ? "pending" : undefined,
+            price: instagramData.salesPrice || shared.saleAmount,
+            spend: instagramData.adSpend || undefined,
+            status: statusMap[instagramData.status] || "Draft",
+            salespeople: salespersonLabel,
+            paid_ops: opsOwner,
+            report_notes: instagramData.internalNotes || undefined,
             seeding_type: instagramData.seedingType,
-            brief: instagramData.brief || undefined,
-            preferred_pages: preferredPagesArray.length > 0 ? preferredPagesArray : undefined,
-          })
+            brief: instagramData.internalNotes || undefined,
+          }
+          if (sourceInvoiceId) {
+            igPayload.source_invoice_id = sourceInvoiceId
+            igPayload.invoice_status = "pending"
+          }
+          const campaign = await instagramMutations.createCampaignAsync(igPayload as any)
           if (campaign?.id) {
-            await addNoteHistory({
-              service: "instagram",
-              campaignId: String(campaign.id),
-              noteType: "internal",
-              content: shared.internalNotes,
-            })
-            await addNoteHistory({
-              service: "instagram",
-              campaignId: String(campaign.id),
-              noteType: "client",
-              content: shared.clientNotes,
-            })
-            await persistOverrides({
-              service: "instagram",
-              campaignId: String(campaign.id),
-              entries: [
-                {
-                  fieldKey: "paid_ops",
-                  value: instagramData.paidOps || opsOwner,
-                  originalValue: opsOwner,
-                },
-                {
-                  fieldKey: "salespeople",
-                  value: instagramData.salespeople || shared.salesperson || opsOwner,
-                  originalValue: shared.salesperson || opsOwner,
-                },
-              ],
-            })
-
-            // Notify ops team about new Instagram campaign
+            if (instagramData.internalNotes) {
+              await addNoteHistory({
+                service: "instagram",
+                campaignId: String(campaign.id),
+                noteType: "internal",
+                content: instagramData.internalNotes,
+              })
+            }
             await notifyOpsStatusChange({
               service: "instagram",
               campaignId: String(campaign.id),
@@ -827,26 +691,14 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
               actorEmail: user?.email || opsOwner,
             })
           }
-          results.push({
-            service: "instagram",
-            success: true,
-            message: "Instagram campaign created.",
-          })
+          results.push({ service: "instagram", success: true, message: "Instagram campaign created.", campaignId: campaign?.id ? String(campaign.id) : undefined, link: "/dashboard/instagram/campaigns" })
         } catch (error: any) {
-          results.push({
-            service: "instagram",
-            success: false,
-            message: error?.message || "Instagram submission failed.",
-          })
+          results.push({ service: "instagram", success: false, message: error?.message || "Instagram submission failed." })
         }
       }
     } catch (error: any) {
       selectedServices.forEach((service) =>
-        results.push({
-          service,
-          success: false,
-          message: error?.message || "Submission failed.",
-        }),
+        results.push({ service, success: false, message: error?.message || "Submission failed." }),
       )
     } finally {
       setSubmitResults(results)
@@ -854,12 +706,14 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
     }
   }
 
+  // ── Render ────────────────────────────────────────────────────────────
   return (
     <Card>
       <CardHeader>
         <CardTitle>Unified Campaign Intake</CardTitle>
       </CardHeader>
       <CardContent className="space-y-8">
+        {/* ── Service Selection ─────────────────────────────────────── */}
         <div className="space-y-3">
           <Label className="text-base">Choose Services</Label>
           <div className="flex flex-wrap gap-4">
@@ -878,6 +732,7 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
           </div>
         </div>
 
+        {/* ── Invoice Details (invoice mode only) ──────────────────── */}
         {mode === "invoice" && (
           <div className="space-y-4 border rounded-lg p-4">
             <h3 className="text-sm font-semibold uppercase text-muted-foreground">Invoice Details</h3>
@@ -886,9 +741,7 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
                 <Label>Invoice Number *</Label>
                 <Input
                   value={invoice.invoiceNumber}
-                  onChange={(event) =>
-                    setInvoice((prev) => ({ ...prev, invoiceNumber: event.target.value }))
-                  }
+                  onChange={(e) => setInvoice((prev) => ({ ...prev, invoiceNumber: e.target.value }))}
                   placeholder="INV-10023"
                 />
               </div>
@@ -898,9 +751,7 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
                   type="number"
                   min="0"
                   value={invoice.amount}
-                  onChange={(event) =>
-                    setInvoice((prev) => ({ ...prev, amount: event.target.value }))
-                  }
+                  onChange={(e) => setInvoice((prev) => ({ ...prev, amount: e.target.value }))}
                   placeholder="5000"
                 />
               </div>
@@ -909,18 +760,14 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
                 <Input
                   type="date"
                   value={invoice.dueDate}
-                  onChange={(event) =>
-                    setInvoice((prev) => ({ ...prev, dueDate: event.target.value }))
-                  }
+                  onChange={(e) => setInvoice((prev) => ({ ...prev, dueDate: e.target.value }))}
                 />
               </div>
               <div>
                 <Label>Client Name *</Label>
                 <Input
                   value={invoice.clientName}
-                  onChange={(event) =>
-                    setInvoice((prev) => ({ ...prev, clientName: event.target.value }))
-                  }
+                  onChange={(e) => setInvoice((prev) => ({ ...prev, clientName: e.target.value }))}
                   placeholder="Client or Brand Name"
                 />
               </div>
@@ -929,9 +776,7 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
                 <Input
                   type="email"
                   value={invoice.clientEmail}
-                  onChange={(event) =>
-                    setInvoice((prev) => ({ ...prev, clientEmail: event.target.value }))
-                  }
+                  onChange={(e) => setInvoice((prev) => ({ ...prev, clientEmail: e.target.value }))}
                   placeholder="billing@client.com"
                 />
               </div>
@@ -941,13 +786,14 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
               <Textarea
                 rows={3}
                 value={invoice.notes}
-                onChange={(event) => setInvoice((prev) => ({ ...prev, notes: event.target.value }))}
+                onChange={(e) => setInvoice((prev) => ({ ...prev, notes: e.target.value }))}
                 placeholder="Payment terms or invoice notes..."
               />
             </div>
           </div>
         )}
 
+        {/* ── Shared Details ───────────────────────────────────────── */}
         <div className="space-y-4 border rounded-lg p-4">
           <h3 className="text-sm font-semibold uppercase text-muted-foreground">Shared Details</h3>
           <div className="grid gap-4 md:grid-cols-2">
@@ -955,21 +801,35 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
               <Label>Campaign Name *</Label>
               <Input
                 value={shared.campaignName}
-                onChange={(event) =>
-                  setShared((prev) => ({ ...prev, campaignName: event.target.value }))
-                }
-                placeholder="Artist - Track / Campaign Name"
+                onChange={(e) => setShared((prev) => ({ ...prev, campaignName: e.target.value }))}
+                placeholder="Artist - Song/EP/Project Name (e.g. Skrillex - FUS)"
               />
             </div>
             <div>
-              <Label>Budget (USD) *</Label>
+              <Label>Salesperson *</Label>
+              <Select
+                value={shared.salespersonId}
+                onValueChange={(val) => setShared((prev) => ({ ...prev, salespersonId: val }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select salesperson" />
+                </SelectTrigger>
+                <SelectContent>
+                  {salespeopleOptions.map((sp) => (
+                    <SelectItem key={sp.value} value={sp.value}>
+                      {sp.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Sale Amount (USD) *</Label>
               <Input
                 type="number"
                 min="0"
-                value={shared.budget}
-                onChange={(event) =>
-                  setShared((prev) => ({ ...prev, budget: event.target.value }))
-                }
+                value={shared.saleAmount}
+                onChange={(e) => setShared((prev) => ({ ...prev, saleAmount: e.target.value }))}
                 placeholder="5000"
               />
             </div>
@@ -978,9 +838,7 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
               <Input
                 type="date"
                 value={shared.startDate}
-                onChange={(event) =>
-                  setShared((prev) => ({ ...prev, startDate: event.target.value }))
-                }
+                onChange={(e) => setShared((prev) => ({ ...prev, startDate: e.target.value }))}
               />
             </div>
             <div>
@@ -988,55 +846,101 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
               <Input
                 type="date"
                 value={shared.endDate}
-                onChange={(event) =>
-                  setShared((prev) => ({ ...prev, endDate: event.target.value }))
-                }
-              />
-            </div>
-            <div>
-              <OverrideField
-                label="Salesperson (email/name)"
-                value={shared.salesperson}
-                suggestedValue={opsOwner}
-                overridden={isOverridden("salesperson")}
-                placeholder="sales@artistinfluence.com"
-                onOverride={(value, reason) => {
-                  setShared((prev) => ({ ...prev, salesperson: value }))
-                  recordOverride("salesperson", opsOwner, reason)
-                }}
-                onRevert={() => {
-                  setShared((prev) => ({ ...prev, salesperson: opsOwner }))
-                  clearOverride("salesperson")
-                }}
+                onChange={(e) => setShared((prev) => ({ ...prev, endDate: e.target.value }))}
               />
             </div>
           </div>
 
-          <div>
-            <Label>Internal Notes (Ops Only)</Label>
-            <Textarea
-              rows={3}
-              value={shared.internalNotes}
-              onChange={(event) =>
-                setShared((prev) => ({ ...prev, internalNotes: event.target.value }))
-              }
-              placeholder="Internal ops notes..."
-            />
-          </div>
-          <div>
-            <Label>Client Notes (Visible to Clients)</Label>
-            <Textarea
-              rows={3}
-              value={shared.clientNotes}
-              onChange={(event) =>
-                setShared((prev) => ({ ...prev, clientNotes: event.target.value }))
-              }
-              placeholder="Client-facing notes..."
-            />
+          {/* ── Client / Company ──────────────────────────────────── */}
+          <div className="space-y-3 border-t pt-4">
+            <Label className="text-base">Client / Company *</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={shared.clientMode === "existing" ? "default" : "outline"}
+                onClick={() => setShared((prev) => ({ ...prev, clientMode: "existing" }))}
+              >
+                Existing Client
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={shared.clientMode === "new" ? "default" : "outline"}
+                onClick={() => setShared((prev) => ({ ...prev, clientMode: "new" }))}
+              >
+                New Client
+              </Button>
+            </div>
+
+            {shared.clientMode === "existing" ? (
+              <ClientSelector
+                value={shared.clientId}
+                onChange={(id) => setShared((prev) => ({ ...prev, clientId: id }))}
+                placeholder="Search clients..."
+              />
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <Label>Company Name *</Label>
+                  <Input
+                    value={shared.newClientCompany}
+                    onChange={(e) =>
+                      setShared((prev) => ({ ...prev, newClientCompany: e.target.value }))
+                    }
+                    placeholder="Company or brand name"
+                  />
+                </div>
+                <div>
+                  <Label>Client Email 1 *</Label>
+                  <Input
+                    type="email"
+                    value={shared.newClientEmail1}
+                    onChange={(e) =>
+                      setShared((prev) => ({ ...prev, newClientEmail1: e.target.value }))
+                    }
+                    placeholder="primary@client.com"
+                  />
+                </div>
+                <div>
+                  <Label>Client Email 2</Label>
+                  <Input
+                    type="email"
+                    value={shared.newClientEmail2}
+                    onChange={(e) =>
+                      setShared((prev) => ({ ...prev, newClientEmail2: e.target.value }))
+                    }
+                    placeholder="secondary@client.com (optional)"
+                  />
+                </div>
+                <div>
+                  <Label>Client Email 3</Label>
+                  <Input
+                    type="email"
+                    value={shared.newClientEmail3}
+                    onChange={(e) =>
+                      setShared((prev) => ({ ...prev, newClientEmail3: e.target.value }))
+                    }
+                    placeholder="third@client.com (optional)"
+                  />
+                </div>
+                <div>
+                  <Label>Address</Label>
+                  <Input
+                    value={shared.newClientAddress}
+                    onChange={(e) =>
+                      setShared((prev) => ({ ...prev, newClientAddress: e.target.value }))
+                    }
+                    placeholder="Billing address"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        <Tabs value={activeService} onValueChange={(value) => setActiveService(value as ServiceKey)}>
+        {/* ── Service Tabs ─────────────────────────────────────────── */}
+        <Tabs value={activeService} onValueChange={(val) => setActiveService(val as ServiceKey)}>
           <TabsList>
             {selectedTabs.map((service) => (
               <TabsTrigger key={service.key} value={service.key}>
@@ -1051,131 +955,86 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
             </div>
           )}
 
+          {/* ── Spotify Tab ──────────────────────────────────────── */}
           <TabsContent value="spotify" className="pt-4">
             <div className="space-y-4">
-              <div className="space-y-3">
-                <Label>Spotify Client *</Label>
-                <p className="text-xs text-muted-foreground">
-                  Select an existing Spotify client or create a new one for this campaign.
+              <div>
+                <Label>Stream URL *</Label>
+                <Input
+                  value={spotifyData.streamUrl}
+                  onChange={(e) => handleSpotifyUrlChange(e.target.value)}
+                  placeholder="https://open.spotify.com/track/... or private streaming link"
+                  disabled={isLoadingSpotifyGenres}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {isLoadingSpotifyGenres
+                    ? "Fetching track information from Spotify..."
+                    : "Public Spotify URL to auto-detect genres, or a private streaming link for unreleased tracks."}
                 </p>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={spotifyData.clientMode === "existing" ? "default" : "outline"}
-                    onClick={() =>
-                      setSpotifyData((prev) => ({ ...prev, clientMode: "existing" }))
-                    }
-                  >
-                    Existing
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={spotifyData.clientMode === "new" ? "default" : "outline"}
-                    onClick={() => setSpotifyData((prev) => ({ ...prev, clientMode: "new" }))}
-                  >
-                    New
-                  </Button>
-                </div>
+              </div>
 
-                {spotifyData.clientMode === "existing" ? (
-                <div className="space-y-3">
-                  <ClientSelector
-                    value={spotifyData.clientId}
-                    onChange={(clientId) =>
-                      setSpotifyData((prev) => ({ ...prev, clientId }))
-                    }
-                    placeholder="Search clients..."
-                  />
-                  {selectedSpotifyClient && (
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <OverrideField
-                        label="Client name (override)"
-                        value={spotifyData.clientName}
-                        suggestedValue={selectedSpotifyClient.name}
-                        overridden={isOverridden("client_name")}
-                        placeholder="Client name"
-                        onOverride={(value, reason) => {
-                          setSpotifyData((prev) => ({ ...prev, clientName: value }))
-                          recordOverride("client_name", selectedSpotifyClient.name, reason)
-                        }}
-                        onRevert={() => {
-                          setSpotifyData((prev) => ({ ...prev, clientName: selectedSpotifyClient.name }))
-                          clearOverride("client_name")
-                        }}
-                      />
-                      <OverrideField
-                        label="Client emails (override)"
-                        value={spotifyData.clientEmails}
-                        suggestedValue={(selectedSpotifyClient.emails || []).join(", ")}
-                        overridden={isOverridden("client_emails")}
-                        placeholder="Client emails (comma-separated)"
-                        onOverride={(value, reason) => {
-                          setSpotifyData((prev) => ({ ...prev, clientEmails: value }))
-                          recordOverride(
-                            "client_emails",
-                            (selectedSpotifyClient.emails || []).join(", "),
-                            reason,
-                          )
-                        }}
-                        onRevert={() => {
-                          setSpotifyData((prev) => ({
-                            ...prev,
-                            clientEmails: (selectedSpotifyClient.emails || []).join(", "),
-                          }))
-                          clearOverride("client_emails")
-                        }}
-                      />
-                    </div>
+              <div className="space-y-2">
+                <Label>
+                  Genres{" "}
+                  {spotifyData.genres.length > 0 && (
+                    <span className="text-muted-foreground font-normal">
+                      ({spotifyData.genres.length} selected)
+                    </span>
                   )}
-                </div>
-                ) : (
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <Input
-                      placeholder="Client name"
-                      value={spotifyData.clientName}
-                      onChange={(event) =>
-                        setSpotifyData((prev) => ({
-                          ...prev,
-                          clientName: event.target.value,
-                        }))
-                      }
-                    />
-                    <Input
-                      placeholder="Client emails (comma-separated)"
-                      value={spotifyData.clientEmails}
-                      onChange={(event) =>
-                        setSpotifyData((prev) => ({
-                          ...prev,
-                          clientEmails: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+                </Label>
+                {spotifyData.autoDetectedGenres.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Spotify detected: {spotifyData.autoDetectedGenres.join(", ")}. Click to toggle.
+                  </p>
                 )}
+                <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-muted/20 max-h-48 overflow-y-auto">
+                  {UNIFIED_GENRES.map((genre) => {
+                    const isSelected = spotifyData.genres.includes(genre)
+                    const isAutoDetected = spotifyData.autoDetectedGenres.includes(genre)
+                    return (
+                      <Badge
+                        key={genre}
+                        variant={isSelected ? "default" : "outline"}
+                        className={`cursor-pointer select-none ${
+                          isAutoDetected && !isSelected ? "border-green-500/50" : ""
+                        }`}
+                        onClick={() => toggleGenre(genre)}
+                      >
+                        {genre}
+                        {isAutoDetected && isSelected && (
+                          <span className="ml-1 text-xs text-green-400">*</span>
+                        )}
+                      </Badge>
+                    )
+                  })}
+                </div>
+                {!spotifyData.streamUrl.includes("spotify.com/track/") &&
+                  spotifyData.autoDetectedGenres.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Select genres manually for private/unreleased links.
+                    </p>
+                  )}
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label>Spotify Track URL *</Label>
-                  <Input
-                    value={spotifyData.trackUrl}
-                    onChange={(event) =>
-                      setSpotifyData((prev) => ({ ...prev, trackUrl: event.target.value }))
+                  <Label>Timeframe *</Label>
+                  <RadioGroup
+                    value={spotifyData.timeframe}
+                    onValueChange={(val) =>
+                      setSpotifyData((prev) => ({ ...prev, timeframe: val as "30" | "60" | "90" }))
                     }
-                    placeholder="https://open.spotify.com/track/..."
-                  />
-                </div>
-                <div>
-                  <Label>Spotify for Artists URL</Label>
-                  <Input
-                    value={spotifyData.sfaUrl}
-                    onChange={(event) =>
-                      setSpotifyData((prev) => ({ ...prev, sfaUrl: event.target.value }))
-                    }
-                    placeholder="https://artists.spotify.com/..."
-                  />
+                    className="flex gap-4 mt-2"
+                  >
+                    {(["30", "60", "90"] as const).map((days) => (
+                      <div key={days} className="flex items-center space-x-2">
+                        <RadioGroupItem value={days} id={`timeframe-${days}`} />
+                        <Label htmlFor={`timeframe-${days}`} className="cursor-pointer font-normal">
+                          {days} days
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
                 </div>
                 <div>
                   <Label>Stream Goal *</Label>
@@ -1183,294 +1042,171 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
                     type="number"
                     min="1"
                     value={spotifyData.streamGoal}
-                    onChange={(event) =>
-                      setSpotifyData((prev) => ({ ...prev, streamGoal: event.target.value }))
+                    onChange={(e) =>
+                      setSpotifyData((prev) => ({ ...prev, streamGoal: e.target.value }))
                     }
+                    placeholder="e.g. 500000"
                   />
                 </div>
                 <div>
-                  <Label>Duration (days)</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={spotifyData.durationDays}
-                    onChange={(event) =>
-                      setSpotifyData((prev) => ({ ...prev, durationDays: event.target.value }))
+                  <Label>Status</Label>
+                  <Select
+                    value={spotifyData.status}
+                    onValueChange={(val) =>
+                      setSpotifyData((prev) => ({
+                        ...prev,
+                        status: val as "active" | "unreleased" | "pending",
+                      }))
                     }
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="unreleased">Unreleased</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <Label>Genres (comma-separated)</Label>
-                  <Input
-                    value={spotifyData.genres}
-                    onChange={(event) =>
-                      setSpotifyData((prev) => ({ ...prev, genres: event.target.value }))
-                    }
-                    placeholder="pop, hip-hop"
-                  />
-                </div>
-                <div>
-                  <Label>Territory Preferences</Label>
-                  <Input
-                    value={spotifyData.territories}
-                    onChange={(event) =>
-                      setSpotifyData((prev) => ({ ...prev, territories: event.target.value }))
-                    }
-                    placeholder="United States, Europe"
-                  />
-                </div>
+              </div>
+
+              <div>
+                <Label>Internal Notes</Label>
+                <Textarea
+                  rows={3}
+                  value={spotifyData.internalNotes}
+                  onChange={(e) =>
+                    setSpotifyData((prev) => ({ ...prev, internalNotes: e.target.value }))
+                  }
+                  placeholder="Does the artist NOT want certain geographical data? Certain playlists or styles to avoid?"
+                />
               </div>
             </div>
           </TabsContent>
 
+          {/* ── SoundCloud Tab ────────────────────────────────────── */}
           <TabsContent value="soundcloud" className="pt-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <Label>SoundCloud Client *</Label>
-                <p className="text-xs text-muted-foreground">
-                  Choose an existing SoundCloud client or add a new one below.
-                </p>
-                <select
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={soundcloudData.clientId}
-                  onChange={(event) =>
-                    setSoundcloudData((prev) => ({
-                      ...prev,
-                      clientId: event.target.value,
-                    }))
-                  }
-                >
-                  <option value="">Select existing client</option>
-                  {soundcloudClients.map((client) => (
-                    <option key={client.id} value={client.id}>
-                      {client.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label>New Client (optional)</Label>
-                <Input
-                  value={soundcloudData.newClientName}
-                  onChange={(event) =>
-                    setSoundcloudData((prev) => ({
-                      ...prev,
-                      newClientName: event.target.value,
-                    }))
-                  }
-                  placeholder="Create a new client"
-                />
-              </div>
-              <div>
-                <Label>New Client Email</Label>
-                <Input
-                  type="email"
-                  value={soundcloudData.newClientEmail}
-                  onChange={(event) =>
-                    setSoundcloudData((prev) => ({
-                      ...prev,
-                      newClientEmail: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <OverrideField
-                  label="Ops Owner ID (override)"
-                  value={soundcloudData.ownerId}
-                  suggestedValue={opsOwnerId || ""}
-                  overridden={isOverridden("owner_id")}
-                  placeholder="Ops owner user id"
-                  onOverride={(value, reason) => {
-                    setSoundcloudData((prev) => ({ ...prev, ownerId: value }))
-                    recordOverride("owner_id", String(opsOwnerId || ""), reason)
-                  }}
-                  onRevert={() => {
-                    setSoundcloudData((prev) => ({ ...prev, ownerId: opsOwnerId || "" }))
-                    clearOverride("owner_id")
-                  }}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Defaults to your user id. Override only if needed.
-                </p>
-              </div>
-              <div>
-                <Label>Artist Name *</Label>
-                <Input
-                  value={soundcloudData.artistName}
-                  onChange={(event) =>
-                    setSoundcloudData((prev) => ({
-                      ...prev,
-                      artistName: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <Label>Track Name *</Label>
-                <Input
-                  value={soundcloudData.trackName}
-                  onChange={(event) =>
-                    setSoundcloudData((prev) => ({
-                      ...prev,
-                      trackName: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <Label>Track URL *</Label>
-                <Input
-                  value={soundcloudData.trackUrl}
-                  onChange={(event) =>
-                    setSoundcloudData((prev) => ({ ...prev, trackUrl: event.target.value }))
-                  }
-                  placeholder="https://soundcloud.com/..."
-                />
-              </div>
-              <div>
-                <Label>Expected Reach Planned *</Label>
+                <Label>Reach Goal (Millions) *</Label>
                 <Input
                   type="number"
                   min="1"
-                  value={soundcloudData.expectedReach}
-                  onChange={(event) =>
-                    setSoundcloudData((prev) => ({
-                      ...prev,
-                      expectedReach: event.target.value,
-                    }))
+                  value={soundcloudData.reachGoalMillions}
+                  onChange={(e) =>
+                    setSoundcloudData((prev) => ({ ...prev, reachGoalMillions: e.target.value }))
                   }
+                  placeholder="e.g. 10"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  In millions of reach. Examples: 10M, 20M, 60M
+                </p>
               </div>
               <div>
-                <Label>Support Date</Label>
-                <Input
-                  type="date"
-                  value={soundcloudData.supportDate}
-                  onChange={(event) =>
+                <Label>Status</Label>
+                <Select
+                  value={soundcloudData.status}
+                  onValueChange={(val) =>
                     setSoundcloudData((prev) => ({
                       ...prev,
-                      supportDate: event.target.value,
+                      status: val as "released" | "unreleased" | "pending",
                     }))
                   }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="released">Released</SelectItem>
+                    <SelectItem value="unreleased">Unreleased</SelectItem>
+                    <SelectItem value="pending">Pending Confirmation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2">
+                <Label>Stream URL *</Label>
+                <Input
+                  value={soundcloudData.streamUrl}
+                  onChange={(e) =>
+                    setSoundcloudData((prev) => ({ ...prev, streamUrl: e.target.value }))
+                  }
+                  placeholder="https://soundcloud.com/..."
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Can be a private or public link depending on the release status.
+                </p>
               </div>
             </div>
           </TabsContent>
 
+          {/* ── YouTube Tab ───────────────────────────────────────── */}
           <TabsContent value="youtube" className="pt-4">
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label>YouTube Video URL *</Label>
+                  <Label>YouTube URL *</Label>
                   <Input
                     value={youtubeData.youtubeUrl}
-                    onChange={(event) =>
-                      setYoutubeData((prev) => ({ ...prev, youtubeUrl: event.target.value }))
+                    onChange={(e) =>
+                      setYoutubeData((prev) => ({ ...prev, youtubeUrl: e.target.value }))
                     }
                     placeholder="https://youtube.com/watch?v=..."
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Public, unlisted, or private URL accepted.
+                  </p>
                 </div>
                 <div>
-                  <Label>Genre</Label>
-                  <Input
-                    value={youtubeData.genre}
-                    onChange={(event) =>
-                      setYoutubeData((prev) => ({ ...prev, genre: event.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <Label>Budget (USD)</Label>
+                  <Label>Desired Daily Views</Label>
                   <Input
                     type="number"
                     min="0"
-                    value={youtubeData.salePrice}
-                    onChange={(event) =>
-                      setYoutubeData((prev) => ({ ...prev, salePrice: event.target.value }))
+                    value={youtubeData.desiredDailyViews}
+                    onChange={(e) =>
+                      setYoutubeData((prev) => ({
+                        ...prev,
+                        desiredDailyViews: e.target.value,
+                        desiredDailyViewsOverridden: true,
+                      }))
                     }
-                    placeholder={shared.budget || "5000"}
+                    placeholder="Auto-calculated from dates & goal"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {youtubeData.desiredDailyViewsOverridden
+                      ? "Manually overridden."
+                      : "Auto-calculated from total goal views / campaign days."}
+                    {!youtubeData.desiredDailyViewsOverridden && youtubeData.desiredDailyViews && (
+                      <button
+                        type="button"
+                        className="ml-1 underline"
+                        onClick={() =>
+                          setYoutubeData((prev) => ({
+                            ...prev,
+                            desiredDailyViewsOverridden: false,
+                          }))
+                        }
+                      >
+                        Reset
+                      </button>
+                    )}
+                    {youtubeData.desiredDailyViewsOverridden && (
+                      <button
+                        type="button"
+                        className="ml-1 underline"
+                        onClick={() =>
+                          setYoutubeData((prev) => ({
+                            ...prev,
+                            desiredDailyViewsOverridden: false,
+                            desiredDailyViews: "",
+                          }))
+                        }
+                      >
+                        Reset to auto
+                      </button>
+                    )}
+                  </p>
                 </div>
-                <div>
-                  <Label>YouTube Client</Label>
-                  <select
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={youtubeData.clientId}
-                    onChange={(event) =>
-                      setYoutubeData((prev) => ({ ...prev, clientId: event.target.value }))
-                    }
-                  >
-                    <option value="">Use Spotify client</option>
-                    {youtube.clients?.map((client) => (
-                      <option key={client.id} value={client.id}>
-                        {client.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <Label>Salesperson</Label>
-                  <select
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={youtubeData.salespersonId}
-                    onChange={(event) =>
-                      setYoutubeData((prev) => ({ ...prev, salespersonId: event.target.value }))
-                    }
-                  >
-                    <option value="">Unassigned</option>
-                    {youtube.salespersons?.map((person) => (
-                      <option key={person.id} value={person.id}>
-                        {person.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <OverrideField
-                  label="Ops Owner (override)"
-                  value={youtubeData.opsOwner}
-                  suggestedValue={opsOwner}
-                  overridden={isOverridden("ops_owner")}
-                  placeholder="ops@artistinfluence.com"
-                  onOverride={(value, reason) => {
-                    setYoutubeData((prev) => ({ ...prev, opsOwner: value }))
-                    recordOverride("ops_owner", opsOwner, reason)
-                  }}
-                  onRevert={() => {
-                    setYoutubeData((prev) => ({ ...prev, opsOwner: opsOwner }))
-                    clearOverride("ops_owner")
-                  }}
-                />
-                <OverrideField
-                  label="Ads Owner (override)"
-                  value={youtubeData.adsOwner}
-                  suggestedValue={opsOwner}
-                  overridden={isOverridden("ads_owner")}
-                  placeholder="ads@artistinfluence.com"
-                  onOverride={(value, reason) => {
-                    setYoutubeData((prev) => ({ ...prev, adsOwner: value }))
-                    recordOverride("ads_owner", opsOwner, reason)
-                  }}
-                  onRevert={() => {
-                    setYoutubeData((prev) => ({ ...prev, adsOwner: opsOwner }))
-                    clearOverride("ads_owner")
-                  }}
-                />
-                <OverrideField
-                  label="Campaign Owner (override)"
-                  value={youtubeData.campaignOwner}
-                  suggestedValue={opsOwner}
-                  overridden={isOverridden("campaign_owner")}
-                  placeholder="campaign@artistinfluence.com"
-                  onOverride={(value, reason) => {
-                    setYoutubeData((prev) => ({ ...prev, campaignOwner: value }))
-                    recordOverride("campaign_owner", opsOwner, reason)
-                  }}
-                  onRevert={() => {
-                    setYoutubeData((prev) => ({ ...prev, campaignOwner: opsOwner }))
-                    clearOverride("campaign_owner")
-                  }}
-                />
               </div>
 
               <MultiServiceTypeSelector
@@ -1480,113 +1216,131 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
             </div>
           </TabsContent>
 
+          {/* ── Instagram Tab ─────────────────────────────────────── */}
           <TabsContent value="instagram" className="pt-4">
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <Label>Seeding Type *</Label>
-                  <select
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  <Select
                     value={instagramData.seedingType}
-                    onChange={(event) =>
+                    onValueChange={(val) =>
                       setInstagramData((prev) => ({
                         ...prev,
-                        seedingType: event.target.value as "audio" | "footage",
+                        seedingType: val as "audio" | "footage",
                       }))
                     }
                   >
-                    <option value="audio">Audio Seeding</option>
-                    <option value="footage">Footage Seeding</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="audio">Audio Seeding</SelectItem>
+                      <SelectItem value="footage">Footage Seeding</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Audio: lyric videos, music memes, covers. Footage: DJ sets, festivals, live performances.
+                    Audio: lyric videos, music memes, covers. Footage: DJ sets, festivals, live
+                    performances.
                   </p>
                 </div>
                 <div>
-                  <Label>Sound URL (optional)</Label>
-                  <Input
-                    value={instagramData.soundUrl}
-                    onChange={(event) =>
-                      setInstagramData((prev) => ({ ...prev, soundUrl: event.target.value }))
+                  <Label>Status</Label>
+                  <Select
+                    value={instagramData.status}
+                    onValueChange={(val) =>
+                      setInstagramData((prev) => ({
+                        ...prev,
+                        status: val as "active" | "unreleased" | "pending",
+                      }))
                     }
-                    placeholder="https://..."
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="unreleased">Unreleased</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Sales Price (USD)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={instagramData.salesPrice}
+                    onChange={(e) => {
+                      setInstagramData((prev) => ({ ...prev, salesPrice: e.target.value }))
+                    }}
+                    placeholder={shared.saleAmount || "Pre-filled from sale amount"}
                   />
                 </div>
-                <OverrideField
-                  label="Paid Ops (override)"
-                  value={instagramData.paidOps}
-                  suggestedValue={opsOwner}
-                  overridden={isOverridden("paid_ops")}
-                  placeholder="ops@artistinfluence.com"
-                  onOverride={(value, reason) => {
-                    setInstagramData((prev) => ({ ...prev, paidOps: value }))
-                    recordOverride("paid_ops", opsOwner, reason)
-                  }}
-                  onRevert={() => {
-                    setInstagramData((prev) => ({ ...prev, paidOps: opsOwner }))
-                    clearOverride("paid_ops")
-                  }}
-                />
-                <OverrideField
-                  label="Salespeople (override)"
-                  value={instagramData.salespeople}
-                  suggestedValue={shared.salesperson || opsOwner}
-                  overridden={isOverridden("salespeople")}
-                  placeholder="sales@artistinfluence.com"
-                  onOverride={(value, reason) => {
-                    setInstagramData((prev) => ({ ...prev, salespeople: value }))
-                    recordOverride("salespeople", shared.salesperson || opsOwner, reason)
-                  }}
-                  onRevert={() => {
-                    setInstagramData((prev) => ({
-                      ...prev,
-                      salespeople: shared.salesperson || opsOwner,
-                    }))
-                    clearOverride("salespeople")
-                  }}
-                />
+                <div>
+                  <Label>Ad Spend (USD)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={instagramData.adSpend}
+                    onChange={(e) =>
+                      setInstagramData((prev) => ({
+                        ...prev,
+                        adSpend: e.target.value,
+                        adSpendOverridden: true,
+                      }))
+                    }
+                    placeholder="Auto-calculated at 70% of sales price"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {instagramData.adSpendOverridden
+                      ? "Manually overridden."
+                      : "Auto-calculated as 70% of the sales price."}
+                    {instagramData.adSpendOverridden && (
+                      <button
+                        type="button"
+                        className="ml-1 underline"
+                        onClick={() =>
+                          setInstagramData((prev) => ({
+                            ...prev,
+                            adSpendOverridden: false,
+                            adSpend: String(
+                              Math.round(Number(prev.salesPrice) * 0.7 * 100) / 100,
+                            ),
+                          }))
+                        }
+                      >
+                        Reset to 70%
+                      </button>
+                    )}
+                  </p>
+                </div>
               </div>
 
               <div>
-                <Label>Preferred Pages (optional)</Label>
-                <Input
-                  value={instagramData.preferredPages}
-                  onChange={(event) =>
-                    setInstagramData((prev) => ({ ...prev, preferredPages: event.target.value }))
-                  }
-                  placeholder="@page1, @page2, @page3 (comma-separated Instagram handles)"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Client-suggested pages. Algorithm will prioritize these if they match criteria.
-                </p>
-              </div>
-
-              <div>
-                <Label>Campaign Brief</Label>
+                <Label>Internal Notes</Label>
                 <Textarea
                   rows={4}
-                  value={instagramData.brief}
-                  onChange={(event) =>
-                    setInstagramData((prev) => ({ ...prev, brief: event.target.value }))
+                  value={instagramData.internalNotes}
+                  onChange={(e) =>
+                    setInstagramData((prev) => ({ ...prev, internalNotes: e.target.value }))
                   }
-                  placeholder="Describe the campaign goals, posting expectations, content guidelines, and any special requirements..."
+                  placeholder="Any specific pages we must use, creative details, content guidelines, special requirements..."
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Include posting window, content expectations, and any special instructions for ops.
-                </p>
               </div>
             </div>
           </TabsContent>
         </Tabs>
 
+        {/* ── Submit ───────────────────────────────────────────────── */}
         <div className="flex flex-wrap items-center gap-3">
           <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : "Submit Selected Campaigns"}
           </Button>
           {submitResults.length > 0 && (
             <div className="text-sm text-muted-foreground">
-              {submitResults.filter((result) => result.success).length} of {submitResults.length}{" "}
-              campaigns submitted successfully.
+              {submitResults.filter((r) => r.success).length} of {submitResults.length} campaigns
+              submitted successfully.
             </div>
           )}
         </div>
@@ -1601,9 +1355,19 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
                   className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
                 >
                   <span className="font-medium capitalize">{result.service}</span>
-                  <span className={result.success ? "text-green-600" : "text-red-600"}>
-                    {result.message}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className={result.success ? "text-green-600" : "text-red-600"}>
+                      {result.message}
+                    </span>
+                    {result.success && result.link && (
+                      <Link
+                        href={result.link}
+                        className="text-xs underline text-blue-500 hover:text-blue-700"
+                      >
+                        View Campaign →
+                      </Link>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

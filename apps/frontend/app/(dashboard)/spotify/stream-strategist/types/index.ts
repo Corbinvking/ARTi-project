@@ -40,8 +40,27 @@ export interface AllocationRecommendation {
   predictedPerformance: number
 }
 
+export interface Client {
+  id: string
+  org_id?: string
+  name: string
+  contact_person?: string
+  emails?: string[]
+  phone?: string
+  credit_balance: number
+  notes?: string
+  created_at: string
+  updated_at: string
+}
 
-
-
+export interface ClientCredit {
+  id: string
+  org_id?: string
+  client_id: string
+  amount: number
+  reason?: string | null
+  campaign_id?: string | null
+  created_at: string
+}
 
 

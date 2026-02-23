@@ -69,6 +69,7 @@ import * as z from 'zod';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Client } from '../types';
+import { Skeleton } from './ui/skeleton';
 
 const clientSchema = z.object({
   name: z.string().min(1, 'Client name is required'),
@@ -88,8 +89,8 @@ export function ClientManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false);
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortField, setSortField] = useState<SortField>('active_campaigns');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   
   const { data: clients = [], isLoading } = useClients();
   const createClient = useCreateClient();
@@ -197,7 +198,46 @@ export function ClientManager() {
     });
 
   if (isLoading) {
-    return <div>Loading clients...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Client Management</h1>
+            <p className="text-muted-foreground">Manage your clients and their campaign assignments</p>
+          </div>
+          <Skeleton className="h-9 w-[120px]" />
+        </div>
+        <Skeleton className="h-10 w-full max-w-sm" />
+        <div className="rounded-md border overflow-hidden">
+          <div className="overflow-x-auto w-full">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[200px]">Client Name</TableHead>
+                  <TableHead className="w-[100px]">Emails</TableHead>
+                  <TableHead className="w-[120px]">Credit Balance</TableHead>
+                  <TableHead className="w-[150px]">Active Campaigns</TableHead>
+                  <TableHead className="w-[120px]">Created</TableHead>
+                  <TableHead className="w-[70px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-[180px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[40px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[90px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[28px]" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

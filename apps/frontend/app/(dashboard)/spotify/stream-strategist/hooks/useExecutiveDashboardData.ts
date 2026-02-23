@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../integrations/supabase/client";
-import { startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters } from "date-fns";
 
 export interface ExecutiveDashboardData {
   totalCampaigns: number;
@@ -14,17 +13,30 @@ export interface ExecutiveDashboardData {
   totalStreamsPast30Days: number;
   campaignsAddedPast30Days: number;
   campaignEfficiency: number;
+  campaignPacingEfficiency: number;
   averageCostPerStream: number;
   averageCostPer1kStreams: number;
+  revenue30d: number;
+  vendorCost30d: number;
+  grossMarginPct: number;
+  vendorLiability: {
+    approvedUnpaid: number;
+    awaitingVerification: number;
+  };
+  flaggedCampaigns: number;
   topPerformingVendors: Array<{
+    id: string;
     name: string;
     totalCampaigns: number;
+    activeCampaignCount: number;
     totalPlaylists: number;
     totalStreams12m: number;
     avgStreamsPerPlaylist: number;
     costPer1k: number;
-    efficiency: number; // Legacy: avgStreamsPerPlaylist / 1000
-    avgPerformance: number; // Legacy: totalStreams12m / 1000
+    approvalRate: number;
+    payoutStatus: "paid" | "partial" | "unpaid" | "none";
+    efficiency: number;
+    avgPerformance: number;
   }>;
   monthOverMonthGrowth: {
     campaigns: number;
@@ -55,256 +67,308 @@ export const useExecutiveDashboardData = () => {
     queryFn: async (): Promise<ExecutiveDashboardData> => {
       const currentDate = new Date();
       const past30Days = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const currentMonthStart = startOfMonth(currentDate);
-      const currentMonthEnd = endOfMonth(currentDate);
-      const lastMonthStart = startOfMonth(subMonths(currentDate, 1));
-      const lastMonthEnd = endOfMonth(subMonths(currentDate, 1));
-      
-      const currentQuarterStart = startOfQuarter(currentDate);
-      const currentQuarterEnd = endOfQuarter(currentDate);
-      const lastQuarterStart = startOfQuarter(subQuarters(currentDate, 1));
-      const lastQuarterEnd = endOfQuarter(subQuarters(currentDate, 1));
 
-      // Get campaign_groups data (main campaigns table)
-      const { data: campaigns, error: campaignsError } = await supabase
-        .from("campaign_groups")
-        .select("*");
+      const [
+        campaignGroupsResult,
+        spotifyCampaignsResult,
+        playlistDataResult,
+        vendorsResult,
+        allocationsResult,
+        vendorRequestsResult,
+      ] = await Promise.all([
+        supabase.from("campaign_groups" as any).select("*"),
+        supabase.from("spotify_campaigns" as any).select("*"),
+        supabase.from("campaign_playlists" as any).select("*"),
+        supabase.from("vendors").select("*"),
+        supabase.from("campaign_allocations_performance").select("*"),
+        supabase.from("campaign_vendor_requests").select("*"),
+      ]);
 
-      if (campaignsError) throw campaignsError;
+      const campaignGroups: any[] = campaignGroupsResult.data || [];
+      const songs: any[] = spotifyCampaignsResult.data || [];
+      const playlistData: any[] = playlistDataResult.data || [];
+      const vendors: any[] = vendorsResult.data || [];
+      const allocations: any[] = allocationsResult.data || [];
+      const vendorRequests: any[] = vendorRequestsResult.data || [];
 
-      // Get spotify_campaigns (individual songs)
-      const { data: spotifyCampaigns, error: songsError } = await supabase
-        .from("spotify_campaigns")
-        .select("*");
+      // Use spotify_campaigns as primary source (like QuickActions does),
+      // fall back to campaign_groups if no songs exist
+      const campaigns = songs.length > 0 ? songs : campaignGroups;
 
-      if (songsError) throw songsError;
+      if (campaignGroupsResult.error) throw campaignGroupsResult.error;
 
-      // Get playlist data (actual stream data)
-      const { data: playlistData, error: playlistError } = await supabase
-        .from("campaign_playlists")
-        .select("*");
+      const normalizeStatus = (s: string | null) => (s || "").toLowerCase().trim();
+      const activeStatuses = ["active", "in_progress", "running"];
 
-      if (playlistError) throw playlistError;
+      const totalCampaigns = campaigns.length;
+      const activeCampaigns = campaigns.filter(c => activeStatuses.includes(normalizeStatus(c.status))).length;
 
-      // Get vendor data
-      const { data: vendors, error: vendorError } = await supabase
-        .from("vendors")
-        .select("*");
-
-      if (vendorError) throw vendorError;
-
-      // Calculate metrics
-      const totalCampaigns = campaigns?.length || 0;
-      const activeCampaigns = campaigns?.filter(c => c.status === 'Active').length || 0;
-      
-      // Calculate total revenue (sum of all campaign budgets)
-      const totalRevenue = campaigns?.reduce((sum, campaign) => {
-        return sum + (parseFloat(campaign.total_budget) || 0);
-      }, 0) || 0;
-
-      // Calculate actual vendor costs paid (based on streams delivered * cost per 1k)
-      let totalVendorCostsPaid = 0;
-      if (Array.isArray(playlistData) && Array.isArray(vendors)) {
-        const vendorCostMap = new Map<string, number>();
-        vendors.forEach(v => {
-          if (v.cost_per_1k_streams && v.cost_per_1k_streams > 0) {
-            vendorCostMap.set(v.id, v.cost_per_1k_streams);
-          }
-        });
-        
-        playlistData
-          .filter(p => p.vendor_id && !p.is_algorithmic && !p.is_organic)
-          .forEach(playlist => {
-            const costPer1k = playlist.cost_per_1k_override || vendorCostMap.get(playlist.vendor_id) || 0;
-            const streams = playlist.streams_12m || 0;
-            totalVendorCostsPaid += (streams / 1000) * costPer1k;
-          });
-      }
-      
-      // Calculate Profit Margin: (Revenue - Vendor Costs) / Revenue * 100
-      // This shows how much margin we're making after paying vendors
-      const averageROI = totalRevenue > 0 
-        ? ((totalRevenue - totalVendorCostsPaid) / totalRevenue) * 100 
-        : 0;
-
-      // Calculate total stream goals
-      const totalStreamGoals = Array.isArray(campaigns) 
-        ? campaigns.reduce((sum, c) => sum + (parseFloat(c.total_goal) || 0), 0) 
-        : 0;
-        
-      // Calculate actual streams from campaign_playlists (ALL streams for overall metric)
-      const totalActualStreams = Array.isArray(playlistData) 
-        ? playlistData.reduce((sum, playlist) => sum + (playlist.streams_12m || 0), 0) 
-        : 0;
-      
-      // Calculate streams ONLY from our vendor playlists (for cost calculations)
-      const totalVendorPlaylistStreams = Array.isArray(playlistData) 
-        ? playlistData
-            .filter(p => p.vendor_id && !p.is_algorithmic && !p.is_organic)
-            .reduce((sum, playlist) => sum + (playlist.streams_12m || 0), 0) 
-        : 0;
-
-      // Calculate campaign efficiency (goal achievement rate - how close are we to hitting goals?)
-      const campaignEfficiency = totalStreamGoals > 0 
-        ? Math.min((totalActualStreams / totalStreamGoals) * 100, 100)
-        : 0;
-
-      // Calculate streams from past 30 days - ONLY from vendor-placed playlists
-      // Exclude algorithmic (is_algorithmic=true) and organic (is_organic=true) playlists
-      const totalStreamsPast30Days = totalVendorPlaylistStreams;
-
-      // Calculate average cost per stream based on vendor playlist streams
-      const averageCostPerStream = totalVendorPlaylistStreams > 0 
-        ? totalRevenue / totalVendorPlaylistStreams 
-        : 0;
-
-      // Calculate campaigns added in past 30 days
-      const campaignsAddedPast30Days = Array.isArray(campaigns) 
-        ? campaigns.filter(c => new Date(c.created_at) >= past30Days).length 
-        : 0;
-
-      // Calculate average cost per 1k streams - based on actual vendor rates we've paid
-      // Get unique vendors with their cost_per_1k_streams from playlists we've used
-      const vendorCosts: number[] = [];
-      if (Array.isArray(playlistData) && Array.isArray(vendors)) {
-        // Build a map of vendor costs
-        const vendorCostMap = new Map<string, number>();
-        vendors.forEach(v => {
-          if (v.cost_per_1k_streams && v.cost_per_1k_streams > 0) {
-            vendorCostMap.set(v.id, v.cost_per_1k_streams);
-          }
-        });
-        
-        // Collect costs from vendor playlists (using override if set, otherwise vendor default)
-        playlistData
-          .filter(p => p.vendor_id && !p.is_algorithmic && !p.is_organic)
-          .forEach(playlist => {
-            const cost = playlist.cost_per_1k_override || vendorCostMap.get(playlist.vendor_id) || 0;
-            if (cost > 0) {
-              vendorCosts.push(cost);
-            }
-          });
-      }
-      
-      // Calculate weighted average (or simple average if no weighting data)
-      const averageCostPer1kStreams = vendorCosts.length > 0
-        ? vendorCosts.reduce((sum, cost) => sum + cost, 0) / vendorCosts.length
-        : 0;
-
-      // Calculate top performing vendors from playlist data
-      // Metrics explained:
-      // - totalStreams12m: Total streams from this vendor's playlists in past 12 months
-      // - avgStreamsPerPlaylist: Average streams per playlist (quality indicator)
-      // - costPer1kActual: Actual cost per 1K streams based on their rate
-      const topPerformingVendors = Array.isArray(vendors) 
-        ? vendors.map(vendor => {
-            // Get all playlists for this vendor (excluding algorithmic/organic)
-            const vendorPlaylists = playlistData?.filter(p => 
-              p.vendor_id === vendor.id && !p.is_algorithmic && !p.is_organic
-            ) || [];
-            
-            // Total streams from this vendor's playlists (12 months)
-            const totalStreams12m = vendorPlaylists.reduce((sum, p) => sum + (p.streams_12m || 0), 0);
-            
-            // Number of unique campaigns this vendor has playlists in
-            const totalCampaigns = new Set(vendorPlaylists.map(p => p.campaign_id)).size;
-            
-            // Number of playlists this vendor has
-            const totalPlaylists = vendorPlaylists.length;
-            
-            // Average streams per playlist (12m) - higher = better performing playlists
-            const avgStreamsPerPlaylist = totalPlaylists > 0 
-              ? Math.round(totalStreams12m / totalPlaylists)
-              : 0;
-            
-            // Cost per 1K streams for this vendor
-            const vendorCostPer1k = vendor.cost_per_1k_streams || 0;
-            
-            // Actual cost efficiency: how much we pay per 1K streams
-            // Lower is better (we get more streams for less money)
-            const costEfficiency = vendorCostPer1k > 0 ? vendorCostPer1k : 0;
-
-            return {
-              name: vendor.name,
-              totalCampaigns,
-              totalPlaylists,
-              totalStreams12m,
-              avgStreamsPerPlaylist,
-              costPer1k: costEfficiency,
-              // For display: efficiency = avg streams per playlist (thousands)
-              efficiency: avgStreamsPerPlaylist / 1000,
-              // For display: performance = total streams (thousands)  
-              avgPerformance: totalStreams12m / 1000
-            };
-        })
-        .filter(v => v.totalCampaigns > 0) // Only vendors with campaigns
-        .sort((a, b) => b.totalStreams12m - a.totalStreams12m) // Sort by total streams delivered
-        .slice(0, 5)
-        : [];
-
-      // Calculate month-over-month growth
-      const currentMonthCampaigns = Array.isArray(campaigns) ? campaigns.filter(c => 
-        new Date(c.created_at) >= currentMonthStart && new Date(c.created_at) <= currentMonthEnd
-      ).length : 0;
-      
-      const lastMonthCampaigns = Array.isArray(campaigns) ? campaigns.filter(c => 
-        new Date(c.created_at) >= lastMonthStart && new Date(c.created_at) <= lastMonthEnd
-      ).length : 0;
-
-      const monthOverMonthGrowth = {
-        campaigns: lastMonthCampaigns > 0 ? ((currentMonthCampaigns - lastMonthCampaigns) / lastMonthCampaigns) * 100 : 0,
-        revenue: 0, // Would need to calculate based on time periods
-        streams: 0  // Would need to calculate based on time periods
-      };
-
-      // Calculate quarter-over-quarter growth
-      const currentQuarterCampaigns = Array.isArray(campaigns) ? campaigns.filter(c => 
-        new Date(c.created_at) >= currentQuarterStart && new Date(c.created_at) <= currentQuarterEnd
-      ).length : 0;
-      
-      const lastQuarterCampaigns = Array.isArray(campaigns) ? campaigns.filter(c => 
-        new Date(c.created_at) >= lastQuarterStart && new Date(c.created_at) <= lastQuarterEnd
-      ).length : 0;
-
-      const quarterOverQuarterGrowth = {
-        campaigns: lastQuarterCampaigns > 0 ? ((currentQuarterCampaigns - lastQuarterCampaigns) / lastQuarterCampaigns) * 100 : 0,
-        revenue: 0,
-        streams: 0
-      };
-
-      // Campaign status distribution - normalize status names (case-insensitive grouping)
-      const statusCounts = Array.isArray(campaigns) ? campaigns.reduce((acc, campaign) => {
-        // Normalize status to title case for consistent grouping
-        const rawStatus = campaign.status || 'Draft';
-        const normalizedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
-        acc[normalizedStatus] = (acc[normalizedStatus] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>) : {};
-
-      // Ensure all main statuses are represented (even if 0)
-      const allStatuses = ['Active', 'Pending', 'Paused', 'Completed', 'Draft'];
-      allStatuses.forEach(status => {
-        if (!statusCounts[status]) {
-          statusCounts[status] = 0;
+      // Build vendor cost map
+      const vendorCostMap = new Map<string, number>();
+      vendors.forEach(v => {
+        if (v.cost_per_1k_streams && v.cost_per_1k_streams > 0) {
+          vendorCostMap.set(v.id, v.cost_per_1k_streams);
         }
       });
 
-      const campaignStatusDistribution = Object.entries(statusCounts)
-        .filter(([_, count]) => count > 0) // Only show statuses with campaigns
+      const vendorPlaylists = Array.isArray(playlistData)
+        ? playlistData.filter(p => p.vendor_id && !p.is_algorithmic && !p.is_organic)
+        : [];
+
+      // Total vendor costs
+      let totalVendorCostsPaid = 0;
+      vendorPlaylists.forEach(playlist => {
+        const costPer1k = playlist.cost_per_1k_override || vendorCostMap.get(playlist.vendor_id) || 0;
+        const streams = playlist.streams_12m || 0;
+        totalVendorCostsPaid += (streams / 1000) * costPer1k;
+      });
+
+      // Revenue = sum of campaign budgets
+      // campaign_groups has total_budget, spotify_campaigns has budget
+      const totalRevenue = campaigns.reduce((sum, c) => {
+        return sum + (parseFloat(c.total_budget || c.budget) || 0);
+      }, 0);
+      const averageROI = totalRevenue > 0
+        ? ((totalRevenue - totalVendorCostsPaid) / totalRevenue) * 100
+        : 0;
+
+      // 30-day financials
+      const campaigns30d = campaigns.filter(c => new Date(c.created_at) >= past30Days);
+      const revenue30d = campaigns30d.reduce((sum, c) => sum + (parseFloat(c.total_budget || c.budget) || 0), 0);
+
+      const playlists30d = vendorPlaylists.filter(p => {
+        const added = p.added_at || p.created_at;
+        return added && new Date(added) >= past30Days;
+      });
+      let vendorCost30d = 0;
+      playlists30d.forEach(p => {
+        const costPer1k = p.cost_per_1k_override || vendorCostMap.get(p.vendor_id) || 0;
+        const streams = p.streams_12m || 0;
+        vendorCost30d += (streams / 1000) * costPer1k;
+      });
+      if (vendorCost30d === 0 && totalVendorCostsPaid > 0) {
+        vendorCost30d = totalVendorCostsPaid;
+      }
+      const effectiveRevenue = revenue30d > 0 ? revenue30d : totalRevenue;
+      const effectiveCost = vendorCost30d > 0 ? vendorCost30d : totalVendorCostsPaid;
+      const grossMarginPct = effectiveRevenue > 0
+        ? ((effectiveRevenue - effectiveCost) / effectiveRevenue) * 100
+        : 0;
+
+      // Vendor Liability - use vendor cost_per_1k_streams when cost_per_stream is missing
+      const unpaidAllocations = allocations.filter(a => {
+        const status = (a.payment_status || "").toLowerCase();
+        return status !== "paid" && a.actual_streams && a.actual_streams > 0;
+      });
+
+      const getAllocCost = (a: any) => {
+        if (a.cost_per_stream && a.cost_per_stream > 0) {
+          return a.cost_per_stream * (a.actual_streams || 0);
+        }
+        const vendorRate = vendorCostMap.get(a.vendor_id) || 0;
+        return ((a.actual_streams || 0) / 1000) * vendorRate;
+      };
+
+      const approvedUnpaid = unpaidAllocations
+        .filter(a => {
+          const status = (a.payment_status || "").toLowerCase();
+          return status === "approved" || status === "unpaid" || status === "";
+        })
+        .reduce((sum, a) => sum + getAllocCost(a), 0);
+      const awaitingVerification = unpaidAllocations
+        .filter(a => {
+          const status = (a.payment_status || "").toLowerCase();
+          return status === "pending" || status === "verification" || status === "awaiting_verification";
+        })
+        .reduce((sum, a) => sum + getAllocCost(a), 0);
+
+      // Stream goals & actuals
+      // spotify_campaigns uses stream_goal, campaign_groups uses total_goal
+      const totalStreamGoals = campaigns.reduce((sum, c) => {
+        return sum + (parseFloat(c.stream_goal || c.total_goal) || 0);
+      }, 0);
+      const totalActualStreams = Array.isArray(playlistData)
+        ? playlistData.reduce((sum, p) => sum + (p.streams_12m || 0), 0)
+        : 0;
+      const totalVendorPlaylistStreams = vendorPlaylists.reduce((sum, p) => sum + (p.streams_12m || 0), 0);
+
+      const campaignEfficiency = totalStreamGoals > 0
+        ? Math.min((totalActualStreams / totalStreamGoals) * 100, 100)
+        : 0;
+
+      // Campaign Pacing Efficiency: % of active campaigns on pace
+      // Use spotify_campaigns which has start_date, duration_days, stream_goal
+      const activeCampaignList = campaigns.filter(c => activeStatuses.includes(normalizeStatus(c.status)));
+      // Build set of active campaign IDs (spotify_campaigns IDs) for vendor cross-reference
+      const activeSongIds = new Set(activeCampaignList.map(c => c.id));
+
+      let onPaceCount = 0;
+      let flaggedCount = 0;
+      for (const campaign of activeCampaignList) {
+        const goal = parseFloat(campaign.stream_goal || campaign.total_goal) || 0;
+        const duration = campaign.duration_days || 0;
+        const startDate = campaign.start_date;
+
+        if (!startDate || !duration || !goal) {
+          onPaceCount++;
+          continue;
+        }
+        const start = new Date(startDate);
+        const elapsedMs = currentDate.getTime() - start.getTime();
+        const elapsedDays = Math.max(1, Math.floor(elapsedMs / (24 * 60 * 60 * 1000)));
+        const expectedStreams = (goal / duration) * Math.min(elapsedDays, duration);
+
+        // Check allocations (campaign_id = spotify_campaigns.id)
+        const campaignAllocations = allocations.filter(a => a.campaign_id === campaign.id);
+        const allocStreams = campaignAllocations.reduce((sum, a) => sum + (a.actual_streams || 0), 0);
+
+        // Check playlists (campaign_id = spotify_campaigns.id)
+        const playlistStreams = playlistData
+          .filter((p: any) => p.campaign_id === campaign.id)
+          .reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0);
+
+        const bestStreams = Math.max(allocStreams, playlistStreams);
+
+        if (expectedStreams > 0 && bestStreams / expectedStreams >= 0.8) {
+          onPaceCount++;
+        } else {
+          flaggedCount++;
+        }
+      }
+
+      const campaignPacingEfficiency = activeCampaignList.length > 0
+        ? (onPaceCount / activeCampaignList.length) * 100
+        : 100;
+
+      const totalStreamsPast30Days = totalVendorPlaylistStreams;
+      const averageCostPerStream = totalVendorPlaylistStreams > 0
+        ? totalRevenue / totalVendorPlaylistStreams
+        : 0;
+      const campaignsAddedPast30Days = campaigns.filter(c => new Date(c.created_at) >= past30Days).length;
+
+      // Average cost per 1K streams
+      const vendorCostsList: number[] = [];
+      vendorPlaylists.forEach(playlist => {
+        const cost = playlist.cost_per_1k_override || vendorCostMap.get(playlist.vendor_id) || 0;
+        if (cost > 0) vendorCostsList.push(cost);
+      });
+      const averageCostPer1kStreams = vendorCostsList.length > 0
+        ? vendorCostsList.reduce((sum, c) => sum + c, 0) / vendorCostsList.length
+        : 0;
+
+      // Top performing vendors with extended data
+      // Cross-reference using spotify_campaigns IDs (which campaign_playlists.campaign_id references)
+      const topPerformingVendors = vendors.map(vendor => {
+        const vPlaylists = vendorPlaylists.filter(p => p.vendor_id === vendor.id);
+        const totalStreams12m = vPlaylists.reduce((sum, p) => sum + (p.streams_12m || 0), 0);
+        const allCampaignIds = new Set(vPlaylists.map(p => p.campaign_id));
+        const vendorTotalCampaigns = allCampaignIds.size;
+        const totalPlaylistCount = vPlaylists.length;
+        const avgStreamsPerPlaylist = totalPlaylistCount > 0
+          ? Math.round(totalStreams12m / totalPlaylistCount)
+          : 0;
+        const vendorCostPer1k = vendor.cost_per_1k_streams || 0;
+
+        // Active campaign count: match playlist campaign_ids against active spotify_campaigns
+        const activeCampaignCount = [...allCampaignIds].filter(cid => activeSongIds.has(cid)).length;
+
+        // Approval rate from vendor requests
+        const vendorReqs = vendorRequests.filter(r => r.vendor_id === vendor.id);
+        const acceptedReqs = vendorReqs.filter(r =>
+          ["accepted", "approved", "completed"].includes((r.status || "").toLowerCase())
+        ).length;
+        const approvalRate = vendorReqs.length > 0
+          ? (acceptedReqs / vendorReqs.length) * 100
+          : 100;
+
+        // Payout status — check both allocations and playlist vendor_paid field
+        const vendorAllocations = allocations.filter(a => a.vendor_id === vendor.id);
+        const paidAllocCount = vendorAllocations.filter(a => (a.payment_status || "").toLowerCase() === "paid").length;
+
+        // Also check vendor_paid on playlists
+        const paidPlaylists = vPlaylists.filter(p => p.vendor_paid === true).length;
+        const unpaidPlaylists = vPlaylists.filter(p => p.vendor_paid === false || p.vendor_paid === null).length;
+
+        let payoutStatus: "paid" | "partial" | "unpaid" | "none" = "none";
+        if (vendorAllocations.length > 0) {
+          if (paidAllocCount === vendorAllocations.length) payoutStatus = "paid";
+          else if (paidAllocCount > 0) payoutStatus = "partial";
+          else payoutStatus = "unpaid";
+        } else if (vPlaylists.length > 0) {
+          if (paidPlaylists === vPlaylists.length) payoutStatus = "paid";
+          else if (paidPlaylists > 0) payoutStatus = "partial";
+          else payoutStatus = "unpaid";
+        }
+
+        return {
+          id: vendor.id,
+          name: vendor.name,
+          totalCampaigns: vendorTotalCampaigns,
+          activeCampaignCount,
+          totalPlaylists: totalPlaylistCount,
+          totalStreams12m,
+          avgStreamsPerPlaylist,
+          costPer1k: vendorCostPer1k,
+          approvalRate,
+          payoutStatus,
+          efficiency: avgStreamsPerPlaylist / 1000,
+          avgPerformance: totalStreams12m / 1000,
+        };
+      })
+        .filter(v => v.totalCampaigns > 0)
+        .sort((a, b) => b.totalStreams12m - a.totalStreams12m)
+        .slice(0, 10);
+
+      // Campaign status distribution - ops-focused
+      // Use campaigns (spotify_campaigns as primary)
+      const statusMap: Record<string, number> = {};
+
+      campaigns.forEach(campaign => {
+        const raw = normalizeStatus(campaign.status);
+        if (activeStatuses.includes(raw)) {
+          statusMap["Active"] = (statusMap["Active"] || 0) + 1;
+        } else if (["pending", "draft"].includes(raw)) {
+          statusMap["Pending Approval"] = (statusMap["Pending Approval"] || 0) + 1;
+        } else if (["complete", "completed", "done", "finished"].includes(raw)) {
+          statusMap["Completed"] = (statusMap["Completed"] || 0) + 1;
+        } else if (["paused", "flagged"].includes(raw)) {
+          statusMap["Flagged"] = (statusMap["Flagged"] || 0) + 1;
+        }
+      });
+
+      // Awaiting Playlist Adds: active campaigns with no playlists
+      // campaign_playlists.campaign_id matches spotify_campaigns.id
+      const campaignIdsWithPlaylists = new Set(playlistData.map((p: any) => p.campaign_id));
+      const awaitingPlaylistAdds = activeCampaignList.filter(
+        c => !campaignIdsWithPlaylists.has(c.id)
+      ).length;
+      if (awaitingPlaylistAdds > 0) {
+        statusMap["Awaiting Playlist Adds"] = awaitingPlaylistAdds;
+      }
+
+      if (flaggedCount > 0) {
+        statusMap["Flagged"] = (statusMap["Flagged"] || 0) + flaggedCount;
+      }
+
+      const totalForDistribution = Object.values(statusMap).reduce((sum, n) => sum + n, 0);
+      const campaignStatusDistribution = Object.entries(statusMap)
+        .filter(([_, count]) => count > 0)
         .map(([status, count]) => ({
           status,
           count,
-          percentage: totalCampaigns > 0 ? (count / totalCampaigns) * 100 : 0
+          percentage: totalForDistribution > 0 ? (count / totalForDistribution) * 100 : 0,
         }))
-        .sort((a, b) => b.count - a.count); // Sort by count descending
+        .sort((a, b) => b.count - a.count);
 
-      // Performance benchmarks (mock data for now)
       const performanceBenchmarks = {
         industryAvgROI: 15.2,
         ourAvgROI: averageROI,
         industryAvgCostPerStream: 0.08,
-        ourAvgCostPerStream: averageCostPerStream
+        ourAvgCostPerStream: averageCostPerStream,
       };
+
+      const monthOverMonthGrowth = { campaigns: 0, revenue: 0, streams: 0 };
+      const quarterOverQuarterGrowth = { campaigns: 0, revenue: 0, streams: 0 };
 
       return {
         totalCampaigns,
@@ -316,23 +380,24 @@ export const useExecutiveDashboardData = () => {
         totalStreamsPast30Days,
         campaignsAddedPast30Days,
         campaignEfficiency,
+        campaignPacingEfficiency,
         averageCostPerStream,
         averageCostPer1kStreams,
+        revenue30d: effectiveRevenue,
+        vendorCost30d: effectiveCost,
+        grossMarginPct,
+        vendorLiability: {
+          approvedUnpaid,
+          awaitingVerification,
+        },
+        flaggedCampaigns: flaggedCount,
         topPerformingVendors,
         monthOverMonthGrowth,
         quarterOverQuarterGrowth,
         campaignStatusDistribution,
-        performanceBenchmarks
+        performanceBenchmarks,
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 };
-
-
-
-
-
-
-
-

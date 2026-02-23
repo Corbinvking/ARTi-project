@@ -42,7 +42,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle, Loader2, Sparkles, Zap, TrendingUp, Target, Leaf, Globe } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import { PlaylistSelector } from './PlaylistSelector';
@@ -454,7 +454,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const [isAutoAssigning, setIsAutoAssigning] = useState(false);
   
   // State for stream view mode toggle (total vs playlist-only)
-  const [streamViewMode, setStreamViewMode] = useState<'total' | 'playlists'>('total');
+
   
   // Auto-assign all matched playlists
   const handleAutoAssignAll = async () => {
@@ -2681,414 +2681,325 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Campaign Overview - Only show when performance data exists */}
-                {performanceData && performanceData.length > 0 && (
+                {/* Campaign Pacing — Primary Decision Tool */}
                 <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Campaign Performance Overview</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-primary">
-                        {overallPerformance?.total_actual?.toLocaleString() || '0'}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Total Streams Driven</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">
-                        {overallPerformance?.campaign_goal?.toLocaleString() || '0'}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Campaign Goal</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        {overallPerformance?.progress_percentage?.toFixed(1) || '0'}%
-                      </div>
-                      <div className="text-sm text-muted-foreground">Goal Progress</div>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <Progress 
-                      value={overallPerformance?.progress_percentage || 0} 
-                      className="h-3"
-                    />
-                  </div>
-                </Card>
-                )}
-
-                {/* Stream Performance Card - Shows real data */}
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Stream Performance Tracking
-                    </h3>
-                    <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
-                      <Button
-                        variant={streamViewMode === 'total' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => setStreamViewMode('total')}
-                      >
-                        <Globe className="h-3 w-3 mr-1" />
-                        Overall
-                      </Button>
-                      <Button
-                        variant={streamViewMode === 'playlists' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="h-7 text-xs"
-                        onClick={() => setStreamViewMode('playlists')}
-                      >
-                        <Music className="h-3 w-3 mr-1" />
-                        Our Playlists
-                      </Button>
-                    </div>
-                  </div>
+                  <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                    <TrendingUp className="h-5 w-5" />
+                    Campaign Pacing
+                  </h3>
                   
-                  {/* Calculate stream metrics from actual data */}
                   {(() => {
-                    // Get TOTAL streams from spotify_campaigns (the actual song total from SFA)
-                    const songs = campaignData?.songs || [];
-                    const totalSongStreams12m = songs.reduce((sum: number, s: any) => sum + (s.streams_12m || 0), 0);
-                    const totalSongStreams7d = songs.reduce((sum: number, s: any) => sum + (s.streams_7d || 0), 0);
-                    const totalSongStreams24h = songs.reduce((sum: number, s: any) => sum + (s.streams_24h || 0), 0);
-                    
-                    // Get ALL-TIME streams from scrape_data JSON (captured from S4A song header)
-                    const totalAlltimeStreams = songs.reduce((sum: number, s: any) => {
-                      const alltime = s.scrape_data?.alltime_streams || 0;
-                      return sum + alltime;
-                    }, 0);
-                    
-                    // Get the most recent update timestamp from songs
-                    const lastUpdated = songs.reduce((latest: Date | null, s: any) => {
-                      if (!s.updated_at) return latest;
-                      const songDate = new Date(s.updated_at);
-                      return !latest || songDate > latest ? songDate : latest;
-                    }, null as Date | null);
-                    
-                    // Get playlist-only streams (from campaign_playlists - excluding algorithmic and organic)
-                    const vendorPlaylists = campaignPlaylists
+                    const vendorPls = campaignPlaylists
                       .filter((p: any) => !p.is_algorithmic && !p.is_organic);
-                    const playlistOnlyStreams12m = vendorPlaylists
+                    const playlistStreams12m = vendorPls
                       .reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0);
-                    const playlistOnlyStreams7d = vendorPlaylists
+                    const playlistStreams7d = vendorPls
                       .reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0);
-                    const playlistOnlyStreams24h = vendorPlaylists
+                    const playlistStreams24h = vendorPls
                       .reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0);
-                    
-                    // Calculate PROJECTED daily streams from vendor playlists (use avg_daily_streams from playlists table, or estimate from 7d data)
-                    // First try avg_daily_streams, then fall back to current 7d rate
-                    const projectedDailyFromPlaylists = vendorPlaylists.reduce((sum: number, p: any) => {
-                      // Use avg_daily_streams if available, otherwise estimate from 7-day data
-                      const dailyRate = p.avg_daily_streams || (p.streams_7d ? Math.round(p.streams_7d / 7) : 0);
-                      return sum + dailyRate;
-                    }, 0);
-                    
-                    // Calculate projected streams for campaign duration
-                    const campaignDuration = campaignData?.duration_days || 90;
-                    const projectedTotalStreams = projectedDailyFromPlaylists * campaignDuration;
-                    
-                    // Use the appropriate streams based on view mode (for display)
-                    const totalStreams12m = streamViewMode === 'total' ? totalSongStreams12m : playlistOnlyStreams12m;
-                    const totalStreams7d = streamViewMode === 'total' ? totalSongStreams7d : playlistOnlyStreams7d;
-                    const totalStreams24h = streamViewMode === 'total' ? totalSongStreams24h : playlistOnlyStreams24h;
-                    
+
+                    const dailyRate = playlistStreams7d > 0
+                      ? Math.round(playlistStreams7d / 7)
+                      : playlistStreams24h;
+
                     const streamGoal = campaignData?.stream_goal || 0;
-                    
-                    // Daily rate from OVERALL song (from SFA)
-                    const overallDailyRate = totalSongStreams7d > 0 ? Math.round(totalSongStreams7d / 7) : totalSongStreams24h;
-                    
-                    // Daily rate from OUR PLAYLISTS only (vendor playlists, excluding organic & algorithmic)
-                    const playlistDailyRate = playlistOnlyStreams7d > 0 ? Math.round(playlistOnlyStreams7d / 7) : playlistOnlyStreams24h;
-                    
-                    // Current displayed daily rate based on view mode
-                    const dailyRate = streamViewMode === 'total' ? overallDailyRate : playlistDailyRate;
-                    
-                    // GOAL PROGRESS: Always calculated from VENDOR playlists only
-                    // Organic and algorithmic playlists do NOT count towards campaign goal
-                    const streamsTowardsGoal = playlistOnlyStreams12m;
-                    const progressPercent = streamGoal > 0 ? Math.min((streamsTowardsGoal / streamGoal) * 100, 100) : 0;
-                    const remainingStreams = Math.max(0, streamGoal - streamsTowardsGoal);
-                    // Days to goal: use playlist daily rate since only vendor playlists count towards goal
-                    const daysToGoal = playlistDailyRate > 0 && remainingStreams > 0 ? Math.ceil(remainingStreams / playlistDailyRate) : 0;
-                    
-                    // Calculate campaign timeline
+                    const campaignDuration = campaignData?.duration_days || 90;
                     const startDate = campaignData?.start_date ? new Date(campaignData.start_date) : null;
                     const endDate = campaignData?.end_date ? new Date(campaignData.end_date) : null;
                     const now = new Date();
-                    
-                    // Check if campaign hasn't started yet
-                    const hasNotStarted = startDate && startDate > now;
-                    
-                    // Calculate days elapsed since campaign start (0 if not started)
-                    const daysElapsed = startDate 
-                      ? (hasNotStarted ? 0 : Math.max(1, Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))))
-                      : 28; // Default to 28 days if no start date
-                    
-                    // Calculate days until start (for unreleased)
-                    const daysUntilStart = startDate && hasNotStarted
-                      ? Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+
+                    const effectiveStart = startDate || new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    const effectiveEnd = endDate || new Date(effectiveStart.getTime() + campaignDuration * 24 * 60 * 60 * 1000);
+                    const totalDays = Math.max(1, Math.ceil((effectiveEnd.getTime() - effectiveStart.getTime()) / (1000 * 60 * 60 * 24)));
+                    const hasNotStarted = startDate ? startDate > now : false;
+                    const daysElapsed = startDate
+                      ? (hasNotStarted ? 0 : Math.max(0, Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))))
                       : 0;
-                    
-                    // Calculate days remaining until end (or default to 30 if no end date)
-                    const daysRemaining = endDate 
-                      ? Math.max(1, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
-                      : 30;
-                    
-                    // Required daily rate to hit goal on time (from vendor playlists)
-                    const requiredDailyRate = remainingStreams > 0 ? Math.ceil(remainingStreams / daysRemaining) : 0;
-                    
-                    // Determine campaign status
-                    // For unreleased: show "Not Started"
-                    // For released: either on track or behind
-                    const isOnTrack = hasNotStarted 
-                      ? null // null = not started yet
-                      : (streamsTowardsGoal >= streamGoal || (playlistDailyRate >= requiredDailyRate && playlistDailyRate > 0));
-                    
-                    // Generate chart data - project forward from current rate
-                    const chartData = [];
-                    for (let i = 0; i <= 30; i++) {
-                      const date = new Date();
-                      date.setDate(date.getDate() + i);
+                    const daysRemaining = Math.max(0, totalDays - daysElapsed);
+
+
+                    const streamsDelivered = playlistStreams12m;
+                    const remainingStreams = Math.max(0, streamGoal - streamsDelivered);
+                    const progressPercent = streamGoal > 0 ? Math.min((streamsDelivered / streamGoal) * 100, 100) : 0;
+                    const requiredDailyRate = daysRemaining > 0 ? Math.ceil(remainingStreams / daysRemaining) : 0;
+                    const projectedAtEnd = streamsDelivered + (dailyRate * daysRemaining);
+
+                    const pacingStatus: 'not_started' | 'completed' | 'ahead' | 'on_track' | 'behind' = hasNotStarted
+                      ? 'not_started'
+                      : streamsDelivered >= streamGoal
+                        ? 'completed'
+                        : projectedAtEnd >= streamGoal
+                          ? (projectedAtEnd >= streamGoal * 1.1 ? 'ahead' : 'on_track')
+                          : 'behind';
+
+                    const chartData: Array<{ day: number; date: string; requiredPace: number; actual?: number; projected?: number }> = [];
+                    const maxPoints = Math.min(totalDays + 1, 90);
+                    const dayStep = Math.max(1, Math.floor(totalDays / (maxPoints - 1)));
+
+                    for (let i = 0; i <= totalDays; i += dayStep) {
+                      const day = Math.min(i, totalDays);
+                      const d = new Date(effectiveStart.getTime() + day * 24 * 60 * 60 * 1000);
+                      const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                      const point: { day: number; date: string; requiredPace: number; actual?: number; projected?: number } = {
+                        day,
+                        date: label,
+                        requiredPace: Math.round((streamGoal / totalDays) * day),
+                      };
+                      if (day <= daysElapsed && !hasNotStarted) {
+                        point.actual = daysElapsed > 0
+                          ? Math.round((streamsDelivered / daysElapsed) * day)
+                          : 0;
+                      }
+                      if (day >= daysElapsed && !hasNotStarted) {
+                        point.projected = Math.round(streamsDelivered + dailyRate * Math.max(0, day - daysElapsed));
+                      }
+                      chartData.push(point);
+                    }
+
+                    const lastPt = chartData[chartData.length - 1];
+                    if (lastPt && lastPt.day !== totalDays) {
                       chartData.push({
-                        day: i === 0 ? 'Today' : `Day ${i}`,
-                        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                        current: i === 0 ? totalStreams12m : Math.round(totalStreams12m + dailyRate * i),
-                        goal: streamGoal,
-                        projected: Math.round(totalStreams12m + dailyRate * i),
+                        day: totalDays,
+                        date: effectiveEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                        requiredPace: streamGoal,
+                        projected: hasNotStarted ? undefined : Math.round(streamsDelivered + dailyRate * Math.max(0, totalDays - daysElapsed)),
                       });
                     }
-                    
+
+                    if (!hasNotStarted && daysElapsed > 0 && daysElapsed < totalDays) {
+                      const todayExists = chartData.some(p => p.day === daysElapsed);
+                      if (!todayExists) {
+                        chartData.push({
+                          day: daysElapsed,
+                          date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                          requiredPace: Math.round((streamGoal / totalDays) * daysElapsed),
+                          actual: streamsDelivered,
+                          projected: streamsDelivered,
+                        });
+                        chartData.sort((a, b) => a.day - b.day);
+                      }
+                    }
+
+                    const songs = campaignData?.songs || [];
+                    const totalSongStreams = songs.reduce((sum: number, s: any) => sum + (s.streams_12m || 0), 0);
+
+                    const statusConfig: Record<string, { label: string; Icon: typeof CheckCircle; bg: string; border: string; text: string }> = {
+                      not_started: { label: 'Not Started', Icon: Clock, bg: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200 dark:border-blue-800', text: 'text-blue-600' },
+                      ahead: { label: 'Ahead of Pace', Icon: CheckCircle, bg: 'bg-green-50 dark:bg-green-950/30', border: 'border-green-200 dark:border-green-800', text: 'text-green-600' },
+                      on_track: { label: 'On Track', Icon: CheckCircle, bg: 'bg-green-50 dark:bg-green-950/30', border: 'border-green-200 dark:border-green-800', text: 'text-green-600' },
+                      behind: { label: 'Behind Pace', Icon: AlertCircle, bg: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-600' },
+                      completed: { label: 'Goal Reached', Icon: CheckCircle, bg: 'bg-green-50 dark:bg-green-950/30', border: 'border-green-200 dark:border-green-800', text: 'text-green-600' },
+                    };
+                    const sc = statusConfig[pacingStatus];
+                    const StatusIcon = sc.Icon;
+
                     return (
                       <>
-                        {/* View mode explanation */}
-                        <p className="text-xs text-muted-foreground mb-2">
-                          {streamViewMode === 'total' 
-                            ? '📊 Showing total song streams from Spotify for Artists (includes all sources)'
-                            : '🎵 Showing streams from vendor-placed playlists only (excludes algorithmic & organic)'
-                          }
-                        </p>
-                        <p className="text-xs text-amber-600 dark:text-amber-400 mb-4 flex items-center gap-1">
-                          <Target className="h-3 w-3" />
-                          Goal progress is always calculated from vendor playlists only — organic and algorithmic streams don't count.
-                        </p>
-                        
-                        {/* Projected Streams Banner - Always Show */}
-                        <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg">
+                        {/* Pacing Status Banner */}
+                        <div className={`p-4 rounded-lg border-2 ${sc.bg} ${sc.border} mb-4`}>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Target className="h-4 w-4 text-purple-600" />
-                              <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Projected Streams</span>
-                            </div>
-                            <span className="text-lg font-bold text-purple-600">
-                              {projectedTotalStreams.toLocaleString()} 
-                              <span className="text-xs font-normal text-muted-foreground ml-1">
-                                ({projectedDailyFromPlaylists.toLocaleString()}/day × {campaignDuration} days)
-                              </span>
-                            </span>
-                          </div>
-                          {projectedDailyFromPlaylists === 0 && vendorPlaylists.length > 0 && (
-                            <p className="text-xs text-purple-600 mt-1">
-                              ⚠️ No daily stream data available yet - run scraper after song release to populate
-                            </p>
-                          )}
-                          {projectedDailyFromPlaylists === 0 && vendorPlaylists.length === 0 && (
-                            <p className="text-xs text-purple-600 mt-1">
-                              ℹ️ No vendor playlists assigned yet - add playlists to see projections
-                            </p>
-                          )}
-                        </div>
-                        
-                        {/* Daily Rate - Vendor Playlists Only */}
-                        <div className="mb-4">
-                          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Music className="h-3 w-3 text-green-600" />
-                              <span className="text-xs font-medium text-muted-foreground">Our Playlists Daily Rate</span>
-                            </div>
-                            <div className="text-2xl font-bold text-green-600">{playlistDailyRate.toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">streams/day (vendor playlists)</p>
-                          </div>
-                        </div>
-                        
-                        {/* All-Time Streams Banner */}
-                        {totalAlltimeStreams > 0 && streamViewMode === 'total' && (
-                          <div className="mb-4 p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-lg">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Globe className="h-4 w-4 text-indigo-600" />
-                                <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">All-Time Streams</span>
+                            <div className="flex items-center gap-3">
+                              <StatusIcon className={`h-6 w-6 ${sc.text}`} />
+                              <div>
+                                <div className={`text-lg font-bold ${sc.text}`}>{sc.label}</div>
+                                <p className="text-xs text-muted-foreground">
+                                  {pacingStatus === 'not_started'
+                                    ? `Campaign starts ${startDate?.toLocaleDateString() || 'TBD'}`
+                                    : pacingStatus === 'completed'
+                                      ? `Delivered ${streamsDelivered.toLocaleString()} streams (${progressPercent.toFixed(1)}% of goal)`
+                                      : `Projected ${projectedAtEnd.toLocaleString()} streams by ${effectiveEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (Goal: ${streamGoal.toLocaleString()})`
+                                  }
+                                </p>
                               </div>
-                              <span className="text-lg font-bold text-indigo-600">
-                                {totalAlltimeStreams.toLocaleString()}
-                              </span>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Total lifetime streams from Spotify for Artists
-                            </p>
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-muted-foreground">
+                                Day {daysElapsed} of {totalDays}
+                              </div>
+                              <Progress value={(daysElapsed / totalDays) * 100} className="h-1.5 w-24 mt-1" />
+                            </div>
                           </div>
-                        )}
-                        
+                        </div>
+
+                        {/* Key Metrics */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                          {/* Current Streams */}
                           <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-muted-foreground">
-                                {streamViewMode === 'total' ? 'Total Streams (12m)' : 'Playlist Streams (12m)'}
-                              </span>
-                              <Target className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-medium text-muted-foreground">Streams Delivered</span>
+                              <Music className="h-4 w-4 text-primary" />
                             </div>
                             <div className="text-3xl font-bold text-primary">
-                              {totalStreams12m.toLocaleString()}
+                              {streamsDelivered.toLocaleString()}
                             </div>
+                            <Progress value={progressPercent} className="h-2 mt-2" />
                             <p className="text-xs text-muted-foreground mt-1">
-                              Goal: {streamGoal.toLocaleString()}
+                              {progressPercent.toFixed(1)}% of {streamGoal.toLocaleString()} goal
                             </p>
-                            {lastUpdated && streamViewMode === 'total' && (
-                              <p className="text-xs text-amber-600 mt-1">
-                                Last updated: {lastUpdated.toLocaleDateString()}
-                              </p>
-                            )}
                           </div>
-                          
-                          {/* Daily Rate */}
+
                           <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-muted-foreground">
-                                {streamViewMode === 'total' ? 'Overall Daily' : 'Playlist Daily'}
-                              </span>
+                              <span className="text-sm font-medium text-muted-foreground">Current Daily Rate</span>
                               <TrendingUp className="h-4 w-4 text-blue-600" />
                             </div>
                             <div className="text-3xl font-bold text-blue-600">
                               {dailyRate.toLocaleString()}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Need: {requiredDailyRate.toLocaleString()}/day
+                              Required: {requiredDailyRate.toLocaleString()}/day
                             </p>
                           </div>
-                          
-                          {/* Progress - Always based on vendor playlists */}
-                          <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+
+                          <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-muted-foreground">Goal Progress</span>
-                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              <span className="text-sm font-medium text-muted-foreground">Remaining Streams</span>
+                              <Target className="h-4 w-4 text-amber-600" />
                             </div>
-                            <div className="text-3xl font-bold text-green-600">
-                              {progressPercent.toFixed(1)}%
+                            <div className="text-3xl font-bold text-amber-600">
+                              {remainingStreams.toLocaleString()}
                             </div>
-                            <Progress value={progressPercent} className="h-2 mt-2" />
                             <p className="text-xs text-muted-foreground mt-1">
-                              {streamsTowardsGoal.toLocaleString()} / {streamGoal.toLocaleString()}
+                              {daysRemaining} days remaining
                             </p>
                           </div>
-                          
-                          {/* Status */}
-                          <div className={`p-4 rounded-lg border ${
-                            isOnTrack === null
-                              ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
-                              : isOnTrack 
-                                ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800' 
-                                : 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800'
-                          }`}>
+
+                          <div className={`p-4 rounded-lg border ${sc.bg} ${sc.border}`}>
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-muted-foreground">Status</span>
-                              {isOnTrack === null ? (
-                                <Clock className="h-4 w-4 text-blue-600" />
-                              ) : isOnTrack ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <AlertCircle className="h-4 w-4 text-orange-600" />
-                              )}
+                              <span className="text-sm font-medium text-muted-foreground">Projected at End</span>
+                              <StatusIcon className={`h-4 w-4 ${sc.text}`} />
                             </div>
-                            <div className={`text-xl font-bold ${
-                              isOnTrack === null ? 'text-blue-600' : isOnTrack ? 'text-green-600' : 'text-orange-600'
-                            }`}>
-                              {isOnTrack === null ? 'Not Started' : isOnTrack ? 'On Track' : 'Behind'}
+                            <div className={`text-3xl font-bold ${sc.text}`}>
+                              {hasNotStarted ? '—' : projectedAtEnd.toLocaleString()}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                              {isOnTrack === null 
-                                ? `Starts in ${daysUntilStart} days`
-                                : daysToGoal < 999 ? `~${daysToGoal} days to goal` : 'Need more streams'
-                              }
+                              {hasNotStarted ? 'Awaiting start' : `Goal: ${streamGoal.toLocaleString()}`}
                             </p>
                           </div>
                         </div>
-                        
-                        {/* Stream Progress Chart */}
-                        <div className="mt-4">
+
+                        {/* Pacing Chart — 3 Lines */}
+                        <div className="mt-2">
                           <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                             <BarChart3 className="h-4 w-4" />
-                            30-Day Projection
+                            Campaign Pacing — {totalDays}-Day Timeline
                           </h4>
-                          <div className="h-[200px] w-full">
+                          <div className="h-[280px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                              <AreaChart data={chartData}>
-                                <defs>
-                                  <linearGradient id="streamGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                                  </linearGradient>
-                                </defs>
-                                <XAxis 
-                                  dataKey="date" 
+                              <LineChart data={chartData}>
+                                <XAxis
+                                  dataKey="date"
                                   tick={{ fontSize: 10 }}
-                                  interval={5}
+                                  interval={Math.max(0, Math.floor(chartData.length / 8) - 1)}
                                 />
-                                <YAxis 
+                                <YAxis
                                   tick={{ fontSize: 10 }}
-                                  tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
+                                  tickFormatter={(value: number) =>
+                                    value >= 1000000
+                                      ? `${(value / 1000000).toFixed(1)}M`
+                                      : value >= 1000
+                                        ? `${(value / 1000).toFixed(0)}k`
+                                        : String(value)
+                                  }
                                 />
-                                <RechartsTooltip 
-                                  formatter={(value: number) => [value.toLocaleString(), 'Streams']}
-                                  labelFormatter={(label) => label}
+                                <RechartsTooltip
+                                  formatter={(value: number, name: string) => {
+                                    const labels: Record<string, string> = {
+                                      actual: 'Actual (Vendor Playlists)',
+                                      requiredPace: 'Required Pace',
+                                      projected: 'Projected Outcome',
+                                    };
+                                    return [value.toLocaleString(), labels[name] || name];
+                                  }}
+                                  labelFormatter={(label: string) => label}
                                 />
-                                <ReferenceLine 
-                                  y={streamGoal} 
-                                  stroke="#22c55e" 
-                                  strokeDasharray="5 5"
-                                  label={{ value: 'Goal', position: 'right', fill: '#22c55e', fontSize: 10 }}
+                                <Line
+                                  type="linear"
+                                  dataKey="requiredPace"
+                                  stroke="#22c55e"
+                                  strokeWidth={2}
+                                  strokeDasharray="8 4"
+                                  dot={false}
+                                  name="requiredPace"
+                                  connectNulls={false}
                                 />
-                                <Area
+                                <Line
+                                  type="monotone"
+                                  dataKey="actual"
+                                  stroke="#3b82f6"
+                                  strokeWidth={3}
+                                  dot={false}
+                                  name="actual"
+                                  connectNulls={false}
+                                />
+                                <Line
                                   type="monotone"
                                   dataKey="projected"
-                                  stroke="#3b82f6"
-                                  fill="url(#streamGradient)"
+                                  stroke="#f59e0b"
                                   strokeWidth={2}
-                                  name="Projected"
+                                  strokeDasharray="5 3"
+                                  dot={false}
+                                  name="projected"
+                                  connectNulls={false}
                                 />
-                              </AreaChart>
+                              </LineChart>
                             </ResponsiveContainer>
                           </div>
-                          <div className="flex justify-center gap-4 mt-2 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <div className="w-3 h-0.5 bg-blue-500 rounded" /> Projected at current rate
+                          <div className="flex justify-center gap-6 mt-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1.5">
+                              <div className="w-4 h-[3px] bg-blue-500 rounded" />
+                              Actual Streams (Vendor Playlists)
                             </span>
-                            <span className="flex items-center gap-1">
-                              <div className="w-3 h-0.5 bg-green-500 rounded" style={{ borderStyle: 'dashed' }} /> Goal: {streamGoal.toLocaleString()}
+                            <span className="flex items-center gap-1.5">
+                              <div className="w-4 h-[3px] bg-green-500 rounded opacity-60" />
+                              Required Pace
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <div className="w-4 h-[3px] bg-amber-500 rounded opacity-60" />
+                              Projected Outcome
                             </span>
                           </div>
                         </div>
-                        
-                        {/* Analysis */}
+
+                        {/* Operational Analysis */}
                         <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                           <div className="flex items-start gap-2">
                             <BarChart3 className="h-5 w-5 text-muted-foreground mt-0.5" />
                             <div className="flex-1 space-y-1">
-                              <p className="text-sm font-medium">Performance Analysis</p>
+                              <p className="text-sm font-medium">Operational Analysis</p>
                               <p className="text-xs text-muted-foreground">
                                 {streamGoal === 0 ? (
-                                  `📊 No goal set for this campaign. Current daily rate: ${dailyRate.toLocaleString()} streams/day.`
-                                ) : totalStreams12m >= streamGoal ? (
-                                  `🎉 Goal reached! You've hit ${totalStreams12m.toLocaleString()} streams (${((totalStreams12m / streamGoal) * 100).toFixed(0)}% of ${streamGoal.toLocaleString()} goal).`
-                                ) : dailyRate === 0 ? (
-                                  `⚠️ No streams recorded yet. Goal: ${streamGoal.toLocaleString()} streams. ${daysRemaining} days remaining.`
-                                ) : isOnTrack ? (
-                                  `🎉 On track! At ${dailyRate.toLocaleString()}/day, you'll reach ${streamGoal.toLocaleString()} in ~${daysToGoal} days (${daysRemaining} days remaining).`
+                                  `No goal set. Current vendor playlist daily rate: ${dailyRate.toLocaleString()} streams/day.`
+                                ) : pacingStatus === 'completed' ? (
+                                  `Goal reached. Delivered ${streamsDelivered.toLocaleString()} of ${streamGoal.toLocaleString()} streams (${progressPercent.toFixed(0)}%).`
+                                ) : pacingStatus === 'not_started' ? (
+                                  `Campaign not yet started. Goal: ${streamGoal.toLocaleString()} streams over ${totalDays} days. Required pace: ${requiredDailyRate.toLocaleString()} streams/day.`
+                                ) : pacingStatus === 'ahead' ? (
+                                  `Pacing strong. At ${dailyRate.toLocaleString()}/day, projected to reach ${projectedAtEnd.toLocaleString()} by end date (${Math.round((projectedAtEnd / streamGoal) * 100)}% of goal). No action needed.`
+                                ) : pacingStatus === 'on_track' ? (
+                                  `Pacing on target. At ${dailyRate.toLocaleString()}/day (need ${requiredDailyRate.toLocaleString()}/day). Projected ${projectedAtEnd.toLocaleString()} streams by end date.`
                                 ) : (
-                                  `💡 At ${dailyRate.toLocaleString()}/day, need ${requiredDailyRate.toLocaleString()}/day to hit ${streamGoal.toLocaleString()} in ${daysRemaining} days.`
+                                  `Pacing behind. Current rate ${dailyRate.toLocaleString()}/day vs required ${requiredDailyRate.toLocaleString()}/day. Deficit: ${(requiredDailyRate - dailyRate).toLocaleString()}/day. Consider adding playlists or adjusting vendor engagement.`
                                 )}
                               </p>
                             </div>
                           </div>
                         </div>
+
+                        {/* Total Song Streams — Informational */}
+                        {totalSongStreams > 0 && (
+                          <div className="mt-4 p-3 bg-muted/30 border border-muted rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Globe className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">Total Song Streams (All Sources)</span>
+                              </div>
+                              <span className="text-sm font-medium">{totalSongStreams.toLocaleString()}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Includes algorithmic and organic — informational only, does not affect pacing.
+                            </p>
+                          </div>
+                        )}
                       </>
                     );
                   })()}

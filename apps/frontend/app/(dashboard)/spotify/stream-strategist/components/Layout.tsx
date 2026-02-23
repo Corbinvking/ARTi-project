@@ -21,7 +21,7 @@ import {
   LogOut,
   User,
   UserPlus,
-  Brain,
+  BarChart3,
   DollarSign,
   Target,
   Receipt
@@ -79,9 +79,9 @@ const getNavItemsForRole = (currentRole: string | null) => {
         hotkey: "Ctrl+5"
       },
       {
-        title: "ML Analytics",
+        title: "Campaign Intelligence",
         href: "/spotify/ml-dashboard",
-        icon: Brain,
+        icon: BarChart3,
         hotkey: "Ctrl+7"
       },
       ...(currentRole === 'admin' ? [{

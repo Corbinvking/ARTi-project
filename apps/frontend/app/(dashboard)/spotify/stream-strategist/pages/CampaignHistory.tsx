@@ -209,25 +209,23 @@ function calculateScheduleStatus(campaign: Campaign): {
     };
   }
   
-  // Calculate expected progress based on days elapsed
   const expectedProgress = Math.min(100, (daysElapsed / durationDays) * 100);
-  
-  // Calculate remaining days and required daily streams
   const remainingDays = Math.max(1, durationDays - daysElapsed);
+  const delivered = totalGoal - totalRemaining;
+  const avgDailyRate = daysElapsed > 0 ? delivered / daysElapsed : 0;
+  const projectedAtEnd = delivered + avgDailyRate * remainingDays;
   const dailyRequired = totalRemaining / remainingDays;
-  
-  // Compare actual vs expected (with 5% tolerance for "on track")
   const progressDiff = currentProgress - expectedProgress;
-  
+
   let status: 'ahead' | 'on_track' | 'behind';
-  if (progressDiff > 5) {
+  if (projectedAtEnd >= totalGoal * 1.1) {
     status = 'ahead';
-  } else if (progressDiff < -5) {
-    status = 'behind';
-  } else {
+  } else if (projectedAtEnd >= totalGoal) {
     status = 'on_track';
+  } else {
+    status = 'behind';
   }
-  
+
   return {
     status,
     expectedProgress: Math.round(expectedProgress),
@@ -1284,7 +1282,28 @@ export default function CampaignHistory() {
 
             {/* Campaigns Table */}
             {isLoading ? (
-              <div className="flex justify-center p-8">Loading campaigns...</div>
+              <div className="py-10 space-y-6">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <div className="h-10 w-10 rounded-full border-4 border-muted border-t-primary animate-spin" />
+                    <Music className="h-4 w-4 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                  <div className="text-sm font-medium text-muted-foreground">Loading campaigns...</div>
+                </div>
+                <div className="space-y-3 px-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-4 rounded-lg border border-muted/60" style={{ animationDelay: `${i * 120}ms` }}>
+                      <div className="h-4 w-4 rounded bg-muted animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 rounded bg-muted animate-pulse" style={{ width: `${65 - i * 8}%`, animationDelay: `${i * 100}ms` }} />
+                        <div className="h-3 rounded bg-muted/60 animate-pulse" style={{ width: `${40 - i * 5}%`, animationDelay: `${i * 150}ms` }} />
+                      </div>
+                      <div className="h-6 w-16 rounded-full bg-muted animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                      <div className="h-2 w-24 rounded bg-muted animate-pulse" style={{ animationDelay: `${i * 130}ms` }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : sortedAndFilteredCampaigns && sortedAndFilteredCampaigns.length > 0 ? (
               <div className="rounded-md border">
                 <Table>

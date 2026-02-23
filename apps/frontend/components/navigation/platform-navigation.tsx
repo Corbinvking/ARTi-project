@@ -10,7 +10,7 @@ import {
   Plus, 
   History,
   Users,
-  Brain,
+  BarChart3,
   UserPlus,
   Music,
   Target,
@@ -80,10 +80,10 @@ const getStreamStrategistTabs = (currentRole: string | null): SubTab[] => {
         icon: Users
       },
       {
-        id: "ml-analytics",
-        label: "ML Analytics",
+        id: "campaign-intelligence",
+        label: "Campaign Intelligence",
         href: "/dashboard/spotify/ml-dashboard",
-        icon: Brain
+        icon: BarChart3
       },
       {
         id: "submissions",

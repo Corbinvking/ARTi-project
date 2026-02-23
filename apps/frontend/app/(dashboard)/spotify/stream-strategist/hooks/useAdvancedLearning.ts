@@ -1,513 +1,321 @@
 "use client"
 
-// Advanced Learning System Hook with Dynamic Algorithm Optimization
-
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
-import { toast } from 'sonner';
 
-export interface LearningMetrics {
-  algorithmPerformance: {
-    accuracy: number;
-    improvement: number;
-    adaptationRate: number;
-    lastUpdated: Date;
-  };
-  vendorReliabilityTrends: Array<{
-    vendorId: string;
-    name: string;
-    trend: 'improving' | 'declining' | 'stable';
-    reliabilityScore: number;
-    changeRate: number;
-  }>;
-  genrePerformanceInsights: Array<{
-    genre: string;
-    avgPerformance: number;
-    consistency: number;
-    marketTrend: 'growing' | 'declining' | 'stable';
-  }>;
-  playlistClusters: Array<{
-    clusterId: string;
-    characteristics: string[];
-    avgPerformance: number;
-    playlistCount: number;
-    recommendedUse: string;
-  }>;
-  seasonalPatterns: Array<{
-    month: number;
-    genre: string;
-    performanceMultiplier: number;
-    confidence: number;
-  }>;
-  optimizationOpportunities: Array<{
-    type: 'vendor' | 'genre' | 'allocation' | 'timing';
-    description: string;
-    potentialImpact: number;
-    priority: 'high' | 'medium' | 'low';
-  }>;
+export interface AlgorithmicLiftData {
+  liftRate: number;
+  liftStreams: number;
+  baselineStreams: number;
+  windowDays: number;
+  campaignsAnalyzed: number;
+  trend: 'up' | 'down' | 'flat';
 }
 
-export interface ModelRetrainingResult {
-  success: boolean;
-  improvements: {
-    accuracyImprovement: number;
-    newModelVersion: string;
-    trainingDataPoints: number;
-  };
-  changes: Array<{
-    component: string;
-    oldValue: number;
-    newValue: number;
-    improvement: number;
-  }>;
+export interface TopPlaylist {
+  playlistId: string;
+  playlistName: string;
+  vendorName: string;
+  avgStreamsDelivered: number;
+  algorithmicLiftCorrelation: number;
+  campaignSuccessRate: number;
+  campaignCount: number;
 }
 
-// Hook to fetch advanced learning metrics
-export function useAdvancedLearningMetrics() {
-  return useQuery({
-    queryKey: ['advanced-learning-metrics'],
-    queryFn: async (): Promise<LearningMetrics> => {
-      // Fetch algorithm performance data
-      const { data: learningLogs } = await supabase
-        .from('algorithm_learning_log')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(200);
-
-      // Fetch vendor reliability data
-      const { data: vendorReliability } = await supabase
-        .from('vendor_reliability_scores')
-        .select('*, vendors(name)')
-        .order('last_updated', { ascending: false });
-
-      // Fetch performance data for genre analysis
-      const { data: performanceData } = await supabase
-        .from('campaign_allocations_performance')
-        .select('*, playlists(genres)')
-        .order('created_at', { ascending: false })
-        .limit(500);
-
-      // Fetch playlist performance history
-      const { data: playlistHistory } = await supabase
-        .from('playlist_performance_history')
-        .select('*')
-        .order('period_end', { ascending: false })
-        .limit(300);
-
-      // Calculate algorithm performance metrics
-      const algorithmPerformance = calculateAlgorithmPerformance(learningLogs || []);
-      
-      // Analyze vendor reliability trends
-      const vendorReliabilityTrends = analyzeVendorTrends(vendorReliability || []);
-      
-      // Generate genre performance insights
-      const genrePerformanceInsights = analyzeGenrePerformance(performanceData || []);
-      
-      // Create playlist clusters
-      const playlistClusters = createPlaylistClusters(playlistHistory || []);
-      
-      // Extract seasonal patterns
-      const seasonalPatterns = extractSeasonalPatterns(performanceData || []);
-      
-      // Identify optimization opportunities
-      const optimizationOpportunities = identifyOptimizationOpportunities({
-        vendorTrends: vendorReliabilityTrends,
-        genreInsights: genrePerformanceInsights,
-        seasonalData: seasonalPatterns
-      });
-
-      return {
-        algorithmPerformance,
-        vendorReliabilityTrends,
-        genrePerformanceInsights,
-        playlistClusters,
-        seasonalPatterns,
-        optimizationOpportunities
-      };
-    },
-    staleTime: 15 * 60 * 1000, // 15 minutes
-  });
-}
-
-// Hook to trigger dynamic algorithm optimization
-export function useDynamicAlgorithmOptimization() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (): Promise<ModelRetrainingResult> => {
-      // Simulate model retraining process
-      await new Promise(resolve => setTimeout(resolve, 3000)); // Simulate processing time
-
-      // Fetch recent performance data for analysis
-      const { data: recentPerformance } = await supabase
-        .from('campaign_allocations_performance')
-        .select('*')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: false });
-
-      if (!recentPerformance || recentPerformance.length < 10) {
-        throw new Error('Insufficient data for model retraining');
-      }
-
-      // Calculate improvements
-      const accuracyImprovement = Math.random() * 0.15 + 0.05; // 5-20% improvement
-      const newModelVersion = `3.${Math.floor(Date.now() / 1000)}`;
-
-      // Log the retraining event
-      const { error } = await supabase
-        .from('algorithm_learning_log')
-        .insert({
-          algorithm_version: newModelVersion,
-          decision_type: 'model_retraining',
-          input_data: {
-            trainingDataPoints: recentPerformance.length,
-            retrainingTrigger: 'manual_optimization'
-          },
-          decision_data: {
-            accuracyImprovement,
-            modelVersion: newModelVersion,
-            changes: [
-              { component: 'genre_weighting', improvement: 0.08 },
-              { component: 'vendor_reliability', improvement: 0.12 },
-              { component: 'seasonal_factors', improvement: 0.06 }
-            ]
-          },
-          confidence_score: 0.85
-        });
-
-      if (error) throw error;
-
-      return {
-        success: true,
-        improvements: {
-          accuracyImprovement,
-          newModelVersion,
-          trainingDataPoints: recentPerformance.length
-        },
-        changes: [
-          {
-            component: 'Genre Relevance Weighting',
-            oldValue: 0.55,
-            newValue: 0.63,
-            improvement: 0.08
-          },
-          {
-            component: 'Vendor Reliability Factor',
-            oldValue: 0.25,
-            newValue: 0.37,
-            improvement: 0.12
-          },
-          {
-            component: 'Seasonal Adjustment',
-            oldValue: 0.20,
-            newValue: 0.26,
-            improvement: 0.06
-          }
-        ]
-      };
-    },
-    onSuccess: (result) => {
-      toast.success(`Model retrained successfully! Accuracy improved by ${(result.improvements.accuracyImprovement * 100).toFixed(1)}%`);
-      queryClient.invalidateQueries({ queryKey: ['advanced-learning-metrics'] });
-      queryClient.invalidateQueries({ queryKey: ['ml-model-analysis'] });
-    },
-    onError: (error) => {
-      toast.error('Failed to optimize algorithm');
-      console.error('Algorithm optimization error:', error);
-    }
-  });
-}
-
-// Hook to manage A/B testing for allocation strategies
-export function useAllocationStrategyTesting() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (strategy: {
-      name: string;
-      description: string;
-      parameters: Record<string, number>;
-      testDuration: number; // days
-    }) => {
-      // Create A/B test configuration
-      const { data, error } = await supabase
-        .from('algorithm_learning_log')
-        .insert({
-          algorithm_version: '3.0-ab-test',
-          decision_type: 'strategy_ab_test',
-          input_data: {
-            strategyName: strategy.name,
-            description: strategy.description,
-            parameters: strategy.parameters,
-            testDuration: strategy.testDuration,
-            startDate: new Date().toISOString()
-          },
-          decision_data: {
-            testStatus: 'active',
-            controlGroup: 'current_algorithm',
-            testGroup: strategy.name
-          },
-          confidence_score: 0.5 // Will be updated as test progresses
-        })
-        .select();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success('A/B test strategy created successfully');
-      queryClient.invalidateQueries({ queryKey: ['algorithm-learning-logs'] });
-    },
-    onError: (error) => {
-      toast.error('Failed to create A/B test strategy');
-      console.error('A/B test creation error:', error);
-    }
-  });
-}
-
-// Hook to analyze and apply learning feedback
-export function useLearningFeedbackLoop() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (feedback: {
-      campaignId: string;
-      actualResults: {
-        totalStreams: number;
-        vendorPerformance: Array<{
-          vendorId: string;
-          actualStreams: number;
-          predictedStreams: number;
-        }>;
-      };
-      userFeedback?: {
-        satisfaction: number; // 1-5
-        comments: string;
-      };
-    }) => {
-      // Update campaign allocation performance with actual results
-      const updatePromises = feedback.actualResults.vendorPerformance.map(async (vp) => {
-        const performanceScore = vp.predictedStreams > 0 ? 
-          Math.min(2, vp.actualStreams / vp.predictedStreams) : 0;
-
-        return supabase
-          .from('campaign_allocations_performance')
-          .update({
-            actual_streams: vp.actualStreams,
-            performance_score: performanceScore,
-            completed_at: new Date().toISOString()
-          })
-          .eq('campaign_id', feedback.campaignId)
-          .eq('vendor_id', vp.vendorId);
-      });
-
-      await Promise.all(updatePromises);
-
-      // Log the feedback for learning
-      const { data, error } = await supabase
-        .from('algorithm_learning_log')
-        .insert({
-          campaign_id: feedback.campaignId,
-          algorithm_version: '3.0-ml',
-          decision_type: 'feedback_loop',
-          input_data: {
-            actualResults: feedback.actualResults,
-            userFeedback: feedback.userFeedback
-          },
-          decision_data: {
-            totalStreamAccuracy: feedback.actualResults.totalStreams,
-            vendorAccuracies: feedback.actualResults.vendorPerformance.map(vp => ({
-              vendorId: vp.vendorId,
-              accuracy: vp.predictedStreams > 0 ? vp.actualStreams / vp.predictedStreams : 0
-            }))
-          },
-          performance_impact: feedback.userFeedback?.satisfaction || 3,
-          confidence_score: 0.9
-        })
-        .select();
-
-      if (error) throw error;
-
-      // Trigger vendor reliability updates
-      await supabase.rpc('update_vendor_reliability_scores');
-
-      return data;
-    },
-    onSuccess: () => {
-      toast.success('Learning feedback processed successfully');
-      queryClient.invalidateQueries({ queryKey: ['advanced-learning-metrics'] });
-      queryClient.invalidateQueries({ queryKey: ['vendor-reliability-scores'] });
-    },
-    onError: (error) => {
-      toast.error('Failed to process learning feedback');
-      console.error('Learning feedback error:', error);
-    }
-  });
-}
-
-// Helper functions for data analysis
-function calculateAlgorithmPerformance(logs: any[]) {
-  const recentLogs = logs.filter(log => 
-    new Date(log.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  );
-
-  const accuracy = recentLogs.length > 0 ? 
-    recentLogs.reduce((sum, log) => sum + (log.confidence_score || 0), 0) / recentLogs.length : 0.8;
-
-  return {
-    accuracy,
-    improvement: Math.random() * 0.1 + 0.02, // 2-12% improvement
-    adaptationRate: recentLogs.length / 7, // Adaptations per day
-    lastUpdated: new Date()
-  };
-}
-
-function analyzeVendorTrends(vendors: any[]): Array<{
+export interface VendorReliabilitySummary {
   vendorId: string;
   name: string;
+  campaignsOnPacePercent: number;
+  avgDeliveryVariance: number;
+  avgRampDays: number;
+  totalCampaigns: number;
   trend: 'improving' | 'declining' | 'stable';
   reliabilityScore: number;
-  changeRate: number;
-}> {
-  return vendors.map(vendor => ({
-    vendorId: vendor.vendor_id,
-    name: vendor.vendors?.name || `Vendor ${vendor.vendor_id.substring(0, 8)}`,
-    trend: (vendor.delivery_consistency > 0.8 ? 'improving' : 
-           vendor.delivery_consistency < 0.6 ? 'declining' : 'stable') as 'improving' | 'declining' | 'stable',
-    reliabilityScore: vendor.quality_score || 0.8,
-    changeRate: Math.random() * 0.2 - 0.1
-  }));
 }
 
-function analyzeGenrePerformance(performanceData: any[]) {
-  const genrePerformance = new Map<string, { total: number; count: number; scores: number[] }>();
+export interface CampaignIntelligenceData {
+  algorithmicLift: AlgorithmicLiftData;
+  topPlaylists: TopPlaylist[];
+  vendorReliability: VendorReliabilitySummary[];
+}
 
-  performanceData.forEach(record => {
-    const genres = record.playlists?.genres || [];
-    genres.forEach((genre: string) => {
-      if (!genrePerformance.has(genre)) {
-        genrePerformance.set(genre, { total: 0, count: 0, scores: [] });
-      }
-      const data = genrePerformance.get(genre)!;
-      data.total += record.performance_score || 0;
-      data.count += 1;
-      data.scores.push(record.performance_score || 0);
-    });
+export function useCampaignIntelligence() {
+  return useQuery({
+    queryKey: ['campaign-intelligence'],
+    queryFn: async (): Promise<CampaignIntelligenceData> => {
+      const [
+        perfResult,
+        vendorResult,
+        playlistsResult,
+        vendorsResult,
+        scResult,
+        cgResult,
+      ] = await Promise.all([
+        supabase
+          .from('campaign_allocations_performance')
+          .select('*, playlists(name, genres), vendors(name), campaigns(name, status, stream_goal)')
+          .order('created_at', { ascending: false })
+          .limit(500),
+        supabase
+          .from('vendor_reliability_scores')
+          .select('*, vendors(name)')
+          .order('last_updated', { ascending: false }),
+        supabase
+          .from('campaign_playlists' as any)
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1000),
+        supabase
+          .from('vendors')
+          .select('id, name'),
+        supabase
+          .from('spotify_campaigns' as any)
+          .select('id, campaign_group_id, campaign'),
+        supabase
+          .from('campaign_groups' as any)
+          .select('id, name'),
+      ]);
+
+      const performanceData = perfResult.data || [];
+      const vendorReliability = vendorResult.data || [];
+      const campaignPlaylists: any[] = playlistsResult.data || [];
+      const vendorsList: any[] = vendorsResult.data || [];
+      const spotifyCampaigns: any[] = (scResult.data as any[]) || [];
+      const campaignGroupsList: any[] = (cgResult.data as any[]) || [];
+
+      const vendorNameMap = new Map(vendorsList.map((v: any) => [v.id, v.name]));
+
+      // Build bridge: spotify_campaigns.id → campaign_group_id for campaign counting
+      // Step 1: direct campaign_group_id link
+      const songToGroupMap = new Map<string, string>();
+      spotifyCampaigns.forEach((sc: any) => {
+        if (sc.campaign_group_id) {
+          songToGroupMap.set(String(sc.id), sc.campaign_group_id);
+        }
+      });
+      // Step 2: for songs without campaign_group_id, match by name
+      const cgNameToId = new Map<string, string>();
+      campaignGroupsList.forEach((cg: any) => {
+        if (cg.name) cgNameToId.set(cg.name.toLowerCase().trim(), cg.id);
+      });
+      spotifyCampaigns.forEach((sc: any) => {
+        if (sc.campaign_group_id) return;
+        if (!sc.campaign) return;
+        const matchedGroupId = cgNameToId.get(sc.campaign.toLowerCase().trim());
+        if (matchedGroupId) {
+          songToGroupMap.set(String(sc.id), matchedGroupId);
+        }
+      });
+
+
+      const algorithmicLift = computeAlgorithmicLift(campaignPlaylists, songToGroupMap);
+      const topPlaylists = rankTopPlaylists(campaignPlaylists, vendorNameMap, songToGroupMap);
+      const vendorReliabilitySummary = buildVendorReliability(
+        vendorReliability,
+        performanceData,
+        campaignPlaylists,
+        vendorNameMap,
+        songToGroupMap
+      );
+
+      return {
+        algorithmicLift,
+        topPlaylists,
+        vendorReliability: vendorReliabilitySummary,
+      };
+    },
+    staleTime: 15 * 60 * 1000,
   });
+}
 
-  return Array.from(genrePerformance.entries()).map(([genre, data]) => {
-    const avgPerformance = data.total / data.count;
-    const variance = data.scores.reduce((sum, score) => sum + Math.pow(score - avgPerformance, 2), 0) / data.count;
-    const consistency = 1 - Math.min(1, variance);
-
+function computeAlgorithmicLift(
+  campaignPlaylists: any[],
+  songToGroupMap: Map<string, string>
+): AlgorithmicLiftData {
+  if (!campaignPlaylists.length) {
     return {
-      genre,
-      avgPerformance,
-      consistency,
-      marketTrend: (avgPerformance > 0.8 ? 'growing' : avgPerformance < 0.5 ? 'declining' : 'stable') as 'growing' | 'declining' | 'stable'
+      liftRate: 0,
+      liftStreams: 0,
+      baselineStreams: 0,
+      windowDays: 28,
+      campaignsAnalyzed: 0,
+      trend: 'flat',
     };
+  }
+
+  const algorithmicPlaylists = campaignPlaylists.filter(p => p.is_algorithmic === true);
+  const vendorPlaylists = campaignPlaylists.filter(p => p.vendor_id && !p.is_algorithmic && !p.is_organic);
+
+  const algoStreams = algorithmicPlaylists.reduce((s, p) => s + (p.streams_28d || p.streams_12m || 0), 0);
+  const vendorStreams = vendorPlaylists.reduce((s, p) => s + (p.streams_28d || p.streams_12m || 0), 0);
+
+  const liftRate = vendorStreams > 0 ? algoStreams / vendorStreams : 0;
+
+  // Count unique campaign groups (parent campaigns) using the bridge
+  const groupIds = new Set<string>();
+  campaignPlaylists.forEach(p => {
+    if (!p.campaign_id) return;
+    const groupId = songToGroupMap.get(String(p.campaign_id));
+    if (groupId) groupIds.add(groupId);
+    else groupIds.add(String(p.campaign_id));
   });
+
+  const algo7d = algorithmicPlaylists.reduce((s, p) => s + (p.streams_7d || 0), 0);
+  const algo28d = algorithmicPlaylists.reduce((s, p) => s + (p.streams_28d || 0), 0);
+  const trend: 'up' | 'down' | 'flat' =
+    algo28d > 0 && algo7d > algo28d * (7 / 28) * 1.2 ? 'up' :
+    algo28d > 0 && algo7d < algo28d * (7 / 28) * 0.8 ? 'down' : 'flat';
+
+  return {
+    liftRate,
+    liftStreams: Math.round(algoStreams),
+    baselineStreams: Math.round(vendorStreams),
+    windowDays: 28,
+    campaignsAnalyzed: groupIds.size,
+    trend,
+  };
 }
 
-function createPlaylistClusters(playlistHistory: any[]) {
-  // Simplified clustering - would use actual ML clustering in production
-  return [
-    {
-      clusterId: 'high-volume',
-      characteristics: ['High follower count', 'Consistent streams', 'Mainstream genres'],
-      avgPerformance: 0.85,
-      playlistCount: Math.floor(playlistHistory.length * 0.2),
-      recommendedUse: 'Primary allocation for large campaigns'
-    },
-    {
-      clusterId: 'niche-focused',
-      characteristics: ['Specific genres', 'Engaged audience', 'Lower volume'],
-      avgPerformance: 0.78,
-      playlistCount: Math.floor(playlistHistory.length * 0.3),
-      recommendedUse: 'Targeted campaigns with genre specificity'
-    },
-    {
-      clusterId: 'emerging',
-      characteristics: ['Growing follower base', 'Trend-driven', 'Variable performance'],
-      avgPerformance: 0.65,
-      playlistCount: Math.floor(playlistHistory.length * 0.5),
-      recommendedUse: 'Test allocations and trend exploration'
+function rankTopPlaylists(
+  campaignPlaylists: any[],
+  vendorNameMap: Map<string, string>,
+  songToGroupMap: Map<string, string>
+): TopPlaylist[] {
+  const vendorPlaylists = campaignPlaylists.filter(p => p.vendor_id && !p.is_algorithmic && !p.is_organic);
+
+  const playlistMap = new Map<string, {
+    name: string;
+    vendorName: string;
+    totalStreams: number;
+    campaignGroupIds: Set<string>;
+  }>();
+
+  vendorPlaylists.forEach(record => {
+    const key = record.playlist_name || 'Unknown';
+    const existing = playlistMap.get(key) || {
+      name: key,
+      vendorName: vendorNameMap.get(record.vendor_id) || 'Unknown',
+      totalStreams: 0,
+      campaignGroupIds: new Set<string>(),
+    };
+
+    existing.totalStreams += record.streams_12m || record.streams_28d || 0;
+    if (record.campaign_id) {
+      const groupId = songToGroupMap.get(String(record.campaign_id)) || String(record.campaign_id);
+      existing.campaignGroupIds.add(groupId);
     }
-  ];
-}
 
-function extractSeasonalPatterns(performanceData: any[]) {
-  const patterns: Array<{
-    month: number;
-    genre: string;
-    performanceMultiplier: number;
-    confidence: number;
-  }> = [];
-
-  // Simplified seasonal analysis
-  const seasonalBoosts = [
-    { month: 0, genre: 'pop', multiplier: 1.1, confidence: 0.8 },
-    { month: 5, genre: 'electronic', multiplier: 1.3, confidence: 0.9 },
-    { month: 11, genre: 'pop', multiplier: 1.2, confidence: 0.85 }
-  ];
-
-  return seasonalBoosts.map(boost => ({
-    month: boost.month,
-    genre: boost.genre,
-    performanceMultiplier: boost.multiplier,
-    confidence: boost.confidence
-  }));
-}
-
-function identifyOptimizationOpportunities(data: {
-  vendorTrends: any[];
-  genreInsights: any[];
-  seasonalData: any[];
-}) {
-  const opportunities: Array<{
-    type: 'vendor' | 'genre' | 'allocation' | 'timing';
-    description: string;
-    potentialImpact: number;
-    priority: 'high' | 'medium' | 'low';
-  }> = [];
-
-  // Identify underperforming vendors
-  const underperformingVendors = data.vendorTrends.filter(v => v.reliabilityScore < 0.7);
-  if (underperformingVendors.length > 0) {
-    opportunities.push({
-      type: 'vendor',
-      description: `${underperformingVendors.length} vendors showing declining performance`,
-      potentialImpact: 0.15,
-      priority: 'high'
-    });
-  }
-
-  // Identify high-performing genres
-  const topGenres = data.genreInsights.filter(g => g.avgPerformance > 0.8);
-  if (topGenres.length > 0) {
-    opportunities.push({
-      type: 'genre',
-      description: `Increase allocation to ${topGenres.length} high-performing genres`,
-      potentialImpact: 0.12,
-      priority: 'medium'
-    });
-  }
-
-  // Seasonal optimization
-  opportunities.push({
-    type: 'timing',
-    description: 'Optimize campaign timing based on seasonal patterns',
-    potentialImpact: 0.08,
-    priority: 'medium'
+    playlistMap.set(key, existing);
   });
 
-  return opportunities;
+  const algorithmicPlaylists = campaignPlaylists.filter(p => p.is_algorithmic === true);
+  const totalAlgoStreams = algorithmicPlaylists.reduce((s, p) => s + (p.streams_12m || 0), 0);
+  const totalVendorStreams = vendorPlaylists.reduce((s, p) => s + (p.streams_12m || 0), 0);
+  const globalAlgoRatio = totalVendorStreams > 0 ? totalAlgoStreams / totalVendorStreams : 0;
+
+  return Array.from(playlistMap.entries())
+    .map(([playlistName, data]) => ({
+      playlistId: playlistName,
+      playlistName: data.name,
+      vendorName: data.vendorName,
+      avgStreamsDelivered: data.campaignGroupIds.size > 0
+        ? Math.round(data.totalStreams / data.campaignGroupIds.size)
+        : Math.round(data.totalStreams),
+      algorithmicLiftCorrelation: globalAlgoRatio,
+      campaignSuccessRate: data.totalStreams > 1000 ? 0.8 : data.totalStreams > 100 ? 0.5 : 0.2,
+      campaignCount: data.campaignGroupIds.size || 1,
+    }))
+    .sort((a, b) => b.avgStreamsDelivered - a.avgStreamsDelivered)
+    .slice(0, 15);
 }
 
+function buildVendorReliability(
+  vendorScores: any[],
+  performanceData: any[],
+  campaignPlaylists: any[],
+  vendorNameMap: Map<string, string>,
+  songToGroupMap: Map<string, string>
+): VendorReliabilitySummary[] {
+  const vendorPlaylists = campaignPlaylists.filter(p => p.vendor_id && !p.is_algorithmic && !p.is_organic);
 
+  const vendorStreamMap = new Map<string, {
+    totalStreams: number;
+    campaignGroupIds: Set<string>;
+    playlistCount: number;
+  }>();
 
+  vendorPlaylists.forEach(record => {
+    const vid = record.vendor_id;
+    if (!vid) return;
+    const existing = vendorStreamMap.get(vid) || { totalStreams: 0, campaignGroupIds: new Set(), playlistCount: 0 };
+    existing.totalStreams += record.streams_12m || record.streams_28d || 0;
+    if (record.campaign_id) {
+      const groupId = songToGroupMap.get(String(record.campaign_id)) || String(record.campaign_id);
+      existing.campaignGroupIds.add(groupId);
+    }
+    existing.playlistCount += 1;
+    vendorStreamMap.set(vid, existing);
+  });
 
+  const vendorPerfMap = new Map<string, { onPace: number; total: number; deliveryVariances: number[] }>();
+  performanceData.forEach(record => {
+    const vid = record.vendor_id;
+    if (!vid) return;
+    const existing = vendorPerfMap.get(vid) || { onPace: 0, total: 0, deliveryVariances: [] };
+    existing.total += 1;
+    const allocated = record.allocated_streams || 0;
+    const actual = record.actual_streams || 0;
+    if (allocated > 0 && actual > 0) {
+      const variance = (actual - allocated) / allocated;
+      existing.deliveryVariances.push(variance);
+      if (variance >= -0.1) existing.onPace += 1;
+    }
+    vendorPerfMap.set(vid, existing);
+  });
 
+  if (vendorScores.length > 0) {
+    return vendorScores.map(vendor => {
+      const vid = vendor.vendor_id;
+      const perf = vendorPerfMap.get(vid);
+      const cpData = vendorStreamMap.get(vid);
+      const deliveryVariances = perf?.deliveryVariances || [];
+      const avgVariance = deliveryVariances.length > 0
+        ? deliveryVariances.reduce((s, v) => s + v, 0) / deliveryVariances.length
+        : 0;
 
+      const consistency = vendor.delivery_consistency || 0.5;
+      const trend: 'improving' | 'declining' | 'stable' =
+        consistency > 0.8 ? 'improving' : consistency < 0.6 ? 'declining' : 'stable';
 
+      const totalStreams = cpData?.totalStreams || 0;
+      const campaignCount = cpData?.campaignGroupIds.size || perf?.total || 0;
 
+      return {
+        vendorId: vid,
+        name: vendor.vendors?.name || vendorNameMap.get(vid) || `Vendor ${vid.substring(0, 8)}`,
+        campaignsOnPacePercent: perf && perf.total > 0 && perf.deliveryVariances.length > 0
+          ? (perf.onPace / perf.total) * 100
+          : totalStreams > 0 ? 75 : 0,
+        avgDeliveryVariance: avgVariance,
+        avgRampDays: vendor.avg_ramp_days || 3,
+        totalCampaigns: campaignCount,
+        trend,
+        reliabilityScore: vendor.quality_score || 0.5,
+      };
+    }).sort((a, b) => b.reliabilityScore - a.reliabilityScore);
+  }
+
+  return Array.from(vendorStreamMap.entries())
+    .map(([vendorId, data]) => ({
+      vendorId,
+      name: vendorNameMap.get(vendorId) || `Vendor ${vendorId.substring(0, 8)}`,
+      campaignsOnPacePercent: data.totalStreams > 0 ? 75 : 0,
+      avgDeliveryVariance: 0,
+      avgRampDays: 3,
+      totalCampaigns: data.campaignGroupIds.size,
+      trend: 'stable' as const,
+      reliabilityScore: data.totalStreams > 10000 ? 0.8 : data.totalStreams > 1000 ? 0.6 : 0.4,
+    }))
+    .sort((a, b) => b.reliabilityScore - a.reliabilityScore)
+    .slice(0, 15);
+}

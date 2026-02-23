@@ -5,12 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useExecutiveDashboardData } from "../hooks/useExecutiveDashboardData";
 import { ExecutiveKPICards } from "./ExecutiveKPICards";
 import { PerformanceBenchmarkChart } from "./PerformanceBenchmarkChart";
-import { ROIAnalyticsDashboard } from "./ROIAnalyticsDashboard";
-import { PredictiveAnalyticsPanel } from "./PredictiveAnalyticsPanel";
 import { AlertsCenter } from "./AlertsCenter";
-import { InteractiveDashboard } from "./InteractiveDashboard";
+import { VendorScatterPlot } from "./VendorScatterPlot";
+import { AttentionRequiredPanel } from "./AttentionRequiredPanel";
 import { CampaignDetailsModal } from "./CampaignDetailsModal";
-import { TrendingUp, TrendingDown, Users, Target, DollarSign, Zap, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { supabase } from "../integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -18,25 +16,17 @@ import { useQuery } from "@tanstack/react-query";
 export const ExecutiveDashboard = () => {
   const { data, isLoading, error } = useExecutiveDashboardData();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
-  
-  // Fetch campaign details when selected
+
   const { data: selectedCampaign } = useQuery({
-    queryKey: ['campaign-details', selectedCampaignId],
+    queryKey: ["campaign-details", selectedCampaignId],
     queryFn: async () => {
       if (!selectedCampaignId) return null;
-      console.log('🔍 Fetching campaign details for:', selectedCampaignId);
       const { data, error } = await supabase
-        .from('campaign_groups')
-        .select('*')
-        .eq('id', selectedCampaignId)
+        .from("campaign_groups" as any)
+        .select("*")
+        .eq("id", selectedCampaignId)
         .single();
-      
-      if (error) {
-        console.error('❌ Error fetching campaign:', error);
-        return null;
-      }
-      
-      console.log('✅ Campaign fetched:', data);
+      if (error) return null;
       return data;
     },
     enabled: !!selectedCampaignId,
@@ -75,87 +65,127 @@ export const ExecutiveDashboard = () => {
 
   if (!data) return null;
 
-  const formatCurrency = (value: number) => 
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+  const getPayoutBadge = (status: string) => {
+    switch (status) {
+      case "paid":
+        return <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">Paid</Badge>;
+      case "partial":
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs">Partial</Badge>;
+      case "unpaid":
+        return <Badge className="bg-red-100 text-red-800 border-red-200 text-xs">Unpaid</Badge>;
+      default:
+        return <Badge variant="outline" className="text-xs">N/A</Badge>;
+    }
+  };
 
-  const formatNumber = (value: number) => 
-    new Intl.NumberFormat('en-US').format(Math.round(value));
+  const getCpmColor = (costPer1k: number) => {
+    const avg = data.averageCostPer1kStreams;
+    if (costPer1k <= avg * 0.85) return "text-green-600";
+    if (costPer1k <= avg * 1.15) return "text-yellow-600";
+    return "text-red-600";
+  };
 
-  const formatPercentage = (value: number) => 
-    `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+  const statusColors: Record<string, string> = {
+    "Active": "text-green-600 border-green-200 bg-green-50 dark:bg-green-950/30",
+    "Pending Approval": "text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-950/30",
+    "Awaiting Playlist Adds": "text-blue-600 border-blue-200 bg-blue-50 dark:bg-blue-950/30",
+    "Completed": "text-gray-600 border-gray-200 bg-gray-50 dark:bg-gray-950/30",
+    "Flagged": "text-red-600 border-red-200 bg-red-50 dark:bg-red-950/30",
+  };
 
   return (
     <div className="space-y-6">
-      {/* Executive Summary Header */}
       <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Executive Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Operations Dashboard</h1>
         <p className="text-muted-foreground">
-          Comprehensive overview of campaign performance and business metrics
+          Campaign delivery, vendor performance, and financial health
         </p>
       </div>
 
-      {/* Main KPI Cards */}
+      {/* KPI Cards */}
       <ExecutiveKPICards data={data} />
 
-
-      {/* Top Performing Vendors */}
+      {/* Top Performing Vendors — Actionable Table */}
       <Card>
         <CardHeader>
           <CardTitle>Top Performing Vendors</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {data.topPerformingVendors.map((vendor: any, index) => (
-              <div key={vendor.name} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                <div className="flex items-center space-x-3">
-                  <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center font-bold">
-                    {index + 1}
-                  </Badge>
-                  <div>
-                    <p className="font-medium">{vendor.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {vendor.totalCampaigns} campaigns • {vendor.totalPlaylists || 0} playlists
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-green-600">
-                    {((vendor.totalStreams12m || 0) / 1000).toFixed(1)}K streams
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {(vendor.avgStreamsPerPlaylist || 0).toLocaleString()}/playlist • ${(vendor.costPer1k || 0).toFixed(2)}/1K
-                  </p>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="pb-3 font-medium text-muted-foreground">Vendor Name</th>
+                  <th className="pb-3 font-medium text-muted-foreground text-center">Active Campaigns</th>
+                  <th className="pb-3 font-medium text-muted-foreground text-right">Streams Delivered</th>
+                  <th className="pb-3 font-medium text-muted-foreground text-right">Avg Cost/1K</th>
+                  <th className="pb-3 font-medium text-muted-foreground text-center">Approval Rate</th>
+                  <th className="pb-3 font-medium text-muted-foreground text-center">Payout Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.topPerformingVendors.map((vendor, index) => (
+                  <tr key={vendor.id || index} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                    <td className="py-3">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold p-0">
+                          {index + 1}
+                        </Badge>
+                        <span className="font-medium">{vendor.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 text-center">{vendor.activeCampaignCount}</td>
+                    <td className="py-3 text-right font-medium">
+                      {((vendor.totalStreams12m || 0) / 1000).toFixed(1)}K
+                    </td>
+                    <td className={`py-3 text-right font-medium ${getCpmColor(vendor.costPer1k)}`}>
+                      ${(vendor.costPer1k || 0).toFixed(2)}
+                    </td>
+                    <td className="py-3 text-center">
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${
+                          vendor.approvalRate >= 80
+                            ? "text-green-700 border-green-300"
+                            : vendor.approvalRate >= 50
+                            ? "text-yellow-700 border-yellow-300"
+                            : "text-red-700 border-red-300"
+                        }`}
+                      >
+                        {vendor.approvalRate.toFixed(0)}%
+                      </Badge>
+                    </td>
+                    <td className="py-3 text-center">{getPayoutBadge(vendor.payoutStatus)}</td>
+                  </tr>
+                ))}
+                {data.topPerformingVendors.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="py-6 text-center text-muted-foreground">
+                      No vendor data available
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
 
-      {/* Campaign Status Distribution */}
+      {/* Campaign Status Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Campaign Distribution</CardTitle>
+          <CardTitle>Campaign Status Breakdown</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
             {data.campaignStatusDistribution.map((statusItem) => {
-              // Status color mapping
-              const statusColors: Record<string, string> = {
-                'Active': 'text-green-600 border-green-200 bg-green-50',
-                'Pending': 'text-yellow-600 border-yellow-200 bg-yellow-50',
-                'Draft': 'text-gray-600 border-gray-200 bg-gray-50',
-                'Paused': 'text-orange-600 border-orange-200 bg-orange-50',
-                'Completed': 'text-blue-600 border-blue-200 bg-blue-50',
-              };
-              const colorClass = statusColors[statusItem.status] || 'border-gray-200';
-              
+              const colorClass = statusColors[statusItem.status] || "border-gray-200 bg-gray-50 dark:bg-gray-950/30";
               return (
                 <div key={statusItem.status} className={`text-center p-4 border rounded-lg ${colorClass}`}>
                   <div className="text-2xl font-bold">{statusItem.count}</div>
                   <div className="text-sm font-medium">{statusItem.status}</div>
                   <div className="text-xs opacity-70">
-                    {statusItem.percentage.toFixed(1)}% of total
+                    {statusItem.percentage.toFixed(1)}%
                   </div>
                 </div>
               );
@@ -164,61 +194,47 @@ export const ExecutiveDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Advanced Analytics Tabs */}
+      {/* Vendor Performance Chart */}
+      <VendorScatterPlot
+        vendors={data.topPerformingVendors.map(v => ({
+          name: v.name,
+          costPer1k: v.costPer1k,
+          totalStreams12m: v.totalStreams12m,
+          activeCampaignCount: v.activeCampaignCount,
+          approvalRate: v.approvalRate,
+          totalPlaylists: v.totalPlaylists,
+        }))}
+      />
+
+      {/* Performance & Alerts Tabs */}
       <Tabs defaultValue="performance" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="roi">ROI Analysis</TabsTrigger>
-          <TabsTrigger value="predictions">Predictions</TabsTrigger>
           <TabsTrigger value="alerts">Alerts</TabsTrigger>
-          <TabsTrigger value="interactive">Interactive</TabsTrigger>
         </TabsList>
 
         <TabsContent value="performance">
           <PerformanceBenchmarkChart />
         </TabsContent>
 
-        <TabsContent value="roi">
-          <ROIAnalyticsDashboard />
-        </TabsContent>
-
-        <TabsContent value="predictions">
-          <PredictiveAnalyticsPanel />
-        </TabsContent>
-
         <TabsContent value="alerts">
-          <AlertsCenter onCampaignClick={(campaignId) => {
-            console.log('🎯 Alert campaign clicked in ExecutiveDashboard:', campaignId);
-            setSelectedCampaignId(campaignId);
-          }} />
-        </TabsContent>
-
-        <TabsContent value="interactive">
-          <InteractiveDashboard onCampaignClick={(campaignId) => setSelectedCampaignId(campaignId)} />
+          <AlertsCenter
+            onCampaignClick={(campaignId) => setSelectedCampaignId(campaignId)}
+          />
         </TabsContent>
       </Tabs>
 
+      {/* Attention Required Panel */}
+      <AttentionRequiredPanel />
+
       {/* Campaign Details Modal */}
       {selectedCampaign && (
-        <>
-          {console.log('📋 Opening modal for campaign:', selectedCampaign.name, selectedCampaign.id)}
-          <CampaignDetailsModal
-            campaign={selectedCampaign}
-            open={!!selectedCampaignId}
-            onClose={() => {
-              console.log('❌ Closing campaign modal');
-              setSelectedCampaignId(null);
-            }}
-          />
-        </>
+        <CampaignDetailsModal
+          campaign={selectedCampaign}
+          open={!!selectedCampaignId}
+          onClose={() => setSelectedCampaignId(null)}
+        />
       )}
     </div>
   );
 };
-
-
-
-
-
-
-

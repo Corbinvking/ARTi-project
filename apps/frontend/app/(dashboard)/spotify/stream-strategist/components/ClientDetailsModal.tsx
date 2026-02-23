@@ -39,8 +39,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Plus, X, Trash2, Calendar, DollarSign, RefreshCw, Eye } from 'lucide-react';
-import { useUpdateClient, useClientCredits, useAddClientCredit, useClient } from '../hooks/useClients';
+import { Plus, X, Trash2, Calendar, DollarSign, RefreshCw, Eye, Pencil, Check, Loader2 } from 'lucide-react';
+import { useUpdateClient, useClientCredits, useAddClientCredit, useUpdateClientCredit, useDeleteClientCredit, useClient } from '../hooks/useClients';
 import { useAllCampaigns, useAssignCampaignToClient, useUnassignCampaignFromClient } from '../hooks/useCampaigns';
 import { clearBrowserCache } from '../utils/debugUtils';
 import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_TYPE } from '../lib/constants';
@@ -69,14 +69,20 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
   } | null>(null);
   const [viewingCampaign, setViewingCampaign] = useState<any>(null);
   const [isCampaignDetailsOpen, setIsCampaignDetailsOpen] = useState(false);
+  const [editingCreditId, setEditingCreditId] = useState<string | null>(null);
+  const [editCreditAmount, setEditCreditAmount] = useState('');
+  const [editCreditReason, setEditCreditReason] = useState('');
+  const [deletingCreditId, setDeletingCreditId] = useState<string | null>(null);
 
   const updateClient = useUpdateClient();
   const addCredit = useAddClientCredit();
+  const updateCredit = useUpdateClientCredit();
+  const deleteCredit = useDeleteClientCredit();
   const assignCampaign = useAssignCampaignToClient();
   const unassignCampaign = useUnassignCampaignFromClient();
 
   const { data: clientCredits = [] } = useClientCredits(client?.id || '');
-  const { data: clientData } = useClient(client?.id || '');
+  const { data: clientData, isLoading: isClientLoading } = useClient(client?.id || '');
   const { data: allCampaigns = [], refetch: refetchAllCampaigns } = useAllCampaigns();
 
   // Extract campaigns from client data
@@ -203,6 +209,47 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
     }
   };
 
+  const handleStartEditCredit = (credit: { id: string; amount: number; reason?: string | null }) => {
+    setEditingCreditId(credit.id);
+    setEditCreditAmount(String(credit.amount));
+    setEditCreditReason(credit.reason || '');
+  };
+
+  const handleSaveEditCredit = async () => {
+    if (!client || !editingCreditId || !editCreditAmount) return;
+
+    try {
+      await updateCredit.mutateAsync({
+        id: editingCreditId,
+        client_id: client.id,
+        amount: parseInt(editCreditAmount),
+        reason: editCreditReason || null,
+      });
+      setEditingCreditId(null);
+      setEditCreditAmount('');
+      setEditCreditReason('');
+    } catch (error) {
+      console.error('Error updating credit:', error);
+    }
+  };
+
+  const handleCancelEditCredit = () => {
+    setEditingCreditId(null);
+    setEditCreditAmount('');
+    setEditCreditReason('');
+  };
+
+  const handleDeleteCredit = async (creditId: string) => {
+    if (!client) return;
+
+    try {
+      await deleteCredit.mutateAsync({ id: creditId, client_id: client.id });
+      setDeletingCreditId(null);
+    } catch (error) {
+      console.error('Error deleting credit:', error);
+    }
+  };
+
   const handleAssignCampaign = async () => {
     if (!client || !selectedCampaign) return;
     
@@ -321,7 +368,7 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
               <div>
                 <Label>Credit Balance</Label>
                 <p className="text-sm font-semibold text-green-600">
-                  {displayClient.credit_balance || 0} credits
+                  {clientData?.credit_balance ?? displayClient.credit_balance ?? 0} credits
                 </p>
               </div>
             </div>
@@ -396,15 +443,20 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
 
           {/* Credit Management */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Credit Management</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Credit Management</h3>
+              <span className="text-sm font-semibold text-green-600">
+                Balance: {clientData?.credit_balance ?? displayClient.credit_balance ?? 0}
+              </span>
+            </div>
             
             <div className="flex gap-2">
               <Input
-                placeholder="Credit amount"
+                placeholder="Amount (+ or -)"
                 value={creditAmount}
                 onChange={(e) => setCreditAmount(e.target.value)}
                 type="number"
-                className="w-32"
+                className="w-36"
               />
               <Input
                 placeholder="Reason (optional)"
@@ -418,37 +470,126 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                 size="sm"
               >
                 <DollarSign className="h-4 w-4 mr-2" />
-                Add Credit
+                Add Entry
               </Button>
             </div>
 
-            {clientCredits.length > 0 && (
-              <div className="border rounded-md">
+            {clientCredits.length > 0 ? (
+              <div className="border rounded-md max-h-[300px] overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
+                      <TableHead className="w-[120px]">Date</TableHead>
+                      <TableHead className="w-[120px]">Amount</TableHead>
                       <TableHead>Reason</TableHead>
+                      <TableHead className="w-[100px] text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clientCredits.slice(0, 5).map((credit) => (
+                    {clientCredits.map((credit) => (
                       <TableRow key={credit.id}>
                         <TableCell>
                           {format(new Date(credit.created_at), 'MMM dd, yyyy')}
                         </TableCell>
-                        <TableCell className={credit.amount > 0 ? 'text-green-600' : 'text-red-600'}>
-                          {credit.amount > 0 ? '+' : ''}{credit.amount}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {credit.reason || 'No reason specified'}
-                        </TableCell>
+                        {editingCreditId === credit.id ? (
+                          <>
+                            <TableCell>
+                              <Input
+                                type="number"
+                                value={editCreditAmount}
+                                onChange={(e) => setEditCreditAmount(e.target.value)}
+                                className="w-24 h-8"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                value={editCreditReason}
+                                onChange={(e) => setEditCreditReason(e.target.value)}
+                                placeholder="Reason (optional)"
+                                className="h-8"
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={handleSaveEditCredit}
+                                  disabled={!editCreditAmount || updateCredit.isPending}
+                                  title="Save"
+                                >
+                                  <Check className="h-4 w-4 text-green-600" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={handleCancelEditCredit}
+                                  title="Cancel"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </>
+                        ) : (
+                          <>
+                            <TableCell className={credit.amount > 0 ? 'text-green-600' : 'text-red-600'}>
+                              {credit.amount > 0 ? '+' : ''}{credit.amount}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {credit.reason || 'No reason specified'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleStartEditCredit(credit)}
+                                  title="Edit entry"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <AlertDialog open={deletingCreditId === credit.id} onOpenChange={(open) => { if (!open) setDeletingCreditId(null); }}>
+                                  <AlertDialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setDeletingCreditId(credit.id)}
+                                      title="Delete entry"
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Credit Entry</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to delete this credit entry of {credit.amount > 0 ? '+' : ''}{credit.amount}?
+                                        The client&apos;s credit balance will be recalculated automatically.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => handleDeleteCredit(credit.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No credit entries recorded.</p>
             )}
           </div>
 
@@ -543,7 +684,12 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
               </div>
             </div>
 
-            {clientCampaigns.length > 0 ? (
+            {isClientLoading ? (
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                Loading campaigns...
+              </div>
+            ) : clientCampaigns.length > 0 ? (
               <div className="border rounded-md">
                 <Table>
                   <TableHeader>

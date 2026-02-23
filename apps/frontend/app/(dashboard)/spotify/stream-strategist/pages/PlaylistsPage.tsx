@@ -37,7 +37,9 @@ import {
   Info,
   Database,
   Activity,
-  BarChart3
+  BarChart3,
+  DollarSign,
+  Link2
 } from "lucide-react";
 import Papa from "papaparse";
 import { Vendor, Playlist } from "../types";
@@ -350,6 +352,34 @@ export default function PlaylistsPage() {
     },
     enabled: !!selectedVendor
   });
+
+  // Fetch active campaign assignment count for vendor summary
+  const { data: activeCampaignAssignments, isLoading: assignmentsLoading } = useQuery({
+    queryKey: ['active-campaign-assignments'],
+    queryFn: async () => {
+      const { data: activeCampaigns } = await supabase
+        .from('spotify_campaigns')
+        .select('id')
+        .eq('status', 'Active');
+
+      if (!activeCampaigns?.length) return 0;
+
+      const { count } = await supabase
+        .from('campaign_playlists')
+        .select('*', { count: 'exact', head: true })
+        .in('campaign_id', activeCampaigns.map(c => c.id));
+
+      return count || 0;
+    }
+  });
+
+  // Compute avg cost per 1K across active vendors
+  const avgCostPer1K = (() => {
+    const activeVendors = vendors?.filter(v => v.is_active !== false && v.cost_per_1k_streams != null) || [];
+    if (activeVendors.length === 0) return 0;
+    const total = activeVendors.reduce((sum, v) => sum + (v.cost_per_1k_streams || 0), 0);
+    return total / activeVendors.length;
+  })();
 
   // Filter data based on current view
   const filteredVendors = vendors?.filter(vendor => {
@@ -917,7 +947,15 @@ export default function PlaylistsPage() {
                     {filteredPlaylists.map((playlist) => (
                       <TableRow key={playlist.id} className="hover:bg-accent/20">
                         <TableCell className="font-medium">
-                          {playlist.name}
+                          <button
+                            className="text-left hover:text-primary hover:underline transition-colors"
+                            onClick={() => {
+                              setSelectedPlaylistForPerformance({ id: playlist.id, name: playlist.name });
+                              setPerformanceHistoryModalOpen(true);
+                            }}
+                          >
+                            {playlist.name}
+                          </button>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1 items-center group">
@@ -1121,6 +1159,54 @@ export default function PlaylistsPage() {
               Add Vendor
             </Button>
           </div>
+        </div>
+
+        {/* Vendor Summary */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-card/50 border-border/50">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs text-muted-foreground">Total Vendors</p>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {vendorsLoading
+                ? <div className="h-8 w-16 bg-muted/30 rounded animate-pulse" />
+                : <div className="text-2xl font-bold">{vendors?.length ?? 0}</div>}
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 border-border/50">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs text-muted-foreground">Active Playlists</p>
+                <Music className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {allPlaylistsLoading
+                ? <div className="h-8 w-16 bg-muted/30 rounded animate-pulse" />
+                : <div className="text-2xl font-bold">{allPlaylists?.length ?? 0}</div>}
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 border-border/50">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs text-muted-foreground">Active Campaign Assignments</p>
+                <Link2 className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {assignmentsLoading
+                ? <div className="h-8 w-16 bg-muted/30 rounded animate-pulse" />
+                : <div className="text-2xl font-bold">{activeCampaignAssignments ?? 0}</div>}
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 border-border/50">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs text-muted-foreground">Avg Cost per 1K</p>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {vendorsLoading
+                ? <div className="h-8 w-16 bg-muted/30 rounded animate-pulse" />
+                : <div className="text-2xl font-bold">${avgCostPer1K.toFixed(2)}</div>}
+            </CardContent>
+          </Card>
         </div>
         
         {/* View Toggle */}
@@ -1405,7 +1491,15 @@ export default function PlaylistsPage() {
                           </TableCell>
                           <TableCell className="font-medium">
                             <div>
-                              <p className="font-semibold">{playlist.name}</p>
+                              <button
+                                className="font-semibold text-left hover:text-primary hover:underline transition-colors"
+                                onClick={() => {
+                                  setSelectedPlaylistForPerformance({ id: playlist.id, name: playlist.name });
+                                  setPerformanceHistoryModalOpen(true);
+                                }}
+                              >
+                                {playlist.name}
+                              </button>
                               <a 
                                 href={playlist.url} 
                                 target="_blank" 

@@ -1,51 +1,51 @@
 "use client"
 
-// Advanced ML Dashboard for Algorithm & Learning Monitoring
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Separator } from "./ui/separator";
 import { 
-  Brain, 
-  AlertTriangle, 
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
   CheckCircle,
-  Zap,
-  Target,
+  ArrowUpRight,
+  ArrowDownRight,
+  Minus,
   BarChart3,
-  RefreshCw,
-  Settings,
-  Activity,
-  Gauge,
-  Lightbulb
+  Users,
+  ListMusic,
+  Lightbulb,
+  Target,
+  Zap,
+  Clock,
+  Activity
 } from "lucide-react";
-import { useAdvancedLearningMetrics, useDynamicAlgorithmOptimization } from "../hooks/useAdvancedLearning";
-import { useMLModelAnalysis } from "../hooks/useMLPerformancePredictor";
-import { useMLAlerts, useMLSystemHealth } from "../hooks/useMLDashboardData";
-import { MLMetricExplanationCards } from "./MLMetricExplanationCards";
-import { AIAnalyticsChat } from "./AIAnalyticsChat";
+import { useCampaignIntelligence } from "../hooks/useAdvancedLearning";
+import { useProjectionAnalysis } from "../hooks/useMLPerformancePredictor";
+import { useEarlyWarnings, useOptimizationSuggestions } from "../hooks/useMLDashboardData";
 import { useState } from "react";
+import type { AlgorithmicLiftData, TopPlaylist, VendorReliabilitySummary } from "../hooks/useAdvancedLearning";
+import type { ProjectionRecord } from "../hooks/useMLPerformancePredictor";
+import type { EarlyWarningCampaign, OptimizationSuggestion } from "../hooks/useMLDashboardData";
 
 export function MLDashboard({ className }: { className?: string }) {
-  const { data: learningMetrics, isLoading: metricsLoading } = useAdvancedLearningMetrics();
-  const { data: modelAnalysis, isLoading: analysisLoading } = useMLModelAnalysis();
-  const { data: mlAlerts } = useMLAlerts();
-  const { data: systemHealth } = useMLSystemHealth();
-  
-  const optimizeModel = useDynamicAlgorithmOptimization();
-  
+  const { data: intelligence, isLoading: intelLoading } = useCampaignIntelligence();
+  const { data: projections, isLoading: projLoading } = useProjectionAnalysis();
+  const { data: warnings } = useEarlyWarnings();
+  const { data: suggestions } = useOptimizationSuggestions();
+
   const [activeTab, setActiveTab] = useState("overview");
 
-  if (metricsLoading || analysisLoading) {
+
+  if (intelLoading || projLoading) {
     return (
       <Card className={className}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 animate-pulse" />
-            Loading ML Dashboard...
+            <BarChart3 className="h-5 w-5 animate-pulse" />
+            Loading Campaign Intelligence...
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -59,267 +59,493 @@ export function MLDashboard({ className }: { className?: string }) {
     );
   }
 
-  const handleOptimizeModel = () => {
-    optimizeModel.mutate();
-  };
-
   return (
     <div className={className}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Brain className="h-6 w-6 text-primary" />
-            ML Learning Dashboard
-          </h2>
-          <p className="text-muted-foreground">
-            Advanced machine learning monitoring and optimization control
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            onClick={handleOptimizeModel}
-            disabled={optimizeModel.isPending}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${optimizeModel.isPending ? 'animate-spin' : ''}`} />
-            Optimize Model
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Settings
-          </Button>
-        </div>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <BarChart3 className="h-6 w-6 text-primary" />
+          Campaign Intelligence
+        </h2>
+        <p className="text-muted-foreground">
+          Cross-campaign patterns, playlist effectiveness, vendor reliability, and early intervention signals
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="model">Model Performance</TabsTrigger>
-          <TabsTrigger value="ai-chat">AI Analytics</TabsTrigger>
+          <TabsTrigger value="performance">Performance Intelligence</TabsTrigger>
+          <TabsTrigger value="suggestions" className="relative">
+            Optimization Suggestions
+            {suggestions && suggestions.length > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
+                {suggestions.length}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
+        {/* ==================== TAB 1: OVERVIEW ==================== */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Algorithm Performance Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Algorithm Accuracy</p>
-                    <p className="text-2xl font-bold text-success">
-                      {learningMetrics ? (learningMetrics.algorithmPerformance.accuracy * 100).toFixed(1) : '0'}%
-                    </p>
-                  </div>
-                  <Target className="h-8 w-8 text-success" />
-                </div>
-                <div className="mt-2">
-                  <Progress 
-                    value={learningMetrics ? learningMetrics.algorithmPerformance.accuracy * 100 : 0} 
-                    className="h-2" 
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Learning Rate</p>
-                    <p className="text-2xl font-bold text-primary">
-                      {learningMetrics ? learningMetrics.algorithmPerformance.adaptationRate.toFixed(1) : '0'}/day
-                    </p>
-                  </div>
-                  <Activity className="h-8 w-8 text-primary" />
-                </div>
-                <Badge variant="outline" className="mt-2">
-                  {learningMetrics?.algorithmPerformance.adaptationRate > 2 ? 'High' : 'Normal'} Activity
-                </Badge>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Model Confidence</p>
-                    <p className="text-2xl font-bold text-warning">
-                      {modelAnalysis ? (modelAnalysis.accuracy * 100).toFixed(0) : '0'}%
-                    </p>
-                  </div>
-                  <Gauge className="h-8 w-8 text-warning" />
-                </div>
-                <div className="mt-2">
-                  <Progress 
-                    value={modelAnalysis ? modelAnalysis.accuracy * 100 : 0} 
-                    className="h-2" 
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Active Optimizations</p>
-                    <p className="text-2xl font-bold">
-                      {learningMetrics?.optimizationOpportunities.filter(o => o.priority === 'high').length || 0}
-                    </p>
-                  </div>
-                  <Zap className="h-8 w-8 text-warning" />
-                </div>
-                <Badge variant="destructive" className="mt-2">
-                  {learningMetrics?.optimizationOpportunities.filter(o => o.priority === 'high').length || 0} High Priority
-                </Badge>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* ML Metric Explanation Cards */}
-          <MLMetricExplanationCards />
-
-          {/* Recent Learning Insights */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lightbulb className="h-5 w-5" />
-                Recent Learning Insights
-              </CardTitle>
-              <CardDescription>
-                Latest algorithmic discoveries and optimization opportunities
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {learningMetrics?.optimizationOpportunities.slice(0, 3).map((opportunity, index) => (
-                  <Alert key={index} className={`border-l-4 ${
-                    opportunity.priority === 'high' ? 'border-l-destructive' : 
-                    opportunity.priority === 'medium' ? 'border-l-warning' : 'border-l-primary'
-                  }`}>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      <div className="flex items-center justify-between">
-                        <span>{opportunity.description}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={opportunity.priority === 'high' ? 'destructive' : 'secondary'}>
-                            {opportunity.priority} priority
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            +{(opportunity.potentialImpact * 100).toFixed(1)}% impact
-                          </span>
-                        </div>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <OverviewTab
+            algorithmicLift={intelligence?.algorithmicLift}
+            topPlaylists={intelligence?.topPlaylists || []}
+            vendorReliability={intelligence?.vendorReliability || []}
+          />
         </TabsContent>
 
-        <TabsContent value="model" className="space-y-6">
-          {/* Model Performance Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Prediction Accuracy</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-success mb-2">
-                  {modelAnalysis ? (modelAnalysis.accuracy * 100).toFixed(1) : '0'}%
-                </div>
-                <Progress value={modelAnalysis ? modelAnalysis.accuracy * 100 : 0} className="mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Based on {modelAnalysis?.predictionCount || 0} recent predictions
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Mean Absolute Error</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold mb-2">
-                  {modelAnalysis ? Math.round(modelAnalysis.mae).toLocaleString() : '0'}
-                </div>
-                <p className="text-sm text-muted-foreground">Average prediction error in streams</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Model Health</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="h-6 w-6 text-success" />
-                  <span className="text-lg font-semibold">Healthy</span>
-                </div>
-                <p className="text-sm text-muted-foreground">All systems operational</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Model Insights */}
-          <Card>
-              <CardHeader>
-                <CardTitle>System Health & Alerts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${systemHealth?.status === 'healthy' ? 'bg-success' : 'bg-warning'}`} />
-                      <span className="font-medium">System Status</span>
-                    </div>
-                    <Badge variant={systemHealth?.status === 'healthy' ? 'default' : 'secondary'}>
-                      {systemHealth?.status || 'Unknown'}
-                    </Badge>
-                  </div>
-                  
-                  {mlAlerts && mlAlerts.totalAlerts > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Active Alerts ({mlAlerts.totalAlerts})</h4>
-                      {mlAlerts.performanceAlerts.slice(0, 3).map((alert, index) => (
-                        <div key={index} className="flex items-start gap-3 p-3 border-l-4 border-l-warning bg-muted/50 rounded-lg">
-                          <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">{alert.alert_type}</p>
-                            <p className="text-xs text-muted-foreground">{alert.message}</p>
-                          </div>
-                          <Badge variant="secondary">{alert.severity}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {modelAnalysis?.insights.slice(0, 2).map((insight, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                      <BarChart3 className="h-5 w-5 text-primary mt-0.5" />
-                      <p className="text-sm">{insight}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-          </Card>
+        {/* ==================== TAB 2: PERFORMANCE INTELLIGENCE ==================== */}
+        <TabsContent value="performance" className="space-y-6">
+          <PerformanceIntelligenceTab
+            projections={projections}
+            warnings={warnings || []}
+          />
         </TabsContent>
 
-        <TabsContent value="ai-chat" className="space-y-6">
-          {/* AI Analytics Chat Interface */}
-          <AIAnalyticsChat />
+        {/* ==================== TAB 3: OPTIMIZATION SUGGESTIONS ==================== */}
+        <TabsContent value="suggestions" className="space-y-6">
+          <OptimizationSuggestionsTab suggestions={suggestions || []} />
         </TabsContent>
-
       </Tabs>
     </div>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  TAB 1: Overview                                                    */
+/* ------------------------------------------------------------------ */
 
+function OverviewTab({
+  algorithmicLift,
+  topPlaylists,
+  vendorReliability,
+}: {
+  algorithmicLift?: AlgorithmicLiftData;
+  topPlaylists: TopPlaylist[];
+  vendorReliability: VendorReliabilitySummary[];
+}) {
+  return (
+    <>
+      {/* A. Algorithmic Lift Rate */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Algorithmic Lift Rate
+            <Badge variant="outline" className="ml-2 text-xs font-normal">
+              28-Day Window
+            </Badge>
+          </CardTitle>
+          <CardDescription>
+            Change in algorithmic streaming after playlist exposure, normalized against vendor playlist streams delivered
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Lift Rate</p>
+              <p className="text-3xl font-bold">
+                {algorithmicLift ? `${(algorithmicLift.liftRate * 100).toFixed(1)}%` : '—'}
+              </p>
+              <div className="flex items-center gap-1 text-sm">
+                {algorithmicLift?.trend === 'up' && <ArrowUpRight className="h-4 w-4 text-emerald-500" />}
+                {algorithmicLift?.trend === 'down' && <ArrowDownRight className="h-4 w-4 text-red-500" />}
+                {algorithmicLift?.trend === 'flat' && <Minus className="h-4 w-4 text-muted-foreground" />}
+                <span className={
+                  algorithmicLift?.trend === 'up' ? 'text-emerald-500' :
+                  algorithmicLift?.trend === 'down' ? 'text-red-500' : 'text-muted-foreground'
+                }>
+                  {algorithmicLift?.trend === 'up' ? 'Trending up' :
+                   algorithmicLift?.trend === 'down' ? 'Trending down' : 'Stable'}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Estimated Algorithmic Streams</p>
+              <p className="text-2xl font-bold">{algorithmicLift?.liftStreams.toLocaleString() || '0'}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Vendor Playlist Streams</p>
+              <p className="text-2xl font-bold">{algorithmicLift?.baselineStreams.toLocaleString() || '0'}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Campaigns Analyzed</p>
+              <p className="text-2xl font-bold">{algorithmicLift?.campaignsAnalyzed || 0}</p>
+            </div>
+          </div>
+          <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+            <p className="text-xs text-muted-foreground">
+              Algorithmic sources tracked: Radio, Discover Weekly, Release Radar, Your DJ, Mixes.
+              Vendor playlist streams are excluded from lift calculation.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* B. Top Performing Playlists */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ListMusic className="h-5 w-5 text-primary" />
+            Top Performing Playlists
+          </CardTitle>
+          <CardDescription>
+            Cross-campaign playlist ranking by streams delivered, algorithmic lift correlation, and campaign success rate
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {topPlaylists.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No playlist performance data available yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left">
+                    <th className="pb-2 pr-4 font-medium text-muted-foreground">#</th>
+                    <th className="pb-2 pr-4 font-medium text-muted-foreground">Playlist</th>
+                    <th className="pb-2 pr-4 font-medium text-muted-foreground">Vendor</th>
+                    <th className="pb-2 pr-4 font-medium text-muted-foreground text-right">Avg Streams</th>
+                    <th className="pb-2 pr-4 font-medium text-muted-foreground text-right">Algo Lift</th>
+                    <th className="pb-2 pr-4 font-medium text-muted-foreground text-right">Success Rate</th>
+                    <th className="pb-2 font-medium text-muted-foreground text-right">Campaigns</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topPlaylists.slice(0, 10).map((playlist, index) => (
+                    <tr key={playlist.playlistId} className="border-b border-border/50 last:border-0">
+                      <td className="py-2 pr-4 text-muted-foreground">{index + 1}</td>
+                      <td className="py-2 pr-4 font-medium">{playlist.playlistName}</td>
+                      <td className="py-2 pr-4 text-muted-foreground">{playlist.vendorName}</td>
+                      <td className="py-2 pr-4 text-right">{playlist.avgStreamsDelivered.toLocaleString()}</td>
+                      <td className="py-2 pr-4 text-right">
+                        <Badge variant={playlist.algorithmicLiftCorrelation > 0.3 ? 'default' : 'secondary'} className="text-xs">
+                          {(playlist.algorithmicLiftCorrelation * 100).toFixed(0)}%
+                        </Badge>
+                      </td>
+                      <td className="py-2 pr-4 text-right">
+                        <span className={playlist.campaignSuccessRate >= 0.8 ? 'text-emerald-500' : playlist.campaignSuccessRate >= 0.5 ? 'text-yellow-500' : 'text-red-500'}>
+                          {(playlist.campaignSuccessRate * 100).toFixed(0)}%
+                        </span>
+                      </td>
+                      <td className="py-2 text-right text-muted-foreground">{playlist.campaignCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
+      {/* C. Vendor Reliability Score */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            Vendor Reliability
+          </CardTitle>
+          <CardDescription>
+            Vendor-level summary for future allocation decisions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {vendorReliability.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No vendor reliability data available yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {vendorReliability.slice(0, 10).map((vendor) => (
+                <div key={vendor.vendorId} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium truncate">{vendor.name}</p>
+                      <Badge
+                        variant={vendor.trend === 'improving' ? 'default' : vendor.trend === 'declining' ? 'destructive' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {vendor.trend === 'improving' && <ArrowUpRight className="h-3 w-3 mr-1" />}
+                        {vendor.trend === 'declining' && <ArrowDownRight className="h-3 w-3 mr-1" />}
+                        {vendor.trend}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Progress value={vendor.reliabilityScore * 100} className="h-1.5 flex-1 max-w-[120px]" />
+                      <span className="text-xs text-muted-foreground">{(vendor.reliabilityScore * 100).toFixed(0)}%</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-right text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">On Pace</p>
+                      <p className={`font-medium ${vendor.campaignsOnPacePercent >= 80 ? 'text-emerald-500' : vendor.campaignsOnPacePercent >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                        {vendor.campaignsOnPacePercent.toFixed(0)}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Avg Variance</p>
+                      <p className="font-medium">
+                        {vendor.avgDeliveryVariance >= 0 ? '+' : ''}{(vendor.avgDeliveryVariance * 100).toFixed(0)}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Ramp</p>
+                      <p className="font-medium">{vendor.avgRampDays}d</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </>
+  );
+}
 
+/* ------------------------------------------------------------------ */
+/*  TAB 2: Performance Intelligence                                    */
+/* ------------------------------------------------------------------ */
 
+function PerformanceIntelligenceTab({
+  projections,
+  warnings,
+}: {
+  projections?: {
+    campaigns: ProjectionRecord[];
+    overallAccuracy: number;
+    totalProjected: number;
+    totalActual: number;
+    overallVariance: number;
+    excludedCount: number;
+  } | null;
+  warnings: EarlyWarningCampaign[];
+}) {
+  return (
+    <>
+      {/* A. Projection vs Actual Streams */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
+            Projection vs Actual Streams
+          </CardTitle>
+          <CardDescription>
+            Validate pacing accuracy across campaigns
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Pacing Accuracy</p>
+              <p className="text-3xl font-bold">
+                {projections ? `${projections.overallAccuracy.toFixed(0)}%` : '—'}
+              </p>
+              <p className="text-xs text-muted-foreground">Campaigns within 20% of projection</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Total Projected</p>
+              <p className="text-2xl font-bold">{projections?.totalProjected.toLocaleString() || '0'}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Total Actual</p>
+              <p className="text-2xl font-bold">{projections?.totalActual.toLocaleString() || '0'}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Overall Variance</p>
+              <p className={`text-2xl font-bold ${
+                projections && projections.overallVariance >= 0 ? 'text-emerald-500' : 'text-red-500'
+              }`}>
+                {projections ? `${projections.overallVariance >= 0 ? '+' : ''}${projections.overallVariance}%` : '—'}
+              </p>
+            </div>
+          </div>
 
+          {projections && projections.campaigns.length > 0 ? (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left">
+                      <th className="pb-2 pr-4 font-medium text-muted-foreground">Campaign</th>
+                      <th className="pb-2 pr-4 font-medium text-muted-foreground text-right">Projected</th>
+                      <th className="pb-2 pr-4 font-medium text-muted-foreground text-right">Actual</th>
+                      <th className="pb-2 pr-4 font-medium text-muted-foreground text-right">Variance</th>
+                      <th className="pb-2 font-medium text-muted-foreground text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projections.campaigns.slice(0, 15).map((campaign) => (
+                      <tr key={campaign.campaignId} className="border-b border-border/50 last:border-0">
+                        <td className="py-2 pr-4 font-medium">{campaign.campaignName}</td>
+                        <td className="py-2 pr-4 text-right">{campaign.projectedStreams.toLocaleString()}</td>
+                        <td className="py-2 pr-4 text-right">{campaign.actualStreams.toLocaleString()}</td>
+                        <td className={`py-2 pr-4 text-right font-medium ${
+                          campaign.variancePercent >= 0 ? 'text-emerald-500' : 'text-red-500'
+                        }`}>
+                          {campaign.variancePercent >= 0 ? '+' : ''}{campaign.variancePercent}%
+                        </td>
+                        <td className="py-2 text-right">
+                          <Badge variant={
+                            campaign.status === 'on_track' ? 'default' :
+                            campaign.status === 'over' ? 'secondary' : 'destructive'
+                          } className="text-xs">
+                            {campaign.status === 'on_track' ? 'On Track' :
+                             campaign.status === 'over' ? 'Over' : 'Under'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {projections.excludedCount > 0 && (
+                <p className="text-xs text-muted-foreground mt-3 pt-3 border-t">
+                  {projections.excludedCount} campaign{projections.excludedCount !== 1 ? 's' : ''} excluded — no delivery data available yet.
+                  Only campaigns with tracked playlist streams are shown.
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground py-4">No projection data available yet.</p>
+          )}
+        </CardContent>
+      </Card>
 
+      {/* B. Early Warning System */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            Early Warning System
+          </CardTitle>
+          <CardDescription>
+            Campaigns that need attention before they fall behind
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {warnings.length === 0 ? (
+            <div className="flex items-center gap-2 py-4">
+              <CheckCircle className="h-5 w-5 text-emerald-500" />
+              <p className="text-sm text-muted-foreground">All campaigns are currently on track.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {warnings.map((warning, index) => (
+                <Alert
+                  key={`${warning.campaignId}-${index}`}
+                  className={`border-l-4 ${
+                    warning.severity === 'critical' ? 'border-l-red-500' :
+                    warning.severity === 'warning' ? 'border-l-yellow-500' : 'border-l-blue-500'
+                  }`}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium">{warning.campaignName}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{warning.message}</p>
+                        {warning.daysRemaining > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {warning.daysRemaining} days remaining
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Badge variant={
+                          warning.severity === 'critical' ? 'destructive' :
+                          warning.severity === 'warning' ? 'secondary' : 'outline'
+                        }>
+                          {warning.severity}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {warning.issue === 'below_pace' ? 'Below Pace' :
+                           warning.issue === 'plateau' ? 'Plateau' : 'Vendor Drop'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  TAB 3: Optimization Suggestions                                    */
+/* ------------------------------------------------------------------ */
+
+const SUGGESTION_CONFIG: Record<OptimizationSuggestion['type'], {
+  label: string;
+  icon: typeof Zap;
+  color: string;
+}> = {
+  pacing_risk: { label: 'Pacing Risk', icon: AlertTriangle, color: 'text-red-500' },
+  vendor_underperformance: { label: 'Vendor Underperformance', icon: TrendingDown, color: 'text-yellow-500' },
+  algorithmic_opportunity: { label: 'Algorithmic Opportunity', icon: Activity, color: 'text-blue-500' },
+  momentum_opportunity: { label: 'Momentum Opportunity', icon: Zap, color: 'text-emerald-500' },
+};
+
+function OptimizationSuggestionsTab({ suggestions }: { suggestions: OptimizationSuggestion[] }) {
+  return (
+    <>
+      <div className="mb-2">
+        <p className="text-sm text-muted-foreground">
+          Generated daily using rule-based analysis. Each suggestion includes the issue detected, a recommended action, and a confidence level.
+        </p>
+      </div>
+
+      {suggestions.length === 0 ? (
+        <Card>
+          <CardContent className="py-8">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <CheckCircle className="h-8 w-8 text-emerald-500" />
+              <p className="font-medium">No optimization suggestions at this time</p>
+              <p className="text-sm text-muted-foreground">All campaigns are performing within expected parameters.</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {suggestions.map((suggestion) => {
+            const config = SUGGESTION_CONFIG[suggestion.type];
+            const Icon = config.icon;
+
+            return (
+              <Card key={suggestion.id} className="border-l-4" style={{
+                borderLeftColor: config.color === 'text-red-500' ? 'rgb(239 68 68)' :
+                  config.color === 'text-yellow-500' ? 'rgb(234 179 8)' :
+                  config.color === 'text-blue-500' ? 'rgb(59 130 246)' : 'rgb(16 185 129)'
+              }}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${config.color}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium">{suggestion.campaignName}</p>
+                        <Badge variant="outline" className="text-xs">{config.label}</Badge>
+                        <Badge
+                          variant={suggestion.confidence === 'high' ? 'default' : suggestion.confidence === 'medium' ? 'secondary' : 'outline'}
+                          className="text-xs"
+                        >
+                          {suggestion.confidence} confidence
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">{suggestion.issueDetected}</p>
+                      <div className="mt-2 p-2 bg-muted/50 rounded flex items-start gap-2">
+                        <Lightbulb className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        <p className="text-sm">{suggestion.recommendedAction}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+}

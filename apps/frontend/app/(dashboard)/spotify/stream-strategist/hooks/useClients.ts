@@ -209,6 +209,33 @@ export function useClientCredits(clientId: string) {
   });
 }
 
+async function getCurrentBalance(clientId: string): Promise<number> {
+  const { data, error } = await supabase
+    .from('clients')
+    .select('credit_balance')
+    .eq('id', clientId)
+    .single();
+  if (error) throw error;
+  return data.credit_balance || 0;
+}
+
+async function applyBalanceDelta(clientId: string, delta: number) {
+  const currentBalance = await getCurrentBalance(clientId);
+  const newBalance = currentBalance + delta;
+
+  const { error } = await supabase
+    .from('clients')
+    .update({ credit_balance: newBalance })
+    .eq('id', clientId);
+  if (error) throw error;
+}
+
+function invalidateCreditQueries(queryClient: ReturnType<typeof useQueryClient>, clientId: string) {
+  queryClient.invalidateQueries({ queryKey: ['client-credits', clientId] });
+  queryClient.invalidateQueries({ queryKey: ['clients'] });
+  queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+}
+
 export function useAddClientCredit() {
   const queryClient = useQueryClient();
   
@@ -221,31 +248,13 @@ export function useAddClientCredit() {
         .single();
       
       if (error) throw error;
-      
-      // Get current client balance and update it
-      const { data: clientData, error: clientError } = await supabase
-        .from('clients')
-        .select('credit_balance')
-        .eq('id', credit.client_id)
-        .single();
-      
-      if (clientError) throw clientError;
-      
-      const newBalance = (clientData.credit_balance || 0) + credit.amount;
-      
-      const { error: balanceError } = await supabase
-        .from('clients')
-        .update({ credit_balance: newBalance })
-        .eq('id', credit.client_id);
-      
-      if (balanceError) throw balanceError;
+
+      await applyBalanceDelta(credit.client_id, credit.amount);
       
       return data as ClientCredit;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['client-credits', variables.client_id] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['client', variables.client_id] });
+      invalidateCreditQueries(queryClient, variables.client_id);
       toast({ title: 'Credit transaction recorded' });
     },
     onError: (error) => {
@@ -253,6 +262,84 @@ export function useAddClientCredit() {
         title: 'Error recording credit', 
         description: error.message,
         variant: 'destructive'
+      });
+    },
+  });
+}
+
+export function useUpdateClientCredit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, client_id, amount, reason }: { id: string; client_id: string; amount: number; reason?: string | null }) => {
+      const { data: oldEntry, error: fetchOldError } = await supabase
+        .from('client_credits')
+        .select('amount')
+        .eq('id', id)
+        .single();
+
+      if (fetchOldError) throw fetchOldError;
+      const oldAmount = oldEntry.amount;
+
+      const { data, error } = await supabase
+        .from('client_credits')
+        .update({ amount, reason })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await applyBalanceDelta(client_id, amount - oldAmount);
+
+      return data as ClientCredit;
+    },
+    onSuccess: (_, variables) => {
+      invalidateCreditQueries(queryClient, variables.client_id);
+      toast({ title: 'Credit entry updated' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error updating credit entry',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useDeleteClientCredit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, client_id }: { id: string; client_id: string }) => {
+      const { data: entryToDelete, error: fetchError } = await supabase
+        .from('client_credits')
+        .select('amount')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) throw fetchError;
+      const deletedAmount = entryToDelete.amount;
+
+      const { error } = await supabase
+        .from('client_credits')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await applyBalanceDelta(client_id, -deletedAmount);
+    },
+    onSuccess: (_, variables) => {
+      invalidateCreditQueries(queryClient, variables.client_id);
+      toast({ title: 'Credit entry deleted' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error deleting credit entry',
+        description: error.message,
+        variant: 'destructive',
       });
     },
   });

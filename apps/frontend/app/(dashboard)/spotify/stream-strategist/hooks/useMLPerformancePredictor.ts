@@ -1,7 +1,5 @@
 "use client"
 
-// ML-Driven Performance Prediction Hook
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
 import { mlEngine, type MLPrediction, type MLFeatures } from '../lib/mlEngine';
@@ -34,7 +32,216 @@ export interface CampaignOptimizationResult {
   optimizationInsights: string[];
 }
 
-// Hook to predict performance for a single playlist
+export interface ProjectionRecord {
+  campaignId: string;
+  campaignName: string;
+  projectedStreams: number;
+  actualStreams: number;
+  variancePercent: number;
+  status: 'on_track' | 'over' | 'under';
+}
+
+export interface ProjectionAnalysisData {
+  campaigns: ProjectionRecord[];
+  overallAccuracy: number;
+  totalProjected: number;
+  totalActual: number;
+  overallVariance: number;
+  excludedCount: number;
+}
+
+// --- Campaign Intelligence: Projection vs Actual ---
+export function useProjectionAnalysis() {
+  return useQuery({
+    queryKey: ['projection-analysis'],
+    queryFn: async (): Promise<ProjectionAnalysisData> => {
+      const [
+        { data: performanceData, error },
+        { data: campaignPlaylists },
+        { data: campaignGroups },
+        { data: spotifyCampaigns },
+      ] = await Promise.all([
+        supabase
+          .from('campaign_allocations_performance')
+          .select('*, campaigns(name, status, stream_goal)')
+          .order('created_at', { ascending: false })
+          .limit(500),
+        supabase
+          .from('campaign_playlists' as any)
+          .select('campaign_id, vendor_id, streams_12m, streams_28d, is_algorithmic, is_organic')
+          .order('created_at', { ascending: false })
+          .limit(1000),
+        supabase
+          .from('campaign_groups' as any)
+          .select('id, name, total_goal, status'),
+        supabase
+          .from('spotify_campaigns' as any)
+          .select('id, campaign_group_id, campaign, goal'),
+      ]);
+
+
+      if (error) throw error;
+
+      const cpList: any[] = (campaignPlaylists as any[]) || [];
+      const cgList: any[] = (campaignGroups as any[]) || [];
+      const scList: any[] = (spotifyCampaigns as any[]) || [];
+
+      // Build bridge: spotify_campaigns.id (integer) → campaign_group_id (UUID)
+      // Step 1: direct campaign_group_id link
+      const songToGroupMap = new Map<string, string>();
+      scList.forEach(sc => {
+        if (sc.campaign_group_id) {
+          songToGroupMap.set(String(sc.id), sc.campaign_group_id);
+        }
+      });
+
+      // Step 2: for songs without campaign_group_id, match by name to campaign_groups
+      const cgNameToId = new Map<string, string>();
+      cgList.forEach(cg => {
+        if (cg.name) cgNameToId.set(cg.name.toLowerCase().trim(), cg.id);
+      });
+      scList.forEach(sc => {
+        if (sc.campaign_group_id) return;
+        if (!sc.campaign) return;
+        const matchedGroupId = cgNameToId.get(sc.campaign.toLowerCase().trim());
+        if (matchedGroupId) {
+          songToGroupMap.set(String(sc.id), matchedGroupId);
+        }
+      });
+
+      // Aggregate campaign_playlists actual streams by campaign_group_id (UUID)
+      const cpByGroup = new Map<string, number>();
+      const cpBySong = new Map<string, number>();
+      cpList.filter(p => !p.is_algorithmic && !p.is_organic).forEach(p => {
+        const songId = String(p.campaign_id);
+        const streams = p.streams_12m || p.streams_28d || 0;
+        cpBySong.set(songId, (cpBySong.get(songId) || 0) + streams);
+
+        const groupId = songToGroupMap.get(songId);
+        if (groupId) {
+          cpByGroup.set(groupId, (cpByGroup.get(groupId) || 0) + streams);
+        }
+      });
+
+      const campaignMap = new Map<string, {
+        name: string;
+        projected: number;
+        actual: number;
+        goal: number;
+      }>();
+
+      // Strategy 1: campaign_groups + campaign_playlists (primary, has real stream data)
+      cgList.forEach(cg => {
+        const cpActual = cpByGroup.get(cg.id) || 0;
+        if (cg.total_goal > 0 || cpActual > 0) {
+          campaignMap.set(cg.id, {
+            name: cg.name || 'Unknown',
+            projected: cg.total_goal || 0,
+            actual: cpActual,
+            goal: cg.total_goal || 0,
+          });
+        }
+      });
+
+      // Strategy 2: spotify_campaigns without campaign_group (standalone songs with playlist data)
+      scList.forEach(sc => {
+        const songId = String(sc.id);
+        if (songToGroupMap.has(songId)) return;
+        const songActual = cpBySong.get(songId) || 0;
+        const songGoal = parseInt(sc.goal) || 0;
+        if (songGoal > 0 || songActual > 0) {
+          const key = `song-${songId}`;
+          campaignMap.set(key, {
+            name: sc.campaign || `Song #${sc.id}`,
+            projected: songGoal,
+            actual: songActual,
+            goal: songGoal,
+          });
+        }
+      });
+
+      // Strategy 3: campaign_allocations_performance (for stream_strategist_campaigns)
+      (performanceData || []).forEach(record => {
+        if (!record.campaigns) return;
+        const cid = record.campaign_id;
+        if (campaignMap.has(cid)) {
+          const existing = campaignMap.get(cid)!;
+          if (existing.actual === 0) {
+            existing.actual += record.actual_streams || 0;
+          }
+          return;
+        }
+        const existing = campaignMap.get(cid) || {
+          name: record.campaigns.name || 'Unknown',
+          projected: 0,
+          actual: 0,
+          goal: record.campaigns.stream_goal || 0,
+        };
+        existing.projected += record.allocated_streams || record.predicted_streams || 0;
+        existing.actual += record.actual_streams || 0;
+        campaignMap.set(cid, existing);
+      });
+
+      const campaigns: ProjectionRecord[] = [];
+      let totalProjected = 0;
+      let totalActual = 0;
+      let withinThreshold = 0;
+      let excludedCount = 0;
+
+      campaignMap.forEach((data, campaignId) => {
+        if (data.projected === 0 && data.actual === 0) return;
+
+        // Only include campaigns with actual delivery data
+        if (data.actual === 0) {
+          excludedCount++;
+          return;
+        }
+
+        const variance = data.projected > 0
+          ? ((data.actual - data.projected) / data.projected) * 100
+          : 0;
+
+        const status: 'on_track' | 'over' | 'under' =
+          Math.abs(variance) <= 15 ? 'on_track' :
+          variance > 0 ? 'over' : 'under';
+
+        campaigns.push({
+          campaignId,
+          campaignName: data.name,
+          projectedStreams: Math.round(data.projected),
+          actualStreams: Math.round(data.actual),
+          variancePercent: Math.round(variance * 10) / 10,
+          status,
+        });
+
+        totalProjected += data.projected;
+        totalActual += data.actual;
+        if (Math.abs(variance) <= 20) withinThreshold++;
+      });
+
+      campaigns.sort((a, b) => Math.abs(b.variancePercent) - Math.abs(a.variancePercent));
+
+      const overallVariance = totalProjected > 0
+        ? ((totalActual - totalProjected) / totalProjected) * 100
+        : 0;
+
+      return {
+        campaigns,
+        overallAccuracy: campaigns.length > 0
+          ? (withinThreshold / campaigns.length) * 100
+          : 0,
+        totalProjected: Math.round(totalProjected),
+        totalActual: Math.round(totalActual),
+        overallVariance: Math.round(overallVariance * 10) / 10,
+        excludedCount,
+      };
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+// --- Campaign Builder hooks (unchanged, used by other components) ---
+
 export function useMLPerformancePrediction(
   playlist: Playlist | null,
   campaign: {
@@ -49,14 +256,12 @@ export function useMLPerformancePrediction(
     queryFn: async (): Promise<PerformancePredictionResult | null> => {
       if (!playlist || !campaign) return null;
 
-      // Fetch vendor data
       const { data: vendor } = await supabase
         .from('vendors')
         .select('*')
         .eq('id', playlist.vendor_id)
         .single();
 
-      // Fetch historical performance data
       const { data: historicalData } = await supabase
         .from('campaign_allocations_performance')
         .select('*')
@@ -64,7 +269,6 @@ export function useMLPerformancePrediction(
         .order('created_at', { ascending: false })
         .limit(20);
 
-      // Extract features and make prediction
       const features = mlEngine.extractFeatures(
         playlist,
         campaign,
@@ -82,11 +286,10 @@ export function useMLPerformancePrediction(
       };
     },
     enabled: !!playlist && !!campaign,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
-// Hook to predict performance for multiple playlists
 export function useMLBatchPerformancePrediction(
   playlists: Playlist[],
   campaign: {
@@ -101,7 +304,6 @@ export function useMLBatchPerformancePrediction(
     queryFn: async (): Promise<PerformancePredictionResult[]> => {
       if (!playlists.length || !campaign) return [];
 
-      // Fetch vendors data
       const vendorIds = [...new Set(playlists.map(p => p.vendor_id))];
       const { data: vendors } = await supabase
         .from('vendors')
@@ -110,7 +312,6 @@ export function useMLBatchPerformancePrediction(
 
       const vendorMap = new Map((vendors || []).map(v => [v.id, v]));
 
-      // Fetch historical performance data for all playlists
       const playlistIds = playlists.map(p => p.id);
       const { data: historicalData } = await supabase
         .from('campaign_allocations_performance')
@@ -126,7 +327,6 @@ export function useMLBatchPerformancePrediction(
         historicalByPlaylist.get(record.playlist_id)!.push(record);
       });
 
-      // Generate predictions for all playlists
       const predictions: PerformancePredictionResult[] = [];
       
       for (const playlist of playlists) {
@@ -153,11 +353,10 @@ export function useMLBatchPerformancePrediction(
       return predictions;
     },
     enabled: playlists.length > 0 && !!campaign,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
-// Hook to optimize campaign allocation using ML
 export function useMLCampaignOptimization(
   playlists: Playlist[],
   campaign: {
@@ -172,21 +371,18 @@ export function useMLCampaignOptimization(
     queryFn: async (): Promise<CampaignOptimizationResult | null> => {
       if (!playlists.length || !campaign) return null;
 
-      // Fetch vendors data
       const vendorIds = [...new Set(playlists.map(p => p.vendor_id))];
       const { data: vendors } = await supabase
         .from('vendors')
         .select('*')
         .in('id', vendorIds);
 
-      // Fetch historical performance data
       const { data: historicalData } = await supabase
         .from('campaign_allocations_performance')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(500);
 
-      // Run ML optimization
       const allocations = mlEngine.optimizeAllocation(
         playlists,
         campaign,
@@ -201,7 +397,6 @@ export function useMLCampaignOptimization(
         (sum, a) => sum + a.prediction.confidence, 0
       ) / Math.max(allocations.length, 1);
 
-      // Risk assessment
       const riskCounts = { low: 0, medium: 0, high: 0 };
       allocations.forEach(a => {
         if (a.prediction.riskScore < 0.3) riskCounts.low++;
@@ -209,25 +404,20 @@ export function useMLCampaignOptimization(
         else riskCounts.high++;
       });
 
-      // Generate optimization insights
       const optimizationInsights: string[] = [];
       
       if (goalCoverage < 0.8) {
         optimizationInsights.push('Campaign may not reach target goal with current playlist selection');
       }
-      
       if (averageConfidence < 0.7) {
         optimizationInsights.push('Low prediction confidence - consider adding more reliable playlists');
       }
-      
       if (riskCounts.high > allocations.length * 0.3) {
         optimizationInsights.push('High risk allocations detected - review vendor reliability');
       }
-      
       const topPerformers = allocations
         .filter(a => a.prediction.performanceCategory === 'excellent')
         .length;
-      
       if (topPerformers > 0) {
         optimizationInsights.push(`${topPerformers} playlists predicted to exceed expectations`);
       }
@@ -242,11 +432,10 @@ export function useMLCampaignOptimization(
       };
     },
     enabled: playlists.length > 0 && !!campaign,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
-// Hook to store ML prediction results for learning
 export function useStorePredictionResult() {
   const queryClient = useQueryClient();
 
@@ -262,7 +451,6 @@ export function useStorePredictionResult() {
         performanceScore: number;
       };
     }) => {
-      // Store in algorithm learning log
       const { data, error } = await supabase
         .from('algorithm_learning_log')
         .insert({
@@ -288,7 +476,6 @@ export function useStorePredictionResult() {
 
       if (error) throw error;
 
-      // If we have actual outcome, also update campaign allocations performance
       if (result.actualOutcome) {
         const { error: perfError } = await supabase
           .from('campaign_allocations_performance')
@@ -308,129 +495,16 @@ export function useStorePredictionResult() {
       return data;
     },
     onSuccess: () => {
-      toast.success('ML prediction stored for learning');
+      toast.success('Prediction stored for learning');
       queryClient.invalidateQueries({ queryKey: ['algorithm-learning-logs'] });
       queryClient.invalidateQueries({ queryKey: ['campaign-allocation-performance'] });
     },
     onError: (error) => {
-      toast.error('Failed to store ML prediction');
-      console.error('ML prediction storage error:', error);
+      toast.error('Failed to store prediction');
+      console.error('Prediction storage error:', error);
     }
   });
 }
 
-// Hook to analyze ML model performance
-export function useMLModelAnalysis() {
-  return useQuery({
-    queryKey: ['ml-model-analysis'],
-    queryFn: async () => {
-      // Fetch recent ML predictions and actual outcomes
-      const { data: learningLogs, error: logsError } = await supabase
-        .from('algorithm_learning_log')
-        .select('*')
-        .eq('algorithm_version', '3.0-ml')
-        .eq('decision_type', 'ml_performance_prediction')
-        .not('performance_impact', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (logsError) throw logsError;
-
-      if (!learningLogs || learningLogs.length === 0) {
-        return {
-          accuracy: 0,
-          mae: 0,
-          rmse: 0,
-          predictionCount: 0,
-          confidenceCalibration: [],
-          performanceBias: 0,
-          insights: ['Not enough data for model analysis']
-        };
-      }
-
-      // Calculate prediction accuracy metrics
-      let totalSquaredError = 0;
-      let totalAbsoluteError = 0;
-      let correctPredictions = 0;
-      
-      const confidenceBuckets = new Map<string, { correct: number; total: number }>();
-
-      learningLogs.forEach(log => {
-        const predicted = typeof log.decision_data === 'object' && log.decision_data && 'predictedStreams' in log.decision_data 
-          ? (log.decision_data as any).predictedStreams || 0 : 0;
-        const actual = log.performance_impact || 0;
-        const confidence = log.confidence_score || 0;
-
-        const error = predicted - actual;
-        totalSquaredError += error * error;
-        totalAbsoluteError += Math.abs(error);
-
-        // Check if prediction was "correct" (within 20% of actual)
-        if (Math.abs(error) / Math.max(actual, 1) < 0.2) {
-          correctPredictions++;
-        }
-
-        // Group by confidence buckets
-        const confidenceBucket = Math.floor(confidence * 10) / 10;
-        const bucketKey = confidenceBucket.toFixed(1);
-        if (!confidenceBuckets.has(bucketKey)) {
-          confidenceBuckets.set(bucketKey, { correct: 0, total: 0 });
-        }
-        const bucket = confidenceBuckets.get(bucketKey)!;
-        bucket.total++;
-        if (Math.abs(error) / Math.max(actual, 1) < 0.2) {
-          bucket.correct++;
-        }
-      });
-
-      const count = learningLogs.length;
-      const accuracy = correctPredictions / count;
-      const mae = totalAbsoluteError / count;
-      const rmse = Math.sqrt(totalSquaredError / count);
-
-      // Calculate confidence calibration
-      const confidenceCalibration = Array.from(confidenceBuckets.entries()).map(
-        ([confidence, bucket]) => ({
-          confidence: parseFloat(confidence),
-          accuracy: bucket.correct / bucket.total,
-          sampleSize: bucket.total
-        })
-      );
-
-      // Generate insights
-      const insights: string[] = [];
-      if (accuracy > 0.8) {
-        insights.push('Model is performing well with high accuracy');
-      } else if (accuracy > 0.6) {
-        insights.push('Model performance is acceptable but could be improved');
-      } else {
-        insights.push('Model needs improvement - low prediction accuracy');
-      }
-
-      if (mae < 1000) {
-        insights.push('Prediction errors are within acceptable range');
-      } else {
-        insights.push('High prediction errors detected - model may need retraining');
-      }
-
-      return {
-        accuracy,
-        mae,
-        rmse,
-        predictionCount: count,
-        confidenceCalibration,
-        performanceBias: totalAbsoluteError / count,
-        insights
-      };
-    },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
-}
-
-
-
-
-
-
-
-
+// Keep backward-compatible export name
+export const useMLModelAnalysis = useProjectionAnalysis;
