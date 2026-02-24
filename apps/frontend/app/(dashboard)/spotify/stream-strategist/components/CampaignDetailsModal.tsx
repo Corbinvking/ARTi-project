@@ -41,7 +41,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle, Loader2, Sparkles, Zap, TrendingUp, Target, Leaf, Globe } from 'lucide-react';
+import { Trash2, Plus, ExternalLink, CheckCircle, XCircle, Clock, BarChart3, ChevronDown, ChevronRight, MessageCircle, Radio, Music, DollarSign, Calendar, Edit, AlertCircle, Loader2, Sparkles, Zap, TrendingUp, Target, Leaf, Globe, Pencil, Check, X } from 'lucide-react';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
@@ -50,6 +50,7 @@ import { useCampaignVendorResponses } from '../hooks/useCampaignVendorResponses'
 import { useIsVendorManager } from '../hooks/useIsVendorManager';
 import { useAuth } from '../hooks/useAuth';
 import { useSalespeople } from '@/hooks/use-salespeople';
+import { useClients } from '../hooks/useClients';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { VendorGroupedPlaylistView } from './VendorGroupedPlaylistView';
 import { VendorPerformanceChart } from './VendorPerformanceChart';
@@ -141,6 +142,16 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const [editingVendorAllocation, setEditingVendorAllocation] = useState<{ vendorId: string; vendorName: string; currentAllocated: number } | null>(null);
   const [vendorAllocationInput, setVendorAllocationInput] = useState<string>('');
   const [savingVendorAllocation, setSavingVendorAllocation] = useState(false);
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [savingDetails, setSavingDetails] = useState(false);
+  const [detailsForm, setDetailsForm] = useState({
+    client_id: '',
+    budget: '',
+    stream_goal: '',
+    remaining_streams: '',
+    genre: '',
+    duration_days: '',
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -151,6 +162,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const { hasRole, user } = useAuth();
   const { data: salespeople = [] } = useSalespeople();
   const { data: payments = [] } = useVendorPaymentData();
+  const { data: clientsList = [] } = useClients();
   
   // Fetch performance data for admin view
   const { data: performanceData, isLoading: performanceLoading } = useCampaignPerformanceData(campaign?.id);
@@ -370,19 +382,20 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         return (p.is_algorithmic === true || matchesPattern) && !p.vendor_id;
       });
       
-      // 2. Vendor playlists = ALL playlists that are NOT algorithmic
-      //    A playlist is a vendor playlist if it doesn't match any algorithmic pattern
-      const vendorPlaylists = (data || []).filter((p: any) => {
+      // 2. All non-algorithmic playlists
+      const nonAlgorithmicPlaylists = (data || []).filter((p: any) => {
         const matchesPattern = isAlgorithmicPlaylist(p.playlist_name || '');
-        // Only include if NOT algorithmic (by flag or pattern)
         return !p.is_algorithmic && !matchesPattern;
       });
       
       // 3. Organic playlists = playlists marked as organic (user playlists, not from vendors or algorithmic)
-      const organicPlaylists = vendorPlaylists.filter((p: any) => p.is_organic === true);
+      const organicPlaylists = nonAlgorithmicPlaylists.filter((p: any) => p.is_organic === true);
       
-      // 4. Unassigned playlists = subset of vendor playlists that need vendor assignment (excluding organic)
-      const unassignedPlaylists = vendorPlaylists.filter((p: any) => !p.vendor_id && !p.is_organic);
+      // 4. Vendor playlists = non-algorithmic, non-organic playlists only
+      const vendorPlaylists = nonAlgorithmicPlaylists.filter((p: any) => !p.is_organic);
+      
+      // 5. Unassigned playlists = vendor playlists that need vendor assignment
+      const unassignedPlaylists = vendorPlaylists.filter((p: any) => !p.vendor_id);
       
       console.log('✅ Found playlists - Vendor:', vendorPlaylists.length, 'Algorithmic:', algorithmicPlaylists.length, 'Organic:', organicPlaylists.length, 'Unassigned:', unassignedPlaylists.length);
       
@@ -967,6 +980,114 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     }
   };
 
+  const startEditingDetails = () => {
+    setDetailsForm({
+      client_id: campaignData?.client_id || campaignData?.clients?.id || '',
+      budget: String(campaignData?.budget || ''),
+      stream_goal: String(campaignData?.stream_goal || ''),
+      remaining_streams: String(campaignData?.remaining_streams || ''),
+      genre: campaignData?.sub_genre === 'Not specified' ? '' : (campaignData?.sub_genre || ''),
+      duration_days: String(campaignData?.duration_days || ''),
+    });
+    setIsEditingDetails(true);
+  };
+
+  const cancelEditingDetails = () => {
+    setIsEditingDetails(false);
+  };
+
+  const saveDetailsEdits = async () => {
+    if (!campaign?.id) return;
+    setSavingDetails(true);
+    try {
+      const newBudget = parseFloat(detailsForm.budget) || 0;
+      const newGoal = parseFloat(detailsForm.stream_goal) || 0;
+      const newRemaining = parseFloat(detailsForm.remaining_streams) || 0;
+      const newDuration = parseInt(detailsForm.duration_days) || 0;
+      const newGenre = detailsForm.genre.trim();
+      const newClientId = detailsForm.client_id || null;
+
+      const isSpotifyCampaign = typeof campaign.id === 'number' ||
+        (typeof campaign.id === 'string' && !campaign.id.includes('-')) ||
+        campaign.campaign !== undefined;
+
+      const campaignGroupId = isSpotifyCampaign
+        ? campaignData?.campaign_group_id || campaign.id
+        : campaign.id;
+
+      const endDate = campaignData?.start_date && newDuration > 0
+        ? new Date(new Date(campaignData.start_date).getTime() + newDuration * 86400000).toISOString()
+        : undefined;
+
+      const groupUpdate: Record<string, any> = {
+        total_budget: newBudget,
+        total_goal: String(newGoal),
+        notes: newGenre || null,
+        client_id: newClientId,
+        updated_at: new Date().toISOString(),
+      };
+      if (endDate) groupUpdate.end_date = endDate;
+
+      const { error: groupError } = await supabase
+        .from('campaign_groups')
+        .update(groupUpdate)
+        .eq('id', campaignGroupId);
+
+      if (groupError) throw groupError;
+
+      if (campaignData?.songs?.length) {
+        const oldTotalRemaining = campaignData.songs.reduce(
+          (sum: number, s: any) => sum + (parseInt(s.remaining) || 0), 0
+        );
+        if (campaignData.songs.length === 1) {
+          await supabase
+            .from('spotify_campaigns')
+            .update({ remaining: String(Math.round(newRemaining)) })
+            .eq('id', campaignData.songs[0].id);
+        } else if (oldTotalRemaining > 0) {
+          const ratio = newRemaining / oldTotalRemaining;
+          for (const song of campaignData.songs) {
+            const songRemaining = parseInt(song.remaining) || 0;
+            await supabase
+              .from('spotify_campaigns')
+              .update({ remaining: String(Math.round(songRemaining * ratio)) })
+              .eq('id', song.id);
+          }
+        }
+      }
+
+      const clientInfo = newClientId
+        ? clientsList.find((c: any) => c.id === newClientId)
+        : null;
+
+      setCampaignData((prev: any) => ({
+        ...prev,
+        client_id: newClientId,
+        client_name: clientInfo?.name || prev?.client_name,
+        clients: clientInfo ? { id: clientInfo.id, name: clientInfo.name } : prev?.clients,
+        budget: newBudget,
+        stream_goal: newGoal,
+        remaining_streams: newRemaining,
+        sub_genre: newGenre || 'Not specified',
+        duration_days: newDuration,
+      }));
+
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+
+      setIsEditingDetails(false);
+      toast({ title: "Success", description: "Campaign details updated" });
+    } catch (error) {
+      console.error('Failed to update campaign details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update campaign details",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingDetails(false);
+    }
+  };
+
   const getSalespersonName = (email: string) => {
     const salesperson = salespeople.find(s => s.email === email);
     return salesperson?.name || email || 'Not assigned';
@@ -1009,8 +1130,8 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   };
 
   // Group playlists by vendor ID with performance data
-  // Use campaignPlaylistsData.vendor which includes all non-algorithmic playlists
-  const playlistsForPayments = campaignPlaylistsData?.vendor || [];
+  // Use campaignPlaylistsData.vendor but exclude organic playlists (they don't count toward vendor payments)
+  const playlistsForPayments = (campaignPlaylistsData?.vendor || []).filter((p: any) => !p.is_organic);
   const groupedPlaylists = playlistsForPayments.reduce((acc, playlist, idx) => {
     // Use 'unassigned' key for playlists without vendor_id
     const vendorId = playlist.vendor_id || 'unassigned';
@@ -1562,35 +1683,139 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
 
           <TabsContent value="overview" className="space-y-6">
           {/* Campaign Info */}
-          <div className="grid grid-cols-2 gap-4 p-4 bg-card rounded-lg">
+          <div className="relative p-4 bg-card rounded-lg">
+            {canEditCampaign && !isEditingDetails && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 h-8 w-8 p-0"
+                onClick={startEditingDetails}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
+            {isEditingDetails && (
+              <div className="absolute top-2 right-2 flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  onClick={cancelEditingDetails}
+                  disabled={savingDetails}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-emerald-500 hover:text-emerald-400"
+                  onClick={saveDetailsEdits}
+                  disabled={savingDetails}
+                >
+                  {savingDetails ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                </Button>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-muted-foreground">Client</Label>
-              <p className="font-medium">{campaignData?.client_name || campaignData?.client}</p>
+              {isEditingDetails ? (
+                <Select
+                  value={detailsForm.client_id}
+                  onValueChange={(val) => setDetailsForm(f => ({ ...f, client_id: val }))}
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientsList.map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="font-medium">{campaignData?.client_name || campaignData?.client}</p>
+              )}
             </div>
             <div>
               <Label className="text-muted-foreground">Budget</Label>
-              <p className="font-medium">
-                {campaignData?.budget && campaignData.budget > 0 
-                  ? `$${campaignData.budget.toLocaleString()}` 
-                  : <span className="text-muted-foreground">Not set</span>
-                }
-              </p>
+              {isEditingDetails ? (
+                <div className="relative mt-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input
+                    type="number"
+                    value={detailsForm.budget}
+                    onChange={(e) => setDetailsForm(f => ({ ...f, budget: e.target.value }))}
+                    className="pl-7"
+                    placeholder="0"
+                  />
+                </div>
+              ) : (
+                <p className="font-medium">
+                  {campaignData?.budget && campaignData.budget > 0 
+                    ? `$${campaignData.budget.toLocaleString()}` 
+                    : <span className="text-muted-foreground">Not set</span>
+                  }
+                </p>
+              )}
             </div>
             <div>
               <Label className="text-muted-foreground">Stream Goal</Label>
-              <p className="font-medium">{campaignData?.stream_goal?.toLocaleString()}</p>
+              {isEditingDetails ? (
+                <Input
+                  type="number"
+                  value={detailsForm.stream_goal}
+                  onChange={(e) => setDetailsForm(f => ({ ...f, stream_goal: e.target.value }))}
+                  className="mt-1"
+                  placeholder="0"
+                />
+              ) : (
+                <p className="font-medium">{campaignData?.stream_goal?.toLocaleString()}</p>
+              )}
             </div>
             <div>
               <Label className="text-muted-foreground">Remaining Streams</Label>
-              <p className="font-medium">{(campaignData?.remaining_streams || campaignData?.stream_goal)?.toLocaleString()}</p>
+              {isEditingDetails ? (
+                <Input
+                  type="number"
+                  value={detailsForm.remaining_streams}
+                  onChange={(e) => setDetailsForm(f => ({ ...f, remaining_streams: e.target.value }))}
+                  className="mt-1"
+                  placeholder="0"
+                />
+              ) : (
+                <p className="font-medium">{(campaignData?.remaining_streams || campaignData?.stream_goal)?.toLocaleString()}</p>
+              )}
             </div>
             <div>
               <Label className="text-muted-foreground">Genre</Label>
-              <p className="font-medium">{campaignData?.sub_genre || 'Not specified'}</p>
+              {isEditingDetails ? (
+                <Input
+                  value={detailsForm.genre}
+                  onChange={(e) => setDetailsForm(f => ({ ...f, genre: e.target.value }))}
+                  className="mt-1"
+                  placeholder="e.g. Hip-Hop, Pop"
+                />
+              ) : (
+                <p className="font-medium">{campaignData?.sub_genre || 'Not specified'}</p>
+              )}
             </div>
             <div>
               <Label className="text-muted-foreground">Duration</Label>
-              <p className="font-medium">{campaignData?.duration_days} days</p>
+              {isEditingDetails ? (
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    value={detailsForm.duration_days}
+                    onChange={(e) => setDetailsForm(f => ({ ...f, duration_days: e.target.value }))}
+                    className="pr-14"
+                    placeholder="0"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">days</span>
+                </div>
+              ) : (
+                <p className="font-medium">{campaignData?.duration_days} days</p>
+              )}
             </div>
             <div className="col-span-2">
               <Label className="text-muted-foreground">Salesperson</Label>
@@ -1680,6 +1905,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               ) : (
                 <p className="text-sm text-muted-foreground mt-1">No Spotify for Artists link added</p>
               )}
+            </div>
             </div>
           </div>
           
@@ -2529,10 +2755,9 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     Vendor Performance Breakdown
                   </h3>
                   {Object.entries(
-                    campaignPlaylists.reduce((acc: any, playlist: any) => {
+                    campaignPlaylists.filter((p: any) => !p.is_organic).reduce((acc: any, playlist: any) => {
                       const vendorName = playlist.vendors?.name || (playlist.is_algorithmic ? 'Spotify (Algorithmic)' : 'Unknown');
                       const vendorId = playlist.vendors?.id || playlist.vendor_id;
-                      // Use cost override if set, otherwise use vendor default
                       const effectiveCost = playlist.cost_per_1k_override ?? playlist.vendors?.cost_per_1k_streams ?? 0;
                       const hasOverride = playlist.cost_per_1k_override !== null && playlist.cost_per_1k_override !== undefined;
                       

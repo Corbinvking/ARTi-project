@@ -1563,18 +1563,33 @@ export default function CampaignHistory() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-xs">
-                                <span>{campaign.progress_percentage || 0}%</span>
-                                <span className="text-muted-foreground">
-                                  {campaign.stream_goal - (campaign.remaining_streams || campaign.stream_goal)} / {campaign.stream_goal}
-                                </span>
-                              </div>
-                              <Progress 
-                                value={campaign.progress_percentage || 0} 
-                                className="h-2"
-                              />
-                            </div>
+                            {(() => {
+                              const pct = Math.round(campaign.progress_percentage || 0);
+                              const delivered = campaign.stream_goal - (campaign.remaining_streams || campaign.stream_goal);
+                              const barColor = pct >= 100
+                                ? 'bg-emerald-500'
+                                : pct >= 75
+                                  ? 'bg-blue-500'
+                                  : pct >= 40
+                                    ? 'bg-amber-500'
+                                    : 'bg-red-500';
+                              return (
+                                <div className="space-y-1.5 min-w-[130px]">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <span className="text-sm font-semibold tabular-nums">{pct}%</span>
+                                    <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                                      {delivered.toLocaleString()}&nbsp;/&nbsp;{campaign.stream_goal.toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+                                    <div
+                                      className={`h-full rounded-full transition-all ${barColor}`}
+                                      style={{ width: `${Math.min(pct, 100)}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">

@@ -112,17 +112,19 @@ export const useVendorPayouts = () => {
       console.log('💰 [VendorPayouts] SpotifyCampaignPayments map size:', spotifyCampaignPayments.size);
 
       // Fetch campaign_playlists for cost_per_1k_override and vendor_paid (per-vendor payment tracking)
+      // Include is_organic so we can exclude organic playlists from payment calculations
       const { data: campaignPlaylists, error: playlistsError } = await supabase
         .from('campaign_playlists')
-        .select('campaign_id, vendor_id, cost_per_1k_override, streams_12m, streams_7d, vendor_paid, vendor_payment_date, vendor_payment_amount')
+        .select('campaign_id, vendor_id, cost_per_1k_override, streams_12m, streams_7d, vendor_paid, vendor_payment_date, vendor_payment_amount, is_organic')
         .not('vendor_id', 'is', null);
       
       console.log('💰 [VendorPayouts] CampaignPlaylists with overrides:', campaignPlaylists?.filter((p: any) => p.cost_per_1k_override)?.length || 0);
       console.log('💰 [VendorPayouts] CampaignPlaylists paid:', campaignPlaylists?.filter((p: any) => p.vendor_paid)?.length || 0);
 
       // Create a map for campaign-vendor cost overrides AND payment status
+      // Exclude organic playlists — they should never count toward vendor payments
       const costOverrideMap = new Map<string, { override: number; streams: number; vendor_paid: boolean; payment_date: string | null }>();
-      (campaignPlaylists || []).forEach((cp: any) => {
+      (campaignPlaylists || []).filter((cp: any) => !cp.is_organic).forEach((cp: any) => {
         const key = `${cp.campaign_id}-${cp.vendor_id}`;
         const existing = costOverrideMap.get(key);
         const streams = cp.streams_12m || cp.streams_7d || 0;
