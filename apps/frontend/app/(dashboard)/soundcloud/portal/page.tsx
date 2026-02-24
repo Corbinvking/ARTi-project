@@ -380,7 +380,7 @@ function DashboardContent() {
                 </Button>
               </a>
               <a
-                href="https://calendly.com/artistinfluence"
+                href="https://calendly.com/jaredai/30min"
                 target="_blank"
                 rel="noopener noreferrer"
               >
