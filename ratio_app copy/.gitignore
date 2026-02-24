@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Environment variables
+.env
+
+# Pytest
+.pytest_cache/
+
+# GCP Service Account
+rich-phenomenon-428302-q5-06a32a619836.json
+rich-phenomenon-428302-q5-dba5f2f381c1.json
+*.log
+instance/

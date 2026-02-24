@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/AI_Logo_2024--r.png') }}">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta name="description" content="Artist influence description" />
+    <meta name="keywords" content="marketing, social marketing" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='images/AI_Logo_2024--r.png') }}"
+    />
+    <title>Artist Influence | Dashboard</title>
+    <style>
+      p.close {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      
+        &:hover {
+          cursor: pointer;
+        }
+      }
+
+      .campaign-button-box button {
+        &:hover {
+          opacity: 1;
+        }
+      }
+
+      input.campaign-input, label.campaign-input, select.campaign-input {
+        display:block;
+      }
+
+      input.campaign-input, select.campaign-input {
+        border: 0.02rem solid rgb(79, 77, 77);
+        background: inherit;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+        padding: 0.8rem;
+        width: 100%;
+        background: var(--offBgColor);
+        background: #17242f;
+        color: white;
+
+        &:focus {
+          outline: none;
+          border: 0.02rem solid rgb(79, 77, 77);
+        }
+      }
+
+      textarea:focus, input:focus, select:focus {
+        color: white;
+    }
+
+    .dropdown-content button.campaign_action_btn {
+      color: var(--white);
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      background: inherit;
+    }
+    
+    .dropdown button.campaign_action_btn:hover {
+      color: rgb(79, 77, 77);
+    }
+    </style>
+  </head>
+  <body>
+    <main class="main-item" id="main-item">
+      <header class="flex-element header">
+        <h1>
+          <img
+            loading="lazy"
+            alt="artist influence logo"
+            src="{{ url_for('static', filename='images/AI_Logo_2024--r.png') }}"
+          />
+        </h1>
+        <nav>
+          <img
+            alt="user-image"
+            src="https://placehold.co/32x32"
+            class="profile-image"
+          />
+          <p class="normal-text hide-sm">{{ user.username }}</p>
+          <svg class="fa-svg normal-text" style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#fafafa" d="M201.4 374.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 306.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
+        </nav>
+      </header>
+      <div class="jumbotron normal-text" id="hero">
+        <div class="jumbotron-message mb-2">
+          <h2 class="mb-1">Dashboard</h2>
+          <p>Welcome {{ user.username }}, Let's dive into your campaign creation</p>
+        </div>
+        <div class="modal-trigger">
+          <button class="btn box-shadow-default btn-lg">
+            <img src="static/images/icon/plus-circle.svg" class="icon mr-1" />
+            Create Campaign
+          </button>
+        </div>
+        <div class="modal" id="modal-container">
+          <div class="modal-content">
+            <p class="close">&times;</p>
+            <div class="modal-form-container">
+              <form class="modal-form" action="/create_campaign" method="POST">
+                <div class="center-text mb-2">
+                  <h2 class="action-text font-400">Create a campaign</h2>
+                  <p>
+                    Lets help you get started with your campaign creation <br />
+                    Provide the information below
+                  </p>
+                </div>
+                <div>
+                  <label class="campaign-input" for="youtube_url">Enter YouTube Video URL:</label>
+                  <input class="campaign-input" type="text" id="youtube_url" name="youtube_url" required placeholder="Enter YouTube Video URL">
+              </div>
+              <div>
+                <label class="campaign-input" for="comments_sheet">Comments Sheet URL:</label>
+                <input class="campaign-input" type="text" id="comments_sheet" name="comments_sheet" required>
+            </div>
+              <div style="display: flex;">
+              <div style="margin-right:10px; width: 33%;">
+                <label class="campaign-input" for="genre">Genre:</label>
+                <select class="campaign-input" id="genre" name="genre" required>
+                    <option value="Rap">Rap</option>
+                    <option value="Bass">Bass</option>
+                    <option value="House">House</option>
+                    <option value="Pop">Pop</option>
+                    <option value="DJ Set">DJ Set</option>
+                </select>
+            </div>
+            <div style="width: 30%;">
+              {% if sheet_tiers: %}
+                  <label class="campaign-input" for="sheet_tier">Sheet Tier:</label>
+                  <select class="campaign-input" id="sheet_tier" name="sheet_tier" required>
+                      <option value="" disabled selected>Select a tier</option>
+                  {% for tier in sheet_tiers: %}
+                      <option value="{{tier.value}}">{{tier.name}}</option>
+                  {% endfor %}
+                  </select>
+              {% endif %}
+          </div>
+            <div style="margin-left: 10px;width: 33%;">
+              <label class="campaign-input" for="wait_time">Wait Time (seconds):</label>
+              <input class="campaign-input" type="number" id="wait_time" name="wait_time" required value="18000">
+          </div>
+          <br style="clear:both;" />
+              </div>
+
+              <div>
+                <div>
+                  {% if like_servers: %}
+                      <label class="campaign-input" for="like_server">Like Server</label>    
+                      <select class="campaign-input" id="like_server" name="like_server" required>
+                          <option value="" disabled selected>Select a server </option>
+                      {% for server in like_servers: %}
+                          <option value="{{server.service_id}}">{{server.title}} - {{server.service_id}} </option>
+                      {% endfor %}
+                      </select>
+                  {% endif %}
+              </div>
+              <div>
+                  {% if comment_servers: %}
+                      <label class="campaign-input" for="comment_server">Comment Server</label>    
+                      <select class="campaign-input" id="comment_server" name="comment_server" required>
+                          <option value="">Select a server </option>
+                      {% for server in comment_servers: %}
+                          <option value="{{server.service_id}}">{{server.title}} - {{server.service_id}}</option>
+                      {% endfor %}
+                      </select>
+                  {% endif %}
+              </div>
+              
+              <div>
+                <label class="campaign-input" for="minimum_engagement">Minimum Engagement (count):</label>
+                <input class="campaign-input" type="number" id="minimum_engagement" name="minimum_engagement" required value="500">
+              </div>
+          <br style="clear:both;" />
+
+              </div>
+
+                <div class="form-group">
+                  <button class="btn box-shadow-default w-100" type="submit">
+                    <img
+                      src="static/images/icon/plus-circle.svg"
+                      class="icon"
+                    />
+                    Create Campaign
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="campaign-utils" id="campaign-utils">
+        <div class="input-container search-box">
+          <svg class="fa-svg normal-text mr-1 ml-1" style="width: 20px; height: 20px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#ffffff" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+          <input
+            type="search"
+            placeholder="Search.."
+            id="form-search"
+            name="form-search"
+            class="form-input search-box"
+          />
+        </div>
+        <div class="campaign-button-box">
+          <form method="POST" action="/start_all_campaigns">
+            <button type="submit" class="btn-border btn-with-icon mr-1">
+              <img
+                src="static/images/icon/stop-circle.svg"
+                class="icon small-icon"
+              />
+              <span>Start All</span>
+            </button>
+        </form>
+        <form method="POST" action="/stop">
+          <button type="submit" class="btn-border btn-with-icon mr-1">
+            <img
+              src="static/images/icon/stop-circle.svg"
+              class="icon small-icon"
+            />
+            <span>Stop All</span>
+          </button>
+      </form>
+      <form method="GET" action="/export_campaigns">
+            <button type="submit" class="btn-border btn-with-icon mr-1">
+              <img
+                src="static/images/icon/upload-04.svg"
+                class="icon small-icon"
+              />
+              <span>Export</span>
+            </button>
+        </form>
+        <form method="POST" action="/clear_all_campaigns">
+            <button type="submit" class="btn-border btn-with-icon">
+              <img
+                src="static/images/icon/trash-01.svg"
+                class="icon small-icon"
+              />
+              <span>Delete All</span>
+            </button>
+        </form> 
+        </div>
+      </div>
+      <div
+        class="hide-sm default-border-line flex-element space-between normal-text mb-2"
+        id="campaign-marker"
+      >
+        <div class="table-layout">
+          <h2>Title</h2>
+          <h2>Link</h2>
+          <h2>Genre</h2>
+          <h2>Comment Sheet URL</h2>
+        </div>
+      </div>
+      {% for campaign in campaigns %}
+      <article class="campaign-article mb-2" data-title="{{ campaign['Video Title'] | lower }}">
+        <div class="campaign-card">
+          <p>{{ campaign['Video Title'] }}</p>
+          <p>
+            <a href="{{ campaign['Video Link'] }}" target="_blank"
+              >{{ campaign['Video Link'] }}</a
+            >
+          </p>
+          <p>{{ campaign['Genre'] }}</p>
+          <p>
+            <a href="{{ campaign['Comments Sheet URL'] }}" target="_blank"
+              >{{ campaign['Comments Sheet URL'] }}</a
+            >
+          </p>
+        </div>
+        <div class="campaign-stats">
+          <div class="grid-item-1 flex-slider mb-2">
+            <span title="Wait Time"
+              ><img
+                src="static/images/icon/clock.svg"
+                class="icon small-icon red-icon"
+              />
+              {{ campaign['Wait Time'] }}
+            </span>
+            <span title="Status"
+              ><img
+                src="static/images/icon/circle.svg"
+                class="icon small-icon red-icon"
+              />
+              {{ campaign['Status'] }}
+            </span>
+            <span title="Likes"
+              ><img
+                src="static/images/icon/heart.svg"
+                class="icon small-icon red-icon"
+              />
+              <span id="likes-{{ campaign['Campaign ID'] }}">{{ campaign['Likes'] }}</span>
+            </span>
+            <span title="Views">
+              <img
+                src="static/images/icon/eye-sharp.svg"
+                class="icon small-icon red-icon"
+              />
+              <span id="views-{{ campaign['Campaign ID'] }}">{{ campaign['Views'] }}</span>
+            </span>
+            <span title="Comments">
+              <img
+                src="static/images/icon/message-heart-circle.svg"
+                class="icon small-icon red-icon"
+              />
+              <span id="comments-{{ campaign['Campaign ID'] }}">{{ campaign['Comments'] }}</span>
+            </span>
+            <span title="Desired Comments"
+              ><img
+                src="static/images/icon/message-heart-circle.svg"
+                class="icon small-icon red-icon"
+              />
+              <span id="desired-comments-{{ campaign['Campaign ID'] }}">{{ campaign['Desired Comments'] }}</span>
+            </span>
+            <span title="Desired Likes">
+              <img
+                src="static/images/icon/hearts.svg"
+                class="icon small-icon red-icon"
+              />
+              <span id="desired-likes-{{ campaign['Campaign ID'] }}">{{ campaign['Desired Likes'] }}</span>
+            </span>
+          </div>
+          <div class="duplicate hide-lg">
+            <img
+              src="static/images/icon/folder-plus.svg"
+              class="icon small-icon space-right"
+            />
+            <button class="space-right" onclick="duplicateCampaign('{{ campaign['Campaign ID'] }}')">Duplicate Campaign</button>
+            <img
+              src="static/images/icon/chevron-down.svg"
+              class="icon small-icon"
+            />
+          </div>
+          <div class="duplicate-box hide-sm">
+            <button class="btn-duplicate" onclick="duplicateCampaign('{{ campaign['Campaign ID'] }}')">
+              <img
+                src="static/images/icon/folder-plus.svg"
+                class="icon small-icon"
+              />
+              Duplicate Campaign
+            </button>
+            <img
+              src="static/images/icon/chevron-down.svg"
+              class="icon small-icon dropBtn"
+            />
+            <div class="dropdown hide-show">
+              <div class="dropdown-content" data-dropdown="">
+                <form method="POST" action="/start_campaign/{{ campaign['Campaign ID']}}" style="display: inline;">
+                  <button class="campaign_action_btn" type="submit">Start Campaign</button>
+              </form>
+              <form method="POST" action="/stop_campaign/{{ campaign['Campaign ID']}}" style="display: inline;">
+                  <button class="campaign_action_btn" type="submit">Stop Campaign</button>
+              </form>
+              <form method="POST" action="/delete_campaign/{{ campaign['Campaign ID']}}" style="display: inline;">
+                  <button class="campaign_action_btn" type="submit">Delete Campaign</button>
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </main>
+    <script src="{{ url_for('static' , filename='index.js') }}"></script>
+    <script>
+      function fetchCampaignStatus(campaignId) {
+          fetch(`/campaign_status/${campaignId}`)
+              .then(response => response.json())
+              .then(data => {
+                  if (data.error) {
+                      console.error(data.error);
+                  } else {
+                      document.getElementById('views-' + campaignId).innerText = data.views;
+                      document.getElementById('likes-' + campaignId).innerText = data.likes;
+                      document.getElementById('comments-' + campaignId).innerText = data.comments;
+                      document.getElementById('desired-comments-' + campaignId).innerText = data.desired_comments;
+                      document.getElementById('desired-likes-' + campaignId).innerText = data.desired_likes;
+                  }
+              })
+              .catch(error => console.error('Error fetching campaign status:', error));
+      }
+      // Initialize SSE for each campaign
+      {% for campaign in campaigns %}
+          setInterval(() => {
+          if ("{{ campaign['Status'] }}" === "Running") {
+              fetchCampaignStatus("{{ campaign['Campaign ID'] }}")
+          }
+          }, 5000);
+      {% endfor %}
+      </script>   
+  </body>
+</html>
