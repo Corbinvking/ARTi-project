@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarIcon, Eye, Heart, MessageCircle, TrendingUp, TrendingDown, Minus, Users, AlertTriangle, Clock, CheckCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCampaigns } from "../../hooks/useCampaigns";
@@ -290,6 +290,50 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
     } finally {
       setLoadingStats(false);
     }
+  };
+
+  const chartData = useMemo(() => {
+    if (dailyStats.length === 0) return { data: [], metrics: [] };
+
+    const data = dailyStats.map(stat => ({
+      dateTime: `${format(new Date(stat.date), 'MMM dd')} ${stat.time_of_day === 'morning' ? 'AM' : stat.time_of_day === 'afternoon' ? 'PM' : 'Eve'}`,
+      views: stat.views,
+      likes: stat.likes,
+      comments: stat.comments,
+      subscribers: stat.total_subscribers || 0,
+    }));
+
+    const metricConfigs = [
+      { key: 'views' as const, label: 'Views', color: '#3b82f6', icon: '👁' },
+      { key: 'likes' as const, label: 'Likes', color: '#ef4444', icon: '❤' },
+      { key: 'comments' as const, label: 'Comments', color: '#22c55e', icon: '💬' },
+      { key: 'subscribers' as const, label: 'Subscribers', color: '#a855f7', icon: '👥' },
+    ];
+
+    const metrics = metricConfigs.map(cfg => {
+      const values = data.map(d => d[cfg.key]);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = max - min;
+      const padding = range > 0 ? range * 0.15 : Math.max(1, Math.abs(max) * 0.1 || 1);
+      const current = values[values.length - 1];
+      const previous = values.length > 1 ? values[values.length - 2] : current;
+      const change = current - previous;
+      return {
+        ...cfg,
+        current,
+        change,
+        domain: [Math.max(0, Math.floor(min - padding)), Math.ceil(max + padding)] as [number, number],
+      };
+    });
+
+    return { data, metrics };
+  }, [dailyStats]);
+
+  const formatAxisValue = (value: number) => {
+    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+    if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+    return String(value);
   };
 
   const handleRefreshYouTubeData = async () => {
@@ -1308,98 +1352,79 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                     </div>
                   </div>
                 ) : (
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart 
-                        data={dailyStats.map(stat => ({
-                          dateTime: `${format(new Date(stat.date), 'MMM dd')} ${stat.time_of_day === 'morning' ? 'AM' : stat.time_of_day === 'afternoon' ? 'PM' : 'Eve'}`,
-                          date: format(new Date(stat.date), 'MMM dd'),
-                          timeOfDay: stat.time_of_day,
-                          views: stat.views,
-                          likes: stat.likes,
-                          comments: stat.comments,
-                          subscribers: stat.total_subscribers || 0,
-                          collected_at: stat.collected_at
-                        }))}
-                        margin={{ top: 5, right: 60, left: 40, bottom: 60 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="dateTime"
-                          tick={{ fontSize: 12 }}
-                          angle={-45}
-                          textAnchor="end"
-                          height={60}
-                        />
-                        <YAxis 
-                          yAxisId="left" 
-                          stroke="#3b82f6"
-                          tick={{ fontSize: 11 }}
-                          label={{ value: 'Views', angle: -90, position: 'insideLeft', style: { fill: '#3b82f6', fontSize: 11 } }}
-                        />
-                        <YAxis 
-                          yAxisId="right" 
-                          orientation="right" 
-                          stroke="#ef4444"
-                          tick={{ fontSize: 11 }}
-                          label={{ value: 'Likes / Comments / Subs', angle: 90, position: 'insideRight', style: { fill: '#ef4444', fontSize: 11 } }}
-                        />
-                        <Tooltip 
-                          formatter={(value: number, name: string) => [
-                            value.toLocaleString(),
-                            name
-                          ]}
-                          labelFormatter={(label) => `${label}`}
-                          contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-                          labelStyle={{ color: 'hsl(var(--card-foreground))' }}
-                        />
-                        <Legend />
-                        <Line 
-                          yAxisId="left"
-                          type="monotone" 
-                          dataKey="views" 
-                          stroke="#3b82f6"
-                          strokeWidth={2} 
-                          name="Views"
-                          connectNulls={true}
-                          dot={{ r: 3, fill: "#3b82f6" }}
-                          activeDot={{ r: 6, fill: "#3b82f6" }}
-                        />
-                        <Line 
-                          yAxisId="right"
-                          type="monotone" 
-                          dataKey="likes" 
-                          stroke="#ef4444"
-                          strokeWidth={2} 
-                          name="Likes"
-                          connectNulls={true}
-                          dot={{ r: 3, fill: "#ef4444" }}
-                          activeDot={{ r: 6, fill: "#ef4444" }}
-                        />
-                        <Line 
-                          yAxisId="right"
-                          type="monotone" 
-                          dataKey="comments" 
-                          stroke="#22c55e"
-                          strokeWidth={2} 
-                          name="Comments"
-                          connectNulls={true}
-                          dot={{ r: 3, fill: "#22c55e" }}
-                          activeDot={{ r: 6, fill: "#22c55e" }}
-                        />
-                        <Line 
-                          yAxisId="right"
-                          type="monotone" 
-                          dataKey="subscribers" 
-                          stroke="#a855f7"
-                          strokeWidth={2} 
-                          name="Subscribers"
-                          connectNulls={true}
-                          dot={{ r: 3, fill: "#a855f7" }}
-                          activeDot={{ r: 6, fill: "#a855f7" }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                  <div className="grid grid-cols-2 gap-4">
+                    {chartData.metrics.map((metric, idx) => (
+                      <div key={metric.key} className="border rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium" style={{ color: metric.color }}>
+                            {metric.label}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold tabular-nums">
+                              {formatAxisValue(metric.current)}
+                            </span>
+                            {metric.change !== 0 && (
+                              <span className={`text-xs flex items-center gap-0.5 ${metric.change > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                {metric.change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                                {metric.change > 0 ? '+' : ''}{formatAxisValue(metric.change)}
+                              </span>
+                            )}
+                            {metric.change === 0 && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                                <Minus className="w-3 h-3" />
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="h-36">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={chartData.data} margin={{ top: 4, right: 4, left: 0, bottom: idx >= 2 ? 40 : 4 }}>
+                              <defs>
+                                <linearGradient id={`gradient-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor={metric.color} stopOpacity={0.3} />
+                                  <stop offset="95%" stopColor={metric.color} stopOpacity={0.02} />
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                              <XAxis
+                                dataKey="dateTime"
+                                tick={idx >= 2 ? { fontSize: 9 } : false}
+                                axisLine={false}
+                                tickLine={false}
+                                angle={-45}
+                                textAnchor="end"
+                                height={idx >= 2 ? 40 : 4}
+                                interval="preserveStartEnd"
+                              />
+                              <YAxis
+                                domain={metric.domain}
+                                tick={{ fontSize: 9 }}
+                                tickFormatter={formatAxisValue}
+                                axisLine={false}
+                                tickLine={false}
+                                width={45}
+                              />
+                              <Tooltip
+                                formatter={(value: number) => [value.toLocaleString(), metric.label]}
+                                labelFormatter={(label) => `${label}`}
+                                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', fontSize: 12 }}
+                                labelStyle={{ color: 'hsl(var(--card-foreground))' }}
+                              />
+                              <Area
+                                type="monotone"
+                                dataKey={metric.key}
+                                stroke={metric.color}
+                                strokeWidth={2}
+                                fill={`url(#gradient-${metric.key})`}
+                                connectNulls={true}
+                                dot={{ r: 2, fill: metric.color }}
+                                activeDot={{ r: 4, fill: metric.color }}
+                              />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>

@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { logger } from '@/lib/logger';
 
 // Ratio Fixer Flask app configuration
-const RATIO_FIXER_URL = process.env.RATIO_FIXER_URL || 'http://localhost:5000';
+const RATIO_FIXER_URL = process.env.RATIO_FIXER_URL || 'http://localhost:5001';
 const RATIO_FIXER_API_KEY = process.env.RATIO_FIXER_API_KEY || '';
 
 interface StartRatioFixerRequest {

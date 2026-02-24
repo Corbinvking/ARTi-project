@@ -50,7 +50,7 @@ SPOTIFY_REDIRECT_URI=http://localhost:3001/api/providers/spotify/callback
 YOUTUBE_API_KEY=your-youtube-data-api-key
 
 # Ratio Fixer Integration (Flask app for automated engagement ordering)
-RATIO_FIXER_URL=http://localhost:5000
+RATIO_FIXER_URL=http://localhost:5001
 RATIO_FIXER_API_KEY=your-ratio-fixer-api-key
 
 # JingleSMM API (SMM panel for likes/comments ordering)
