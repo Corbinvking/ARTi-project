@@ -226,7 +226,21 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
           continue
         }
         
-        // Insert daily stats (subscriber tracking not implemented yet)
+        // Compute subscribers_gained from previous record
+        let subscribersGained = 0
+        if (stats.subscriberCount > 0) {
+          const { data: prevStats } = await supabase
+            .from('campaign_stats_daily')
+            .select('total_subscribers')
+            .eq('campaign_id', campaign.id)
+            .order('collected_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          if (prevStats?.total_subscribers) {
+            subscribersGained = stats.subscriberCount - prevStats.total_subscribers
+          }
+        }
+
         const { error: insertError } = await supabase
           .from('campaign_stats_daily')
           .upsert({
@@ -236,8 +250,8 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
             views: stats.viewCount,
             likes: stats.likeCount,
             comments: stats.commentCount,
-            total_subscribers: 0,
-            subscribers_gained: 0,
+            total_subscribers: stats.subscriberCount,
+            subscribers_gained: subscribersGained,
             collected_at: new Date().toISOString()
           }, {
             onConflict: 'campaign_id,date,time_of_day'
@@ -249,13 +263,15 @@ async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
           continue
         }
         
-        // Also update campaign's current stats and last poll timestamp
         await supabase
           .from('youtube_campaigns')
           .update({
             current_views: stats.viewCount,
             current_likes: stats.likeCount,
             current_comments: stats.commentCount,
+            total_subscribers: stats.subscriberCount,
+            subscribers_hidden: stats.subscribersHidden,
+            ...(stats.channelId ? { channel_id: stats.channelId } : {}),
             last_youtube_fetch: new Date().toISOString(),
             last_api_poll_at: new Date().toISOString()
           })
@@ -314,36 +330,63 @@ async function fetchYouTubeVideoStats(videoId: string): Promise<{
   viewCount: number
   likeCount: number
   commentCount: number
+  channelId: string | null
+  subscriberCount: number
+  subscribersHidden: boolean
   error?: string
 }> {
   try {
     const apiKey = process.env.YOUTUBE_API_KEY
     if (!apiKey) {
-      return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: 'YOUTUBE_API_KEY not configured' }
+      return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, channelId: null, subscriberCount: 0, subscribersHidden: false, error: 'YOUTUBE_API_KEY not configured' }
     }
     
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${apiKey}`
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoId}&key=${apiKey}`
     const response = await fetch(url)
     
     if (!response.ok) {
-      return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: `API returned ${response.status}` }
+      return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, channelId: null, subscriberCount: 0, subscribersHidden: false, error: `API returned ${response.status}` }
     }
     
-    const data = await response.json() as { items?: Array<{ statistics?: { viewCount?: string; likeCount?: string; commentCount?: string } }> }
+    const data = await response.json() as { items?: Array<{ snippet?: { channelId?: string }; statistics?: { viewCount?: string; likeCount?: string; commentCount?: string } }> }
     
     if (!data.items || data.items.length === 0) {
-      return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: 'Video not found' }
+      return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, channelId: null, subscriberCount: 0, subscribersHidden: false, error: 'Video not found' }
     }
     
-    const stats = data.items[0]?.statistics
+    const item = data.items[0]
+    const stats = item?.statistics
+    const channelId = item?.snippet?.channelId || null
+
+    // Fetch subscriber count from channel
+    let subscriberCount = 0
+    let subscribersHidden = false
+    if (channelId) {
+      try {
+        const chUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=${apiKey}`
+        const chResponse = await fetch(chUrl)
+        if (chResponse.ok) {
+          const chData = await chResponse.json() as { items?: Array<{ statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean } }> }
+          const chStats = chData.items?.[0]?.statistics
+          subscribersHidden = chStats?.hiddenSubscriberCount === true
+          subscriberCount = subscribersHidden ? 0 : parseInt(chStats?.subscriberCount || '0')
+        }
+      } catch {
+        // Non-fatal: continue without subscriber data
+      }
+    }
+
     return {
       success: true,
       viewCount: parseInt(stats?.viewCount || '0'),
       likeCount: parseInt(stats?.likeCount || '0'),
-      commentCount: parseInt(stats?.commentCount || '0')
+      commentCount: parseInt(stats?.commentCount || '0'),
+      channelId,
+      subscriberCount,
+      subscribersHidden
     }
   } catch (error: any) {
-    return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, error: error.message }
+    return { success: false, viewCount: 0, likeCount: 0, commentCount: 0, channelId: null, subscriberCount: 0, subscribersHidden: false, error: error.message }
   }
 }
 

@@ -62,6 +62,7 @@ async function fetchVideoStats(videoId: string) {
               viewCount: 0,
               likeCount: 0,
               commentCount: 0,
+              channelId: null,
               title: oembed.title,
               publishedAt: null,
               duration: '',
@@ -112,6 +113,7 @@ async function fetchVideoStats(videoId: string) {
       viewCount: parseInt(stats?.viewCount || '0'),
       likeCount: parseInt(stats?.likeCount || '0'),
       commentCount: parseInt(stats?.commentCount || '0'),
+      channelId: video.snippet?.channelId || null,
       title,
       publishedAt,
       duration,
@@ -140,6 +142,7 @@ async function fetchVideoStats(videoId: string) {
       viewCount: 0,
       likeCount: 0,
       commentCount: 0,
+      channelId: null,
       title,
       publishedAt: null,
       duration: '',
@@ -147,6 +150,56 @@ async function fetchVideoStats(videoId: string) {
       error: error.message
     };
   }
+}
+
+/**
+ * Fetch subscriber count for a YouTube channel
+ */
+async function fetchChannelSubscribers(channelId: string): Promise<{ subscriberCount: number; subscribersHidden: boolean }> {
+  try {
+    const response = await youtube.channels.list({
+      part: ['statistics'],
+      id: [channelId]
+    });
+    const channel = response.data.items?.[0];
+    if (!channel?.statistics) {
+      return { subscriberCount: 0, subscribersHidden: false };
+    }
+    const hidden = channel.statistics.hiddenSubscriberCount === true;
+    const count = hidden ? 0 : parseInt(channel.statistics.subscriberCount || '0');
+    return { subscriberCount: count, subscribersHidden: hidden };
+  } catch (error: any) {
+    console.error(`Error fetching channel subscribers for ${channelId}:`, error.message);
+    return { subscriberCount: 0, subscribersHidden: false };
+  }
+}
+
+/**
+ * Batch-fetch subscriber counts for multiple channels (up to 50 per call)
+ */
+async function fetchBatchChannelSubscribers(channelIds: string[]): Promise<Map<string, { subscriberCount: number; subscribersHidden: boolean }>> {
+  const result = new Map<string, { subscriberCount: number; subscribersHidden: boolean }>();
+  if (channelIds.length === 0) return result;
+
+  try {
+    const response = await youtube.channels.list({
+      part: ['statistics'],
+      id: channelIds
+    });
+    response.data.items?.forEach(channel => {
+      if (channel.id && channel.statistics) {
+        const hidden = channel.statistics.hiddenSubscriberCount === true;
+        result.set(channel.id, {
+          subscriberCount: hidden ? 0 : parseInt(channel.statistics.subscriberCount || '0'),
+          subscribersHidden: hidden
+        });
+      }
+    });
+  } catch (error: any) {
+    console.error('Error batch-fetching channel subscribers:', error.message);
+  }
+
+  return result;
 }
 
 /**
@@ -456,10 +509,31 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
         return reply.status(500).send({ error: 'Failed to fetch YouTube stats', details: stats.error });
       }
 
+      // Fetch subscriber count from channel
+      let subscriberCount = 0;
+      let subscribersHidden = false;
+      if (stats.channelId) {
+        const channelData = await fetchChannelSubscribers(stats.channelId);
+        subscriberCount = channelData.subscriberCount;
+        subscribersHidden = channelData.subscribersHidden;
+      }
+
+      // Compute subscribers_gained by comparing to previous record
+      let subscribersGained = 0;
+      const { data: prevStats } = await supabase
+        .from('campaign_stats_daily')
+        .select('total_subscribers')
+        .eq('campaign_id', campaignId)
+        .order('collected_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (prevStats?.total_subscribers && subscriberCount > 0) {
+        subscribersGained = subscriberCount - prevStats.total_subscribers;
+      }
+
       // Get today's date
       const today = new Date().toISOString().split('T')[0];
 
-      // Insert or update daily stats (subscriber tracking not implemented yet)
       const { data: insertedStats, error: insertError } = await supabase
         .from('campaign_stats_daily')
         .upsert({
@@ -469,8 +543,8 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
           views: stats.viewCount,
           likes: stats.likeCount,
           comments: stats.commentCount,
-          total_subscribers: 0,
-          subscribers_gained: 0,
+          total_subscribers: subscriberCount,
+          subscribers_gained: subscribersGained,
           collected_at: new Date().toISOString()
         }, {
           onConflict: 'campaign_id,date,time_of_day'
@@ -490,6 +564,9 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
           current_views: stats.viewCount,
           current_likes: stats.likeCount,
           current_comments: stats.commentCount,
+          total_subscribers: subscriberCount,
+          subscribers_hidden: subscribersHidden,
+          ...(stats.channelId ? { channel_id: stats.channelId } : {}),
           last_youtube_api_fetch: new Date().toISOString()
         })
         .eq('id', campaignId);
@@ -567,23 +644,32 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
         if (videoIds.length === 0) continue;
 
         try {
+          // Fetch video stats + snippet (for channelId)
           const response = await youtube.videos.list({
-            part: ['statistics'],
+            part: ['statistics', 'snippet'],
             id: videoIds
           });
 
           if (!response.data.items) continue;
 
-          const statsMap = new Map();
+          const statsMap = new Map<string, { viewCount: number; likeCount: number; commentCount: number; channelId: string | null }>();
+          const channelIdSet = new Set<string>();
+
           response.data.items.forEach(video => {
             if (video.id && video.statistics) {
+              const chId = video.snippet?.channelId || null;
               statsMap.set(video.id, {
                 viewCount: parseInt(video.statistics.viewCount || '0'),
                 likeCount: parseInt(video.statistics.likeCount || '0'),
-                commentCount: parseInt(video.statistics.commentCount || '0')
+                commentCount: parseInt(video.statistics.commentCount || '0'),
+                channelId: chId
               });
+              if (chId) channelIdSet.add(chId);
             }
           });
+
+          // Batch-fetch subscriber counts for all unique channels in this batch
+          const subscriberMap = await fetchBatchChannelSubscribers([...channelIdSet]);
 
           for (const campaign of batch) {
             const videoId = campaign.video_id || extractVideoId(campaign.youtube_url);
@@ -592,7 +678,25 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
             const stats = statsMap.get(videoId);
             if (!stats) continue;
 
-            // Insert daily stats
+            const channelSubs = stats.channelId ? subscriberMap.get(stats.channelId) : undefined;
+            const subscriberCount = channelSubs?.subscriberCount ?? 0;
+            const subscribersHidden = channelSubs?.subscribersHidden ?? false;
+
+            // Compute subscribers_gained from previous record
+            let subscribersGained = 0;
+            if (subscriberCount > 0) {
+              const { data: prevStats } = await supabase
+                .from('campaign_stats_daily')
+                .select('total_subscribers')
+                .eq('campaign_id', campaign.id)
+                .order('collected_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+              if (prevStats?.total_subscribers) {
+                subscribersGained = subscriberCount - prevStats.total_subscribers;
+              }
+            }
+
             const { error: insertError } = await supabase
               .from('campaign_stats_daily')
               .upsert({
@@ -602,8 +706,8 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
                 views: stats.viewCount,
                 likes: stats.likeCount,
                 comments: stats.commentCount,
-                total_subscribers: 0,
-                subscribers_gained: 0,
+                total_subscribers: subscriberCount,
+                subscribers_gained: subscribersGained,
                 collected_at: new Date().toISOString()
               }, {
                 onConflict: 'campaign_id,date,time_of_day'
@@ -618,13 +722,15 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
             } else {
               results.collected++;
               
-              // Update campaign's current stats
               await supabase
                 .from('youtube_campaigns')
                 .update({
                   current_views: stats.viewCount,
                   current_likes: stats.likeCount,
                   current_comments: stats.commentCount,
+                  total_subscribers: subscriberCount,
+                  subscribers_hidden: subscribersHidden,
+                  ...(stats.channelId ? { channel_id: stats.channelId } : {}),
                   last_youtube_api_fetch: new Date().toISOString()
                 })
                 .eq('id', campaign.id);
