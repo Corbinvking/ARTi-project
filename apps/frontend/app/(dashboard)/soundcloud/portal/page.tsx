@@ -370,7 +370,7 @@ function DashboardContent() {
             </h3>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
-                href="https://artistinfluence.io/campaign-builder"
+                href="https://www.artistinfluence.com/pricing"
                 target="_blank"
                 rel="noopener noreferrer"
               >
