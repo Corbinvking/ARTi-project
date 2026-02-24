@@ -119,11 +119,19 @@ export const SubmissionsPage = () => {
     fetchSubmissions();
   }, [statusFilter, sortBy, sortDirection]);
 
-  const updateSubmissionStatus = async (submissionId: string, newStatus: SubmissionStatus) => {
+  const updateSubmissionStatus = async (submissionId: string, newStatus: SubmissionStatus, rejectionReason?: string) => {
     try {
+      const updatePayload: any = { status: newStatus };
+      if (newStatus === 'on_hold' && rejectionReason) {
+        updatePayload.rejection_reason = rejectionReason;
+      }
+      if (newStatus !== 'on_hold') {
+        updatePayload.rejection_reason = null;
+      }
+
       const { error } = await supabase
         .from('submissions')
-        .update({ status: newStatus })
+        .update(updatePayload)
         .eq('id', submissionId);
 
       if (error) throw error;
@@ -422,7 +430,16 @@ export const SubmissionsPage = () => {
                               <Button
                                 size="sm"
                                 variant="destructive"
-                                onClick={() => updateSubmissionStatus(submission.id, 'on_hold')}
+                                onClick={() => {
+                                  const reason = window.prompt(
+                                    'Rejection reason (shown to member):\n\n' +
+                                    '- Genre mismatch\n- Not original track\n- Audio quality\n' +
+                                    '- Release timing issue\n- Back catalog submission\n- Other'
+                                  );
+                                  if (reason !== null) {
+                                    updateSubmissionStatus(submission.id, 'on_hold', reason || undefined);
+                                  }
+                                }}
                               >
                                 Reject
                               </Button>

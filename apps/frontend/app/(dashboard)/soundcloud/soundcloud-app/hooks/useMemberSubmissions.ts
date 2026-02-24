@@ -41,15 +41,18 @@ export const useMemberSubmissions = () => {
       // Fetch all submissions for the member
       const { data: submissions, error } = await supabase
         .from('soundcloud_submissions')
-        .select('id, track_url, artist_name, status, submitted_at, created_at')
+        .select('id, track_url, track_name, artist_name, status, submitted_at, created_at, support_date, rejection_reason')
         .eq('member_id', member.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Calculate stats
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const isApproved = (s: string) => ['ready', 'active', 'approved', 'complete'].includes(s);
+      const isRejected = (s: string) => s === 'on_hold' || s === 'rejected';
+      const isPending = (s: string) => ['pending', 'new', 'qa_flag'].includes(s);
 
       const newStats = {
         totalSubmissions: submissions.length,
@@ -57,11 +60,9 @@ export const useMemberSubmissions = () => {
           const date = s.submitted_at || s.created_at;
           return date && new Date(date) >= startOfMonth;
         }).length,
-        pendingSubmissions: submissions.filter(s =>
-          ['pending', 'ready', 'qa_flag', 'new'].includes(s.status)
-        ).length,
-        approvedSubmissions: submissions.filter(s => s.status === 'ready').length,
-        rejectedSubmissions: submissions.filter(s => s.status === 'on_hold').length,
+        pendingSubmissions: submissions.filter(s => isPending(s.status)).length,
+        approvedSubmissions: submissions.filter(s => isApproved(s.status)).length,
+        rejectedSubmissions: submissions.filter(s => isRejected(s.status)).length,
         recentSubmissions: submissions.slice(0, 5).map(s => ({
           ...s,
           submitted_at: s.submitted_at || s.created_at

@@ -10,16 +10,10 @@ import {
   Upload, 
   History, 
   Coins, 
-  BarChart3, 
-  Target, 
-  Shield, 
   User, 
   Music, 
-  Calendar,
   LogOut,
   Menu,
-  X,
-  Megaphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthProvider, useAuth } from "../soundcloud-app/contexts/AuthContext";
@@ -27,14 +21,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const portalNavItems = [
   { title: "Dashboard", href: "/soundcloud/portal", icon: Home, exact: true },
-  { title: "Campaigns", href: "/soundcloud/portal/campaigns", icon: Megaphone },
-  { title: "My Queue", href: "/soundcloud/portal/queue", icon: Calendar },
   { title: "Submit Track", href: "/soundcloud/portal/submit", icon: Upload },
   { title: "History", href: "/soundcloud/portal/history", icon: History },
   { title: "Credits", href: "/soundcloud/portal/credits", icon: Coins },
-  { title: "Analytics", href: "/soundcloud/portal/analytics", icon: BarChart3 },
-  { title: "Attribution", href: "/soundcloud/portal/attribution", icon: Target },
-  { title: "Avoid List", href: "/soundcloud/portal/avoid-list", icon: Shield },
   { title: "Profile", href: "/soundcloud/portal/profile", icon: User },
 ];
 
@@ -149,7 +138,7 @@ function PortalLayoutContent({ children }: { children: ReactNode }) {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {portalNavItems.slice(0, 7).map((item) => {
+            {portalNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href, item.exact);
               return (

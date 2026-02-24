@@ -19,7 +19,9 @@ import {
   Calendar,
   ExternalLink,
   Save,
-  Loader2
+  Loader2,
+  WifiOff,
+  CheckCircle,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -91,6 +93,10 @@ export default function ProfilePage() {
     );
   }
 
+  const ipStatus = (member as any)?.influence_planner_status;
+  const isDisconnected = ['disconnected', 'INVALID', 'UNLINKED', 'needs_reconnect'].includes(ipStatus);
+  const isConnected = ipStatus === 'connected' || ipStatus === 'LINKED' || ipStatus === 'active';
+
   const tierConfig: Record<string, { label: string; color: string }> = {
     T1: { label: 'Tier 1 (0-1K)', color: 'bg-slate-100 text-slate-700' },
     T2: { label: 'Tier 2 (1K-10K)', color: 'bg-blue-100 text-blue-700' },
@@ -114,6 +120,49 @@ export default function ProfilePage() {
           </Button>
         )}
       </div>
+
+      {/* Connection Status */}
+      {isDisconnected && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <WifiOff className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-destructive">SoundCloud Account Disconnected</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Your account is disconnected from the repost network. Reposts and support are paused until you reconnect.
+                </p>
+                <a
+                  href="https://app.influenceplanner.com/connect"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="destructive" size="sm" className="mt-3">
+                    Reconnect Account
+                    <ExternalLink className="h-3 w-3 ml-2" />
+                  </Button>
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!isDisconnected && (
+        <Card className="border-green-200 bg-green-50/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-green-700">SoundCloud Account Connected</p>
+                <p className="text-sm text-muted-foreground">
+                  Your repost network connection is active.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Profile Card */}
       <Card>

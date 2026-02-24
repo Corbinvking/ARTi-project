@@ -1,37 +1,98 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../soundcloud-app/contexts/AuthContext";
-import { useMyMember } from "../soundcloud-app/hooks/useMyMember";
-import { useMemberSubmissions } from "../soundcloud-app/hooks/useMemberSubmissions";
+import { useMyMember, useMySubmissions } from "../soundcloud-app/hooks/useMyMember";
 import Link from "next/link";
-import { 
-  Music, 
-  Upload, 
-  TrendingUp, 
-  Coins, 
-  ArrowRight, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Upload,
+  Coins,
+  Clock,
+  CheckCircle,
+  XCircle,
   AlertTriangle,
-  Users,
-  Calendar
+  Calendar,
+  WifiOff,
+  Layers,
+  Rocket,
+  ExternalLink,
 } from "lucide-react";
+
+const TIER_REACH_DEFAULTS: Record<string, string> = {
+  T1: "500 - 2K",
+  T2: "2K - 10K",
+  T3: "10K - 50K",
+  T4: "50K+",
+};
 
 function DashboardContent() {
   const { member: authMember } = useAuth();
   const { data: dbMember, isLoading: memberLoading } = useMyMember();
-  const { stats, loading: statsLoading } = useMemberSubmissions();
-  
-  // Use database member if available, fallback to auth member
+  const { data: submissions, isLoading: subsLoading } = useMySubmissions();
+
   const member = dbMember || authMember;
 
-  if (memberLoading || statsLoading) {
+  const isDisconnected =
+    member &&
+    ["disconnected", "INVALID", "UNLINKED", "needs_reconnect"].includes(
+      (member as any).influence_planner_status
+    );
+
+  const stats = useMemo(() => {
+    if (!submissions || !member) return null;
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const todayStr = now.toISOString().split("T")[0];
+
+    const isApproved = (s: string) =>
+      ["ready", "active", "approved", "complete"].includes(s);
+    const isRejected = (s: string) => s === "on_hold" || s === "rejected";
+    const isPending = (s: string) => ["pending", "new", "qa_flag"].includes(s);
+
+    const thisMonth = submissions.filter((s: any) => {
+      const d = s.submitted_at || s.created_at;
+      return d && new Date(d) >= startOfMonth;
+    }).length;
+
+    const remaining =
+      (member.monthly_repost_limit || member.monthly_submission_limit || 0) -
+      thisMonth;
+
+    const pending = submissions.filter((s: any) => isPending(s.status)).length;
+    const approved = submissions.filter((s: any) => isApproved(s.status)).length;
+
+    const upcoming = submissions
+      .filter(
+        (s: any) =>
+          isApproved(s.status) && s.support_date && s.support_date >= todayStr
+      )
+      .sort((a: any, b: any) =>
+        (a.support_date || "").localeCompare(b.support_date || "")
+      );
+
+    const recentActivity = submissions
+      .filter(
+        (s: any) =>
+          isApproved(s.status) || isRejected(s.status)
+      )
+      .slice(0, 5);
+
+    return {
+      remaining: Math.max(0, remaining),
+      limit: member.monthly_repost_limit || member.monthly_submission_limit || 0,
+      thisMonth,
+      pending,
+      approved,
+      upcoming,
+      recentActivity,
+    };
+  }, [submissions, member]);
+
+  if (memberLoading || subsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
@@ -42,77 +103,96 @@ function DashboardContent() {
     );
   }
 
-  if (!member) {
+  if (!member || !stats) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
-          <Music className="w-16 h-16 mx-auto text-muted-foreground" />
           <h2 className="text-xl font-semibold">Member Data Not Found</h2>
-          <p className="text-muted-foreground">Please contact support if this persists.</p>
+          <p className="text-muted-foreground">
+            Please contact support if this persists.
+          </p>
         </div>
       </div>
     );
   }
 
-  const submissionProgress = member.monthly_repost_limit 
-    ? (stats.thisMonthSubmissions / member.monthly_repost_limit) * 100 
-    : 0;
-  const remainingSubmissions = (member.monthly_repost_limit || 0) - stats.thisMonthSubmissions;
+  const submissionProgress =
+    stats.limit > 0 ? (stats.thisMonth / stats.limit) * 100 : 0;
+  const tierReach = TIER_REACH_DEFAULTS[member.size_tier] || "N/A";
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'rejected': return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'pending': 
-      case 'new': return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'qa_flag': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-      default: return <Clock className="h-4 w-4 text-blue-500" />;
-    }
+    if (["ready", "active", "approved"].includes(status))
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
+    if (status === "on_hold" || status === "rejected")
+      return <XCircle className="h-4 w-4 text-red-500" />;
+    if (status === "qa_flag")
+      return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+    return <Clock className="h-4 w-4 text-yellow-500" />;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'text-green-600 bg-green-50 border-green-200';
-      case 'rejected': return 'text-red-600 bg-red-50 border-red-200';
-      case 'pending':
-      case 'new': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'qa_flag': return 'text-orange-600 bg-orange-50 border-orange-200';
-      default: return 'text-blue-600 bg-blue-50 border-blue-200';
-    }
+  const friendlyStatus = (status: string) => {
+    if (["ready", "active", "approved"].includes(status)) return "Approved";
+    if (status === "on_hold" || status === "rejected") return "Rejected";
+    if (status === "complete") return "Completed";
+    if (status === "qa_flag") return "Under Review";
+    return "Pending";
+  };
+
+  const supportStatus = (supportDate: string | null) => {
+    if (!supportDate) return "Scheduled";
+    const today = new Date().toISOString().split("T")[0];
+    if (supportDate > today) return "Scheduled";
+    return "Active";
   };
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">
-            Welcome back, {member.name}!
-          </h1>
-          <p className="text-muted-foreground">
-            Track your submissions and performance
-          </p>
+      {/* Connection Status Banner */}
+      {isDisconnected && (
+        <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <WifiOff className="h-5 w-5 text-destructive flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-destructive">
+                Your SoundCloud account is disconnected
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Reposts and support are paused until you reconnect.
+              </p>
+            </div>
+          </div>
+          <Link href="/soundcloud/portal/profile">
+            <Button variant="destructive" size="sm">
+              Reconnect
+            </Button>
+          </Link>
         </div>
-        <Badge 
-          variant={member.status === 'active' ? 'default' : 'secondary'}
-          className="px-3 py-1"
-        >
-          {(member.status || 'active').charAt(0).toUpperCase() + (member.status || 'active').slice(1)}
-        </Badge>
+      )}
+
+      {/* Welcome */}
+      <div>
+        <h1 className="text-2xl font-bold">Welcome back, {member.name}!</h1>
+        <p className="text-muted-foreground">
+          Here's your submission overview.
+        </p>
       </div>
 
-      {/* Key Stats Grid */}
+      {/* 4 Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Remaining This Month
+            </CardTitle>
             <Upload className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {stats.thisMonthSubmissions}/{member.monthly_repost_limit || 0}
+              {stats.remaining}
             </div>
-            <p className="text-xs text-muted-foreground">submissions used</p>
+            <p className="text-xs text-muted-foreground">
+              {stats.thisMonth}/{stats.limit} used
+            </p>
             <Progress value={submissionProgress} className="mt-2 h-2" />
           </CardContent>
         </Card>
@@ -124,7 +204,7 @@ function DashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">
-              {stats.pendingSubmissions}
+              {stats.pending}
             </div>
             <p className="text-xs text-muted-foreground">awaiting review</p>
           </CardContent>
@@ -132,12 +212,14 @@ function DashboardContent() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Approved (Upcoming)
+            </CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {stats.approvedSubmissions}
+              {stats.approved}
             </div>
             <p className="text-xs text-muted-foreground">total approved</p>
           </CardContent>
@@ -157,107 +239,119 @@ function DashboardContent() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Upcoming Support Schedule */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Upcoming Support
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <Link href="/soundcloud/portal/submit">
-            <Button 
-              variant="outline" 
-              className="w-full justify-between h-auto p-4"
-              disabled={remainingSubmissions <= 0}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Upload className="h-5 w-5 text-primary" />
+        <CardContent>
+          {stats.upcoming.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No upcoming support scheduled. Submit a track to get started!
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {stats.upcoming.slice(0, 8).map((sub: any) => (
+                <div
+                  key={sub.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">
+                        {sub.track_name ||
+                          sub.artist_name ||
+                          sub.track_url?.split("/").pop() ||
+                          "Track"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Starts{" "}
+                        {new Date(sub.support_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Badge variant="outline" className="text-xs">
+                      {supportStatus(sub.support_date)}
+                    </Badge>
+                    {(sub.expected_reach_min || sub.expected_reach_max) && (
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {(sub.expected_reach_min || 0).toLocaleString()} –{" "}
+                        {(sub.expected_reach_max || 0).toLocaleString()} reach
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Submit New Track</h3>
-                  <p className="text-sm text-muted-foreground">Upload your latest SoundCloud link</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  {remainingSubmissions > 0 ? `${remainingSubmissions} left` : 'Limit reached'}
-                </Badge>
-                <ArrowRight className="h-4 w-4" />
-              </div>
-            </Button>
-          </Link>
-
-          <Link href="/soundcloud/portal/history">
-            <Button variant="outline" className="w-full justify-between h-auto p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-secondary/10 rounded-lg flex items-center justify-center">
-                  <Music className="h-5 w-5 text-secondary-foreground" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">View History</h3>
-                  <p className="text-sm text-muted-foreground">Check your submission status</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">{stats.totalSubmissions} total</Badge>
-                <ArrowRight className="h-4 w-4" />
-              </div>
-            </Button>
-          </Link>
-
-          <Link href="/soundcloud/portal/queue">
-            <Button variant="outline" className="w-full justify-between h-auto p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-accent-foreground" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-medium">Support Queue</h3>
-                  <p className="text-sm text-muted-foreground">View your support assignments</p>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Recent Submissions */}
-      {stats.recentSubmissions && stats.recentSubmissions.length > 0 && (
+      {/* Tier + Expected Reach */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+              <Layers className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p className="font-medium">
+                Member Tier:{" "}
+                <Badge variant="secondary" className="ml-1">
+                  {member.size_tier}
+                </Badge>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Estimated reach per approved song: {tierReach}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      {stats.recentActivity.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Recent Submissions</CardTitle>
+              <CardTitle className="text-base">Recent Activity</CardTitle>
               <Link href="/soundcloud/portal/history">
                 <Button variant="ghost" size="sm">
-                  View All <ArrowRight className="h-4 w-4 ml-1" />
+                  View All
                 </Button>
               </Link>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {stats.recentSubmissions.slice(0, 5).map((submission: any) => (
-                <div 
-                  key={submission.id} 
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+            <div className="space-y-2">
+              {stats.recentActivity.map((sub: any) => (
+                <div
+                  key={sub.id}
+                  className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    {getStatusIcon(submission.status)}
+                    {getStatusIcon(sub.status)}
                     <div>
-                      <h4 className="font-medium text-sm">
-                        {submission.artist_name || submission.track_url?.split('/').pop() || 'Track'}
-                      </h4>
+                      <p className="text-sm font-medium">
+                        {sub.track_name ||
+                          sub.artist_name ||
+                          sub.track_url?.split("/").pop() ||
+                          "Track"}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(submission.submitted_at || submission.created_at).toLocaleDateString()}
+                        {new Date(
+                          sub.submitted_at || sub.created_at
+                        ).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                  <Badge 
-                    variant="outline" 
-                    className={getStatusColor(submission.status)}
-                  >
-                    {(submission.status || 'new').replace('_', ' ')}
+                  <Badge variant="outline" className="text-xs">
+                    {friendlyStatus(sub.status)}
                   </Badge>
                 </div>
               ))}
@@ -265,19 +359,54 @@ function DashboardContent() {
           </CardContent>
         </Card>
       )}
+
+      {/* Upsell */}
+      <Card className="border-dashed">
+        <CardContent className="pt-6">
+          <div className="text-center space-y-3">
+            <Rocket className="h-8 w-8 mx-auto text-muted-foreground" />
+            <h3 className="font-semibold">
+              Want to push this release further?
+            </h3>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <a
+                href="https://artistinfluence.io/campaign-builder"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="default">
+                  Build a Campaign
+                  <ExternalLink className="h-4 w-4 ml-2" />
+                </Button>
+              </a>
+              <a
+                href="https://calendly.com/artistinfluence"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="outline">
+                  Talk to Artist Influence Team
+                  <ExternalLink className="h-4 w-4 ml-2" />
+                </Button>
+              </a>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
 export default function PortalDashboardPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
       <DashboardContent />
     </Suspense>
   );
 }
-

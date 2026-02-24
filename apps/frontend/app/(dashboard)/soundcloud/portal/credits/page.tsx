@@ -6,8 +6,6 @@ import { Progress } from "@/components/ui/progress";
 import { useMyMember, useMyCreditHistory } from "../../soundcloud-app/hooks/useMyMember";
 import { 
   Coins, 
-  TrendingUp, 
-  TrendingDown, 
   ArrowUpRight,
   ArrowDownRight,
   History,
@@ -110,40 +108,6 @@ export default function CreditsPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* How Credits Work */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">How Credits Work</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <h4 className="font-medium">Earn Credits</h4>
-                <p className="text-sm text-muted-foreground">
-                  Support other artists' tracks by reposting them. Each repost earns you credits based on your follower count and reach factor.
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <TrendingDown className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h4 className="font-medium">Spend Credits</h4>
-                <p className="text-sm text-muted-foreground">
-                  When other members repost your tracks, credits are deducted from your balance. Keep your balance positive to stay active!
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Credit History */}
       <Card>

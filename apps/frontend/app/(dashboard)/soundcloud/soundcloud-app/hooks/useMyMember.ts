@@ -136,7 +136,8 @@ export function useMySubmissions() {
           support_date, submitted_at, created_at, updated_at,
           expected_reach_planned, expected_reach_min, expected_reach_max,
           client_notes, campaign_type, playlist_required, playlist_received,
-          qa_flag, qa_reason, notes, subgenres, family
+          qa_flag, qa_reason, notes, subgenres, family,
+          rejection_reason, release_date
         `)
         .eq('member_id', member!.id)
         .order('created_at', { ascending: false });

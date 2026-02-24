@@ -84,6 +84,7 @@ export const SubmissionDetailModal: React.FC<SubmissionDetailModalProps> = ({
   const { toast } = useToast();
   const [notes, setNotes] = useState('');
   const [qaReason, setQaReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState('');
   const [status, setStatus] = useState<SubmissionStatus>('new');
   const [family, setFamily] = useState('');
   const [supportDate, setSupportDate] = useState<Date | undefined>(undefined);
@@ -98,6 +99,7 @@ export const SubmissionDetailModal: React.FC<SubmissionDetailModalProps> = ({
     if (submission) {
       setNotes(submission.notes || '');
       setQaReason(submission.qa_reason || '');
+      setRejectionReason((submission as any).rejection_reason || '');
       setStatus(submission.status as SubmissionStatus);
       setFamily(submission.family || 'none');
       
@@ -227,11 +229,11 @@ export const SubmissionDetailModal: React.FC<SubmissionDetailModalProps> = ({
         notes,
         qa_reason: qaReason,
         family: family === 'none' ? null : family,
+        rejection_reason: status === 'on_hold' ? (rejectionReason || null) : null,
       };
 
-      // Add support_date for approved submissions
       if (status === 'approved' && supportDate) {
-        updateData.support_date = supportDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        updateData.support_date = supportDate.toISOString().split('T')[0];
       }
 
       const { error } = await supabase
@@ -551,6 +553,29 @@ export const SubmissionDetailModal: React.FC<SubmissionDetailModalProps> = ({
                   className="mt-1"
                   rows={2}
                 />
+              </div>
+            )}
+
+            {status === 'on_hold' && (
+              <div>
+                <Label htmlFor="rejection-reason" className="text-sm font-medium">
+                  Rejection Reason (shown to member)
+                </Label>
+                <Select value={rejectionReason} onValueChange={setRejectionReason}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select a reason..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Genre mismatch">Genre mismatch</SelectItem>
+                    <SelectItem value="Not original track">Not original track</SelectItem>
+                    <SelectItem value="Audio quality">Audio quality</SelectItem>
+                    <SelectItem value="Release timing issue">Release timing issue</SelectItem>
+                    <SelectItem value="Back catalog submission">Back catalog submission</SelectItem>
+                    <SelectItem value="Duplicate submission">Duplicate submission</SelectItem>
+                    <SelectItem value="Account issue">Account issue</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
           </div>
