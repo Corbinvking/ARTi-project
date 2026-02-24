@@ -46,25 +46,6 @@ export const AddCreatorForm = ({ onSuccess }: AddCreatorFormProps) => {
     if (!formData.instagram_handle.trim()) {
       newErrors.instagram_handle = 'Instagram handle is required';
     }
-    if (!formData.followers || parseInt(formData.followers) <= 0) {
-      newErrors.followers = 'Valid follower count is required';
-    }
-    if (!formData.median_views_per_video || parseInt(formData.median_views_per_video) <= 0) {
-      newErrors.median_views_per_video = 'Valid median views is required';
-    }
-    if (!formData.engagement_rate || parseFloat(formData.engagement_rate) <= 0) {
-      newErrors.engagement_rate = 'Valid engagement rate is required';
-    }
-    if (!formData.base_country) {
-      newErrors.base_country = 'Base country is required';
-    }
-    // Reel rate is optional - not all creators have rates available
-    if (selectedGenres.length === 0) {
-      newErrors.genres = 'At least one music genre is required';
-    }
-    if (selectedContentTypes.length === 0) {
-      newErrors.content_types = 'At least one content type is required';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -92,18 +73,22 @@ export const AddCreatorForm = ({ onSuccess }: AddCreatorFormProps) => {
     if (newGenres.length > 0) saveMultipleTagsToCollection(newGenres, 'genres');
     if (newContentTypes.length > 0) saveMultipleTagsToCollection(newContentTypes, 'contentTypes');
     
+    const baseCountries = formData.base_country
+      ? [formData.base_country, ...selectedCountries].slice(0, 3)
+      : selectedCountries.slice(0, 3);
+
     const newCreator: Creator = {
       id: generateUUID(),
       instagram_handle: formData.instagram_handle.replace('@', ''),
       email: formData.email || undefined,
-      followers: parseInt(formData.followers),
-      median_views_per_video: parseInt(formData.median_views_per_video),
-      engagement_rate: parseFloat(formData.engagement_rate),
-      base_country: formData.base_country,
-      audience_countries: [formData.base_country, ...selectedCountries].slice(0, 3),
+      followers: parseInt(formData.followers) || 0,
+      median_views_per_video: parseInt(formData.median_views_per_video) || 0,
+      engagement_rate: parseFloat(formData.engagement_rate) || 0,
+      base_country: formData.base_country || '',
+      audience_countries: baseCountries,
       music_genres: selectedGenres,
       content_types: selectedContentTypes,
-      reel_rate: parseFloat(formData.reel_rate),
+      reel_rate: parseFloat(formData.reel_rate) || 0,
       carousel_rate: formData.carousel_rate ? parseFloat(formData.carousel_rate) : undefined,
       story_rate: formData.story_rate ? parseFloat(formData.story_rate) : undefined,
       performance_score: 1.0,

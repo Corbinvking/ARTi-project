@@ -27,6 +27,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CREATOR_CONTENT_TYPES } from "../seedstorm-builder/lib/genreSystem";
+import { useNiches } from "../seedstorm-builder/hooks/useNiches";
 
 // Creator status types
 type PaymentStatus = 'unpaid' | 'pending' | 'paid';
@@ -91,32 +93,17 @@ function formatReportNotes(raw: string | null | undefined): string {
   }
 }
 
-// Status Indicator Component
-const StatusIndicator = ({ type, status }: { type: 'payment' | 'post' | 'approval'; status: string }) => {
-  const getConfig = () => {
-    switch (type) {
-      case 'payment':
-        switch (status) {
-          case 'paid': return { color: 'bg-green-500', label: 'Paid' };
-          case 'pending': return { color: 'bg-yellow-500', label: 'Pending' };
-          default: return { color: 'bg-red-500', label: 'Unpaid' };
-        }
-      case 'post':
-        switch (status) {
-          case 'posted': return { color: 'bg-green-500', label: 'Posted' };
-          case 'scheduled': return { color: 'bg-blue-500', label: 'Scheduled' };
-          default: return { color: 'bg-gray-500', label: 'Not Posted' };
-        }
-      case 'approval':
-        switch (status) {
-          case 'approved': return { color: 'bg-green-500', label: 'Approved' };
-          case 'revision_requested': return { color: 'bg-orange-500', label: 'Revision' };
-          case 'rejected': return { color: 'bg-red-500', label: 'Rejected' };
-          default: return { color: 'bg-yellow-500', label: 'Pending' };
-        }
-    }
-  };
-  const config = getConfig();
+// Unified page status config
+const getPageStatusConfig = (status: string) => {
+  switch (status) {
+    case 'paid': return { color: 'bg-green-500', label: 'PAID' };
+    case 'posted': return { color: 'bg-blue-500', label: 'Posted' };
+    default: return { color: 'bg-gray-500', label: 'Proposed' };
+  }
+};
+
+const PageStatusIndicator = ({ status }: { status: string }) => {
+  const config = getPageStatusConfig(status);
   return (
     <div className="flex items-center gap-2">
       <div className={`w-2 h-2 rounded-full ${config.color}`} />
@@ -138,6 +125,24 @@ export default function InstagramCampaignsPage() {
   const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
   const [importModalOpen, setImportModalOpen] = useState(false);
 
+  // Quick Create Campaign
+  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
+  const [quickCreateForm, setQuickCreateForm] = useState({ campaign: '', clients: '', price: '', status: 'pending' });
+  const [quickCreating, setQuickCreating] = useState(false);
+
+  // Add Creator inside campaign
+  const [isAddCreatorOpen, setIsAddCreatorOpen] = useState(false);
+  const [addCreatorTab, setAddCreatorTab] = useState<'existing' | 'new'>('existing');
+  const [creatorSearchTerm, setCreatorSearchTerm] = useState('');
+  const [selectedExistingCreator, setSelectedExistingCreator] = useState<any>(null);
+  const [placementRate, setPlacementRate] = useState('');
+  const [placementPostType, setPlacementPostType] = useState('reel');
+  const [newCreatorForm, setNewCreatorForm] = useState({ handle: '', email: '', reel_rate: '', genres: [] as string[], content_types: [] as string[] });
+  const [addingCreator, setAddingCreator] = useState(false);
+
+  // Manual handle for post tracking
+  const [manualPostHandle, setManualPostHandle] = useState("");
+
   const searchParams = useSearchParams();
   const openParam = searchParams.get("open");
   const filterParam = searchParams.get("filter");
@@ -146,6 +151,7 @@ export default function InstagramCampaignsPage() {
   const queryClient = useQueryClient();
   const { updateCampaignAsync, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
   const { user } = useAuth();
+  const { niches: allNiches } = useNiches();
 
   // Fetch campaign creators when a campaign is selected
   const { data: campaignCreators = [], isLoading: loadingCreators, refetch: refetchCreators } = useQuery({
@@ -163,13 +169,13 @@ export default function InstagramCampaignsPage() {
     enabled: !!selectedCampaign?.id && isDetailsOpen
   });
 
-  // Fetch all creators for the "Linked Creator" dropdown (post tracking)
+  // Fetch all creators for the "Linked Creator" dropdown and "From Database" picker
   const { data: allCreators = [] } = useQuery({
     queryKey: ['all-creators-for-linking'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('creators')
-        .select('id, instagram_handle')
+        .select('id, instagram_handle, followers, reel_rate, engagement_rate, music_genres')
         .order('instagram_handle');
       if (error) throw error;
       return data || [];
@@ -236,15 +242,15 @@ export default function InstagramCampaignsPage() {
     if (!newPostUrl.trim() || !selectedCampaign?.id) return;
     setAddingPost(true);
     try {
-      // Extract Instagram handle from URL if possible
-      const urlMatch = newPostUrl.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
       const postType = newPostUrl.includes('/reel/') ? 'reel' : newPostUrl.includes('/p/') ? 'post' : 'other';
       
-      // Find the selected creator to get their handle
+      // Find the selected creator to get their handle (optional)
       const linkedCreator = selectedCreatorForPost 
         ? campaignCreators.find(c => c.id === selectedCreatorForPost)
           || allCreators.find(c => c.id === selectedCreatorForPost)
         : null;
+
+      const resolvedHandle = linkedCreator?.instagram_handle || manualPostHandle.replace(/^@/, '').trim() || 'unknown';
       
       const { data: insertedPost, error } = await supabase
         .from('campaign_posts')
@@ -254,7 +260,7 @@ export default function InstagramCampaignsPage() {
           org_id: user?.tenantId || '00000000-0000-0000-0000-000000000001',
           post_url: newPostUrl.trim(),
           post_type: postType,
-          instagram_handle: linkedCreator?.instagram_handle || 'pending',
+          instagram_handle: resolvedHandle,
           status: 'live'
         })
         .select('id')
@@ -262,12 +268,13 @@ export default function InstagramCampaignsPage() {
       if (error) throw error;
       setNewPostUrl("");
       setSelectedCreatorForPost("");
+      setManualPostHandle("");
       refetchPosts();
       
-      // Update placement post_status to posted if creator is a campaign placement
+      // Update placement page_status to posted if creator is a campaign placement
       const isPlacement = campaignCreators.some((c: CampaignCreator) => c.id === selectedCreatorForPost);
       if (selectedCreatorForPost && isPlacement) {
-        await updateCreatorStatus(selectedCreatorForPost, { post_status: 'posted' });
+        await updateCreatorStatus(selectedCreatorForPost, { page_status: 'posted' as PageStatus });
       }
 
       // Fire background scrape to immediately fetch post metrics
@@ -285,7 +292,7 @@ export default function InstagramCampaignsPage() {
         title: "Post Added", 
         description: linkedCreator 
           ? `Instagram post linked to @${linkedCreator.instagram_handle} — tracking will start shortly` 
-          : "Instagram post URL added — tracking will start shortly" 
+          : `Instagram post added (${resolvedHandle !== 'unknown' ? '@' + resolvedHandle : 'no creator linked'}) — tracking will start shortly`
       });
     } catch (error) {
       toast({ title: "Error", description: "Failed to add post URL", variant: "destructive" });
@@ -566,6 +573,137 @@ export default function InstagramCampaignsPage() {
     setIsDetailsOpen(false);
   };
 
+  const handleQuickCreate = async () => {
+    if (!quickCreateForm.campaign.trim()) {
+      toast({ title: "Error", description: "Campaign name is required", variant: "destructive" });
+      return;
+    }
+    setQuickCreating(true);
+    try {
+      const { error } = await supabase
+        .from('instagram_campaigns')
+        .insert({
+          campaign: quickCreateForm.campaign.trim(),
+          clients: quickCreateForm.clients.trim() || null,
+          price: quickCreateForm.price.trim() || '$0',
+          status: quickCreateForm.status,
+        });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['instagram-campaigns'] });
+      setIsQuickCreateOpen(false);
+      setQuickCreateForm({ campaign: '', clients: '', price: '', status: 'pending' });
+      toast({ title: "Campaign Created", description: `"${quickCreateForm.campaign}" has been created` });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to create campaign", variant: "destructive" });
+    } finally {
+      setQuickCreating(false);
+    }
+  };
+
+  const resetAddCreatorDialog = () => {
+    setIsAddCreatorOpen(false);
+    setAddCreatorTab('existing');
+    setCreatorSearchTerm('');
+    setSelectedExistingCreator(null);
+    setPlacementRate('');
+    setPlacementPostType('reel');
+    setNewCreatorForm({ handle: '', email: '', reel_rate: '', genres: [], content_types: [] });
+  };
+
+  const handleAddExistingCreatorToCampaign = async () => {
+    if (!selectedExistingCreator || !selectedCampaign?.id) return;
+    setAddingCreator(true);
+    try {
+      const { error } = await supabase
+        .from('instagram_campaign_creators')
+        .insert({
+          campaign_id: String(selectedCampaign.id),
+          instagram_handle: selectedExistingCreator.instagram_handle,
+          rate: parseFloat(placementRate) || selectedExistingCreator.reel_rate || 0,
+          post_type: placementPostType || 'reel',
+          posts_count: 1,
+          page_status: 'proposed',
+          payment_status: 'unpaid',
+          post_status: 'not_posted',
+          is_auto_selected: false,
+        });
+      if (error) throw error;
+      refetchCreators();
+      resetAddCreatorDialog();
+      toast({ title: "Creator Added", description: `@${selectedExistingCreator.instagram_handle} added to campaign` });
+    } catch (error: any) {
+      const msg = error?.message?.includes('unique') ? 'This creator is already in this campaign' : 'Failed to add creator to campaign';
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setAddingCreator(false);
+    }
+  };
+
+  const handleAddNewCreatorToCampaign = async () => {
+    const handle = newCreatorForm.handle.replace(/^@/, '').trim();
+    if (!handle) {
+      toast({ title: "Error", description: "Instagram handle is required", variant: "destructive" });
+      return;
+    }
+    if (!selectedCampaign?.id) {
+      toast({ title: "Error", description: "No campaign selected", variant: "destructive" });
+      return;
+    }
+    const rateNum = Number(newCreatorForm.reel_rate) || 0;
+    setAddingCreator(true);
+    try {
+      const { error: creatorError } = await supabase.from('creators').insert({
+        instagram_handle: handle,
+        email: newCreatorForm.email || null,
+        reel_rate: rateNum,
+        music_genres: newCreatorForm.genres.length > 0 ? newCreatorForm.genres : ['General'],
+        content_types: newCreatorForm.content_types.length > 0 ? newCreatorForm.content_types : ['Audio Seeding'],
+        base_country: '',
+        followers: 0,
+        median_views_per_video: 0,
+        engagement_rate: 0,
+        scrape_status: 'pending',
+        org_id: user?.tenantId || '00000000-0000-0000-0000-000000000001',
+      });
+      if (creatorError && !creatorError.message?.includes('duplicate') && creatorError.code !== '23505') {
+        throw creatorError;
+      }
+
+      const { error: placementError } = await supabase
+        .from('instagram_campaign_creators')
+        .insert({
+          campaign_id: String(selectedCampaign.id),
+          instagram_handle: handle,
+          rate: rateNum,
+          post_type: placementPostType || 'reel',
+          posts_count: 1,
+          page_status: 'proposed',
+          payment_status: 'unpaid',
+          post_status: 'not_posted',
+          is_auto_selected: false,
+        });
+      if (placementError) throw placementError;
+
+      refetchCreators();
+      queryClient.invalidateQueries({ queryKey: ['all-creators-for-linking'] });
+      resetAddCreatorDialog();
+      toast({ title: "Creator Created & Added", description: `@${handle} created and added to campaign` });
+
+      fetch('/api/instagram-scraper/creator-refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handles: [handle] }),
+      }).catch(() => {});
+    } catch (error: any) {
+      const msg = error?.message?.includes('unique') || error?.message?.includes('duplicate')
+        ? 'A creator with this handle already exists. Use "From Database" tab instead.'
+        : error?.message || 'Failed to create creator';
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setAddingCreator(false);
+    }
+  };
+
   const updateField = (field: string, value: string | boolean) => {
     setEditForm((prev: any) => ({
       ...prev,
@@ -738,10 +876,14 @@ export default function InstagramCampaignsPage() {
             <Upload className="mr-2 h-4 w-4" />
             Import
           </Button>
+          <Button variant="outline" onClick={() => setIsQuickCreateOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Quick Create
+          </Button>
           <Link href="/instagram/campaign-builder">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              New Campaign
+              Campaign Builder
             </Button>
           </Link>
         </div>
@@ -920,12 +1062,18 @@ export default function InstagramCampaignsPage() {
             <p className="text-muted-foreground mb-4">
               No campaigns yet. Create your first Instagram campaign to get started.
             </p>
-            <Link href="/instagram/campaign-builder">
-              <Button>
+            <div className="flex items-center gap-2 justify-center">
+              <Button variant="outline" onClick={() => setIsQuickCreateOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Campaign
+                Quick Create
               </Button>
-            </Link>
+              <Link href="/instagram/campaign-builder">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Campaign Builder
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       ) : filteredCampaigns.length === 0 ? (
@@ -1302,6 +1450,77 @@ export default function InstagramCampaignsPage() {
                 <Card><CardContent className="p-3"><div className="text-xs text-muted-foreground">Budget Utilization</div><div className="text-2xl font-bold">{budgetUtil}%</div></CardContent></Card>
               </div>
 
+              {/* Client Instagram & IG Sound */}
+              <Card className="border-pink-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Instagram className="h-5 w-5 text-pink-500" />
+                    Campaign Info
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium">Client Instagram</Label>
+                    {isEditMode ? (
+                      <div className="relative mt-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                        <Input
+                          className="pl-8"
+                          value={(editForm.client_instagram_handle || '').replace(/^@/, '')}
+                          onChange={(e) => updateField('client_instagram_handle', e.target.value.replace(/^@/, ''))}
+                          placeholder="client_handle"
+                        />
+                      </div>
+                    ) : selectedCampaign.client_instagram_handle ? (
+                      <a
+                        href={`https://instagram.com/${selectedCampaign.client_instagram_handle.replace(/^@/, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 mt-1 text-sm text-pink-600 hover:underline"
+                      >
+                        <Instagram className="h-4 w-4" />
+                        @{selectedCampaign.client_instagram_handle.replace(/^@/, '')}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <p className="text-sm text-muted-foreground mt-1">Not set</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium flex items-center gap-1.5">
+                      <Music className="h-4 w-4 text-pink-500" />
+                      IG Sound
+                    </Label>
+                    <p className="text-xs text-muted-foreground mb-1">Instagram audio/sound URL for pages to use</p>
+                    {isEditMode ? (
+                      <Input
+                        className="mt-1"
+                        value={editForm.ig_sound_url || ''}
+                        onChange={(e) => updateField('ig_sound_url', e.target.value)}
+                        placeholder="https://www.instagram.com/reels/audio/..."
+                      />
+                    ) : selectedCampaign.ig_sound_url ? (
+                      <a
+                        href={selectedCampaign.ig_sound_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 mt-1 text-sm text-blue-600 hover:underline break-all"
+                      >
+                        <Music className="h-4 w-4 flex-shrink-0" />
+                        {selectedCampaign.ig_sound_url}
+                        <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                      </a>
+                    ) : (
+                      <p className="text-sm text-muted-foreground mt-1">Not set</p>
+                    )}
+                    {isEditMode && editForm.ig_sound_url && !editForm.ig_sound_url.includes('instagram.com') && (
+                      <p className="text-xs text-orange-500 mt-1">This doesn't look like an Instagram URL. Pages need an IG sound link.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Seeding Configuration */}
               <Card className="border-purple-500/20">
                 <CardHeader>
@@ -1376,14 +1595,20 @@ export default function InstagramCampaignsPage() {
 
               {/* Placements (Agreed Inventory) */}
               <Card className="border-purple-500/20">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Users className="h-5 w-5 text-purple-500" />
-                    Placements (Agreed Inventory)
-                  </CardTitle>
-                  <CardDescription>
-                    Agreements, statuses, and payments for campaign creators
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Users className="h-5 w-5 text-purple-500" />
+                      Placements (Agreed Inventory)
+                    </CardTitle>
+                    <CardDescription>
+                      Agreements and statuses for campaign creators
+                    </CardDescription>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setIsAddCreatorOpen(true)}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Creator
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   {loadingCreators ? (
@@ -1394,7 +1619,10 @@ export default function InstagramCampaignsPage() {
                     <div className="text-center py-8 text-muted-foreground">
                       <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p>No placements assigned to this campaign yet.</p>
-                      <p className="text-sm mt-1">Build a campaign to auto-select creators.</p>
+                      <Button variant="outline" size="sm" className="mt-3" onClick={() => setIsAddCreatorOpen(true)}>
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Creator
+                      </Button>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -1402,34 +1630,18 @@ export default function InstagramCampaignsPage() {
                         <div className="flex items-center justify-between p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
                           <span className="text-sm font-medium">{selectedCreators.length} selected</span>
                           <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                const postedIds = selectedCreators.filter(id => {
-                                  const c = campaignCreators.find((cr: CampaignCreator) => cr.id === id);
-                                  return c && c.post_status === 'posted';
-                                });
-                                if (postedIds.length > 0) {
-                                  bulkUpdateCreators(postedIds, { payment_status: 'paid' });
-                                } else {
-                                  toast({ title: "Cannot Mark Paid", description: "Post Status must be 'Posted' before marking as Paid", variant: "destructive" });
-                                }
-                              }}
-                              className="text-green-600"
-                            >
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Mark Paid
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => bulkUpdateCreators(selectedCreators, { post_status: 'posted' })}
-                              className="text-blue-600"
-                            >
-                              <Check className="h-3 w-3 mr-1" />
-                              Mark Posted
-                            </Button>
+                            <Select onValueChange={(value) => {
+                              bulkUpdateCreators(selectedCreators, { page_status: value as PageStatus });
+                            }}>
+                              <SelectTrigger className="w-36 h-8">
+                                <SelectValue placeholder="Set status..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="proposed"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-500" /><span className="text-xs">Proposed</span></div></SelectItem>
+                                <SelectItem value="paid"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" /><span className="text-xs">PAID</span></div></SelectItem>
+                                <SelectItem value="posted"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /><span className="text-xs">Posted</span></div></SelectItem>
+                              </SelectContent>
+                            </Select>
                             <Button
                               size="sm"
                               variant="ghost"
@@ -1456,9 +1668,7 @@ export default function InstagramCampaignsPage() {
                               <TableHead>Creator</TableHead>
                               <TableHead>Post Type</TableHead>
                               <TableHead className="text-right">Agreed Rate</TableHead>
-                              <TableHead>Post Status</TableHead>
-                              <TableHead>Payment</TableHead>
-                              <TableHead>Notes</TableHead>
+                              <TableHead>Status</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -1487,44 +1697,20 @@ export default function InstagramCampaignsPage() {
                                 </TableCell>
                                 <TableCell>
                                   <Select
-                                    value={creator.post_status === 'not_posted' ? 'proposed' : creator.post_status}
+                                    value={creator.page_status || 'proposed'}
                                     onValueChange={(value) => {
-                                      const mapped = value === 'proposed' ? 'not_posted' : value;
-                                      updateCreatorStatus(creator.id, { post_status: mapped as PostStatus });
+                                      updateCreatorStatus(creator.id, { page_status: value as PageStatus });
                                     }}
                                   >
                                     <SelectTrigger className="w-28 h-8">
-                                      <StatusIndicator type="post" status={creator.post_status} />
+                                      <PageStatusIndicator status={creator.page_status || 'proposed'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="proposed"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-500" /><span className="text-xs">Proposed</span></div></SelectItem>
-                                      <SelectItem value="scheduled"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /><span className="text-xs">Scheduled</span></div></SelectItem>
-                                      <SelectItem value="posted"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" /><span className="text-xs">Posted</span></div></SelectItem>
+                                      <SelectItem value="paid"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" /><span className="text-xs">PAID</span></div></SelectItem>
+                                      <SelectItem value="posted"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /><span className="text-xs">Posted</span></div></SelectItem>
                                     </SelectContent>
                                   </Select>
-                                </TableCell>
-                                <TableCell>
-                                  <Select
-                                    value={creator.payment_status === 'pending' ? 'unpaid' : creator.payment_status}
-                                    onValueChange={(value) => {
-                                      if (value === 'paid' && creator.post_status !== 'posted') {
-                                        toast({ title: "Cannot Mark Paid", description: "Post Status must be 'Posted' before marking as Paid", variant: "destructive" });
-                                        return;
-                                      }
-                                      updateCreatorStatus(creator.id, { payment_status: value as PaymentStatus });
-                                    }}
-                                  >
-                                    <SelectTrigger className="w-24 h-8">
-                                      <StatusIndicator type="payment" status={creator.payment_status} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="unpaid"><StatusIndicator type="payment" status="unpaid" /></SelectItem>
-                                      <SelectItem value="paid" disabled={creator.post_status !== 'posted'}><StatusIndicator type="payment" status="paid" /></SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </TableCell>
-                                <TableCell>
-                                  <span className="text-xs text-muted-foreground truncate max-w-[120px] block">{creator.payment_notes || '—'}</span>
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -1586,10 +1772,10 @@ export default function InstagramCampaignsPage() {
                         placeholder="Paste Instagram post URL (e.g., https://instagram.com/reel/...)"
                         value={newPostUrl}
                         onChange={(e) => setNewPostUrl(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && selectedCreatorForPost && addPostUrl()}
+                        onKeyDown={(e) => e.key === 'Enter' && addPostUrl()}
                         className="flex-1"
                       />
-                      <Button onClick={addPostUrl} disabled={addingPost || !newPostUrl.trim() || !selectedCreatorForPost}>
+                      <Button onClick={addPostUrl} disabled={addingPost || !newPostUrl.trim()}>
                         {addingPost ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                       </Button>
                     </div>
@@ -1597,13 +1783,16 @@ export default function InstagramCampaignsPage() {
                       <Label className="text-xs text-muted-foreground whitespace-nowrap">Linked Creator:</Label>
                       <Select
                         value={selectedCreatorForPost || "__none__"}
-                        onValueChange={(v) => setSelectedCreatorForPost(v === "__none__" ? "" : v)}
+                        onValueChange={(v) => {
+                          setSelectedCreatorForPost(v === "__none__" ? "" : v);
+                          if (v !== "__none__") setManualPostHandle("");
+                        }}
                       >
                         <SelectTrigger className="h-8 text-sm">
-                          <SelectValue placeholder="Select creator (required)" />
+                          <SelectValue placeholder="Select creator (optional)" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__none__" disabled>Select a creator</SelectItem>
+                          <SelectItem value="__none__">None (type handle below)</SelectItem>
                           {campaignCreators.length > 0 && (
                             <>
                               {campaignCreators.map((creator: CampaignCreator) => (
@@ -1623,8 +1812,19 @@ export default function InstagramCampaignsPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    {!selectedCreatorForPost && newPostUrl.trim() && (
-                      <p className="text-xs text-orange-600">A linked creator is required to add a post.</p>
+                    {!selectedCreatorForPost && (
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-muted-foreground whitespace-nowrap">Or type handle:</Label>
+                        <div className="relative flex-1">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+                          <Input
+                            className="h-8 text-sm pl-7"
+                            value={manualPostHandle}
+                            onChange={(e) => setManualPostHandle(e.target.value.replace(/^@/, ''))}
+                            placeholder="creator_handle"
+                          />
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -1706,14 +1906,42 @@ export default function InstagramCampaignsPage() {
                 }}
               />
 
-              {/* Notes */}
+              {/* Note to Client */}
+              <Card className="border-blue-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Share className="h-5 w-5 text-blue-500" />
+                    Note to Client
+                  </CardTitle>
+                  <CardDescription>Visible to the client — brief plan, posting window, what to expect</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    value={isEditMode ? (editForm.client_notes || '') : (selectedCampaign.client_notes || '')}
+                    onChange={(e) => updateField('client_notes', e.target.value)}
+                    onBlur={async () => {
+                      if (!isEditMode && selectedCampaign.client_notes !== editForm.client_notes) {
+                        const newVal = editForm.client_notes || '';
+                        await updateCampaignAsync({ id: selectedCampaign.id, updates: { client_notes: newVal } });
+                        await addNoteHistory('client', newVal);
+                        toast({ title: "Saved", description: "Client note updated" });
+                      }
+                    }}
+                    placeholder="Write a note for the client..."
+                    rows={3}
+                    readOnly={!isEditMode && !selectedCampaign.client_notes && false}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Internal Notes */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Notes</CardTitle>
+                  <CardTitle className="text-lg">Internal Notes</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Internal Notes (Ops):</p>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Ops Notes:</p>
                     {isEditMode ? (
                       <Textarea
                         value={editForm.report_notes || ''}
@@ -1723,21 +1951,6 @@ export default function InstagramCampaignsPage() {
                       />
                     ) : (
                       <p className="text-sm whitespace-pre-wrap">{formatReportNotes(selectedCampaign.report_notes)}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Client Notes (Visible to Clients):</p>
-                    <p className="text-xs text-muted-foreground mb-2">Brief plan, posting window, what to expect</p>
-                    {isEditMode ? (
-                      <Textarea
-                        value={editForm.client_notes || ''}
-                        onChange={(e) => updateField('client_notes', e.target.value)}
-                        placeholder="Add client-facing notes..."
-                        rows={3}
-                      />
-                    ) : (
-                      <p className="text-sm">{selectedCampaign.client_notes || '-'}</p>
                     )}
                   </div>
 
@@ -1792,6 +2005,251 @@ export default function InstagramCampaignsPage() {
         open={importModalOpen}
         onOpenChange={setImportModalOpen}
       />
+
+      {/* Quick Create Campaign Modal */}
+      <Dialog open={isQuickCreateOpen} onOpenChange={setIsQuickCreateOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Quick Create Campaign</DialogTitle>
+            <DialogDescription>Create a campaign without the builder. Add creators afterwards.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Campaign Name *</Label>
+              <Input
+                value={quickCreateForm.campaign}
+                onChange={(e) => setQuickCreateForm(p => ({ ...p, campaign: e.target.value }))}
+                placeholder="Campaign name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Client</Label>
+              <Input
+                value={quickCreateForm.clients}
+                onChange={(e) => setQuickCreateForm(p => ({ ...p, clients: e.target.value }))}
+                placeholder="Client name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Budget</Label>
+              <Input
+                value={quickCreateForm.price}
+                onChange={(e) => setQuickCreateForm(p => ({ ...p, price: e.target.value }))}
+                placeholder="$5,000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={quickCreateForm.status} onValueChange={(v) => setQuickCreateForm(p => ({ ...p, status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="ready">Ready</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setIsQuickCreateOpen(false)}>Cancel</Button>
+              <Button onClick={handleQuickCreate} disabled={quickCreating || !quickCreateForm.campaign.trim()}>
+                {quickCreating ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                Create Campaign
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Creator to Campaign Dialog */}
+      <Dialog open={isAddCreatorOpen} onOpenChange={(open) => { if (!open) resetAddCreatorDialog(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Creator to Campaign</DialogTitle>
+            <DialogDescription>Select an existing creator from your database or add a new one.</DialogDescription>
+          </DialogHeader>
+          <Tabs value={addCreatorTab} onValueChange={(v) => setAddCreatorTab(v as 'existing' | 'new')}>
+            <TabsList className="w-full">
+              <TabsTrigger value="existing" className="flex-1">From Database</TabsTrigger>
+              <TabsTrigger value="new" className="flex-1">New Creator</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="existing" className="space-y-3 mt-3">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="pl-8 h-9"
+                  placeholder="Search by handle..."
+                  value={creatorSearchTerm}
+                  onChange={(e) => setCreatorSearchTerm(e.target.value)}
+                />
+              </div>
+              <ScrollArea className="h-48 border rounded-md">
+                {(() => {
+                  const assignedHandles = new Set(campaignCreators.map((c: CampaignCreator) => c.instagram_handle?.toLowerCase()));
+                  const filtered = allCreators.filter((c: any) =>
+                    !assignedHandles.has(c.instagram_handle?.toLowerCase()) &&
+                    c.instagram_handle?.toLowerCase().includes(creatorSearchTerm.toLowerCase())
+                  );
+                  if (filtered.length === 0) return (
+                    <div className="text-center py-6 text-muted-foreground text-sm">
+                      {creatorSearchTerm ? 'No matching creators found.' : 'No creators available.'}
+                    </div>
+                  );
+                  return filtered.map((creator: any) => (
+                    <div
+                      key={creator.id}
+                      className={`flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-muted/50 border-b last:border-b-0 ${selectedExistingCreator?.id === creator.id ? 'bg-purple-500/10' : ''}`}
+                      onClick={() => {
+                        setSelectedExistingCreator(creator);
+                        setPlacementRate(String(creator.reel_rate || ''));
+                      }}
+                    >
+                      <div>
+                        <span className="font-medium text-sm">@{creator.instagram_handle}</span>
+                        {creator.music_genres?.length > 0 && (
+                          <span className="text-xs text-muted-foreground ml-2">{creator.music_genres.slice(0, 2).join(', ')}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        {creator.followers > 0 && <span>{creator.followers >= 1000 ? `${(creator.followers / 1000).toFixed(1)}K` : creator.followers} followers</span>}
+                        {creator.reel_rate > 0 && <span>${creator.reel_rate}</span>}
+                        {selectedExistingCreator?.id === creator.id && <Check className="h-4 w-4 text-purple-500" />}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </ScrollArea>
+              {selectedExistingCreator && (
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <Label className="text-xs">Agreed Rate ($)</Label>
+                    <Input
+                      className="h-8 text-sm mt-1"
+                      type="number"
+                      value={placementRate}
+                      onChange={(e) => setPlacementRate(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Post Type</Label>
+                    <Select value={placementPostType} onValueChange={setPlacementPostType}>
+                      <SelectTrigger className="h-8 text-sm mt-1"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="reel">Reel</SelectItem>
+                        <SelectItem value="carousel">Carousel</SelectItem>
+                        <SelectItem value="story">Story</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-end pt-1">
+                <Button
+                  onClick={handleAddExistingCreatorToCampaign}
+                  disabled={addingCreator || !selectedExistingCreator}
+                >
+                  {addingCreator ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
+                  Add to Campaign
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="new" className="space-y-3 mt-3">
+              <div>
+                <Label className="text-xs">Instagram Handle *</Label>
+                <div className="relative mt-1">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+                  <Input
+                    className="pl-7 h-8 text-sm"
+                    value={newCreatorForm.handle}
+                    onChange={(e) => setNewCreatorForm(p => ({ ...p, handle: e.target.value.replace(/^@/, '') }))}
+                    placeholder="handle"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Email</Label>
+                <Input
+                  className="h-8 text-sm mt-1"
+                  value={newCreatorForm.email}
+                  onChange={(e) => setNewCreatorForm(p => ({ ...p, email: e.target.value }))}
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Rate per Reel ($)</Label>
+                  <Input
+                    className="h-8 text-sm mt-1"
+                    type="number"
+                    value={newCreatorForm.reel_rate}
+                    onChange={(e) => setNewCreatorForm(p => ({ ...p, reel_rate: e.target.value }))}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Post Type</Label>
+                  <Select value={placementPostType} onValueChange={setPlacementPostType}>
+                    <SelectTrigger className="h-8 text-sm mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="reel">Reel</SelectItem>
+                      <SelectItem value="carousel">Carousel</SelectItem>
+                      <SelectItem value="story">Story</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Niches {newCreatorForm.genres.length > 0 && <span className="text-muted-foreground">({newCreatorForm.genres.length} selected)</span>}</Label>
+                <div className="max-h-28 overflow-y-auto border rounded-md p-2 mt-1">
+                  <div className="flex flex-wrap gap-1">
+                    {[...newCreatorForm.genres, ...allNiches.filter((g: string) => !newCreatorForm.genres.includes(g))].map((g: string) => (
+                      <Badge
+                        key={g}
+                        variant={newCreatorForm.genres.includes(g) ? "default" : "outline"}
+                        className="cursor-pointer text-[10px]"
+                        onClick={() => setNewCreatorForm(f => ({
+                          ...f,
+                          genres: f.genres.includes(g) ? f.genres.filter(x => x !== g) : [...f.genres, g]
+                        }))}
+                      >
+                        {g}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Content Types</Label>
+                <div className="flex gap-2 mt-1">
+                  {CREATOR_CONTENT_TYPES.map((t) => (
+                    <label key={t} className="flex items-center gap-1.5 text-sm">
+                      <Checkbox
+                        checked={newCreatorForm.content_types.includes(t)}
+                        onCheckedChange={(v) => setNewCreatorForm(f => ({
+                          ...f,
+                          content_types: v ? [...f.content_types, t] : f.content_types.filter(x => x !== t)
+                        }))}
+                      />
+                      {t}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-end pt-1">
+                <Button
+                  onClick={handleAddNewCreatorToCampaign}
+                  disabled={addingCreator || !newCreatorForm.handle.trim()}
+                >
+                  {addingCreator ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
+                  Create & Add to Campaign
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
