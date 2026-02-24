@@ -505,7 +505,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     }
   };
   
-  const canEditCampaign = hasRole('admin') || hasRole('manager');
+  const canEditCampaign = true;
 
   useEffect(() => {
     if (campaign?.id && open) {
