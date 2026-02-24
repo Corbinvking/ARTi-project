@@ -2,7 +2,7 @@
 
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
-import { UserManager } from "./UserManager";
+
 import Index from "../pages/Index";
 import PlaylistsPage from "../pages/PlaylistsPage";
 import CampaignBuilder from "../pages/CampaignBuilder";
@@ -30,11 +30,6 @@ export default function StreamStrategistRouter() {
         <Route path="/" element={
           <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
             <Index />
-          </ProtectedRoute>
-        } />
-        <Route path="/users" element={
-          <ProtectedRoute requiredRoles={['admin']}>
-            <UserManager />
           </ProtectedRoute>
         } />
         <Route path="/playlists" element={

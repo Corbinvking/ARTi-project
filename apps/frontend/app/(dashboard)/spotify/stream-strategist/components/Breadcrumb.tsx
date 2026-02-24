@@ -31,9 +31,6 @@ const getBreadcrumbItems = (pathname: string): BreadcrumbItem[] => {
     case 'clients':
       items.push({ label: "Client Management", href: "/clients", current: true });
       break;
-    case 'users':
-      items.push({ label: "User Management", href: "/users", current: true });
-      break;
     case 'reports':
       items.push({ label: "Reports & Analytics", href: "/reports", current: true });
       break;

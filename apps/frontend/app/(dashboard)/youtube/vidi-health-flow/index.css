@@ -132,3 +132,9 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+}

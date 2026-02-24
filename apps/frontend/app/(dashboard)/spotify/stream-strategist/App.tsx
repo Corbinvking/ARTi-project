@@ -7,7 +7,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { GuidedTour } from "./components/HelpSystem";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { UserManager } from "./components/UserManager";
+
 import Index from "./pages/Index";
 import PlaylistsPage from "./pages/PlaylistsPage";
 import CampaignBuilder from "./pages/CampaignBuilder";
@@ -43,13 +43,6 @@ const App = () => (
             <Route path="/" element={
               <ProtectedRoute requiredRoles={['admin', 'manager', 'operator']}>
                 <Index />
-              </ProtectedRoute>
-            } />
-            <Route path="/users" element={
-              <ProtectedRoute requiredRoles={['admin']}>
-                <Layout>
-                  <UserManager />
-                </Layout>
               </ProtectedRoute>
             } />
             <Route path="/playlists" element={

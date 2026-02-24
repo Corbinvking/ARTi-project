@@ -11,7 +11,6 @@ import {
   History,
   Users,
   BarChart3,
-  UserPlus,
   Music,
   Target,
   FileText
@@ -90,14 +89,7 @@ const getStreamStrategistTabs = (currentRole: string | null): SubTab[] => {
         label: "Submissions",
         href: "/dashboard/spotify/submissions",
         icon: FileText
-      },
-      ...(currentRole === 'admin' ? [{
-        id: "users", 
-        label: "Users",
-        href: "/dashboard/spotify/users",
-        icon: UserPlus,
-        adminOnly: true
-      }] : [])
+      }
     ]
   }
 

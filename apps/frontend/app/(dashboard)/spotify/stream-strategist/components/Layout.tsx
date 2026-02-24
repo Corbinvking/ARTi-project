@@ -20,7 +20,6 @@ import {
   Users,
   LogOut,
   User,
-  UserPlus,
   BarChart3,
   DollarSign,
   Target,
@@ -83,14 +82,7 @@ const getNavItemsForRole = (currentRole: string | null) => {
         href: "/spotify/ml-dashboard",
         icon: BarChart3,
         hotkey: "Ctrl+7"
-      },
-      ...(currentRole === 'admin' ? [{
-        title: "Users", 
-        href: "/spotify/users",
-        icon: UserPlus,
-        hotkey: "Ctrl+6",
-        adminOnly: true
-      }] : [])
+      }
     ];
   }
 

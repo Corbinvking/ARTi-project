@@ -77,40 +77,41 @@ export default function Campaigns() {
   const onHoldCampaigns = campaigns.filter(c => c.status === 'on_hold').length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Campaigns</h1>
-          <p className="text-muted-foreground">
-            Managing {campaigns.length} campaigns with {activeCampaigns} active, {readyCampaigns} ready, {pendingCampaigns} pending, and {onHoldCampaigns} on hold.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+    <div className="space-y-8">
+      <section className="text-center pt-8 pb-4">
+        <h1 className="text-3xl font-bold gradient-primary bg-clip-text text-transparent">
+          CAMPAIGNS
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Managing {campaigns.length} campaigns with {activeCampaigns} active, {readyCampaigns} ready, {pendingCampaigns} pending, and {onHoldCampaigns} on hold.
+        </p>
+      </section>
+
+      <div className="flex gap-2 items-center justify-end">
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading} className="gap-2">
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
+          <Download className="h-4 w-4" />
+          Export
+        </Button>
+        {(isAdmin || isManager) && (
+          <Button variant="outline" size="sm" onClick={() => setImportModalOpen(true)} className="gap-2">
+            <Upload className="h-4 w-4" />
+            Import
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
+        )}
+        {(isAdmin || isManager) && (
+          <Button onClick={() => setCreateCampaignOpen(true)} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
+            New Campaign
           </Button>
-          {(isAdmin || isManager) && (
-            <Button variant="outline" size="sm" onClick={() => setImportModalOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              Import
-            </Button>
-          )}
-          {(isAdmin || isManager) && (
-            <Button onClick={() => setCreateCampaignOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Campaign
-            </Button>
-          )}
-        </div>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
           <TabsTrigger value="all">All Campaigns</TabsTrigger>
           <TabsTrigger value="pending">Pending Submissions</TabsTrigger>
         </TabsList>

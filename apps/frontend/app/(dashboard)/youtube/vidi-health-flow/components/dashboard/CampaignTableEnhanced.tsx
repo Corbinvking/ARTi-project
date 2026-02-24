@@ -91,11 +91,11 @@ const getHealthColor = (score: number) => {
   return "text-health-critical";
 };
 
-const getHealthBadgeVariant = (score: number) => {
-  if (score >= 90) return "default";
-  if (score >= 75) return "secondary";
-  if (score >= 60) return "outline";
-  return "destructive";
+const getHealthBadgeColor = (score: number) => {
+  if (score >= 90) return "bg-green-500/10 text-green-400 border border-green-500/30";
+  if (score >= 75) return "bg-blue-500/10 text-blue-400 border border-blue-500/30";
+  if (score >= 60) return "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30";
+  return "bg-red-500/10 text-red-400 border border-red-500/30";
 };
 
 const getTrendIcon = (views7Days: number, currentViews: number) => {
@@ -534,55 +534,80 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
         </CardContent>
       </Card>
 
+      {/* Filter Bar */}
+      <div className="border border-border rounded-lg p-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2 flex-1 min-w-[200px] max-w-[400px]">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search campaigns..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Campaigns</SelectItem>
+              <SelectItem value="pending">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-yellow-500" />
+                  Pending Campaigns
+                </span>
+              </SelectItem>
+              <SelectItem value="ready">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                  Ready Campaigns
+                </span>
+              </SelectItem>
+              <SelectItem value="active">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500" />
+                  Active Campaigns
+                </span>
+              </SelectItem>
+              <SelectItem value="on_hold">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                  On Hold Campaigns
+                </span>
+              </SelectItem>
+              <SelectItem value="stalling">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-500" />
+                  Stalling Campaigns
+                </span>
+              </SelectItem>
+              <SelectItem value="upcoming">Upcoming Campaigns</SelectItem>
+              <SelectItem value="complete">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                  Complete Campaigns
+                </span>
+              </SelectItem>
+              <SelectItem value="no_comment_csv">No Comment CSV</SelectItem>
+            </SelectContent>
+          </Select>
+          {someSelected && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Selected ({selectedCampaigns.length})
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Campaign Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-primary rounded-full"></div>
-              Campaign Performance Overview
-            </div>
-            <div className="flex items-center gap-4">
-              {someSelected && (
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => setDeleteDialogOpen(true)}
-                  className="flex items-center gap-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete Selected ({selectedCampaigns.length})
-                </Button>
-              )}
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Campaigns</SelectItem>
-                  <SelectItem value="pending">Pending Campaigns</SelectItem>
-                  <SelectItem value="ready">Ready Campaigns</SelectItem>
-                  <SelectItem value="active">Active Campaigns</SelectItem>
-                  <SelectItem value="on_hold">On Hold Campaigns</SelectItem>
-                  <SelectItem value="stalling">Stalling Campaigns</SelectItem>
-                  <SelectItem value="upcoming">Upcoming Campaigns</SelectItem>
-                  <SelectItem value="complete">Complete Campaigns</SelectItem>
-                  <SelectItem value="no_comment_csv">No Comment CSV</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search campaigns..."
-                  className="pl-8 w-64"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -728,12 +753,19 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                 const totalViewsWithManual = manualOverrideSafe > 0 ? manualOverrideSafe : (campaign.current_views || 0);
                 const progress = totalGoalViews > 0 ? (totalViewsWithManual / totalGoalViews) * 100 : 0;
 
+                const rowPerformanceColor = campaign.status === 'active'
+                  ? healthScore >= 80 ? 'bg-green-500/5 border-l-2 border-l-green-500/40'
+                    : healthScore >= 50 ? 'bg-blue-500/5 border-l-2 border-l-blue-500/40'
+                    : 'bg-red-500/5 border-l-2 border-l-red-500/40'
+                  : '';
+
                 return (
                   <TableRow 
                     key={campaign.id} 
-                    className="hover:bg-muted/50 cursor-pointer"
+                    className={`hover:bg-muted/50 cursor-pointer transition-colors ${rowPerformanceColor}${
+                      selectedCampaigns.includes(campaign.id) ? ' bg-muted/30' : ''
+                    }`}
                     onClick={(e) => {
-                      // Prevent row click when clicking checkbox or other interactive elements
                       const target = e.target as HTMLElement;
                       if (target.tagName === 'BUTTON' || target.closest('button') || target.closest('[role="checkbox"]')) {
                         return;
@@ -778,11 +810,11 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                           handleOpenCampaignModal(campaign, 'ratio-fixer');
                         }}
                       >
-                        <Badge variant={getHealthBadgeVariant(healthScore)}>
+                        <Badge className={getHealthBadgeColor(healthScore)}>
                           {healthScore}%
                         </Badge>
                         {campaign.in_fixer && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge className="text-xs bg-purple-500/10 text-purple-400 border border-purple-500/30">
                             <Clock className="h-3 w-3 mr-1" />
                             Fixing
                           </Badge>
@@ -806,29 +838,45 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                           }}
                         >
                            <SelectTrigger 
-                             className="w-[120px]" 
+                             className={`w-[130px] ${
+                               campaign.status === 'active' ? 'border-green-500/30' :
+                               campaign.status === 'pending' ? 'border-yellow-500/30' :
+                               campaign.status === 'ready' ? 'border-blue-500/30' :
+                               campaign.status === 'on_hold' ? 'border-red-500/30' :
+                               campaign.status === 'complete' ? 'border-blue-500/30' : ''
+                             }`}
                              onClick={(e) => e.stopPropagation()}
                            >
                               <div className="flex items-center gap-2">
-                               {campaign.status === "pending" && <Clock className="h-4 w-4 text-muted-foreground" />}
-                               {campaign.status === "ready" && <CheckCircle className="h-4 w-4 text-blue-500" />}
-                               {campaign.status === "active" && <Play className="h-4 w-4 text-success" />}
-                               {campaign.status === "on_hold" && <Pause className="h-4 w-4 text-warning" />}
-                               {campaign.status === "complete" && <CheckCircle2 className="h-4 w-4 text-success" />}
+                               {campaign.status === "pending" && <Clock className="h-4 w-4 text-yellow-400" />}
+                               {campaign.status === "ready" && <CheckCircle className="h-4 w-4 text-blue-400" />}
+                               {campaign.status === "active" && <Play className="h-4 w-4 text-green-400" />}
+                               {campaign.status === "on_hold" && <Pause className="h-4 w-4 text-red-400" />}
+                               {campaign.status === "complete" && <CheckCircle2 className="h-4 w-4 text-blue-400" />}
                                <SelectValue />
                              </div>
                            </SelectTrigger>
                            <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="ready">Ready</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="on_hold">On Hold</SelectItem>
-                            <SelectItem value="complete">Complete</SelectItem>
+                            <SelectItem value="pending">
+                              <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-yellow-500" />Pending</span>
+                            </SelectItem>
+                            <SelectItem value="ready">
+                              <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500" />Ready</span>
+                            </SelectItem>
+                            <SelectItem value="active">
+                              <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500" />Active</span>
+                            </SelectItem>
+                            <SelectItem value="on_hold">
+                              <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500" />On Hold</span>
+                            </SelectItem>
+                            <SelectItem value="complete">
+                              <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500" />Complete</span>
+                            </SelectItem>
                            </SelectContent>
                          </Select>
                            {campaign.views_stalled && (
                              <div className="flex items-center gap-1">
-                               <Badge variant="destructive" className="text-xs">
+                               <Badge className="text-xs bg-red-500/10 text-red-400 border border-red-500/30">
                                  <AlertTriangle className="w-3 h-3 mr-1" />
                                  Stalling
                                </Badge>
@@ -837,12 +885,12 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                           {campaign.status === 'pending' && (
                             <div className="flex items-center gap-1">
                               {!(campaign as any).technical_setup_complete ? (
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge className="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">
                                   <Settings className="w-3 h-3 mr-1" />
                                   Needs Setup
                                 </Badge>
                               ) : (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge className="text-xs bg-green-500/10 text-green-400 border border-green-500/30">
                                   <CheckCircle2 className="w-3 h-3 mr-1" />
                                   Ready
                                 </Badge>
@@ -1102,41 +1150,40 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
               })}
             </TableBody>
           </Table>
-        </CardContent>
+      </div>
 
-        {selectedCampaign && (
-          <CampaignSettingsModal
-            isOpen={campaignSettingsOpen}
-            onClose={handleCloseCampaignModal}
-            campaignId={selectedCampaign.id}
-            initialTab={campaignSettingsTab}
-          />
-        )}
-
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Campaigns</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete {selectedCampaigns.length} campaign(s)? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        
-        <YouTubePlayerDialog
-          isOpen={youtubeDialogOpen}
-          onClose={() => setYoutubeDialogOpen(false)}
-          youtubeUrl={selectedYoutubeUrl}
-          title={selectedVideoTitle}
+      {selectedCampaign && (
+        <CampaignSettingsModal
+          isOpen={campaignSettingsOpen}
+          onClose={handleCloseCampaignModal}
+          campaignId={selectedCampaign.id}
+          initialTab={campaignSettingsTab}
         />
-      </Card>
+      )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Campaigns</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedCampaigns.length} campaign(s)? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <YouTubePlayerDialog
+        isOpen={youtubeDialogOpen}
+        onClose={() => setYoutubeDialogOpen(false)}
+        youtubeUrl={selectedYoutubeUrl}
+        title={selectedVideoTitle}
+      />
     </div>
   );
 };
