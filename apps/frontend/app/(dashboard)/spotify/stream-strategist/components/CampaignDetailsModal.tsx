@@ -1107,13 +1107,11 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
     
     console.log(`Allocation calc for ${vendorGroup.vendorName}: stored=${storedAllocation?.allocated_streams}, goal=${campaignStreamGoal}, totalActual=${totalActualStreamsAllVendors}, vendorStreams=${vendorGroup.totalStreams} => allocated=${vendorGroup.totalAllocated}`);
     
-    // Calculate total payment using the consistent cost per 1k rate
-    // Use actual streams from campaign_playlists and the effective cost per 1k
-    const totalStreams = vendorGroup.totalStreams || vendorGroup.totalActual || 0;
+    const allocatedStreams = vendorGroup.totalAllocated || 0;
     const costPer1k = vendorGroup.costPer1k || 0;
-    vendorGroup.totalPayment = (totalStreams / 1000) * costPer1k;
+    vendorGroup.totalPayment = (allocatedStreams / 1000) * costPer1k;
     
-    console.log(`Payment calc for ${vendorGroup.vendorName}: ${totalStreams} streams × $${costPer1k}/1k = $${vendorGroup.totalPayment}`);
+    console.log(`Payment calc for ${vendorGroup.vendorName}: ${allocatedStreams} allocated streams × $${costPer1k}/1k = $${vendorGroup.totalPayment}`);
     
     // PAYMENT STATUS: Check campaign_playlists.vendor_paid for THIS SPECIFIC VENDOR
     // This is the primary source - per-vendor payment tracking in campaign_playlists

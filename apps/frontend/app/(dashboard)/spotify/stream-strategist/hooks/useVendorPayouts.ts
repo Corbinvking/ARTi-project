@@ -295,9 +295,8 @@ export const useVendorPayouts = () => {
         const spotifyPayment = spotifyCampaignPayments.get(campaign.id);
         const isPaidFromSpotify = spotifyPayment?.paid_vendor === true || spotifyPayment?.paid_vendor === 'true';
 
-        // Use sale_price from spotify_campaigns if available, otherwise calculate
         const amountOwed = spotifyPayment?.sale_price || 
-          ((aggregatedAllocation.actual_streams || 0) * (aggregatedAllocation.cost_per_stream || 0));
+          ((aggregatedAllocation.allocated_streams || 0) * (aggregatedAllocation.cost_per_stream || 0));
         
         // Payment status: check campaign_playlists first (per-vendor), then invoice, then spotify paid_vendor
         const paymentStatus: 'paid' | 'unpaid' = 

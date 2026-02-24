@@ -1620,19 +1620,25 @@ export default function InstagramCampaignsPage() {
                         <div className="flex items-center justify-between p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
                           <span className="text-sm font-medium">{selectedCreators.length} selected</span>
                           <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white border-green-600"
+                              onClick={() => bulkUpdateCreators(selectedCreators, { payment_status: 'paid' as PaymentStatus, page_status: 'paid' as PageStatus })}
+                            >
+                              Mark Paid
+                            </Button>
                             <Select onValueChange={(value) => {
-                              const syncedUpdates: Partial<CampaignCreator> = { page_status: value as PageStatus };
-                              if (value === 'paid') { syncedUpdates.payment_status = 'paid' as PaymentStatus; }
-                              if (value === 'posted') { syncedUpdates.payment_status = 'paid' as PaymentStatus; syncedUpdates.post_status = 'posted' as PostStatus; }
-                              if (value === 'proposed') { syncedUpdates.payment_status = 'unpaid' as PaymentStatus; syncedUpdates.post_status = 'not_posted' as PostStatus; }
-                              bulkUpdateCreators(selectedCreators, syncedUpdates);
+                              const updates: Partial<CampaignCreator> = {};
+                              if (value === 'posted') { updates.post_status = 'posted' as PostStatus; updates.page_status = 'posted' as PageStatus; }
+                              if (value === 'proposed') { updates.post_status = 'not_posted' as PostStatus; updates.page_status = 'proposed' as PageStatus; updates.payment_status = 'unpaid' as PaymentStatus; }
+                              bulkUpdateCreators(selectedCreators, updates);
                             }}>
-                              <SelectTrigger className="w-36 h-8">
+                              <SelectTrigger className="w-32 h-8">
                                 <SelectValue placeholder="Set status..." />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="proposed"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-500" /><span className="text-xs">Proposed</span></div></SelectItem>
-                                <SelectItem value="paid"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" /><span className="text-xs">PAID</span></div></SelectItem>
                                 <SelectItem value="posted"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /><span className="text-xs">Posted</span></div></SelectItem>
                               </SelectContent>
                             </Select>
@@ -1661,12 +1667,15 @@ export default function InstagramCampaignsPage() {
                               </TableHead>
                               <TableHead>Creator</TableHead>
                               <TableHead>Post Type</TableHead>
-                              <TableHead className="text-right">Agreed Rate</TableHead>
+                              <TableHead className="text-right">Rate</TableHead>
+                              <TableHead className="text-center">Paid</TableHead>
                               <TableHead>Status</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {campaignCreators.map((creator: CampaignCreator) => (
+                            {campaignCreators.map((creator: CampaignCreator) => {
+                              const creatorIsPaid = creator.page_status === 'paid' || creator.page_status === 'posted' || creator.payment_status === 'paid';
+                              return (
                               <TableRow key={creator.id}>
                                 <TableCell>
                                   <Checkbox
@@ -1689,29 +1698,49 @@ export default function InstagramCampaignsPage() {
                                 <TableCell className="text-right font-medium">
                                   ${creator.rate?.toLocaleString() || 0}
                                 </TableCell>
+                                <TableCell className="text-center">
+                                  <Button
+                                    size="sm"
+                                    variant={creatorIsPaid ? "default" : "outline"}
+                                    className={`h-7 px-3 text-xs font-semibold ${creatorIsPaid ? 'bg-green-600 hover:bg-green-700 text-white' : 'text-muted-foreground hover:bg-green-50 hover:text-green-700 hover:border-green-300'}`}
+                                    onClick={() => {
+                                      const newPaid = !creatorIsPaid;
+                                      updateCreatorStatus(creator.id, {
+                                        payment_status: (newPaid ? 'paid' : 'unpaid') as PaymentStatus,
+                                        page_status: newPaid
+                                          ? (creator.page_status === 'posted' ? 'posted' : 'paid') as PageStatus
+                                          : 'proposed' as PageStatus,
+                                      });
+                                    }}
+                                  >
+                                    {creatorIsPaid ? '✓ PAID' : 'UNPAID'}
+                                  </Button>
+                                </TableCell>
                                 <TableCell>
                                   <Select
-                                    value={creator.page_status || 'proposed'}
+                                    value={(creator.page_status === 'posted' || creator.post_status === 'posted') ? 'posted' : 'proposed'}
                                     onValueChange={(value) => {
-                                      const syncedUpdates: Partial<CampaignCreator> = { page_status: value as PageStatus };
-                                      if (value === 'paid') { syncedUpdates.payment_status = 'paid' as PaymentStatus; }
-                                      if (value === 'posted') { syncedUpdates.payment_status = 'paid' as PaymentStatus; syncedUpdates.post_status = 'posted' as PostStatus; }
-                                      if (value === 'proposed') { syncedUpdates.payment_status = 'unpaid' as PaymentStatus; syncedUpdates.post_status = 'not_posted' as PostStatus; }
-                                      updateCreatorStatus(creator.id, syncedUpdates);
+                                      const updates: Partial<CampaignCreator> = { post_status: value === 'posted' ? 'posted' as PostStatus : 'not_posted' as PostStatus };
+                                      if (value === 'posted') {
+                                        updates.page_status = 'posted' as PageStatus;
+                                      } else {
+                                        updates.page_status = creatorIsPaid ? 'paid' as PageStatus : 'proposed' as PageStatus;
+                                      }
+                                      updateCreatorStatus(creator.id, updates);
                                     }}
                                   >
                                     <SelectTrigger className="w-28 h-8">
-                                      <PageStatusIndicator status={creator.page_status || 'proposed'} />
+                                      <PageStatusIndicator status={(creator.page_status === 'posted' || creator.post_status === 'posted') ? 'posted' : 'proposed'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="proposed"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-gray-500" /><span className="text-xs">Proposed</span></div></SelectItem>
-                                      <SelectItem value="paid"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500" /><span className="text-xs">PAID</span></div></SelectItem>
                                       <SelectItem value="posted"><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /><span className="text-xs">Posted</span></div></SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </TableCell>
                               </TableRow>
-                            ))}
+                              );
+                            })}
                           </TableBody>
                         </Table>
                       </ScrollArea>
