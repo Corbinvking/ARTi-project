@@ -333,7 +333,7 @@ export default function InstagramCampaignsPage() {
       // Fetch all campaign creators with payment status
       const { data: creatorsData, error: creatorsError } = await supabase
         .from('instagram_campaign_creators')
-        .select('campaign_id, rate, posts_count, payment_status');
+        .select('campaign_id, rate, posts_count, payment_status, page_status');
       
       if (creatorsError) {
         console.warn('⚠️ Could not fetch instagram_campaign_creators:', creatorsError);
@@ -346,36 +346,27 @@ export default function InstagramCampaignsPage() {
           (c: any) => String(c.campaign_id) === String(campaign.id)
         );
         
-        // Calculate total paid (sum of rate * posts_count for paid creators)
+        const creatorIsPaid = (c: any) => c.page_status === 'paid' || c.page_status === 'posted' || c.payment_status === 'paid';
         const paidAmount = campaignCreators
-          .filter((c: any) => c.payment_status === 'paid')
+          .filter(creatorIsPaid)
           .reduce((sum: number, c: any) => sum + ((c.rate || 0) * (c.posts_count || 1)), 0);
         
-        // Calculate total committed (all creators, regardless of payment status)
         const totalCommitted = campaignCreators
           .reduce((sum: number, c: any) => sum + ((c.rate || 0) * (c.posts_count || 1)), 0);
         
-        // Parse budget from price field
         const budgetNum = parseFloat(campaign.price?.replace(/[^0-9.]/g, '') || '0');
-        
-        // Calculate remaining: budget - total committed
         const calculatedRemaining = Math.max(0, budgetNum - totalCommitted);
-        
-        // Use calculated values if we have creator data, otherwise use stored values
         const hasCreatorData = campaignCreators.length > 0;
         
         return {
           ...campaign,
-          // Calculated spend (what's been paid to creators)
           calculated_spend: paidAmount,
           calculated_committed: totalCommitted,
           calculated_remaining: calculatedRemaining,
-          // Override display values if we have creator data
           spend: hasCreatorData ? `$${paidAmount.toFixed(2)}` : campaign.spend,
           remaining: hasCreatorData ? `$${calculatedRemaining.toFixed(2)}` : campaign.remaining,
-          // Add creator counts for display
           creator_count: campaignCreators.length,
-          paid_creator_count: campaignCreators.filter((c: any) => c.payment_status === 'paid').length,
+          paid_creator_count: campaignCreators.filter(creatorIsPaid).length,
         };
       });
       
@@ -1362,19 +1353,21 @@ export default function InstagramCampaignsPage() {
 
           {selectedCampaign && (() => {
             const budgetNum = parseFloat(selectedCampaign.price?.replace(/[^0-9.]/g, '') || '0');
+            const isPaid = (c: CampaignCreator) => c.page_status === 'paid' || c.page_status === 'posted' || c.payment_status === 'paid';
+            const isPosted = (c: CampaignCreator) => c.page_status === 'posted' || c.post_status === 'posted';
             const totalPaid = campaignCreators
-              .filter((c: CampaignCreator) => c.payment_status === 'paid')
+              .filter((c: CampaignCreator) => isPaid(c))
               .reduce((s: number, c: CampaignCreator) => s + ((c.rate || 0) * (c.posts_count || 1)), 0);
             const totalCommitted = campaignCreators
               .reduce((s: number, c: CampaignCreator) => s + ((c.rate || 0) * (c.posts_count || 1)), 0);
             const totalOwed = campaignCreators
-              .filter((c: CampaignCreator) => c.payment_status !== 'paid' && c.post_status === 'posted')
+              .filter((c: CampaignCreator) => !isPaid(c) && isPosted(c))
               .reduce((s: number, c: CampaignCreator) => s + ((c.rate || 0) * (c.posts_count || 1)), 0);
             const autoSpend = totalPaid;
             const autoRemaining = Math.max(0, budgetNum - totalCommitted);
             const totalPostsAgreed = campaignCreators.reduce((s: number, c: CampaignCreator) => s + (c.posts_count || 1), 0);
-            const postsPosted = campaignCreators.filter((c: CampaignCreator) => c.post_status === 'posted').length;
-            const postsPending = campaignCreators.filter((c: CampaignCreator) => c.post_status !== 'posted').length;
+            const postsPosted = campaignCreators.filter((c: CampaignCreator) => isPosted(c)).length;
+            const postsPending = campaignCreators.filter((c: CampaignCreator) => !isPosted(c)).length;
             const totalViews = campaignPosts.reduce((s: number, p: any) => s + (p.tracked_views || 0), 0);
             const campaignCp1k = totalViews > 0 && autoSpend > 0 ? (autoSpend / (totalViews / 1000)) : 0;
             const budgetUtil = budgetNum > 0 ? Math.round((totalCommitted / budgetNum) * 1000) / 10 : 0;
@@ -1628,7 +1621,11 @@ export default function InstagramCampaignsPage() {
                           <span className="text-sm font-medium">{selectedCreators.length} selected</span>
                           <div className="flex gap-2">
                             <Select onValueChange={(value) => {
-                              bulkUpdateCreators(selectedCreators, { page_status: value as PageStatus });
+                              const syncedUpdates: Partial<CampaignCreator> = { page_status: value as PageStatus };
+                              if (value === 'paid') { syncedUpdates.payment_status = 'paid' as PaymentStatus; }
+                              if (value === 'posted') { syncedUpdates.payment_status = 'paid' as PaymentStatus; syncedUpdates.post_status = 'posted' as PostStatus; }
+                              if (value === 'proposed') { syncedUpdates.payment_status = 'unpaid' as PaymentStatus; syncedUpdates.post_status = 'not_posted' as PostStatus; }
+                              bulkUpdateCreators(selectedCreators, syncedUpdates);
                             }}>
                               <SelectTrigger className="w-36 h-8">
                                 <SelectValue placeholder="Set status..." />
@@ -1696,7 +1693,11 @@ export default function InstagramCampaignsPage() {
                                   <Select
                                     value={creator.page_status || 'proposed'}
                                     onValueChange={(value) => {
-                                      updateCreatorStatus(creator.id, { page_status: value as PageStatus });
+                                      const syncedUpdates: Partial<CampaignCreator> = { page_status: value as PageStatus };
+                                      if (value === 'paid') { syncedUpdates.payment_status = 'paid' as PaymentStatus; }
+                                      if (value === 'posted') { syncedUpdates.payment_status = 'paid' as PaymentStatus; syncedUpdates.post_status = 'posted' as PostStatus; }
+                                      if (value === 'proposed') { syncedUpdates.payment_status = 'unpaid' as PaymentStatus; syncedUpdates.post_status = 'not_posted' as PostStatus; }
+                                      updateCreatorStatus(creator.id, syncedUpdates);
                                     }}
                                   >
                                     <SelectTrigger className="w-28 h-8">

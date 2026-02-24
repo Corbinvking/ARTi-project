@@ -973,24 +973,140 @@ export default function CampaignImportModal({
         setImportStatus(`Phase 2/6: Merged ${duplicatesRemoved} duplicate campaigns. Preparing ${finalCampaignRows.length} unique campaigns...`);
       }
 
-      // Batch insert in chunks (use deduplicated rows)
+      // Cross-import duplicate detection: check existing DB campaigns (append mode only)
+      let toInsert = finalCampaignRows;
+      let toUpdate: Array<{ existingId: number; existing: any; newData: any }> = [];
+
+      if (!replaceMode) {
+        setImportStatus('Phase 2/6: Checking for existing campaigns in database...');
+        const { data: existingDbCampaigns } = await supabase
+          .from('spotify_campaigns')
+          .select('id, campaign, client, playlists, playlist_links, goal, notes, vendor, vendor_id, sfa, url');
+
+        if (existingDbCampaigns && existingDbCampaigns.length > 0) {
+          const existingMap = new Map<string, (typeof existingDbCampaigns)[number]>();
+          for (const ec of existingDbCampaigns) {
+            const key = `${(ec.campaign || '').toLowerCase().trim()}|${(ec.client || '').toLowerCase().trim()}`;
+            existingMap.set(key, ec);
+          }
+
+          toInsert = [];
+          for (const row of finalCampaignRows) {
+            const key = `${row.campaign.toLowerCase().trim()}|${row.client.toLowerCase().trim()}`;
+            const existing = existingMap.get(key);
+            if (existing) {
+              toUpdate.push({ existingId: existing.id, existing, newData: row });
+            } else {
+              toInsert.push(row);
+            }
+          }
+
+          if (toUpdate.length > 0) {
+            setImportStatus(`Phase 2/6: Found ${toUpdate.length} existing campaigns to update, ${toInsert.length} new to insert...`);
+          }
+        }
+      }
+
+      // Batch update existing campaigns (merge playlists, goals, notes)
+      let spotifyUpdatedCount = 0;
       let spotifyCreatedCount = 0;
       const importedSpotifyCampaigns: Array<{ id: number; sfa: string | null; campaign: string; client: string }> = [];
-      const totalBatches = Math.ceil(finalCampaignRows.length / BATCH_SIZE);
 
-      for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
+      if (toUpdate.length > 0) {
+        setImportStatus(`Phase 2/6: Updating ${toUpdate.length} existing campaigns...`);
+        const updateBatches = Math.ceil(toUpdate.length / BATCH_SIZE);
+
+        for (let batchIdx = 0; batchIdx < updateBatches; batchIdx++) {
+          const start = batchIdx * BATCH_SIZE;
+          const end = Math.min(start + BATCH_SIZE, toUpdate.length);
+          const batch = toUpdate.slice(start, end);
+
+          setImportProgress({
+            current: end,
+            total: toUpdate.length + toInsert.length,
+            phase: `Updating campaigns (batch ${batchIdx + 1}/${updateBatches})...`,
+            phaseNum: 2,
+            totalPhases: 6
+          });
+
+          for (const { existingId, existing, newData } of batch) {
+            const mergedPlaylists = new Set(
+              (existing.playlists || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+            );
+            (newData.playlists || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+              .forEach((p: string) => mergedPlaylists.add(p));
+
+            const mergedLinks = new Set(
+              (existing.playlist_links || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+            );
+            (newData.playlist_links || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+              .forEach((l: string) => mergedLinks.add(l));
+
+            const existingGoal = parseGoalString(existing.goal);
+            const newGoal = parseGoalString(newData.goal);
+            const mergedGoal = newGoal > 0 && newGoal !== existingGoal ? newGoal : existingGoal;
+
+            let mergedNotes = existing.notes || '';
+            if (newData.notes && newData.notes !== existing.notes) {
+              mergedNotes = mergedNotes ? `${mergedNotes}; ${newData.notes}` : newData.notes;
+            }
+
+            const updatePayload: Record<string, any> = {
+              playlists: [...mergedPlaylists].join(', '),
+              playlist_links: [...mergedLinks].join(', '),
+              goal: String(mergedGoal),
+              notes: mergedNotes,
+            };
+
+            if (newData.remaining) updatePayload.remaining = newData.remaining;
+            if (newData.daily) updatePayload.daily = newData.daily;
+            if (newData.weekly) updatePayload.weekly = newData.weekly;
+            if (newData.status && newData.status !== 'Active') updatePayload.status = newData.status;
+            if (newData.vendor && !existing.vendor) {
+              updatePayload.vendor = newData.vendor;
+              updatePayload.vendor_id = newData.vendor_id;
+            }
+            if (newData.sfa && !existing.sfa) updatePayload.sfa = newData.sfa;
+            if (newData.url && !existing.url) updatePayload.url = newData.url;
+
+            const { error: updateError } = await supabase
+              .from('spotify_campaigns')
+              .update(updatePayload)
+              .eq('id', existingId);
+
+            if (updateError) {
+              errors.push(`Failed to update campaign "${existing.campaign}": ${updateError.message}`);
+            } else {
+              spotifyUpdatedCount++;
+              importedSpotifyCampaigns.push({
+                id: existingId,
+                sfa: newData.sfa || existing.sfa || null,
+                campaign: existing.campaign,
+                client: existing.client,
+              });
+            }
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+
+      // Batch insert new campaigns
+      const totalInsertBatches = Math.ceil(toInsert.length / BATCH_SIZE);
+
+      for (let batchIdx = 0; batchIdx < totalInsertBatches; batchIdx++) {
         const start = batchIdx * BATCH_SIZE;
-        const end = Math.min(start + BATCH_SIZE, finalCampaignRows.length);
-        const batch = finalCampaignRows.slice(start, end);
+        const end = Math.min(start + BATCH_SIZE, toInsert.length);
+        const batch = toInsert.slice(start, end);
         
         setImportProgress({ 
-          current: end, 
-          total: finalCampaignRows.length, 
-          phase: `Importing campaigns (batch ${batchIdx + 1}/${totalBatches})...`, 
+          current: toUpdate.length + end, 
+          total: toUpdate.length + toInsert.length, 
+          phase: `Inserting campaigns (batch ${batchIdx + 1}/${totalInsertBatches})...`, 
           phaseNum: 2, 
           totalPhases: 6 
         });
-        setImportStatus(`Phase 2/6: Importing campaigns ${start + 1}-${end} of ${finalCampaignRows.length}...`);
+        setImportStatus(`Phase 2/6: Inserting new campaigns ${start + 1}-${end} of ${toInsert.length}...`);
 
         const { data: insertedCampaigns, error: batchError } = await supabase
           .from('spotify_campaigns')
@@ -998,8 +1114,8 @@ export default function CampaignImportModal({
           .select('id, sfa, campaign, client');
 
         if (batchError) {
-          errors.push(`Batch ${batchIdx + 1} failed: ${batchError.message}`);
-          console.error(`Batch ${batchIdx + 1} error:`, batchError);
+          errors.push(`Insert batch ${batchIdx + 1} failed: ${batchError.message}`);
+          console.error(`Insert batch ${batchIdx + 1} error:`, batchError);
         } else if (insertedCampaigns) {
           spotifyCreatedCount += insertedCampaigns.length;
           importedSpotifyCampaigns.push(...insertedCampaigns);
@@ -1009,7 +1125,7 @@ export default function CampaignImportModal({
         await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      // PHASE 3: Batch create campaign_groups and link spotify_campaigns
+      // PHASE 3: Create/reuse campaign_groups and link spotify_campaigns
       setImportProgress({ current: 0, total: 1, phase: 'Creating campaign groups...', phaseNum: 3, totalPhases: 6 });
       setImportStatus('Phase 3/6: Creating campaign groups...');
       
@@ -1023,16 +1139,37 @@ export default function CampaignImportModal({
         campaignGroupsMap.get(groupKey)!.push(sc);
       }
 
-      // Prepare group rows
+      // Fetch existing campaign groups to avoid duplicates (append mode)
+      let existingGroupMap = new Map<string, string>();
+      if (!replaceMode) {
+        const { data: existingGroups } = await supabase
+          .from('campaign_groups')
+          .select('id, name, artist_name');
+
+        if (existingGroups) {
+          for (const g of existingGroups) {
+            const key = `${(g.name || '').toLowerCase().trim()}|${(g.artist_name || '').toLowerCase().trim()}`;
+            existingGroupMap.set(key, g.id);
+          }
+        }
+      }
+
+      // Prepare group rows, separating new vs existing
       const groupRows: any[] = [];
-      const groupKeyToIndex = new Map<string, number>();
+      const reusedGroups: Array<{ id: string; name: string; artist_name: string }> = [];
       
-      let groupIndex = 0;
       for (const [groupKey] of campaignGroupsMap) {
         const [campaignName, clientName] = groupKey.split('|');
+        const existingGroupKey = `${campaignName.toLowerCase().trim()}|${clientName.toLowerCase().trim()}`;
+        const existingGroupId = existingGroupMap.get(existingGroupKey);
+
+        if (existingGroupId) {
+          reusedGroups.push({ id: existingGroupId, name: campaignName, artist_name: clientName });
+          continue;
+        }
+
         const clientId = clientMap[clientName] || null;
 
-        // Calculate totals - use parseGoalString to handle K/M suffixes
         let totalGoal = 0;
         for (const row of csvData!.rows) {
           if (row[columnMappings.campaign] === campaignName && row[columnMappings.client] === clientName) {
@@ -1050,18 +1187,16 @@ export default function CampaignImportModal({
           status: 'Active',
           start_date: startDate,
         });
-        
-        groupKeyToIndex.set(groupKey, groupIndex);
-        groupIndex++;
       }
 
-      // Batch insert campaign groups
       let groupsCreatedCount = 0;
+      let groupsReusedCount = reusedGroups.length;
+      const allResolvedGroups: Array<{ id: string; name: string; artist_name: string }> = [...reusedGroups];
+
       if (groupRows.length > 0) {
-        setImportStatus(`Phase 3/6: Creating ${groupRows.length} campaign groups...`);
+        setImportStatus(`Phase 3/6: Creating ${groupRows.length} new campaign groups (reusing ${groupsReusedCount} existing)...`);
         
         const groupBatches = Math.ceil(groupRows.length / BATCH_SIZE);
-        const insertedGroups: Array<{ id: string; name: string; artist_name: string }> = [];
         
         for (let batchIdx = 0; batchIdx < groupBatches; batchIdx++) {
           const start = batchIdx * BATCH_SIZE;
@@ -1085,16 +1220,19 @@ export default function CampaignImportModal({
             errors.push(`Group batch ${batchIdx + 1} failed: ${groupError.message}`);
           } else if (newGroups) {
             groupsCreatedCount += newGroups.length;
-            insertedGroups.push(...newGroups);
+            allResolvedGroups.push(...newGroups);
           }
         }
+      } else if (groupsReusedCount > 0) {
+        setImportStatus(`Phase 3/6: All ${groupsReusedCount} campaign groups already exist, reusing...`);
+      }
 
-        // Link spotify_campaigns to their groups - build update map first
+      // Link spotify_campaigns to their groups (both new and reused)
+      if (allResolvedGroups.length > 0) {
         setImportStatus('Phase 3/6: Linking campaigns to groups...');
         
-        // Build campaign_id -> group_id mapping
         const campaignToGroupMap: Record<number, string> = {};
-        for (const group of insertedGroups) {
+        for (const group of allResolvedGroups) {
           const groupKey = `${group.name}|${group.artist_name}`;
           const campaigns = campaignGroupsMap.get(groupKey);
           if (campaigns) {
@@ -1104,7 +1242,6 @@ export default function CampaignImportModal({
           }
         }
         
-        // Group by group_id for efficient batch updates
         const groupIdToCampaignIds: Record<string, number[]> = {};
         for (const [campaignId, groupId] of Object.entries(campaignToGroupMap)) {
           if (!groupIdToCampaignIds[groupId]) {
@@ -1113,14 +1250,12 @@ export default function CampaignImportModal({
           groupIdToCampaignIds[groupId].push(parseInt(campaignId));
         }
         
-        // Batch update all campaigns for each group
         const groupIds = Object.keys(groupIdToCampaignIds);
         let linkedCount = 0;
         for (let i = 0; i < groupIds.length; i++) {
           const groupId = groupIds[i];
           const campaignIds = groupIdToCampaignIds[groupId];
           
-          // Update progress every 10 groups
           if (i % 10 === 0) {
             setImportProgress({ 
               current: i, 
@@ -1131,7 +1266,6 @@ export default function CampaignImportModal({
             });
           }
           
-          // Single update per group (campaigns are batched in the IN clause)
           const { error: linkError } = await supabase
             .from('spotify_campaigns')
             .update({ campaign_group_id: groupId })
@@ -1144,7 +1278,7 @@ export default function CampaignImportModal({
           }
         }
         
-        setImportStatus(`Phase 3/6: Linked ${linkedCount} campaigns to ${groupsCreatedCount} groups.`);
+        setImportStatus(`Phase 3/6: Linked ${linkedCount} campaigns to ${groupsCreatedCount + groupsReusedCount} groups (${groupsCreatedCount} new, ${groupsReusedCount} reused).`);
       }
 
       // PHASE 4: Re-link campaign_playlists using SFA (if replace mode)
@@ -1227,7 +1361,16 @@ export default function CampaignImportModal({
       setImportProgress({ current: 1, total: 1, phase: 'Client cleanup complete!', phaseNum: 5, totalPhases: 6 });
 
       // Success summary
-      const summary = `Import complete! ${spotifyCreatedCount} campaigns, ${groupsCreatedCount} groups created.${orphanedClientsRemoved > 0 ? ` Removed ${orphanedClientsRemoved} orphaned clients.` : ''}${errors.length > 0 ? ` (${errors.length} warnings)` : ''}${replaceMode ? ' (replaced existing)' : ''}`;
+      const summaryParts: string[] = ['Import complete!'];
+      if (spotifyCreatedCount > 0) summaryParts.push(`${spotifyCreatedCount} campaigns created`);
+      if (spotifyUpdatedCount > 0) summaryParts.push(`${spotifyUpdatedCount} existing campaigns updated`);
+      if (groupsCreatedCount > 0) summaryParts.push(`${groupsCreatedCount} groups created`);
+      if (groupsReusedCount > 0) summaryParts.push(`${groupsReusedCount} groups reused`);
+      if (duplicatesRemoved > 0) summaryParts.push(`${duplicatesRemoved} CSV duplicates merged`);
+      if (orphanedClientsRemoved > 0) summaryParts.push(`${orphanedClientsRemoved} orphaned clients removed`);
+      if (errors.length > 0) summaryParts.push(`(${errors.length} warnings)`);
+      if (replaceMode) summaryParts.push('(replaced existing)');
+      const summary = summaryParts.join('. ').replace(/\.\s*\./g, '.') + '.';
       setImportStatus(summary);
       setImportProgress({ current: 1, total: 1, phase: 'Complete!', phaseNum: 6, totalPhases: 6 });
       
@@ -1295,7 +1438,7 @@ export default function CampaignImportModal({
           <p className="text-sm text-muted-foreground">
             {replaceMode 
               ? "All existing campaigns will be deleted before importing. Scraped playlist data will be preserved and re-linked."
-              : "New campaigns will be added alongside existing ones. Duplicates will be updated."}
+              : "New campaigns will be added alongside existing ones. Matching campaigns (same name + client) will be merged instead of duplicated."}
           </p>
           {replaceMode && existingCampaignCount > 0 && (
             <Alert variant="destructive" className="mt-3">
