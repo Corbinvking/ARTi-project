@@ -2780,6 +2780,20 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                       }
                     }
 
+                    let goalIntersectDay: number | null = null;
+                    let goalIntersectDate: string | null = null;
+                    if (streamGoal > 0) {
+                      if (streamsDelivered >= streamGoal && daysElapsed > 0) {
+                        goalIntersectDay = Math.round(daysElapsed * (streamGoal / streamsDelivered));
+                      } else if (dailyRate > 0 && streamsDelivered < streamGoal) {
+                        goalIntersectDay = daysElapsed + Math.ceil((streamGoal - streamsDelivered) / dailyRate);
+                      }
+                      if (goalIntersectDay !== null && goalIntersectDay >= 0) {
+                        const intersectDate = new Date(effectiveStart.getTime() + goalIntersectDay * 24 * 60 * 60 * 1000);
+                        goalIntersectDate = intersectDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                      }
+                    }
+
                     const songs = campaignData?.songs || [];
                     const totalSongStreams = songs.reduce((sum: number, s: any) => sum + (s.streams_12m || 0), 0);
 
@@ -2912,6 +2926,20 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                                   }}
                                   labelFormatter={(label: string) => label}
                                 />
+                                {streamGoal > 0 && (
+                                  <ReferenceLine
+                                    y={streamGoal}
+                                    stroke="#ef4444"
+                                    strokeWidth={1.5}
+                                    strokeDasharray="6 3"
+                                    label={{
+                                      value: `Goal: ${streamGoal >= 1000000 ? `${(streamGoal / 1000000).toFixed(1)}M` : streamGoal >= 1000 ? `${(streamGoal / 1000).toFixed(0)}k` : streamGoal}`,
+                                      position: 'right',
+                                      fontSize: 10,
+                                      fill: '#ef4444',
+                                    }}
+                                  />
+                                )}
                                 <Line
                                   type="linear"
                                   dataKey="requiredPace"
@@ -2944,20 +2972,36 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                               </LineChart>
                             </ResponsiveContainer>
                           </div>
-                          <div className="flex justify-center gap-6 mt-3 text-xs text-muted-foreground">
+                          <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 mt-3 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1.5">
                               <div className="w-4 h-[3px] bg-blue-500 rounded" />
                               Actual Streams (Vendor Playlists)
                             </span>
                             <span className="flex items-center gap-1.5">
-                              <div className="w-4 h-[3px] bg-green-500 rounded opacity-60" />
+                              <div className="w-4 h-[3px] bg-green-500 rounded opacity-60" style={{ borderTop: '2px dashed #22c55e', height: 0 }} />
                               Required Pace
                             </span>
                             <span className="flex items-center gap-1.5">
-                              <div className="w-4 h-[3px] bg-amber-500 rounded opacity-60" />
+                              <div className="w-4 h-[3px] bg-amber-500 rounded opacity-60" style={{ borderTop: '2px dashed #f59e0b', height: 0 }} />
                               Projected Outcome
                             </span>
+                            {streamGoal > 0 && (
+                              <span className="flex items-center gap-1.5">
+                                <div className="w-4" style={{ borderTop: '2px dashed #ef4444', height: 0 }} />
+                                Stream Goal
+                              </span>
+                            )}
                           </div>
+                          {goalIntersectDate && streamGoal > 0 && (
+                            <p className="text-center text-xs text-muted-foreground mt-2">
+                              {streamsDelivered >= streamGoal
+                                ? `Goal reached around Day ${goalIntersectDay} (${goalIntersectDate})`
+                                : goalIntersectDay !== null && goalIntersectDay <= totalDays
+                                  ? `Projected to hit goal by Day ${goalIntersectDay} (${goalIntersectDate})`
+                                  : `At current pace, goal won't be reached within the campaign window`
+                              }
+                            </p>
+                          )}
                         </div>
 
                         {/* Operational Analysis */}

@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../integrations/supabase/client';
+import { fetchAllRows } from '../lib/utils';
 
 export interface AlgorithmicLiftData {
   liftRate: number;
@@ -44,27 +45,19 @@ export function useCampaignIntelligence() {
     queryKey: ['campaign-intelligence'],
     queryFn: async (): Promise<CampaignIntelligenceData> => {
       const [
-        perfResult,
+        performanceData,
         vendorResult,
-        playlistsResult,
+        campaignPlaylists,
         vendorsResult,
         scResult,
         cgResult,
       ] = await Promise.all([
-        supabase
-          .from('campaign_allocations_performance')
-          .select('*, playlists(name, genres), vendors(name), campaigns(name, status, stream_goal)')
-          .order('created_at', { ascending: false })
-          .limit(500),
+        fetchAllRows('campaign_allocations_performance', '*, playlists(name, genres), vendors(name), campaigns(name, status, stream_goal)'),
         supabase
           .from('vendor_reliability_scores')
           .select('*, vendors(name)')
           .order('last_updated', { ascending: false }),
-        supabase
-          .from('campaign_playlists' as any)
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(1000),
+        fetchAllRows('campaign_playlists', '*'),
         supabase
           .from('vendors')
           .select('id, name'),
@@ -76,9 +69,7 @@ export function useCampaignIntelligence() {
           .select('id, name'),
       ]);
 
-      const performanceData = perfResult.data || [];
       const vendorReliability = vendorResult.data || [];
-      const campaignPlaylists: any[] = playlistsResult.data || [];
       const vendorsList: any[] = vendorsResult.data || [];
       const spotifyCampaigns: any[] = (scResult.data as any[]) || [];
       const campaignGroupsList: any[] = (cgResult.data as any[]) || [];

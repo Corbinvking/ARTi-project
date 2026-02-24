@@ -5,6 +5,7 @@ import { supabase } from '../integrations/supabase/client';
 import { mlEngine, type MLPrediction, type MLFeatures } from '../lib/mlEngine';
 import type { Playlist, Vendor } from '../types';
 import { toast } from 'sonner';
+import { fetchAllRows } from '../lib/utils';
 
 export interface PerformancePredictionResult {
   playlistId: string;
@@ -56,21 +57,13 @@ export function useProjectionAnalysis() {
     queryKey: ['projection-analysis'],
     queryFn: async (): Promise<ProjectionAnalysisData> => {
       const [
-        { data: performanceData, error },
-        { data: campaignPlaylists },
+        performanceData,
+        cpList,
         { data: campaignGroups },
         { data: spotifyCampaigns },
       ] = await Promise.all([
-        supabase
-          .from('campaign_allocations_performance')
-          .select('*, campaigns(name, status, stream_goal)')
-          .order('created_at', { ascending: false })
-          .limit(500),
-        supabase
-          .from('campaign_playlists' as any)
-          .select('campaign_id, vendor_id, streams_12m, streams_28d, is_algorithmic, is_organic')
-          .order('created_at', { ascending: false })
-          .limit(1000),
+        fetchAllRows('campaign_allocations_performance', '*, campaigns(name, status, stream_goal)'),
+        fetchAllRows('campaign_playlists', 'campaign_id, vendor_id, streams_12m, streams_28d, is_algorithmic, is_organic'),
         supabase
           .from('campaign_groups' as any)
           .select('id, name, total_goal, status'),
@@ -78,11 +71,6 @@ export function useProjectionAnalysis() {
           .from('spotify_campaigns' as any)
           .select('id, campaign_group_id, campaign, goal'),
       ]);
-
-
-      if (error) throw error;
-
-      const cpList: any[] = (campaignPlaylists as any[]) || [];
       const cgList: any[] = (campaignGroups as any[]) || [];
       const scList: any[] = (spotifyCampaigns as any[]) || [];
 

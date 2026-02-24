@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../integrations/supabase/client";
+import { fetchAllRows } from "../lib/utils";
 
 export interface ExecutiveDashboardData {
   totalCampaigns: number;
@@ -71,14 +72,14 @@ export const useExecutiveDashboardData = () => {
       const [
         campaignGroupsResult,
         spotifyCampaignsResult,
-        playlistDataResult,
+        playlistData,
         vendorsResult,
         allocationsResult,
         vendorRequestsResult,
       ] = await Promise.all([
         supabase.from("campaign_groups" as any).select("*"),
         supabase.from("spotify_campaigns" as any).select("*"),
-        supabase.from("campaign_playlists" as any).select("*"),
+        fetchAllRows("campaign_playlists", "*"),
         supabase.from("vendors").select("*"),
         supabase.from("campaign_allocations_performance").select("*"),
         supabase.from("campaign_vendor_requests").select("*"),
@@ -86,13 +87,10 @@ export const useExecutiveDashboardData = () => {
 
       const campaignGroups: any[] = campaignGroupsResult.data || [];
       const songs: any[] = spotifyCampaignsResult.data || [];
-      const playlistData: any[] = playlistDataResult.data || [];
       const vendors: any[] = vendorsResult.data || [];
       const allocations: any[] = allocationsResult.data || [];
       const vendorRequests: any[] = vendorRequestsResult.data || [];
 
-      // Use spotify_campaigns as primary source (like QuickActions does),
-      // fall back to campaign_groups if no songs exist
       const campaigns = songs.length > 0 ? songs : campaignGroups;
 
       if (campaignGroupsResult.error) throw campaignGroupsResult.error;
@@ -183,9 +181,9 @@ export const useExecutiveDashboardData = () => {
         .reduce((sum, a) => sum + getAllocCost(a), 0);
 
       // Stream goals & actuals
-      // spotify_campaigns uses stream_goal, campaign_groups uses total_goal
+      // spotify_campaigns uses `goal` (text), campaign_groups uses `total_goal`
       const totalStreamGoals = campaigns.reduce((sum, c) => {
-        return sum + (parseFloat(c.stream_goal || c.total_goal) || 0);
+        return sum + (parseFloat(c.goal || c.total_goal || c.stream_goal) || 0);
       }, 0);
       const totalActualStreams = Array.isArray(playlistData)
         ? playlistData.reduce((sum, p) => sum + (p.streams_12m || 0), 0)
@@ -197,48 +195,72 @@ export const useExecutiveDashboardData = () => {
         : 0;
 
       // Campaign Pacing Efficiency: % of active campaigns on pace
-      // Use spotify_campaigns which has start_date, duration_days, stream_goal
       const activeCampaignList = campaigns.filter(c => activeStatuses.includes(normalizeStatus(c.status)));
-      // Build set of active campaign IDs (spotify_campaigns IDs) for vendor cross-reference
       const activeSongIds = new Set(activeCampaignList.map(c => c.id));
+
+      // Bridge spotify_campaigns → campaign_groups for duration data
+      const cgById = new Map<string, any>();
+      const cgByName = new Map<string, any>();
+      campaignGroups.forEach((cg: any) => {
+        cgById.set(cg.id, cg);
+        if (cg.name) cgByName.set(cg.name.toLowerCase().trim(), cg);
+      });
 
       let onPaceCount = 0;
       let flaggedCount = 0;
+      let assessableCampaigns = 0;
       for (const campaign of activeCampaignList) {
-        const goal = parseFloat(campaign.stream_goal || campaign.total_goal) || 0;
-        const duration = campaign.duration_days || 0;
-        const startDate = campaign.start_date;
+        const goal = parseFloat(campaign.goal || campaign.total_goal || campaign.stream_goal) || 0;
 
-        if (!startDate || !duration || !goal) {
-          onPaceCount++;
-          continue;
-        }
-        const start = new Date(startDate);
-        const elapsedMs = currentDate.getTime() - start.getTime();
-        const elapsedDays = Math.max(1, Math.floor(elapsedMs / (24 * 60 * 60 * 1000)));
-        const expectedStreams = (goal / duration) * Math.min(elapsedDays, duration);
-
-        // Check allocations (campaign_id = spotify_campaigns.id)
-        const campaignAllocations = allocations.filter(a => a.campaign_id === campaign.id);
-        const allocStreams = campaignAllocations.reduce((sum, a) => sum + (a.actual_streams || 0), 0);
-
-        // Check playlists (campaign_id = spotify_campaigns.id)
         const playlistStreams = playlistData
           .filter((p: any) => p.campaign_id === campaign.id)
           .reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0);
 
-        const bestStreams = Math.max(allocStreams, playlistStreams);
+        if (!goal) continue;
 
-        if (expectedStreams > 0 && bestStreams / expectedStreams >= 0.8) {
+        assessableCampaigns++;
+
+        if (playlistStreams >= goal) {
           onPaceCount++;
+          continue;
+        }
+
+        // Resolve start/end dates: try campaign directly, then bridge to campaign_group
+        let startDate = campaign.start_date;
+        let endDate = campaign.end_date;
+        if (!startDate || !endDate) {
+          const cg = (campaign.campaign_group_id && cgById.get(campaign.campaign_group_id))
+            || (campaign.campaign && cgByName.get(campaign.campaign.toLowerCase().trim()));
+          if (cg) {
+            startDate = startDate || cg.start_date;
+            endDate = endDate || cg.end_date;
+          }
+        }
+
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          const totalDuration = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)));
+          const elapsedDays = Math.max(1, Math.floor((currentDate.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)));
+          const expectedStreams = (goal / totalDuration) * Math.min(elapsedDays, totalDuration);
+
+          if (expectedStreams > 0 && playlistStreams / expectedStreams >= 0.8) {
+            onPaceCount++;
+          } else {
+            flaggedCount++;
+          }
         } else {
-          flaggedCount++;
+          if (playlistStreams > 0 && playlistStreams / goal >= 0.8) {
+            onPaceCount++;
+          } else {
+            flaggedCount++;
+          }
         }
       }
 
-      const campaignPacingEfficiency = activeCampaignList.length > 0
-        ? (onPaceCount / activeCampaignList.length) * 100
-        : 100;
+      const campaignPacingEfficiency = assessableCampaigns > 0
+        ? (onPaceCount / assessableCampaigns) * 100
+        : 0;
 
       const totalStreamsPast30Days = totalVendorPlaylistStreams;
       const averageCostPerStream = totalVendorPlaylistStreams > 0
@@ -320,39 +342,43 @@ export const useExecutiveDashboardData = () => {
         .slice(0, 10);
 
       // Campaign status distribution - ops-focused
-      // Use campaigns (spotify_campaigns as primary)
-      const statusMap: Record<string, number> = {};
+      const statusMap: Record<string, number> = {
+        "Active": 0,
+        "Pending Approval": 0,
+        "Awaiting Playlist Adds": 0,
+        "Completed": 0,
+        "Flagged": 0,
+      };
+
+      // Awaiting Playlist Adds: active campaigns with no vendor playlists yet
+      const campaignIdsWithPlaylists = new Set(playlistData.map((p: any) => p.campaign_id));
+      const awaitingPlaylistIds = new Set(
+        activeCampaignList.filter(c => !campaignIdsWithPlaylists.has(c.id)).map(c => c.id)
+      );
 
       campaigns.forEach(campaign => {
         const raw = normalizeStatus(campaign.status);
         if (activeStatuses.includes(raw)) {
-          statusMap["Active"] = (statusMap["Active"] || 0) + 1;
+          if (awaitingPlaylistIds.has(campaign.id)) {
+            statusMap["Awaiting Playlist Adds"]++;
+          } else {
+            statusMap["Active"]++;
+          }
         } else if (["pending", "draft"].includes(raw)) {
-          statusMap["Pending Approval"] = (statusMap["Pending Approval"] || 0) + 1;
+          statusMap["Pending Approval"]++;
         } else if (["complete", "completed", "done", "finished"].includes(raw)) {
-          statusMap["Completed"] = (statusMap["Completed"] || 0) + 1;
-        } else if (["paused", "flagged"].includes(raw)) {
-          statusMap["Flagged"] = (statusMap["Flagged"] || 0) + 1;
+          statusMap["Completed"]++;
+        } else if (["paused", "flagged", "cancelled", "canceled"].includes(raw)) {
+          statusMap["Flagged"]++;
         }
       });
 
-      // Awaiting Playlist Adds: active campaigns with no playlists
-      // campaign_playlists.campaign_id matches spotify_campaigns.id
-      const campaignIdsWithPlaylists = new Set(playlistData.map((p: any) => p.campaign_id));
-      const awaitingPlaylistAdds = activeCampaignList.filter(
-        c => !campaignIdsWithPlaylists.has(c.id)
-      ).length;
-      if (awaitingPlaylistAdds > 0) {
-        statusMap["Awaiting Playlist Adds"] = awaitingPlaylistAdds;
-      }
-
       if (flaggedCount > 0) {
-        statusMap["Flagged"] = (statusMap["Flagged"] || 0) + flaggedCount;
+        statusMap["Flagged"] += flaggedCount;
       }
 
-      const totalForDistribution = Object.values(statusMap).reduce((sum, n) => sum + n, 0);
+      const totalForDistribution = campaigns.length;
       const campaignStatusDistribution = Object.entries(statusMap)
-        .filter(([_, count]) => count > 0)
         .map(([status, count]) => ({
           status,
           count,
