@@ -28,7 +28,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CREATOR_CONTENT_TYPES } from "../seedstorm-builder/lib/genreSystem";
-import { useNiches } from "../seedstorm-builder/hooks/useNiches";
 
 // Creator status types
 type PaymentStatus = 'unpaid' | 'pending' | 'paid';
@@ -151,8 +150,6 @@ export default function InstagramCampaignsPage() {
   const queryClient = useQueryClient();
   const { updateCampaignAsync, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
   const { user } = useAuth();
-  const { niches: allNiches } = useNiches();
-
   // Fetch campaign creators when a campaign is selected
   const { data: campaignCreators = [], isLoading: loadingCreators, refetch: refetchCreators } = useQuery({
     queryKey: ['campaign-creators', selectedCampaign?.id],
@@ -2201,23 +2198,21 @@ export default function InstagramCampaignsPage() {
                 </div>
               </div>
               <div>
-                <Label className="text-xs">Niches {newCreatorForm.genres.length > 0 && <span className="text-muted-foreground">({newCreatorForm.genres.length} selected)</span>}</Label>
-                <div className="max-h-28 overflow-y-auto border rounded-md p-2 mt-1">
-                  <div className="flex flex-wrap gap-1">
-                    {[...newCreatorForm.genres, ...allNiches.filter((g: string) => !newCreatorForm.genres.includes(g))].map((g: string) => (
-                      <Badge
-                        key={g}
-                        variant={newCreatorForm.genres.includes(g) ? "default" : "outline"}
-                        className="cursor-pointer text-[10px]"
-                        onClick={() => setNewCreatorForm(f => ({
-                          ...f,
-                          genres: f.genres.includes(g) ? f.genres.filter(x => x !== g) : [...f.genres, g]
-                        }))}
-                      >
-                        {g}
-                      </Badge>
-                    ))}
-                  </div>
+                <Label className="text-xs">Genres {newCreatorForm.genres.length > 0 && <span className="text-muted-foreground">({newCreatorForm.genres.length} selected)</span>}</Label>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {['EDM', 'Techno', 'House', 'Tech House', 'Bass Music', 'Hip Hop', 'Trap', 'Pop', 'R&B', 'Afro', 'Latin', 'Rock', 'Indie', 'Dancehall', 'Country', 'K-Pop'].map((g) => (
+                    <Badge
+                      key={g}
+                      variant={newCreatorForm.genres.includes(g) ? "default" : "outline"}
+                      className="cursor-pointer text-xs py-1 px-2.5"
+                      onClick={() => setNewCreatorForm(f => ({
+                        ...f,
+                        genres: f.genres.includes(g) ? f.genres.filter(x => x !== g) : [...f.genres, g]
+                      }))}
+                    >
+                      {g}
+                    </Badge>
+                  ))}
                 </div>
               </div>
               <div>

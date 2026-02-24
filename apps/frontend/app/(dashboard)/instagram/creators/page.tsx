@@ -11,14 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import {
-  Search, Plus, Upload, Download, RefreshCw, ArrowUpDown, Loader2, Edit, ChevronDown, ChevronUp, X
+  Search, Plus, Upload, Download, RefreshCw, ArrowUpDown, Loader2, Edit, ChevronDown, ChevronUp, X, Trash2
 } from "lucide-react";
 import { supabase } from "@/lib/auth";
+import { useAuth } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCreatorsTable, CreatorRow } from "../seedstorm-builder/hooks/useCreatorsTable";
 import { CREATOR_CONTENT_TYPES, TERRITORY_BUCKETS } from "../seedstorm-builder/lib/genreSystem";
-import { useNiches } from "../seedstorm-builder/hooks/useNiches";
+
 import Papa from "papaparse";
 
 type SortKey = 'followers' | 'median_views' | 'engagement_rate' | 'cp1k' | 'reel_rate' | 'instagram_handle';
@@ -55,7 +57,8 @@ export default function InstagramCreatorsPage() {
   const { creators, isLoading, refetch } = useCreatorsTable();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { niches: allNiches, addNiche } = useNiches();
+  const { user } = useAuth();
+  const BROAD_GENRES = ['EDM', 'Techno', 'House', 'Tech House', 'Bass Music', 'Hip Hop', 'Trap', 'Pop', 'R&B', 'Afro', 'Latin', 'Rock', 'Indie', 'Dancehall', 'Country', 'K-Pop'];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [nicheFilter, setNicheFilter] = useState("all");
@@ -83,6 +86,8 @@ export default function InstagramCreatorsPage() {
   const [refreshingHandle, setRefreshingHandle] = useState<string | null>(null);
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deletingCreator, setDeletingCreator] = useState(false);
 
   const sortOption = SORT_OPTIONS[sortIdx];
 
@@ -179,35 +184,39 @@ export default function InstagramCreatorsPage() {
   const handleAddCreator = async () => {
     const handle = addForm.handle.replace(/^@/, "").trim();
     if (!handle) { toast({ title: "Error", description: "Handle is required", variant: "destructive" }); return; }
-    if (!addForm.reel_rate || Number(addForm.reel_rate) <= 0) { toast({ title: "Error", description: "Rate per Reel is required", variant: "destructive" }); return; }
-    if (addForm.genres.length === 0) { toast({ title: "Error", description: "At least one niche required", variant: "destructive" }); return; }
-    if (addForm.content_types.length === 0) { toast({ title: "Error", description: "At least one content type required", variant: "destructive" }); return; }
 
-    const { error } = await supabase.from("creators").insert({
-      instagram_handle: handle,
-      email: addForm.email || null,
-      reel_rate: Number(addForm.reel_rate),
-      music_genres: addForm.genres,
-      content_types: addForm.content_types,
-      base_country: "",
-      followers: 0,
-      median_views_per_video: 0,
-      engagement_rate: 0,
-      scrape_status: "pending",
-    });
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-      return;
+    try {
+      const { error } = await supabase.from("creators").insert({
+        instagram_handle: handle,
+        email: addForm.email || null,
+        reel_rate: Number(addForm.reel_rate) || 0,
+        music_genres: addForm.genres.length > 0 ? addForm.genres : ['General'],
+        content_types: addForm.content_types.length > 0 ? addForm.content_types : ['Audio Seeding'],
+        base_country: "",
+        followers: 0,
+        median_views_per_video: 0,
+        engagement_rate: 0,
+        scrape_status: "pending",
+        org_id: user?.tenantId || '00000000-0000-0000-0000-000000000001',
+      });
+      if (error && !error.message?.includes('duplicate') && error.code !== '23505') {
+        console.error('Add creator error:', error);
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Creator added", description: `@${handle} added — scraping queued` });
+      setIsAddOpen(false);
+      setAddForm({ handle: "", email: "", reel_rate: "", genres: [], content_types: [] });
+      refetch();
+      fetch("/api/instagram-scraper/creator-refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ handles: [handle] }),
+      }).catch(() => {});
+    } catch (err: any) {
+      console.error('Add creator error:', err);
+      toast({ title: "Error", description: err?.message || "Failed to add creator", variant: "destructive" });
     }
-    toast({ title: "Creator added", description: `@${handle} added — scraping queued` });
-    setIsAddOpen(false);
-    setAddForm({ handle: "", email: "", reel_rate: "", genres: [], content_types: [] });
-    refetch();
-    fetch("/api/instagram-scraper/creator-refresh", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ handles: [handle] }),
-    }).catch(() => {});
   };
 
   const handleEditCreator = async () => {
@@ -225,6 +234,28 @@ export default function InstagramCreatorsPage() {
     toast({ title: "Updated", description: `@${editingCreator.instagram_handle} updated` });
     setIsEditOpen(false);
     refetch();
+  };
+
+  const handleDeleteCreator = async () => {
+    if (!editingCreator) return;
+    setDeletingCreator(true);
+    try {
+      await supabase.from("instagram_campaign_creators").delete().eq("instagram_handle", editingCreator.instagram_handle);
+
+      const { error } = await supabase.from("creators").delete().eq("id", editingCreator.id);
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Deleted", description: `@${editingCreator.instagram_handle} has been deleted` });
+      setConfirmDeleteOpen(false);
+      setIsEditOpen(false);
+      refetch();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to delete creator", variant: "destructive" });
+    } finally {
+      setDeletingCreator(false);
+    }
   };
 
   const openEdit = (c: CreatorRow) => {
@@ -496,7 +527,7 @@ export default function InstagramCreatorsPage() {
             <div>
               <Label className="text-xs">Niches * {addForm.genres.length > 0 && <span className="text-muted-foreground">({addForm.genres.length} selected)</span>}</Label>
               <div className="max-h-40 overflow-y-auto border rounded-md p-2 mt-1">
-                <div className="flex flex-wrap gap-1">{[...addForm.genres, ...allNiches.filter((g) => !addForm.genres.includes(g))].map((g) => <Badge key={g} variant={addForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setAddForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
+                <div className="flex flex-wrap gap-1.5">{BROAD_GENRES.map((g) => <Badge key={g} variant={addForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setAddForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
               </div>
             </div>
             <div>
@@ -520,17 +551,38 @@ export default function InstagramCreatorsPage() {
             <div>
               <Label className="text-xs">Niches {editForm.genres.length > 0 && <span className="text-muted-foreground">({editForm.genres.length} selected)</span>}</Label>
               <div className="max-h-40 overflow-y-auto border rounded-md p-2 mt-1">
-                <div className="flex flex-wrap gap-1">{[...editForm.genres, ...allNiches.filter((g) => !editForm.genres.includes(g))].map((g) => <Badge key={g} variant={editForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-[10px]" onClick={() => setEditForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
+                <div className="flex flex-wrap gap-1.5">{BROAD_GENRES.map((g) => <Badge key={g} variant={editForm.genres.includes(g) ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setEditForm((f) => ({ ...f, genres: f.genres.includes(g) ? f.genres.filter((x) => x !== g) : [...f.genres, g] }))}>{g}</Badge>)}</div>
               </div>
             </div>
             <div>
               <Label className="text-xs">Content Types</Label>
               <div className="flex gap-2 mt-1">{CREATOR_CONTENT_TYPES.map((t) => <label key={t} className="flex items-center gap-1.5 text-sm"><Checkbox checked={editForm.content_types.includes(t)} onCheckedChange={(v) => setEditForm((f) => ({ ...f, content_types: v ? [...f.content_types, t] : f.content_types.filter((x) => x !== t) }))} />{t}</label>)}</div>
             </div>
-            <Button className="w-full" onClick={handleEditCreator}>Update Creator</Button>
+            <div className="flex gap-2 pt-1">
+              <Button className="flex-1" onClick={handleEditCreator}>Update Creator</Button>
+              <Button variant="destructive" size="icon" onClick={() => setConfirmDeleteOpen(true)}><Trash2 className="size-4" /></Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete @{editingCreator?.instagram_handle}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this creator and remove them from all campaigns. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingCreator}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCreator} disabled={deletingCreator} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deletingCreator ? <Loader2 className="size-4 animate-spin mr-1" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Import CSV Dialog */}
       <Dialog open={importOpen} onOpenChange={setImportOpen}>
