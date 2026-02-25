@@ -23,7 +23,10 @@ interface SlotSuggestion {
 export async function GET(request: Request) {
   const auth = await getAuthorizedUser(request);
   if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json(
+      { error: auth.error, source: "auth" },
+      { status: auth.status }
+    );
   }
 
   const url = new URL(request.url);
@@ -37,7 +40,12 @@ export async function GET(request: Request) {
   const endDate = addDays(startDate, days - 1);
 
   try {
-    const supabaseAdmin = createAdminClient(auth.token);
+    let supabaseAdmin: ReturnType<typeof createAdminClient>;
+    try {
+      supabaseAdmin = createAdminClient();
+    } catch {
+      supabaseAdmin = createAdminClient(auth.token);
+    }
 
     // Fetch existing campaigns and submissions in the date range
     const [campaignsResult, submissionsResult] = await Promise.all([

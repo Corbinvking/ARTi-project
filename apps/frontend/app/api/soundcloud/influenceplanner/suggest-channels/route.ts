@@ -108,7 +108,10 @@ async function enrichChannelsWithGenres(
 export async function GET(request: Request) {
   const auth = await getAuthorizedUser(request);
   if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json(
+      { error: auth.error, source: "auth" },
+      { status: auth.status }
+    );
   }
 
   const url = new URL(request.url);

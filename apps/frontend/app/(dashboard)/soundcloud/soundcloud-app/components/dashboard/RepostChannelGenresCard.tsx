@@ -94,7 +94,15 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
         `/api/soundcloud/influenceplanner/members?limit=${limit}&offset=${offset}&sortBy=FOLLOWERS&sortDir=DESC`,
         { headers: { Authorization: `Bearer ${sessionToken}` } }
       );
-      if (!res.ok) throw new Error("Failed to load members");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        if (errBody?.source === "influenceplanner") {
+          throw new Error(
+            errBody.error || "InfluencePlanner API credentials are invalid. Update them in Settings."
+          );
+        }
+        throw new Error(errBody?.error || "Failed to load members");
+      }
       const data = await res.json();
       const results = data?.body?.results ?? [];
       results.forEach((m: any) => all.push({

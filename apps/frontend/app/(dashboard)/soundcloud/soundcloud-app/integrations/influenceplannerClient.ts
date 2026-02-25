@@ -64,9 +64,14 @@ const createAdminClient = (authToken?: string) => {
 };
 
 export const getInfluencePlannerSettings = async (
-  authToken?: string
+  _authToken?: string
 ): Promise<InfluencePlannerSettings> => {
-  const supabaseAdmin = createAdminClient(authToken);
+  let supabaseAdmin;
+  try {
+    supabaseAdmin = createAdminClient();
+  } catch {
+    supabaseAdmin = createAdminClient(_authToken);
+  }
   const { data, error } = await supabaseAdmin
     .from("soundcloud_settings")
     .select("ip_base_url, ip_username, ip_api_key")

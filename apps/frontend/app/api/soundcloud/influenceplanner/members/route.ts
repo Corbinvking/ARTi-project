@@ -7,7 +7,10 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const auth = await getAuthorizedUser(request);
   if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json(
+      { error: auth.error, source: "auth" },
+      { status: auth.status }
+    );
   }
 
   const url = new URL(request.url);
@@ -31,6 +34,18 @@ export async function GET(request: Request) {
       authToken: auth.token,
     });
 
+    if (status === 401 || status === 403) {
+      return NextResponse.json(
+        {
+          error: "InfluencePlanner API credentials are invalid or expired. Update them in Settings.",
+          source: "influenceplanner",
+          status,
+          body: data,
+        },
+        { status }
+      );
+    }
+
     return NextResponse.json(
       {
         status,
@@ -41,7 +56,7 @@ export async function GET(request: Request) {
     );
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to fetch members" },
+      { error: error.message || "Failed to fetch members", source: "influenceplanner" },
       { status: 502 }
     );
   }

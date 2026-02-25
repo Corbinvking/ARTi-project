@@ -12,7 +12,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabaseAdmin = createAdminClient(auth.token);
+    let supabaseAdmin: ReturnType<typeof createAdminClient>;
+    try {
+      supabaseAdmin = createAdminClient();
+    } catch {
+      supabaseAdmin = createAdminClient(auth.token);
+    }
     const { data, error } = await supabaseAdmin
       .from("soundcloud_settings")
       .select("ip_base_url, ip_username, ip_api_key")
@@ -69,7 +74,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const supabaseAdmin = createAdminClient(auth.token);
+    let supabaseAdmin: ReturnType<typeof createAdminClient>;
+    try {
+      supabaseAdmin = createAdminClient();
+    } catch {
+      supabaseAdmin = createAdminClient(auth.token);
+    }
     const { data: existingRows } = await supabaseAdmin
       .from("soundcloud_settings")
       .select("id")

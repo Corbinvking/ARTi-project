@@ -7,7 +7,10 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   const auth = await getAuthorizedUser(request);
   if ("error" in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    return NextResponse.json(
+      { error: auth.error, source: "auth" },
+      { status: auth.status }
+    );
   }
 
   let body: any;
@@ -114,6 +117,18 @@ export async function POST(request: Request) {
       }
     }
 
+    if (status === 401 || status === 403) {
+      return NextResponse.json(
+        {
+          error: "InfluencePlanner API credentials are invalid or expired. Update them in Settings.",
+          source: "influenceplanner",
+          status,
+          body: data,
+        },
+        { status }
+      );
+    }
+
     return NextResponse.json(
       {
         status,
@@ -124,7 +139,7 @@ export async function POST(request: Request) {
     );
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to create schedule" },
+      { error: error.message || "Failed to create schedule", source: "influenceplanner" },
       { status: 502 }
     );
   }

@@ -1760,6 +1760,51 @@ export default function InstagramCampaignsPage() {
                     <CardDescription className="mt-1">
                       Track actual live Instagram posts tied to placements
                     </CardDescription>
+                    {(() => {
+                      const lastScraped = selectedCampaign?.last_scraped_at;
+                      const SCRAPE_HOURS_UTC = [6, 14, 22];
+                      const now = new Date();
+                      const nextScrape = (() => {
+                        for (const h of SCRAPE_HOURS_UTC) {
+                          const t = new Date(now);
+                          t.setUTCHours(h, 0, 0, 0);
+                          if (t > now) return t;
+                        }
+                        const t = new Date(now);
+                        t.setUTCDate(t.getUTCDate() + 1);
+                        t.setUTCHours(SCRAPE_HOURS_UTC[0], 0, 0, 0);
+                        return t;
+                      })();
+                      const diffMs = nextScrape.getTime() - now.getTime();
+                      const diffH = Math.floor(diffMs / 3600000);
+                      const diffM = Math.floor((diffMs % 3600000) / 60000);
+                      const nextLabel = diffH > 0 ? `${diffH}h ${diffM}m` : `${diffM}m`;
+                      const lastLabel = lastScraped
+                        ? (() => {
+                            const ago = now.getTime() - new Date(lastScraped).getTime();
+                            const agoH = Math.floor(ago / 3600000);
+                            const agoM = Math.floor((ago % 3600000) / 60000);
+                            if (agoH > 24) return `${Math.floor(agoH / 24)}d ago`;
+                            if (agoH > 0) return `${agoH}h ${agoM}m ago`;
+                            return `${agoM}m ago`;
+                          })()
+                        : null;
+                      return (
+                        <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted-foreground">
+                          {lastLabel && (
+                            <span className="flex items-center gap-1">
+                              <span className="size-1.5 rounded-full bg-green-500 inline-block" />
+                              Last scraped {lastLabel}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Clock className="size-3" />
+                            Next in {nextLabel}
+                          </span>
+                          <span className="text-muted-foreground/60">3x daily · 6am 2pm 10pm UTC</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   {campaignPosts.length > 0 && (
                     <Button

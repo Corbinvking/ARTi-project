@@ -41,7 +41,14 @@ export const getAuthorizedUser = async (request: Request) => {
   }
 
   const token = authHeader.replace("Bearer ", "").trim();
-  const supabaseAdmin = createAdminClient(token);
+
+  let supabaseAdmin;
+  try {
+    supabaseAdmin = createAdminClient();
+  } catch {
+    supabaseAdmin = createAdminClient(token);
+  }
+
   const { data, error } = await supabaseAdmin.auth.getUser(token);
 
   if (error || !data?.user) {
@@ -56,7 +63,6 @@ export const getAuthorizedUser = async (request: Request) => {
     ...(singleRole ? [singleRole] : []),
   ];
 
-  // If no role in auth metadata, fall back to user_roles table (e.g. operators whose role is only in DB)
   if (roles.length === 0) {
     const { data: dbRoles } = await supabaseAdmin
       .from("user_roles")

@@ -10,7 +10,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = createAdminClient(auth.token);
+    let supabase: ReturnType<typeof createAdminClient>;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = createAdminClient(auth.token);
+    }
     const { data: rows, error } = await supabase
       .from("soundcloud_repost_channel_genres")
       .select("ip_user_id, genre_family_id")
@@ -64,7 +69,12 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const supabase = createAdminClient(auth.token);
+    let supabase: ReturnType<typeof createAdminClient>;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = createAdminClient(auth.token);
+    }
 
     // Accept id from either soundcloud_genre_families or genre_families (DB FK is to soundcloud; genre_families used for display in app)
     const [scRes, genRes] = await Promise.all([
@@ -144,7 +154,12 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const supabase = createAdminClient(auth.token);
+    let supabase: ReturnType<typeof createAdminClient>;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = createAdminClient(auth.token);
+    }
     let q = supabase
       .from("soundcloud_repost_channel_genres")
       .delete()
