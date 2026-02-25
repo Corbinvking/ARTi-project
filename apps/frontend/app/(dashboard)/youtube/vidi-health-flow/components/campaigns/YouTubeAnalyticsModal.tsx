@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { Eye, Heart, MessageCircle, TrendingUp, TrendingDown, Minus, Users } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 
-import type { Database } from "../../integrations/supabase/types';
+import type { Database } from "../../integrations/supabase/types";
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'] & {
   clients?: { id: string; name: string; email: string | null; company: string | null } | null;
