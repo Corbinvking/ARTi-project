@@ -498,11 +498,7 @@ export const EnhancedMemberManagement: React.FC = () => {
                   </CardHeader>
                   <CardContent>
                     <div className={`text-2xl font-bold ${stat.color}`}>
-                      {typeof stat.value === 'number' ? (
-                        {(stat.value).toLocaleString()}
-                      ) : (
-                        stat.value
-                      )}
+                      {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
                     </div>
                   </CardContent>
                 </InteractiveCard>

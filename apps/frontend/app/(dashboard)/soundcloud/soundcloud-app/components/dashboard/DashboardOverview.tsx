@@ -180,11 +180,7 @@ export const DashboardOverview = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {stat.title === "New Submissions" ? (
-                        {(parseInt(stat.value)).toLocaleString()}
-                      ) : (
-                        stat.value
-                      )}
+                      {stat.title === "New Submissions" ? parseInt(stat.value).toLocaleString() : stat.value}
                     </div>
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-muted-foreground">
