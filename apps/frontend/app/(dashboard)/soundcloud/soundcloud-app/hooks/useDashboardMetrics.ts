@@ -37,43 +37,40 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
   const monthStart = startOfMonth(now).toISOString();
   const prevMonthStart = startOfMonth(subMonths(now, 1)).toISOString();
   const todayStart = startOfDay(now).toISOString();
-  const last24h = subDays(now, 1).toISOString();
 
   const [
     campaignsResult,
     prevCampaignsResult,
     queuesResult,
-    integrationResult,
+    membersResult,
     todaySubmissionsCompleted,
     todayCampaignsCompleted,
     todayNewEntries,
-    disconnectedMembers,
   ] = await Promise.all([
-    // All non-draft campaigns for active counts + current month revenue
+    // All campaigns for active counts + current month revenue
     supabase
-      .from('campaigns')
-      .select('id, status, price_usd, created_at')
-      .in('status', ['intake', 'scheduled', 'live', 'completed']),
+      .from('soundcloud_campaigns')
+      .select('id, status, sales_price, created_at'),
 
-    // Previous month campaigns for revenue comparison
+    // Previous month paid campaigns for revenue comparison
     supabase
-      .from('campaigns')
-      .select('price_usd, status')
+      .from('soundcloud_campaigns')
+      .select('sales_price')
       .gte('created_at', prevMonthStart)
       .lt('created_at', monthStart)
-      .not('price_usd', 'is', null),
+      .not('sales_price', 'is', null),
 
     // Today's queue capacity
     supabase
-      .from('queues')
+      .from('soundcloud_queues')
       .select('filled_slots, total_slots')
       .eq('date', now.toISOString().split('T')[0])
       .limit(1),
 
-    // Integration statuses for system health
+    // Member statuses for system health + IP disconnects
     supabase
-      .from('integration_status')
-      .select('status, error_count, updated_at'),
+      .from('members')
+      .select('status, influence_planner_status'),
 
     // Throughput: submissions completed today
     supabase
@@ -84,9 +81,9 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
 
     // Throughput: campaigns completed today
     supabase
-      .from('campaigns')
+      .from('soundcloud_campaigns')
       .select('id', { count: 'exact', head: true })
-      .eq('status', 'completed')
+      .eq('status', 'Complete')
       .gte('updated_at', todayStart),
 
     // Throughput: new submissions today
@@ -94,33 +91,27 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
       .from('submissions')
       .select('id', { count: 'exact', head: true })
       .gte('created_at', todayStart),
-
-    // Disconnected members on Influence Planner
-    supabase
-      .from('members')
-      .select('id', { count: 'exact', head: true })
-      .eq('influence_planner_status', 'disconnected'),
   ]);
 
   const campaigns = campaignsResult.data ?? [];
   const prevCampaigns = prevCampaignsResult.data ?? [];
   const queues = queuesResult.data ?? [];
-  const integrations = integrationResult.data ?? [];
+  const members = membersResult.data ?? [];
 
   // --- Revenue (paid campaigns only, current month) ---
   const currentMonthPaid = campaigns.filter(
     (c) =>
-      c.price_usd != null &&
-      c.price_usd > 0 &&
+      c.sales_price != null &&
+      c.sales_price > 0 &&
       c.created_at != null &&
       c.created_at >= monthStart
   );
   const monthlyRevenue = currentMonthPaid.reduce(
-    (sum, c) => sum + (parseFloat(String(c.price_usd ?? 0)) || 0),
+    (sum, c) => sum + (c.sales_price ?? 0),
     0
   );
   const previousMonthRevenue = prevCampaigns.reduce(
-    (sum, c) => sum + (parseFloat(String(c.price_usd ?? 0)) || 0),
+    (sum, c) => sum + (c.sales_price ?? 0),
     0
   );
   const revenueChangePercent =
@@ -128,25 +119,21 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
       ? ((monthlyRevenue - previousMonthRevenue) / previousMonthRevenue) * 100
       : 0;
 
-  // --- Active Campaigns (live or scheduled) ---
-  const activeCampaigns = campaigns.filter(
-    (c) => c.status === 'live' || c.status === 'scheduled'
-  );
+  // --- Active Campaigns (status = 'Active') ---
+  const activeCampaigns = campaigns.filter((c) => c.status === 'Active');
   const paidCount = activeCampaigns.filter(
-    (c) => c.price_usd != null && c.price_usd > 0
+    (c) => c.sales_price != null && c.sales_price > 0
   ).length;
   const freeCount = activeCampaigns.length - paidCount;
 
-  // --- Avg Campaign Value (across all paid campaigns, not just this month) ---
+  // --- Avg Campaign Value (across all paid campaigns) ---
   const allPaidCampaigns = campaigns.filter(
-    (c) => c.price_usd != null && c.price_usd > 0
+    (c) => c.sales_price != null && c.sales_price > 0
   );
   const avgCampaignValue =
     allPaidCampaigns.length > 0
-      ? allPaidCampaigns.reduce(
-          (sum, c) => sum + (parseFloat(String(c.price_usd ?? 0)) || 0),
-          0
-        ) / allPaidCampaigns.length
+      ? allPaidCampaigns.reduce((sum, c) => sum + (c.sales_price ?? 0), 0) /
+        allPaidCampaigns.length
       : 0;
 
   // --- Queue Capacity ---
@@ -157,24 +144,17 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     );
   }
 
-  // --- System Health ---
-  const totalIntegrations = integrations.length;
-  const linkedCount = integrations.filter((i) => i.status === 'linked').length;
+  // --- System Health (derived from member connection statuses) ---
+  const totalMembers = members.length;
+  const activeMembers = members.filter((m) => m.status === 'active').length;
+  const needsReconnect = members.filter(
+    (m) => m.status === 'needs_reconnect'
+  ).length;
   const successRate =
-    totalIntegrations > 0
-      ? Math.round((linkedCount / totalIntegrations) * 1000) / 10
+    totalMembers > 0
+      ? Math.round((activeMembers / totalMembers) * 1000) / 10
       : 100;
-
-  const failuresLast24h = integrations.filter(
-    (i) =>
-      (i.status === 'error' || i.status === 'disconnected') &&
-      i.updated_at &&
-      i.updated_at >= last24h
-  ).length;
-
-  const activeWarnings = integrations.filter(
-    (i) => i.status === 'reconnect' || i.status === 'error'
-  ).length;
+  const activeWarnings = needsReconnect;
 
   // --- Throughput ---
   const throughputToday = {
@@ -186,22 +166,24 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
   // --- Action Alerts ---
   const actionAlerts: ActionAlert[] = [];
 
-  if (failuresLast24h > 0) {
+  if (needsReconnect > 0) {
     actionAlerts.push({
-      id: 'integration-failures',
-      severity: failuresLast24h > 5 ? 'critical' : 'warning',
-      title: `${failuresLast24h} integration${failuresLast24h === 1 ? '' : 's'} failed`,
-      description: 'Check member integrations for connection errors',
-      link: '/soundcloud/dashboard/health',
+      id: 'needs-reconnect',
+      severity: needsReconnect > 10 ? 'critical' : 'warning',
+      title: `${needsReconnect} member${needsReconnect === 1 ? '' : 's'} need reconnection`,
+      description: 'SoundCloud integrations disconnected',
+      link: '/soundcloud/dashboard/members',
     });
   }
 
-  const disconnectedCount = disconnectedMembers.count ?? 0;
-  if (disconnectedCount > 0) {
+  const disconnectedIP = members.filter(
+    (m) => m.influence_planner_status === 'disconnected'
+  ).length;
+  if (disconnectedIP > 0) {
     actionAlerts.push({
       id: 'ip-disconnected',
-      severity: disconnectedCount > 10 ? 'critical' : 'warning',
-      title: `${disconnectedCount} member${disconnectedCount === 1 ? '' : 's'} disconnected from Influence Planner`,
+      severity: disconnectedIP > 10 ? 'critical' : 'warning',
+      title: `${disconnectedIP} member${disconnectedIP === 1 ? '' : 's'} disconnected from Influence Planner`,
       description: 'Reconnect members to restore automation',
       link: '/soundcloud/dashboard/members',
     });
@@ -217,7 +199,7 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     });
   }
 
-  // Stuck campaigns: live for more than 30 days
+  // Stuck campaigns: Active for more than 30 days
   const stuckThreshold = subDays(now, 30).toISOString();
   const stuckCampaigns = activeCampaigns.filter(
     (c) => c.created_at != null && c.created_at < stuckThreshold
@@ -226,7 +208,7 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     actionAlerts.push({
       id: 'stuck-campaigns',
       severity: stuckCampaigns.length > 3 ? 'critical' : 'warning',
-      title: `${stuckCampaigns.length} campaign${stuckCampaigns.length === 1 ? '' : 's'} live for 30+ days`,
+      title: `${stuckCampaigns.length} campaign${stuckCampaigns.length === 1 ? '' : 's'} active for 30+ days`,
       description: 'Review campaigns that may be stalled',
       link: '/soundcloud/dashboard/campaigns',
     });
@@ -244,7 +226,7 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     queueCapacityPercent,
     systemHealth: {
       successRate,
-      failuresLast24h,
+      failuresLast24h: needsReconnect,
       activeWarnings,
     },
     throughputToday,
