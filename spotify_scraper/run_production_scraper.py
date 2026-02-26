@@ -180,6 +180,186 @@ def send_alert_email(subject, body):
         return False
 
 
+def parse_goal_string(goal):
+    """Convert TEXT goal values like '10K', '500K', '1M', '10000' to integers."""
+    if not goal:
+        return 0
+    goal_str = str(goal).strip().upper().replace(',', '')
+    try:
+        return int(goal_str)
+    except ValueError:
+        pass
+    if goal_str.endswith('K'):
+        try:
+            return int(float(goal_str[:-1]) * 1_000)
+        except ValueError:
+            return 0
+    if goal_str.endswith('M'):
+        try:
+            return int(float(goal_str[:-1]) * 1_000_000)
+        except ValueError:
+            return 0
+    return 0
+
+
+def send_campaign_complete_email(campaign_name, streams_delivered, goal, client_emails):
+    """Send email to client notifying them their campaign reached its stream goal."""
+    if not client_emails:
+        return False
+    try:
+        import smtplib
+        from email.message import EmailMessage
+
+        recipients = [e for e in client_emails if e and '@' in e]
+        if not recipients:
+            return False
+
+        body = (
+            f"Great news! Your campaign \"{campaign_name}\" has reached its stream goal.\n\n"
+            f"  Streams delivered: {streams_delivered:,}\n"
+            f"  Campaign goal:     {goal:,}\n\n"
+            f"The campaign has been marked as complete. Thank you for choosing ARTi!\n\n"
+            f"— The ARTi Team\n"
+        )
+
+        msg = EmailMessage()
+        msg['Subject'] = f"Your campaign \"{campaign_name}\" has reached its stream goal!"
+        msg['From'] = 'campaigns@artistinfluence.com'
+        msg['To'] = ', '.join(recipients)
+        msg.set_content(body)
+
+        with smtplib.SMTP('localhost') as smtp:
+            smtp.send_message(msg)
+
+        logger.info(f"✅ Campaign completion email sent to {recipients}")
+        return True
+    except Exception as e:
+        logger.warning(f"Could not send campaign completion email: {e}")
+        return False
+
+
+async def check_and_complete_campaign(campaign, scrape_result):
+    """Check if a campaign has reached its stream goal using vendor playlist streams."""
+    try:
+        goal_raw = campaign.get('goal')
+        goal = parse_goal_string(goal_raw)
+        if goal <= 0:
+            return
+
+        campaign_id = campaign['id']
+        campaign_name = campaign.get('campaign', f'Campaign {campaign_id}')
+
+        headers = {
+            'apikey': SUPABASE_SERVICE_ROLE_KEY,
+            'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
+            'Content-Type': 'application/json'
+        }
+
+        # Fetch vendor playlist streams (exclude algorithmic and organic)
+        pl_url = f"{SUPABASE_URL}/rest/v1/campaign_playlists"
+        pl_params = {
+            'campaign_id': f'eq.{campaign_id}',
+            'select': 'streams_12m,is_algorithmic,is_organic',
+            'or': '(is_algorithmic.is.null,is_algorithmic.eq.false)',
+        }
+        pl_resp = requests.get(pl_url, headers=headers, params=pl_params)
+        if pl_resp.status_code != 200:
+            return
+
+        playlists = pl_resp.json()
+        vendor_streams = sum(
+            (p.get('streams_12m') or 0)
+            for p in playlists
+            if not p.get('is_organic', False)
+        )
+
+        if vendor_streams < goal:
+            return
+
+        logger.info(f"[{campaign_id}] 🎯 Goal reached! Vendor streams: {vendor_streams:,} / {goal:,} — marking Complete")
+
+        url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
+        params = {'id': f'eq.{campaign_id}'}
+        update_data = {
+            'status': 'complete',
+            'completed_at': datetime.now(timezone.utc).isoformat(),
+        }
+        response = requests.patch(url, headers=headers, params=params, json=update_data)
+        if response.status_code not in [200, 204]:
+            if 'completed_at' in (response.text or ''):
+                update_data.pop('completed_at', None)
+                response = requests.patch(url, headers=headers, params=params, json=update_data)
+
+        if response.status_code in [200, 204]:
+            logger.info(f"[{campaign_id}] ✓ Song status updated to Complete")
+        else:
+            logger.warning(f"[{campaign_id}] Could not update status: {response.status_code}")
+            return
+
+        # Also update campaign_groups status if all songs in the group are complete
+        group_id = campaign.get('campaign_group_id')
+        if group_id:
+            try:
+                # Fetch all songs in this group
+                songs_resp = requests.get(
+                    f"{SUPABASE_URL}/rest/v1/spotify_campaigns",
+                    headers=headers,
+                    params={'campaign_group_id': f'eq.{group_id}', 'select': 'id,goal,status'}
+                )
+                if songs_resp.status_code == 200:
+                    group_songs = songs_resp.json()
+                    # Check each song: fetch vendor playlist streams and compare to goal
+                    all_songs_complete = True
+                    songs_with_goals = 0
+                    for song in group_songs:
+                        song_goal = parse_goal_string(song.get('goal'))
+                        if song_goal <= 0:
+                            continue
+                        songs_with_goals += 1
+                        s_pl_resp = requests.get(pl_url, headers=headers, params={
+                            'campaign_id': f'eq.{song["id"]}',
+                            'select': 'streams_12m,is_algorithmic,is_organic',
+                            'or': '(is_algorithmic.is.null,is_algorithmic.eq.false)',
+                        })
+                        if s_pl_resp.status_code == 200:
+                            s_vendor = sum(
+                                (p.get('streams_12m') or 0)
+                                for p in s_pl_resp.json()
+                                if not p.get('is_organic', False)
+                            )
+                            if s_vendor < song_goal:
+                                all_songs_complete = False
+                                break
+                        else:
+                            all_songs_complete = False
+                            break
+
+                    if all_songs_complete and songs_with_goals > 0:
+                        grp_resp = requests.patch(
+                            f"{SUPABASE_URL}/rest/v1/campaign_groups",
+                            headers=headers,
+                            params={'id': f'eq.{group_id}'},
+                            json={'status': 'complete'}
+                        )
+                        if grp_resp.status_code in [200, 204]:
+                            logger.info(f"[{campaign_id}] ✓ Campaign group {group_id} also marked Complete")
+            except Exception as grp_err:
+                logger.warning(f"[{campaign_id}] Could not check/update group status: {grp_err}")
+
+        # Fetch client email
+        client_id = campaign.get('client_id')
+        if client_id:
+            client_url = f"{SUPABASE_URL}/rest/v1/clients"
+            client_params = {'id': f'eq.{client_id}', 'select': 'emails'}
+            client_resp = requests.get(client_url, headers=headers, params=client_params)
+            if client_resp.status_code == 200 and client_resp.json():
+                client_emails = client_resp.json()[0].get('emails') or []
+                send_campaign_complete_email(campaign_name, vendor_streams, goal, client_emails)
+
+    except Exception as e:
+        logger.warning(f"[{campaign.get('id', '?')}] Error in auto-complete check: {e}")
+
+
 def log_scraper_run(status, campaigns_total=0, campaigns_success=0, campaigns_failed=0, error_message=None):
     """Log scraper run status to a dedicated status file"""
     import json
@@ -671,8 +851,9 @@ async def fetch_campaigns_from_database(limit=None):
     
     url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
     params = {
-        'select': 'id,campaign,sfa,track_name,artist_name',
+        'select': 'id,campaign,sfa,track_name,artist_name,goal,status,client_id,campaign_group_id',
         'sfa': 'like.https://artists.spotify.com%',
+        'status': 'eq.active',
         'order': 'id.asc'
     }
     
@@ -690,7 +871,7 @@ async def fetch_campaigns_from_database(limit=None):
     if len(campaigns) == 0:
         logger.warning("⚠️  No campaigns found with valid SFA URLs")
     else:
-        logger.info(f"✅ Found {len(campaigns)} campaigns with SFA URLs")
+        logger.info(f"✅ Found {len(campaigns)} active campaigns with SFA URLs")
     
     return campaigns
 
@@ -1722,6 +1903,7 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
                     else:
                         success_count += 1  # Still count as success
                     await sync_campaign_regions(campaign['id'], scrape_data)
+                    await check_and_complete_campaign(campaign, data)
                 else:
                     failure_count += 1
             else:

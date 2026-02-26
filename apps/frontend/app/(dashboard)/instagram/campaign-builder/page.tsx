@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, Fragment } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ import { toast } from "@/components/ui/use-toast";
 import { TagSelectDropdown } from "../seedstorm-builder/components/TagSelectDropdown";
 import { MultiGenreSelect } from "../seedstorm-builder/components/MultiGenreSelect";
 import { useCreatorsTable } from "../seedstorm-builder/hooks/useCreatorsTable";
-import { generateCampaignV2, recalcTotals, reoptimizeAllocation, CreatorWithPredictions, CampaignV2Result } from "../seedstorm-builder/lib/campaignAlgorithmV2";
+import { generateCampaignV2, recalcTotals, CampaignV2Result } from "../seedstorm-builder/lib/campaignAlgorithmV2";
 
 function Breadcrumbs() {
   return (
@@ -152,13 +152,6 @@ export default function InstagramCampaignBuilderPage() {
       selectedCreators: updated.filter((c) => c.selected),
       totals: newTotals,
     });
-  };
-
-  const handleReoptimize = () => {
-    if (!campaignResult) return;
-    const result = reoptimizeAllocation(campaignResult.eligibleCreators, formData.total_budget);
-    setCampaignResult(result);
-    toast({ title: "Re-optimized", description: `${result.selectedCreators.length} creators selected` });
   };
 
   const handleReset = () => {
@@ -404,11 +397,21 @@ export default function InstagramCampaignBuilderPage() {
   if (step === 2 && campaignResult) {
     const t = campaignResult.totals;
     const allEligible = campaignResult.eligibleCreators;
-    const selectedFirst = [...allEligible].sort((a, b) => {
+    const nicheMatchedCount = allEligible.filter(c => c.matched_genres.length > 0).length;
+    const sortedCreators = [...allEligible].sort((a, b) => {
+      const aMatched = a.matched_genres.length > 0 ? 1 : 0;
+      const bMatched = b.matched_genres.length > 0 ? 1 : 0;
+      if (aMatched !== bMatched) return bMatched - aMatched;
       if (a.selected && !b.selected) return -1;
       if (!a.selected && b.selected) return 1;
       return b.ranking_score - a.ranking_score;
     });
+
+    const fitsColor = (score: number) => {
+      if (score >= 70) return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+      if (score >= 40) return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      return "bg-zinc-500/20 text-zinc-400 border-zinc-500/30";
+    };
 
     return (
       <div className="min-h-screen bg-background p-6">
@@ -420,17 +423,14 @@ export default function InstagramCampaignBuilderPage() {
           </div>
 
           {/* Summary Strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             <Card><CardHeader className="p-3 pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" />Creators</CardTitle></CardHeader><CardContent className="p-3 pt-0"><div className="text-xl font-bold">{t.total_creators}</div></CardContent></Card>
-            <Card><CardHeader className="p-3 pb-1"><CardTitle className="text-xs text-muted-foreground">Total Posts</CardTitle></CardHeader><CardContent className="p-3 pt-0"><div className="text-xl font-bold">{t.total_posts || 0}</div></CardContent></Card>
-            <Card><CardHeader className="p-3 pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><DollarSign className="h-3 w-3" />Total Cost</CardTitle></CardHeader><CardContent className="p-3 pt-0"><div className="text-xl font-bold">{formatCurrency(t.total_cost)}</div></CardContent></Card>
             <Card><CardHeader className="p-3 pb-1"><CardTitle className="text-xs text-muted-foreground">Total Followers</CardTitle></CardHeader><CardContent className="p-3 pt-0"><div className="text-xl font-bold">{formatNumber(t.total_followers)}</div></CardContent></Card>
-            <Card><CardHeader className="p-3 pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><Eye className="h-3 w-3" />Median Views</CardTitle></CardHeader><CardContent className="p-3 pt-0"><div className="text-xl font-bold">{formatNumber(t.total_median_views)}</div></CardContent></Card>
-            <Card><CardHeader className="p-3 pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><Target className="h-3 w-3" />Avg CP1K</CardTitle></CardHeader><CardContent className="p-3 pt-0"><div className="text-xl font-bold">${(t.avg_cp1k || 0).toFixed(2)}</div></CardContent></Card>
+            <Card><CardHeader className="p-3 pb-1"><CardTitle className="text-xs text-muted-foreground flex items-center gap-1"><DollarSign className="h-3 w-3" />Total Cost</CardTitle></CardHeader><CardContent className="p-3 pt-0"><div className="text-xl font-bold">{formatCurrency(t.total_cost)}</div></CardContent></Card>
             <Card><CardHeader className="p-3 pb-1"><CardTitle className="text-xs text-muted-foreground">Budget Left</CardTitle></CardHeader><CardContent className="p-3 pt-0"><div className="text-xl font-bold">{formatCurrency(t.budget_remaining)}</div></CardContent></Card>
           </div>
 
-          {/* Allocation Insight */}
+          {/* Insight */}
           <div className="text-sm text-muted-foreground bg-muted/30 border border-border/50 rounded-lg px-4 py-2 mb-4">
             {campaignResult.allocationInsight}
           </div>
@@ -440,72 +440,93 @@ export default function InstagramCampaignBuilderPage() {
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle className="text-sm">Selected Creators ({campaignResult.selectedCreators.length} of {allEligible.length} eligible)</CardTitle>
-                  <CardDescription className="text-xs">Toggle creators, edit posts, see projected views and CP1K update instantly</CardDescription>
+                  <CardTitle className="text-sm">{nicheMatchedCount} matched niche, {allEligible.length - nicheMatchedCount} others ({campaignResult.selectedCreators.length} selected)</CardTitle>
+                  <CardDescription className="text-xs">Niche-matched creators are auto-selected. Toggle any creator to add/remove from campaign.</CardDescription>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={handleDeselectAll}><X className="h-3 w-3 mr-1" />Deselect All</Button>
-                  <Button variant="outline" size="sm" onClick={handleReoptimize}><RefreshCw className="h-3 w-3 mr-1" />Re-optimize</Button>
-                  <Button variant="outline" size="sm" onClick={handleReset}><BarChart3 className="h-3 w-3 mr-1" />Reset to Suggested</Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleDeselectAll}><X className="h-3 w-3 mr-1" />Deselect All</Button>
+                    <Button variant="outline" size="sm" onClick={handleReset}><BarChart3 className="h-3 w-3 mr-1" />Reset to Suggested</Button>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs w-[60px]">Select</TableHead>
-                    <TableHead className="text-xs">Handle</TableHead>
-                    <TableHead className="text-xs text-right">Followers</TableHead>
-                    <TableHead className="text-xs text-right">Engage %</TableHead>
-                    <TableHead className="text-xs text-right">Hist. Median Views</TableHead>
-                    <TableHead className="text-xs text-right">Predicted Views</TableHead>
-                    <TableHead className="text-xs text-right w-[70px]">Posts</TableHead>
-                    <TableHead className="text-xs text-right">Rate/Reel</TableHead>
-                    <TableHead className="text-xs text-right">Cost</TableHead>
-                    <TableHead className="text-xs text-right">CP1K</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {selectedFirst.map((c) => (
-                    <TableRow key={c.id} className={c.selected ? "bg-primary/5" : ""}>
-                      <TableCell><Switch checked={c.selected} onCheckedChange={() => toggleCreator(c.id)} /></TableCell>
-                      <TableCell className="font-medium text-sm">@{c.instagram_handle}</TableCell>
-                      <TableCell className="text-right text-sm">{c.followers > 0 ? fmtNum(c.followers) : "N/A"}</TableCell>
-                      <TableCell className="text-right text-sm">{c.engagement_rate > 0 ? `${(c.engagement_rate * 100).toFixed(2)}%` : "N/A"}</TableCell>
-                      <TableCell className="text-right text-sm">{fmtNum(c.median_views)}</TableCell>
-                      <TableCell className="text-right text-sm">{fmtNum(c.predicted_views_per_post)}</TableCell>
-                      <TableCell className="text-right">
-                        {c.selected ? (
-                          <Input
-                            type="number"
-                            min="1"
-                            max="10"
-                            value={c.posts_assigned}
-                            onChange={(e) => handlePostsChange(c.id, parseInt(e.target.value) || 1)}
-                            className="w-16 h-7 text-xs"
-                          />
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right text-sm">${c.reel_rate}</TableCell>
-                      <TableCell className="text-right text-sm">{c.selected ? formatCurrency(c.cost) : "—"}</TableCell>
-                      <TableCell className="text-right text-sm">
-                        {c.cp1k_predicted != null ? `$${c.cp1k_predicted.toFixed(2)}` : "N/A"}
-                      </TableCell>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs w-[60px]">Select</TableHead>
+                      <TableHead className="text-xs">Handle</TableHead>
+                      <TableHead className="text-xs text-center">FITS</TableHead>
+                      <TableHead className="text-xs">Matched Genres</TableHead>
+                      <TableHead className="text-xs text-right">Followers</TableHead>
+                      <TableHead className="text-xs text-right">Engage %</TableHead>
+                      <TableHead className="text-xs text-right">Rate/Reel</TableHead>
+                      <TableHead className="text-xs text-right w-[70px]">Posts</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedCreators.map((c, idx) => {
+                      const isMatched = c.matched_genres.length > 0;
+                      const prevIsMatched = idx > 0 && sortedCreators[idx - 1].matched_genres.length > 0;
+                      const showDivider = !isMatched && prevIsMatched;
+                      return (
+                        <Fragment key={c.id}>
+                          {showDivider && (
+                            <TableRow className="border-t-2 border-border">
+                              <TableCell colSpan={8} className="py-2 text-xs text-muted-foreground text-center bg-muted/20">
+                                Other creators (not matching selected niche)
+                              </TableCell>
+                            </TableRow>
+                          )}
+                          <TableRow className={`${c.selected ? "bg-primary/5" : ""} ${!isMatched ? "opacity-60" : ""}`}>
+                            <TableCell><Switch checked={c.selected} onCheckedChange={() => toggleCreator(c.id)} /></TableCell>
+                            <TableCell className="font-medium text-sm">@{c.instagram_handle}</TableCell>
+                        <TableCell className="text-center">
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold border ${fitsColor(c.ranking_score)}`}>
+                            {c.ranking_score.toFixed(1)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {c.matched_genres.length > 0 ? (
+                              c.matched_genres.map((g) => (
+                                <Badge key={g} variant="secondary" className="text-[10px] px-1.5 py-0">{g}</Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right text-sm">{c.followers > 0 ? fmtNum(c.followers) : "—"}</TableCell>
+                        <TableCell className="text-right text-sm">{c.engagement_rate > 0 ? `${(c.engagement_rate * 100).toFixed(2)}%` : "—"}</TableCell>
+                        <TableCell className="text-right text-sm">{c.reel_rate > 0 ? `$${c.reel_rate}` : "—"}</TableCell>
+                        <TableCell className="text-right">
+                          {c.selected ? (
+                            <Input
+                              type="number"
+                              min="1"
+                              max="10"
+                              value={c.posts_assigned}
+                              onChange={(e) => handlePostsChange(c.id, parseInt(e.target.value) || 1)}
+                              className="w-16 h-7 text-xs"
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                        </Fragment>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep(1)}>
               <ArrowLeft className="h-4 w-4 mr-2" />Back
             </Button>
-            <Button onClick={handleNext} size="lg">
+            <Button onClick={handleNext} size="lg" disabled={campaignResult.selectedCreators.length === 0}>
               Finalize Campaign<ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>

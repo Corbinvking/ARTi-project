@@ -671,10 +671,24 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
       // Calculate totals from songs
       const totalDaily = songs?.reduce((sum, song) => sum + (parseInt(song.daily) || song.daily_streams || 0), 0) || 0;
       const totalWeekly = songs?.reduce((sum, song) => sum + (parseInt(song.weekly) || song.weekly_streams || 0), 0) || 0;
-      const totalRemaining = songs?.reduce((sum, song) => sum + (parseInt(song.remaining) || 0), 0) || 0;
 
-      // Fetch algorithmic playlists for this campaign to calculate external streams
+      // Fetch vendor playlist streams for accurate progress/remaining calculation
       const songIds = songs?.map(s => s.id) || [];
+      let vendorPlaylistStreamsTotal = 0;
+      if (songIds.length > 0) {
+        const { data: vPlaylists } = await supabase
+          .from('campaign_playlists')
+          .select('streams_12m, is_algorithmic, is_organic')
+          .in('campaign_id', songIds)
+          .or('is_algorithmic.is.null,is_algorithmic.eq.false');
+        if (vPlaylists) {
+          vendorPlaylistStreamsTotal = vPlaylists
+            .filter((p: any) => !p.is_organic)
+            .reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0);
+        }
+      }
+      const goalValue = parseGoalString(campaignGroup.total_goal);
+      const totalRemaining = goalValue > 0 ? Math.max(0, goalValue - vendorPlaylistStreamsTotal) : 0;
       let radioStreams = 0;
       let discoverWeeklyStreams = 0;
       let totalAlgorithmicStreams = 0;
@@ -742,7 +756,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         client_name: campaignGroup.clients?.name || campaignGroup.client_id,
         budget: totalBudget,
         stream_goal: parseGoalString(campaignGroup.total_goal),
-        remaining_streams: totalRemaining || parseGoalString(campaignGroup.total_goal),
+        remaining_streams: totalRemaining,
         sub_genre: campaignGroup.notes || 'Not specified', // Genre stored in notes
         duration_days: durationDays,
         daily_streams: totalDaily,
@@ -2256,123 +2270,6 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
               </>
             ) : (
               <div className="space-y-6">
-                {/* Algorithmic Streaming Data */}
-                {algorithmicPlaylists.length > 0 && (
-                  <div className="p-4 border rounded-lg space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b">
-                      <Radio className="h-5 w-5 text-green-600" />
-                      <span className="font-semibold text-lg">Algorithmic Streaming Data</span>
-                      <Badge variant="secondary">{algorithmicPlaylists.length} Active</Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">
-                          {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0).toLocaleString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Last 24 Hours</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">
-                          {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0).toLocaleString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Last 7 Days</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">
-                          {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0).toLocaleString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Last 12 Months</div>
-                      </div>
-                    </div>
-
-                    {(() => {
-                      const ALL_ALGO_TYPES = [
-                        'Radio',
-                        'Discover Weekly', 
-                        'Your DJ',
-                        'Mixes',
-                        'On Repeat',
-                        'Daylist',
-                        'Repeat Rewind',
-                        'Smart Shuffle',
-                        'Blend',
-                        'Your Daily Drive',
-                        'Release Radar',
-                        'Your Top Songs 2025',
-                        'Your Top Songs 2024',
-                      ];
-                      
-                      const algoDataMap = new Map<string, { streams_24h: number; streams_7d: number; streams_12m: number }>();
-                      algorithmicPlaylists.forEach((p: any) => {
-                        const name = (p.playlist_name || '').toLowerCase().trim();
-                        const existing = algoDataMap.get(name) || { streams_24h: 0, streams_7d: 0, streams_12m: 0 };
-                        algoDataMap.set(name, {
-                          streams_24h: existing.streams_24h + (p.streams_24h || 0),
-                          streams_7d: existing.streams_7d + (p.streams_7d || 0),
-                          streams_12m: existing.streams_12m + (p.streams_12m || 0),
-                        });
-                      });
-                      
-                      return (
-                        <div className="border rounded-lg overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-green-50 dark:bg-green-950/30">
-                                <TableHead className="py-2">Playlist Type</TableHead>
-                                <TableHead className="py-2 text-right">24h</TableHead>
-                                <TableHead className="py-2 text-right">7d</TableHead>
-                                <TableHead className="py-2 text-right">12m</TableHead>
-                                <TableHead className="py-2 text-center w-20">Status</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {ALL_ALGO_TYPES.map((typeName) => {
-                                const data = algoDataMap.get(typeName.toLowerCase().trim());
-                                const hasData = data && (data.streams_24h > 0 || data.streams_7d > 0 || data.streams_12m > 0);
-                                
-                                return (
-                                  <TableRow 
-                                    key={typeName} 
-                                    className={hasData ? 'bg-green-50/50 dark:bg-green-950/20' : 'opacity-60'}
-                                  >
-                                    <TableCell className="py-2 font-medium">
-                                      <div className="flex items-center gap-2">
-                                        <Radio className={`h-4 w-4 ${hasData ? 'text-green-600' : 'text-muted-foreground'}`} />
-                                        {typeName}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="py-2 text-right font-mono">
-                                      {hasData ? (data?.streams_24h || 0).toLocaleString() : '-'}
-                                    </TableCell>
-                                    <TableCell className="py-2 text-right font-mono">
-                                      {hasData ? (data?.streams_7d || 0).toLocaleString() : '-'}
-                                    </TableCell>
-                                    <TableCell className="py-2 text-right font-mono">
-                                      {hasData ? (data?.streams_12m || 0).toLocaleString() : '-'}
-                                    </TableCell>
-                                    <TableCell className="py-2 text-center">
-                                      {hasData ? (
-                                        <Badge variant="default" className="bg-green-600 text-white text-xs">Active</Badge>
-                                      ) : (
-                                        <Badge variant="outline" className="text-muted-foreground text-xs">-</Badge>
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                                );
-                              })}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      );
-                    })()}
-                    
-                    <div className="text-xs text-muted-foreground text-center pt-2 border-t">
-                      Last updated: {campaignData?.updated_at ? formatDate(campaignData.updated_at) : 'Not available'}
-                    </div>
-                  </div>
-                )}
-
                 {/* Vendor Playlists Section */}
                 {campaignPlaylists.length > 0 && (
                   <div className="space-y-4">
@@ -2896,6 +2793,123 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                   </div>
                 )}
 
+                {/* Algorithmic Streaming Data */}
+                {algorithmicPlaylists.length > 0 && (
+                  <div className="p-4 border rounded-lg space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b">
+                      <Radio className="h-5 w-5 text-green-600" />
+                      <span className="font-semibold text-lg">Algorithmic Streaming Data</span>
+                      <Badge variant="secondary">{algorithmicPlaylists.length} Active</Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
+                          {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Last 24 Hours</div>
+                      </div>
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
+                          {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Last 7 Days</div>
+                      </div>
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
+                          {algorithmicPlaylists.reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Last 12 Months</div>
+                      </div>
+                    </div>
+
+                    {(() => {
+                      const ALL_ALGO_TYPES = [
+                        'Radio',
+                        'Discover Weekly', 
+                        'Your DJ',
+                        'Mixes',
+                        'On Repeat',
+                        'Daylist',
+                        'Repeat Rewind',
+                        'Smart Shuffle',
+                        'Blend',
+                        'Your Daily Drive',
+                        'Release Radar',
+                        'Your Top Songs 2025',
+                        'Your Top Songs 2024',
+                      ];
+                      
+                      const algoDataMap = new Map<string, { streams_24h: number; streams_7d: number; streams_12m: number }>();
+                      algorithmicPlaylists.forEach((p: any) => {
+                        const name = (p.playlist_name || '').toLowerCase().trim();
+                        const existing = algoDataMap.get(name) || { streams_24h: 0, streams_7d: 0, streams_12m: 0 };
+                        algoDataMap.set(name, {
+                          streams_24h: existing.streams_24h + (p.streams_24h || 0),
+                          streams_7d: existing.streams_7d + (p.streams_7d || 0),
+                          streams_12m: existing.streams_12m + (p.streams_12m || 0),
+                        });
+                      });
+                      
+                      return (
+                        <div className="border rounded-lg overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-green-50 dark:bg-green-950/30">
+                                <TableHead className="py-2">Playlist Type</TableHead>
+                                <TableHead className="py-2 text-right">24h</TableHead>
+                                <TableHead className="py-2 text-right">7d</TableHead>
+                                <TableHead className="py-2 text-right">12m</TableHead>
+                                <TableHead className="py-2 text-center w-20">Status</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {ALL_ALGO_TYPES.map((typeName) => {
+                                const data = algoDataMap.get(typeName.toLowerCase().trim());
+                                const hasData = data && (data.streams_24h > 0 || data.streams_7d > 0 || data.streams_12m > 0);
+                                
+                                return (
+                                  <TableRow 
+                                    key={typeName} 
+                                    className={hasData ? 'bg-green-50/50 dark:bg-green-950/20' : 'opacity-60'}
+                                  >
+                                    <TableCell className="py-2 font-medium">
+                                      <div className="flex items-center gap-2">
+                                        <Radio className={`h-4 w-4 ${hasData ? 'text-green-600' : 'text-muted-foreground'}`} />
+                                        {typeName}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="py-2 text-right font-mono">
+                                      {hasData ? (data?.streams_24h || 0).toLocaleString() : '-'}
+                                    </TableCell>
+                                    <TableCell className="py-2 text-right font-mono">
+                                      {hasData ? (data?.streams_7d || 0).toLocaleString() : '-'}
+                                    </TableCell>
+                                    <TableCell className="py-2 text-right font-mono">
+                                      {hasData ? (data?.streams_12m || 0).toLocaleString() : '-'}
+                                    </TableCell>
+                                    <TableCell className="py-2 text-center">
+                                      {hasData ? (
+                                        <Badge variant="default" className="bg-green-600 text-white text-xs">Active</Badge>
+                                      ) : (
+                                        <Badge variant="outline" className="text-muted-foreground text-xs">-</Badge>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      );
+                    })()}
+                    
+                    <div className="text-xs text-muted-foreground text-center pt-2 border-t">
+                      Last updated: {campaignData?.updated_at ? formatDate(campaignData.updated_at) : 'Not available'}
+                    </div>
+                  </div>
+                )}
+
                   </div>
                 )}
               </div>
@@ -2949,10 +2963,6 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                     const playlistStreams24h = vendorPls
                       .reduce((sum: number, p: any) => sum + (p.streams_24h || 0), 0);
 
-                    const dailyRate = playlistStreams7d > 0
-                      ? Math.round(playlistStreams7d / 7)
-                      : playlistStreams24h;
-
                     const streamGoal = campaignData?.stream_goal || 0;
                     const campaignDuration = campaignData?.duration_days || 90;
                     const startDate = campaignData?.start_date ? new Date(campaignData.start_date) : null;
@@ -2968,10 +2978,27 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                       : 0;
                     const daysRemaining = Math.max(0, totalDays - daysElapsed);
 
-
                     const streamsDelivered = playlistStreams12m;
                     const remainingStreams = Math.max(0, streamGoal - streamsDelivered);
-                    const progressPercent = streamGoal > 0 ? Math.min((streamsDelivered / streamGoal) * 100, 100) : 0;
+                    const progressPercent = streamGoal > 0
+                      ? (streamsDelivered >= streamGoal
+                          ? Math.round((streamsDelivered / streamGoal) * 100)
+                          : Math.min(99, Math.floor((streamsDelivered / streamGoal) * 100)))
+                      : 0;
+
+                    const recentDailyRate = playlistStreams7d > 0
+                      ? Math.round(playlistStreams7d / 7)
+                      : playlistStreams24h;
+                    const lifetimeAvgRate = daysElapsed > 0
+                      ? streamsDelivered / daysElapsed
+                      : 0;
+                    const dailyRate = recentDailyRate > 0
+                      ? recentDailyRate
+                      : Math.round(lifetimeAvgRate);
+                    const rateSource: 'recent' | 'lifetime' | 'none' = recentDailyRate > 0
+                      ? 'recent'
+                      : lifetimeAvgRate > 0 ? 'lifetime' : 'none';
+
                     const requiredDailyRate = daysRemaining > 0 ? Math.ceil(remainingStreams / daysRemaining) : 0;
                     const projectedAtEnd = streamsDelivered + (dailyRate * daysRemaining);
 
@@ -2979,23 +3006,28 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                       ? 'not_started'
                       : streamsDelivered >= streamGoal
                         ? 'completed'
-                        : projectedAtEnd >= streamGoal
+                        : projectedAtEnd >= streamGoal * 0.85
                           ? (projectedAtEnd >= streamGoal * 1.1 ? 'ahead' : 'on_track')
                           : 'behind';
 
-                    const chartData: Array<{ day: number; date: string; requiredPace: number; actual?: number; projected?: number }> = [];
+                    const chartData: Array<{ day: number; date: string; requiredPace?: number; actual?: number; projected?: number }> = [];
                     const maxPoints = Math.min(totalDays + 1, 90);
                     const dayStep = Math.max(1, Math.floor(totalDays / (maxPoints - 1)));
+                    const showFullLinearPace = hasNotStarted || daysElapsed === 0;
 
                     for (let i = 0; i <= totalDays; i += dayStep) {
                       const day = Math.min(i, totalDays);
                       const d = new Date(effectiveStart.getTime() + day * 24 * 60 * 60 * 1000);
                       const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                      const point: { day: number; date: string; requiredPace: number; actual?: number; projected?: number } = {
+                      const point: { day: number; date: string; requiredPace?: number; actual?: number; projected?: number } = {
                         day,
                         date: label,
-                        requiredPace: Math.round((streamGoal / totalDays) * day),
                       };
+                      if (showFullLinearPace) {
+                        point.requiredPace = Math.round((streamGoal / totalDays) * day);
+                      } else if (day >= daysElapsed) {
+                        point.requiredPace = Math.round(streamsDelivered + requiredDailyRate * (day - daysElapsed));
+                      }
                       if (day <= daysElapsed && !hasNotStarted) {
                         point.actual = daysElapsed > 0
                           ? Math.round((streamsDelivered / daysElapsed) * day)
@@ -3023,7 +3055,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                         chartData.push({
                           day: daysElapsed,
                           date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                          requiredPace: Math.round((streamGoal / totalDays) * daysElapsed),
+                          requiredPace: streamsDelivered,
                           actual: streamsDelivered,
                           projected: streamsDelivered,
                         });
@@ -3111,6 +3143,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                               {dailyRate.toLocaleString()}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
+                              {rateSource === 'lifetime' && <span className="text-amber-500">(avg) </span>}
                               Required: {requiredDailyRate.toLocaleString()}/day
                             </p>
                           </div>
@@ -3230,7 +3263,7 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                             </span>
                             <span className="flex items-center gap-1.5">
                               <div className="w-4 h-[3px] bg-green-500 rounded opacity-60" style={{ borderTop: '2px dashed #22c55e', height: 0 }} />
-                              Required Pace
+                              Required Pace{!showFullLinearPace && ' (from today)'}
                             </span>
                             <span className="flex items-center gap-1.5">
                               <div className="w-4 h-[3px] bg-amber-500 rounded opacity-60" style={{ borderTop: '2px dashed #f59e0b', height: 0 }} />

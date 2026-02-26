@@ -6,9 +6,23 @@ export interface CreatorWithPredictions extends CreatorRow {
   predicted_views_total: number;
   cp1k_predicted: number | null;
   ranking_score: number;
+  genre_match_score: number;
+  matched_genres: string[];
   posts_assigned: number;
   cost: number;
   selected: boolean;
+  has_estimated_data: boolean;
+}
+
+export interface FilterBreakdown {
+  totalCreators: number;
+  passedNiche: number;
+  passedContentType: number;
+  passedTerritory: number;
+  passedGuardrails: number;
+  passedDataQuality: number;
+  passedCp1k: number;
+  finalEligible: number;
 }
 
 export interface CampaignV2Result {
@@ -16,6 +30,7 @@ export interface CampaignV2Result {
   eligibleCreators: CreatorWithPredictions[];
   totals: CampaignTotals;
   allocationInsight: string;
+  filterBreakdown: FilterBreakdown;
 }
 
 const MAX_POSTS_PER_CREATOR = 2;
@@ -59,6 +74,31 @@ function territoryMatchScore(
   return 0.3;
 }
 
+function genreMatchScore(
+  creatorGenres: string[],
+  campaignGenres: string[]
+): { score: number; matched: string[] } {
+  if (campaignGenres.length === 0) return { score: 0.8, matched: [] };
+  if (creatorGenres.length === 0) return { score: 0, matched: [] };
+
+  const matched: string[] = [];
+  for (const cg of campaignGenres) {
+    const cgLower = cg.toLowerCase();
+    for (const mg of creatorGenres) {
+      const mgLower = mg.toLowerCase();
+      if (mgLower === cgLower || mgLower.includes(cgLower) || cgLower.includes(mgLower)) {
+        if (!matched.includes(cg)) matched.push(cg);
+      }
+    }
+  }
+
+  if (matched.length === 0) return { score: 0.2, matched: [] };
+
+  const overlapRatio = matched.length / campaignGenres.length;
+  const score = 0.6 + 0.4 * overlapRatio;
+  return { score: Math.min(1.0, score), matched };
+}
+
 function computePredictedViews(
   mv: number,
   er: number,
@@ -96,199 +136,112 @@ export function generateCampaignV2(
 ): CampaignV2Result {
   const budget = formData.total_budget;
   const selectedGenres = formData.selected_genres;
-  const campaignType = formData.campaign_type;
-  const contentTypePrefs = formData.content_type_preferences || [];
-  const territoryPrefs = formData.territory_preferences || [];
-  const minMedianViews = formData.min_median_views || 0;
-  const maxCp1k = formData.max_cp1k || 0;
-  const minEngagement = formData.min_engagement_rate || 0;
 
-  // --- Phase 0: Eligibility ---
-  const eligible = allCreators.filter(c => {
-    if (selectedGenres.length > 0) {
-      const hasGenre = c.music_genres.some(g =>
-        selectedGenres.some(sg => g.toLowerCase().includes(sg.toLowerCase()) || sg.toLowerCase().includes(g.toLowerCase()))
-      );
-      if (!hasGenre) return false;
-    }
+  const breakdown: FilterBreakdown = {
+    totalCreators: allCreators.length,
+    passedNiche: 0,
+    passedContentType: 0,
+    passedTerritory: 0,
+    passedGuardrails: 0,
+    passedDataQuality: 0,
+    passedCp1k: 0,
+    finalEligible: 0,
+  };
 
-    const hasStandardTypes = c.content_types.some(t => t.toLowerCase().includes('audio') || t.toLowerCase().includes('footage'));
-    if (hasStandardTypes) {
-      if (campaignType === 'Audio Seeding' && !c.content_types.some(t => t.toLowerCase().includes('audio'))) return false;
-      if (campaignType === 'Footage Seeding' && !c.content_types.some(t => t.toLowerCase().includes('footage'))) return false;
-    }
+  // Build ALL creators with genre match scoring
+  const withPredictions: CreatorWithPredictions[] = allCreators.map(c => {
+    const gMatch = genreMatchScore(c.music_genres, selectedGenres);
+    const mv = (c.median_views != null && c.median_views > 0) ? c.median_views : 0;
+    const rate = c.reel_rate > 0 ? c.reel_rate : 0;
+    const cp1k = (mv > 0 && rate > 0) ? (rate / (mv / 1000)) : null;
 
-    if (contentTypePrefs.length > 0) {
-      const hasType = c.content_types.some(t => contentTypePrefs.some(cp => t.toLowerCase().includes(cp.toLowerCase())));
-      if (!hasType) return false;
-    }
-
-    if (territoryPrefs.length > 0) {
-      const tMatch = territoryPrefs.some(p => {
-        const pNorm = p.replace(' Primary', '').replace(' Focus', '').replace(' Audience', '').trim();
-        return c.audience_territory === pNorm || c.audience_territory.toLowerCase().includes(pNorm.toLowerCase());
-      });
-      const isGlobalOk = c.audience_territory === 'Global' && (c.audience_territory_confidence === 'High' || c.audience_territory_confidence === 'Med');
-      if (!tMatch && !isGlobalOk) return false;
-    }
-
-    if (minMedianViews > 0 && (c.median_views == null || c.median_views < minMedianViews)) return false;
-    if (minEngagement > 0 && c.engagement_rate < minEngagement / 100) return false;
-
-    if (c.followers <= 0 || c.engagement_rate <= 0) return false;
-    if (c.median_views == null || c.median_views <= 0) return false;
-    if (c.reel_rate <= 0) return false;
-
-    return true;
-  });
-
-  // --- Phase 1: Predicted Views ---
-  const allEngagementRates = allCreators.filter(c => c.engagement_rate > 0).map(c => c.engagement_rate);
-  const erBaseline = medianOf(allEngagementRates);
-
-  const withPredictions: CreatorWithPredictions[] = eligible.map(c => {
-    const pv = computePredictedViews(
-      c.median_views!,
-      c.engagement_rate,
-      erBaseline,
-      c.audience_territory,
-      c.audience_territory_confidence,
-      territoryPrefs,
-      c.content_types,
-      campaignType
-    );
-    const cp1k = pv > 0 ? (c.reel_rate / (pv / 1000)) : null;
     return {
       ...c,
-      predicted_views_per_post: pv,
-      predicted_views_total: pv,
+      predicted_views_per_post: mv,
+      predicted_views_total: mv,
       cp1k_predicted: cp1k,
       ranking_score: 0,
+      genre_match_score: gMatch.score,
+      matched_genres: gMatch.matched,
       posts_assigned: 0,
       cost: 0,
       selected: false,
+      has_estimated_data: false,
     };
   });
 
-  // Apply max_cp1k guardrail
-  const afterCp1kFilter = maxCp1k > 0
-    ? withPredictions.filter(c => c.cp1k_predicted != null && c.cp1k_predicted <= maxCp1k)
-    : withPredictions;
+  const nicheMatched = withPredictions.filter(c => c.matched_genres.length > 0);
+  breakdown.passedNiche = nicheMatched.length;
+  breakdown.passedContentType = nicheMatched.length;
+  breakdown.passedTerritory = nicheMatched.length;
+  breakdown.passedGuardrails = nicheMatched.length;
+  breakdown.passedDataQuality = nicheMatched.length;
+  breakdown.passedCp1k = nicheMatched.length;
+  breakdown.finalEligible = nicheMatched.length;
 
-  // --- Phase 2: Ranking ---
-  const cp1kValues = afterCp1kFilter.filter(c => c.cp1k_predicted != null).map(c => c.cp1k_predicted!);
-  const pvValues = afterCp1kFilter.map(c => c.predicted_views_per_post);
-  const erValues = afterCp1kFilter.map(c => c.engagement_rate);
-
-  const cp1kMin = Math.min(...cp1kValues, 0);
-  const cp1kMax = Math.max(...cp1kValues, 1);
-  const pvMin = Math.min(...pvValues, 0);
-  const pvMax = Math.max(...pvValues, 1);
-  const erMin = Math.min(...erValues, 0);
-  const erMax = Math.max(...erValues, 0.01);
-
-  for (const c of afterCp1kFilter) {
-    const sTerrVal = territoryMatchScore(c.audience_territory, c.audience_territory_confidence, territoryPrefs);
-    const cp1kNorm = c.cp1k_predicted != null ? normInv(c.cp1k_predicted, cp1kMin, cp1kMax) : 0;
-    const pvNorm = norm(c.predicted_views_per_post, pvMin, pvMax);
-    const erNorm = norm(c.engagement_rate, erMin, erMax);
-
+  // Rank by genre match + followers
+  for (const c of withPredictions) {
+    const followerScore = c.followers > 0 ? Math.min(1.0, Math.log10(c.followers) / 7) : 0;
     c.ranking_score = Math.round(100 * (
-      0.55 * cp1kNorm +
-      0.25 * pvNorm +
-      0.10 * erNorm +
-      0.10 * sTerrVal
+      0.70 * c.genre_match_score +
+      0.30 * followerScore
     ) * 10) / 10;
   }
 
-  afterCp1kFilter.sort((a, b) => b.ranking_score - a.ranking_score);
+  // Sort: niche-matched first (by score), then non-matched (by score)
+  withPredictions.sort((a, b) => {
+    const aMatched = a.matched_genres.length > 0 ? 1 : 0;
+    const bMatched = b.matched_genres.length > 0 ? 1 : 0;
+    if (aMatched !== bMatched) return bMatched - aMatched;
+    return b.ranking_score - a.ranking_score;
+  });
 
-  // --- Phase 3: Budget Allocation ---
+  // Auto-select only niche-matched creators
   let remaining = budget;
-
-  // Phase 3a: Coverage pass (1 post each)
-  for (const c of afterCp1kFilter) {
-    if (remaining < c.reel_rate) continue;
-    c.posts_assigned = 1;
-    c.cost = c.reel_rate;
-    c.predicted_views_total = c.predicted_views_per_post;
-    c.selected = true;
-    remaining -= c.reel_rate;
-  }
-
-  // Phase 3b: Efficiency pass (extra posts for selected)
-  const selected = afterCp1kFilter.filter(c => c.selected);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    let bestIdx = -1;
-    let bestMarginal = -1;
-    for (let i = 0; i < selected.length; i++) {
-      const c = selected[i];
-      if (c.posts_assigned >= MAX_POSTS_PER_CREATOR) continue;
-      if (remaining < c.reel_rate) continue;
-      const marginal = c.predicted_views_per_post / c.reel_rate;
-      if (marginal > bestMarginal) {
-        bestMarginal = marginal;
-        bestIdx = i;
-      }
-    }
-    if (bestIdx >= 0) {
-      const c = selected[bestIdx];
-      c.posts_assigned += 1;
-      c.cost = c.reel_rate * c.posts_assigned;
-      c.predicted_views_total = c.predicted_views_per_post * c.posts_assigned;
-      remaining -= c.reel_rate;
-      changed = true;
-    }
-  }
-
-  // Phase 3c: Budget closeout (add more creators if enough left)
-  const cheapestRate = Math.min(...afterCp1kFilter.filter(c => !c.selected).map(c => c.reel_rate), Infinity);
-  if (remaining >= cheapestRate * 1.5) {
-    for (const c of afterCp1kFilter) {
-      if (c.selected) continue;
-      if (remaining < c.reel_rate) continue;
+  for (const c of withPredictions) {
+    if (c.matched_genres.length === 0) continue;
+    if (c.reel_rate > 0 && remaining >= c.reel_rate) {
       c.posts_assigned = 1;
       c.cost = c.reel_rate;
       c.predicted_views_total = c.predicted_views_per_post;
       c.selected = true;
       remaining -= c.reel_rate;
+    } else {
+      c.selected = true;
+      c.posts_assigned = 1;
+      c.cost = 0;
     }
   }
 
-  // --- Totals ---
-  const finalSelected = afterCp1kFilter.filter(c => c.selected);
+  const finalSelected = withPredictions.filter(c => c.selected);
   const totalCost = finalSelected.reduce((s, c) => s + c.cost, 0);
   const totalPosts = finalSelected.reduce((s, c) => s + c.posts_assigned, 0);
   const totalFollowers = finalSelected.reduce((s, c) => s + c.followers, 0);
-  const medianViewsArr = finalSelected.map(c => c.median_views || 0).filter(v => v > 0);
-  const totalMedianViews = medianViewsArr.length > 0 ? medianOf(medianViewsArr) : 0;
-  const projectedTotalViews = finalSelected.reduce((s, c) => s + c.predicted_views_total, 0);
-  const avgCp1k = projectedTotalViews > 0 ? (totalCost / projectedTotalViews) * 1000 : 0;
 
   const totals: CampaignTotals = {
     total_creators: finalSelected.length,
     total_posts: totalPosts,
     total_cost: totalCost,
     total_followers: totalFollowers,
-    total_median_views: totalMedianViews,
-    projected_total_views: projectedTotalViews,
-    avg_cp1k: Math.round(avgCp1k * 100) / 100,
-    average_cpv: avgCp1k > 0 ? Math.round((avgCp1k / 1000) * 100) / 100 : 0,
+    total_median_views: 0,
+    projected_total_views: 0,
+    avg_cp1k: 0,
+    average_cpv: 0,
     budget_remaining: budget - totalCost,
     budget_utilization: budget > 0 ? Math.round((totalCost / budget) * 1000) / 10 : 0,
   };
 
+  const nonMatched = allCreators.length - nicheMatched.length;
   const insight = finalSelected.length > 0
-    ? `Optimized for lowest CP1K while meeting niche + territory filters. ${finalSelected.length} creators selected, ${totalPosts} posts, $${avgCp1k.toFixed(2)} avg CP1K.`
-    : 'No eligible creators matched the campaign criteria. Try broadening niche, territory, or guardrail filters.';
+    ? `${finalSelected.length} creators matched the selected niche(s), ${nonMatched} others shown below. Sorted by best genre fit.`
+    : `No creators matched the selected niche(s). All ${allCreators.length} creators shown below.`;
 
   return {
     selectedCreators: finalSelected,
-    eligibleCreators: afterCp1kFilter,
+    eligibleCreators: withPredictions,
     totals,
     allocationInsight: insight,
+    filterBreakdown: breakdown,
   };
 }
 
@@ -298,74 +251,39 @@ export function reoptimizeAllocation(
 ): CampaignV2Result {
   const creators = eligibleCreators.map(c => ({
     ...c,
-    posts_assigned: 0,
+    posts_assigned: 1,
     cost: 0,
-    predicted_views_total: 0,
-    selected: false,
+    predicted_views_total: c.predicted_views_per_post,
+    selected: true,
   }));
 
   creators.sort((a, b) => b.ranking_score - a.ranking_score);
 
   let remaining = budget;
-
   for (const c of creators) {
-    if (remaining < c.reel_rate) continue;
-    c.posts_assigned = 1;
-    c.cost = c.reel_rate;
-    c.predicted_views_total = c.predicted_views_per_post;
-    c.selected = true;
-    remaining -= c.reel_rate;
-  }
-
-  const selected = creators.filter(c => c.selected);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    let bestIdx = -1;
-    let bestMarginal = -1;
-    for (let i = 0; i < selected.length; i++) {
-      const c = selected[i];
-      if (c.posts_assigned >= MAX_POSTS_PER_CREATOR) continue;
-      if (remaining < c.reel_rate) continue;
-      const marginal = c.predicted_views_per_post / c.reel_rate;
-      if (marginal > bestMarginal) {
-        bestMarginal = marginal;
-        bestIdx = i;
-      }
-    }
-    if (bestIdx >= 0) {
-      const c = selected[bestIdx];
-      c.posts_assigned += 1;
-      c.cost = c.reel_rate * c.posts_assigned;
-      c.predicted_views_total = c.predicted_views_per_post * c.posts_assigned;
-      remaining -= c.reel_rate;
-      changed = true;
-    }
-  }
-
-  const cheapestRate = Math.min(...creators.filter(c => !c.selected).map(c => c.reel_rate), Infinity);
-  if (remaining >= cheapestRate * 1.5) {
-    for (const c of creators) {
-      if (c.selected) continue;
-      if (remaining < c.reel_rate) continue;
-      c.posts_assigned = 1;
+    if (c.reel_rate > 0 && remaining >= c.reel_rate) {
       c.cost = c.reel_rate;
-      c.predicted_views_total = c.predicted_views_per_post;
-      c.selected = true;
       remaining -= c.reel_rate;
     }
   }
 
-  const finalSelected = creators.filter(c => c.selected);
   const totals = recalcTotals(creators, budget);
 
   return {
-    selectedCreators: finalSelected,
+    selectedCreators: creators.filter(c => c.selected),
     eligibleCreators: creators,
     totals,
-    allocationInsight: finalSelected.length > 0
-      ? `Re-optimized allocation: ${finalSelected.length} creators, ${totals.total_posts} posts, $${(totals.avg_cp1k || 0).toFixed(2)} avg CP1K.`
-      : 'No creators could be allocated within budget.',
+    allocationInsight: `Re-optimized: ${creators.length} creators sorted by genre fit.`,
+    filterBreakdown: {
+      totalCreators: creators.length,
+      passedNiche: creators.length,
+      passedContentType: creators.length,
+      passedTerritory: creators.length,
+      passedGuardrails: creators.length,
+      passedDataQuality: creators.length,
+      passedCp1k: creators.length,
+      finalEligible: creators.length,
+    },
   };
 }
 

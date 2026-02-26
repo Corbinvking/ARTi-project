@@ -170,11 +170,9 @@ export default function CampaignIntakePage() {
           return;
         }
 
-        // Use the backend Spotify Web API route (same as CampaignConfiguration)
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.artistinfluence.com';
-        console.log('🎵 [Intake] Fetching track from:', `${apiBaseUrl}/api/spotify-web-api/track/${trackId}`);
+        console.log('🎵 [Intake] Fetching track from:', `/api/spotify-web-api/track/${trackId}`);
         
-        const response = await fetch(`${apiBaseUrl}/api/spotify-web-api/track/${trackId}`);
+        const response = await fetch(`/api/spotify-web-api/track/${trackId}`);
         
         if (!response.ok) {
           console.error('Failed to fetch track data:', response.statusText);
@@ -454,7 +452,6 @@ export default function CampaignIntakePage() {
           placeholder="https://open.spotify.com/track/..."
           value={formData.track_url}
           onChange={(e) => handleTrackUrlChange(e.target.value)}
-          required
           disabled={isLoadingSpotify}
         />
         <p className="text-xs text-muted-foreground mt-1">
@@ -557,7 +554,6 @@ export default function CampaignIntakePage() {
                     placeholder="Enter new client name"
                     value={formData.client_name}
                     onChange={(e) => setFormData({...formData, client_name: e.target.value, client_id: ''})}
-                    required
                   />
                 )}
               </div>
@@ -574,7 +570,6 @@ export default function CampaignIntakePage() {
                   value={formData.client_emails}
                   onChange={(e) => setFormData({...formData, client_emails: e.target.value})}
                   rows={2}
-                  required
                   readOnly={!isNewClient}
                   className={!isNewClient ? "bg-muted" : ""}
                 />
@@ -605,7 +600,6 @@ export default function CampaignIntakePage() {
                   placeholder="Artist Name - Track Title"
                   value={formData.campaign_name}
                   onChange={(e) => setFormData({...formData, campaign_name: e.target.value})}
-                  required
                   disabled={isLoadingSpotify}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -625,7 +619,6 @@ export default function CampaignIntakePage() {
                     placeholder="5000"
                     value={formData.price_paid}
                     onChange={(e) => setFormData({...formData, price_paid: e.target.value})}
-                    required
                     min="1"
                     step="0.01"
                   />
@@ -637,7 +630,6 @@ export default function CampaignIntakePage() {
                     placeholder="100000"
                     value={formData.stream_goal}
                     onChange={(e) => setFormData({...formData, stream_goal: e.target.value})}
-                    required
                     min="1"
                   />
                 </div>
