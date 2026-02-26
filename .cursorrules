@@ -5,8 +5,12 @@
 **Before starting ANY task, read these documents:**
 1. `docs/AGENT-QUICK-START.md` - Essential reference (2 min read)
 2. `docs/BRANCHING-STRATEGY.md` - Full navigation guide
+3. `docs/AGENTIC-INFRASTRUCTURE.md` - Issue pipeline and agent workflow guide
 
 **Branch naming**: `{type}/{app}/{description}` (e.g., `feature/spotify/playlist-filter`)
+
+**When a user reports a bug or requests a feature:**
+Follow the protocol in `.cursor/rules/agentic-issue-protocol.mdc` to create a properly labeled GitHub issue that feeds into the automated agent pipeline. Always investigate the relevant code first, determine the app domain, and estimate complexity before filing.
 
 ---
 

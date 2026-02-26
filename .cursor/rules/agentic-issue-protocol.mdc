@@ -1,0 +1,187 @@
+---
+description: Protocol for creating and managing GitHub issues using the ARTi agentic infrastructure. Follow this when users report bugs, request features, or describe problems — whether via Slack, Cursor chat, or any other channel.
+globs:
+alwaysApply: true
+---
+
+# ARTi Agentic Issue Protocol
+
+When a user reports a bug, describes a problem, or requests a feature, follow this protocol to create a properly structured GitHub issue that feeds into the automated agent pipeline.
+
+## Step 1: Investigate Before Filing
+
+Before creating an issue, gather context:
+
+1. **Identify the app domain** from the user's description:
+   | Keywords / Context | App Domain |
+   |---|---|
+   | Playlists, campaigns, vendors, stream strategist, Spotify | `spotify` |
+   | Creators, Instagram, seedstorm, campaign builder | `instagram` |
+   | YouTube, video campaigns, vidi health flow | `youtube` |
+   | SoundCloud, repost, members, portal, submissions | `soundcloud` |
+   | Dashboard, revenue, overview, cross-platform | `dashboard` |
+   | Operator, ops queue, internal tools | `operator` |
+   | Admin, user management, settings | `admin` |
+   | API, backend, Fastify, routes, auth | `api` |
+   | Scraper, data collection, Apify | `scraper` |
+   | Shared components, hooks, UI, navigation | `shared` |
+   | CI/CD, deployment, Docker, workflows | `infra` |
+   | Database, migrations, Supabase, RLS | `database` |
+
+2. **Read the relevant code** in the scoped directory to understand the current state
+3. **Check for existing issues** using `gh issue list --label "app:{domain}"` to avoid duplicates
+4. **Estimate complexity**: low (< 1 hour, isolated), medium (1-4 hours, multiple files), high (> 4 hours, architectural)
+
+## Step 2: Determine Issue Type
+
+- **Bug** (`type:bug`): Something is broken, produces errors, or behaves incorrectly
+- **Feature** (`type:feature`): New functionality or enhancement to existing behavior
+- **Refactor** (`type:refactor`): Code improvement without behavior change
+
+## Step 3: Create the GitHub Issue
+
+Use `gh issue create` with the correct labels:
+
+```bash
+gh issue create \
+  --repo "Corbinvking/ARTi-project" \
+  --title "[Bug] Short description of the problem" \
+  --label "app:spotify,type:bug,priority:high,status:triage" \
+  --body "$(cat <<'EOF'
+### App Module
+
+Spotify (playlist campaigns, vendors, stream strategist)
+
+### Bug Description
+
+Detailed description of what's wrong...
+
+### Steps to Reproduce
+
+1. Go to...
+2. Click on...
+3. See error
+
+### Expected Behavior
+
+What should happen instead.
+
+### Severity
+
+High - Major feature broken
+
+### Agent Assignable?
+
+Yes - Well-scoped, isolated fix
+EOF
+)"
+```
+
+## Label Taxonomy (Required Labels)
+
+Every issue MUST have these labels:
+
+1. **App domain** (exactly one): `app:spotify`, `app:instagram`, `app:youtube`, `app:soundcloud`, `app:dashboard`, `app:operator`, `app:admin`, `app:api`, `app:scraper`, `app:shared`, `app:infra`, `app:database`
+
+2. **Type** (exactly one): `type:bug`, `type:feature`, `type:refactor`, `type:chore`, `type:perf`
+
+3. **Priority** (exactly one): `priority:critical`, `priority:high`, `priority:medium`, `priority:low`
+
+4. **Status**: `status:triage` (always start here)
+
+### Optional Labels
+
+- `complexity:low`, `complexity:medium`, `complexity:high`
+- `agent:ready` — Add this ONLY when the issue is well-scoped and safe for an automated agent to work on
+- `agent:skip` — Add when the issue requires human judgment or access
+
+## Step 4: Decide Agent Assignability
+
+Mark as `agent:ready` when ALL of these are true:
+- The fix is scoped to a single app domain
+- Acceptance criteria are clear
+- No access to external services or secrets is needed
+- The change is unlikely to cause cross-app side effects
+- Complexity is low or medium
+
+Mark as `agent:skip` when:
+- The issue requires design decisions
+- It touches shared infrastructure affecting all apps
+- It needs access to production data or external APIs
+- It requires human testing or visual review
+
+## Step 5: For Complex Issues — Create a PRD Instead
+
+If the issue is too complex for an immediate fix, create a Product Requirements Document issue:
+
+```bash
+gh issue create \
+  --repo "Corbinvking/ARTi-project" \
+  --title "[PRD] Feature name or problem area" \
+  --label "app:spotify,type:feature,priority:medium,complexity:high,agent:skip" \
+  --body "$(cat <<'EOF'
+### Problem Statement
+
+What problem does this solve?
+
+### Proposed Solution
+
+High-level approach...
+
+### Scope
+
+- [ ] Task 1
+- [ ] Task 2
+- [ ] Task 3
+
+### Technical Considerations
+
+- Database changes needed?
+- API changes?
+- Cross-app impact?
+
+### Out of Scope
+
+What this does NOT include.
+
+### Agent Assignable?
+
+No - Requires human design decisions
+EOF
+)"
+```
+
+## Pipeline Flow
+
+After issue creation, the automated pipeline handles the rest:
+1. `agent-triage.yml` auto-applies additional labels from the issue body
+2. If labeled `agent:ready`, `agent-dispatcher.yml` creates a working branch
+3. `agent-worker.yml` scopes context to the app directory and runs the agent
+4. Agent creates a PR linked to the issue
+5. After PR merge, `agent-pr-cleanup.yml` closes the issue and deletes the branch
+
+## Branch Naming (For Manual Work)
+
+If you work on an issue directly instead of through the pipeline:
+```
+{type}/{app}/{description}
+```
+Examples: `fix/spotify/playlist-count-wrong`, `feature/instagram/creator-search-v2`
+
+## Commit Message Format
+
+```
+{type}({app}): {short description}
+
+Closes #{issue_number}
+```
+Examples: `fix(spotify): resolve playlist follower count mismatch`, `feat(instagram): add creator search filters`
+
+## Key Files Reference
+
+- Labels script: `scripts/setup-github-labels.sh`
+- Projects script: `scripts/setup-github-projects.sh`
+- Triage workflow: `.github/workflows/agent-triage.yml`
+- Dispatcher: `.github/workflows/agent-dispatcher.yml`
+- Worker: `.github/workflows/agent-worker.yml`
+- Full docs: `docs/AGENTIC-INFRASTRUCTURE.md`

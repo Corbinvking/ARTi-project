@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/select"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/auth"
-import { Plus, X, Crosshair, MapPin } from "lucide-react"
+import { Plus, X, Crosshair, MapPin, ExternalLink } from "lucide-react"
+import { toast } from "sonner"
 import type { ElementData } from "./element-picker"
 
 interface ReportFormProps {
@@ -80,11 +81,54 @@ export function ReportForm({
         insertData.element_data = elementData
       }
 
-      const { error } = await supabase
+      const { data: rows, error } = await supabase
         .from("platform_development_reports")
         .insert(insertData)
+        .select("id")
 
       if (error) throw error
+
+      const reportId = rows?.[0]?.id
+
+      // Bridge to GitHub Issues pipeline
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || ""
+        const url = apiBase ? `${apiBase}/api/github-issues` : "/api/github-issues"
+
+        const ghResponse = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type,
+            title,
+            description,
+            priority,
+            submittedByName: user.name || user.email,
+            elementData: elementData || null,
+            supabaseReportId: reportId || null,
+          }),
+        })
+
+        if (ghResponse.ok) {
+          const ghData = await ghResponse.json()
+
+          if (ghData.issueUrl && reportId) {
+            await supabase
+              .from("platform_development_reports")
+              .update({ github_issue_url: ghData.issueUrl })
+              .eq("id", reportId)
+          }
+
+          toast.success("Report submitted", {
+            description: `GitHub issue #${ghData.issueNumber} created`,
+            action: ghData.issueUrl
+              ? { label: "View Issue", onClick: () => window.open(ghData.issueUrl, "_blank") }
+              : undefined,
+          })
+        }
+      } catch (ghError) {
+        console.error("GitHub issue creation failed (report still saved):", ghError)
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["platform-dev-reports"] })

@@ -28,6 +28,7 @@ import {
   Filter,
   Crosshair,
   MapPin,
+  ExternalLink,
 } from "lucide-react"
 
 type Report = {
@@ -53,6 +54,7 @@ type Report = {
     boundingRect: { top: number; left: number; width: number; height: number }
     timestamp: string
   } | null
+  github_issue_url: string | null
 }
 
 const formatDate = (value: string) => {
@@ -189,6 +191,7 @@ export function PlatformDevelopmentAdmin() {
                   <TableHead className="min-w-[200px]">Title</TableHead>
                   <TableHead>Submitted By</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>GitHub</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -261,6 +264,21 @@ export function PlatformDevelopmentAdmin() {
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {formatDate(report.created_at)}
+                    </TableCell>
+                    <TableCell>
+                      {report.github_issue_url ? (
+                        <a
+                          href={report.github_issue_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Issue
+                        </a>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {report.status === "open" && (
