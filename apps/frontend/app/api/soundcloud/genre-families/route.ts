@@ -100,6 +100,54 @@ const BASE_GENRE_NAMES = [
 ];
 
 /**
+ * DELETE /api/soundcloud/genre-families
+ * Delete a genre family by id. Cascades to remove all channel-genre assignments.
+ */
+export async function DELETE(request: Request) {
+  const auth = await getAuthorizedUser(request);
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
+  let body: { id?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
+  }
+
+  const id = typeof body?.id === "string" ? body.id.trim() : "";
+  if (!id) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+
+  try {
+    let supabase: ReturnType<typeof createAdminClient>;
+    try {
+      supabase = createAdminClient();
+    } catch {
+      supabase = createAdminClient(auth.token);
+    }
+
+    const { error } = await supabase
+      .from("soundcloud_genre_families")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || "Failed to delete genre family" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * POST /api/soundcloud/genre-families
  * Create a new genre family (operator-created genres). Idempotent: if name exists for org, returns existing row.
  */

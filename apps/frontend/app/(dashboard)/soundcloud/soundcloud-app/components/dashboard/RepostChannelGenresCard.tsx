@@ -14,6 +14,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "../../hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Loader2, Music, RefreshCw, X } from "lucide-react";
 
 const CREATE_GENRE_SENTINEL = "__create__";
@@ -48,6 +58,8 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
   const [createGenreForMemberId, setCreateGenreForMemberId] = useState<string | null>(null);
   const [newGenreName, setNewGenreName] = useState("");
   const [creatingGenre, setCreatingGenre] = useState(false);
+  const [deleteGenreTarget, setDeleteGenreTarget] = useState<GenreFamily | null>(null);
+  const [deletingGenre, setDeletingGenre] = useState(false);
   const { toast } = useToast();
 
   const fetchGenreFamilies = useCallback(async () => {
@@ -259,6 +271,45 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
     setNewGenreName("");
   };
 
+  const handleGenreDelete = async () => {
+    if (!deleteGenreTarget || !sessionToken) return;
+    setDeletingGenre(true);
+    try {
+      const res = await fetch("/api/soundcloud/genre-families", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({ id: deleteGenreTarget.id }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || "Failed to delete genre");
+      }
+      const deletedId = deleteGenreTarget.id;
+      setGenreFamilies((prev) => prev.filter((f) => f.id !== deletedId));
+      setAssignments((prev) => {
+        const next: Record<string, string[]> = {};
+        for (const [userId, ids] of Object.entries(prev)) {
+          const filtered = ids.filter((id) => id !== deletedId);
+          if (filtered.length > 0) next[userId] = filtered;
+        }
+        return next;
+      });
+      toast({ title: "Deleted", description: `Genre "${deleteGenreTarget.name}" deleted.` });
+    } catch (e: any) {
+      toast({
+        title: "Error",
+        description: e.message || "Failed to delete genre",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingGenre(false);
+      setDeleteGenreTarget(null);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -309,8 +360,16 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {genreFamilies.map((f) => (
-                    <Badge key={f.id} variant="outline" className="font-normal">
+                    <Badge key={f.id} variant="outline" className="font-normal pr-1 gap-1">
                       {f.name}
+                      <button
+                        type="button"
+                        onClick={() => setDeleteGenreTarget(f)}
+                        className="rounded-full hover:bg-destructive/20 p-0.5 text-muted-foreground hover:text-destructive transition-colors"
+                        aria-label={`Delete genre ${f.name}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   ))}
                 </div>
@@ -447,6 +506,39 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
           </div>
         </DialogContent>
       </Dialog>
+      <AlertDialog
+        open={!!deleteGenreTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteGenreTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete genre</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deleteGenreTarget?.name}&quot;? This will also
+              remove it from all channels that currently use it.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingGenre}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleGenreDelete}
+              disabled={deletingGenre}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingGenre ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
