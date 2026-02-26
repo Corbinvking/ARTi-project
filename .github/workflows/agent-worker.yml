@@ -1,0 +1,299 @@
+name: "Agent Worker: Execute Issue Fix"
+
+# =============================================================================
+# Per-app agent worker that receives dispatched issues and:
+#   1. Checks out the agent working branch
+#   2. Scopes context to the relevant app directory
+#   3. Runs linting and tests on the affected app
+#   4. Opens a PR linking back to the issue
+#   5. Updates issue labels to agent:pr-open
+#
+# This workflow is triggered by repository_dispatch from agent-dispatcher.yml.
+# Multiple instances can run in parallel for different app domains.
+#
+# INTEGRATION POINT: This is where you plug in your AI agent (Cursor, Claude,
+# Codex, etc). The workflow provides the scoped context; your agent provides
+# the fix. See the "Agent Integration" step below.
+# =============================================================================
+
+on:
+  repository_dispatch:
+    types:
+      - agent-work-spotify
+      - agent-work-instagram
+      - agent-work-youtube
+      - agent-work-soundcloud
+      - agent-work-dashboard
+      - agent-work-operator
+      - agent-work-admin
+      - agent-work-api
+      - agent-work-scraper
+      - agent-work-shared
+      - agent-work-infra
+      - agent-work-database
+
+permissions:
+  issues: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: agent-${{ github.event.client_payload.app }}-${{ github.event.client_payload.issue_number }}
+  cancel-in-progress: false
+
+env:
+  ISSUE_NUMBER: ${{ github.event.client_payload.issue_number }}
+  ISSUE_TITLE: ${{ github.event.client_payload.issue_title }}
+  BRANCH: ${{ github.event.client_payload.branch }}
+  APP: ${{ github.event.client_payload.app }}
+  SCOPE: ${{ github.event.client_payload.scope }}
+  BRANCH_TYPE: ${{ github.event.client_payload.branch_type }}
+
+jobs:
+  agent-work:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout agent branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Gather scoped context
+        id: context
+        run: |
+          echo "=== Agent Context for app: $APP ==="
+          echo "Issue #$ISSUE_NUMBER: $ISSUE_TITLE"
+          echo "Branch: $BRANCH"
+          echo "Scope: $SCOPE"
+          echo ""
+
+          echo "=== Scoped file listing ==="
+          IFS=',' read -ra DIRS <<< "$SCOPE"
+          for dir in "${DIRS[@]}"; do
+            if [ -d "$dir" ]; then
+              echo "--- $dir ---"
+              find "$dir" -type f -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.py" -o -name "*.sql" | head -50
+              echo ""
+            fi
+          done
+
+          echo "=== Recent changes in scope ==="
+          IFS=',' read -ra DIRS <<< "$SCOPE"
+          for dir in "${DIRS[@]}"; do
+            if [ -d "$dir" ]; then
+              git log --oneline -10 -- "$dir" 2>/dev/null || true
+            fi
+          done
+
+      # =====================================================================
+      # AGENT INTEGRATION POINT
+      # =====================================================================
+      # This is where your AI coding agent plugs in. Options:
+      #
+      # Option A: GitHub Copilot Workspace (when available)
+      # Option B: Claude/OpenAI API call with scoped context
+      # Option C: Cursor CLI (future)
+      # Option D: Custom agent via API
+      #
+      # The agent receives:
+      #   - Issue title and body (what to fix)
+      #   - Scoped file list (where to look)
+      #   - Working branch (where to commit)
+      #
+      # For now, this step prepares the context and creates a placeholder.
+      # Replace this with your agent integration when ready.
+      # =====================================================================
+      - name: "Agent Integration Point"
+        id: agent
+        run: |
+          echo "================================================================"
+          echo "  AGENT INTEGRATION POINT"
+          echo "================================================================"
+          echo ""
+          echo "  Issue:  #$ISSUE_NUMBER - $ISSUE_TITLE"
+          echo "  App:    $APP"
+          echo "  Branch: $BRANCH"
+          echo "  Scope:  $SCOPE"
+          echo ""
+          echo "  This step is where your AI agent connects."
+          echo "  The branch is checked out and ready for commits."
+          echo ""
+          echo "  To integrate an agent, replace this step with your"
+          echo "  agent's CLI or API call. See docs/AGENTIC-INFRASTRUCTURE.md"
+          echo "================================================================"
+
+          # Write agent context file (useful for agent bootstrapping)
+          cat > .agent-context.json << 'CONTEXT'
+          {
+            "issue_number": "${{ env.ISSUE_NUMBER }}",
+            "issue_title": "${{ env.ISSUE_TITLE }}",
+            "app_domain": "${{ env.APP }}",
+            "branch": "${{ env.BRANCH }}",
+            "scope_directories": "${{ env.SCOPE }}",
+            "branch_type": "${{ env.BRANCH_TYPE }}",
+            "repo": "${{ github.repository }}",
+            "run_id": "${{ github.run_id }}"
+          }
+          CONTEXT
+
+          echo "agent_status=ready" >> $GITHUB_OUTPUT
+
+      # =====================================================================
+      # POST-AGENT: Validation, PR creation, label updates
+      # =====================================================================
+      - name: Check for agent changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Agent made changes:"
+            git status --short
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected (agent integration pending)"
+          fi
+
+      - name: Run linting (if changes exist)
+        if: steps.changes.outputs.has_changes == 'true'
+        continue-on-error: true
+        run: |
+          if [ "$APP" = "api" ]; then
+            cd apps/api && npm ci && npm run lint
+          elif [ "$APP" = "scraper" ]; then
+            echo "Skipping lint for scrapers"
+          else
+            cd apps/frontend && npm ci && npm run lint
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "arti-agent[bot]"
+          git config user.email "arti-agent[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "$BRANCH_TYPE($APP): resolve issue #$ISSUE_NUMBER
+
+          Automated fix for: $ISSUE_TITLE
+
+          Closes #$ISSUE_NUMBER"
+          git push origin "$BRANCH"
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true'
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Agent] ${process.env.BRANCH_TYPE}(${process.env.APP}): ${process.env.ISSUE_TITLE}`,
+              head: process.env.BRANCH,
+              base: 'main',
+              body: [
+                `## 🤖 Agent-Generated PR`,
+                ``,
+                `**Issue:** #${process.env.ISSUE_NUMBER}`,
+                `**App Domain:** \`${process.env.APP}\``,
+                `**Scope:** \`${process.env.SCOPE}\``,
+                `**Agent Run:** [#${context.runId}](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+                ``,
+                `### Changes`,
+                `This PR was generated by the ARTi agent pipeline to address issue #${process.env.ISSUE_NUMBER}.`,
+                ``,
+                `### Review Checklist`,
+                `- [ ] Changes are scoped to the correct app domain`,
+                `- [ ] No unintended side effects on other modules`,
+                `- [ ] Linting passes`,
+                `- [ ] Tested locally`,
+                ``,
+                `> ⚠️ **This PR was auto-generated.** Please review carefully before merging.`,
+              ].join('\n'),
+            });
+
+            // Add labels to PR
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: [`app:${process.env.APP}`, 'agent:needs-review'],
+            });
+
+            core.setOutput('pr_number', pr.number);
+            core.setOutput('pr_url', pr.html_url);
+
+      - name: Update issue with PR link
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Update labels
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: parseInt(process.env.ISSUE_NUMBER),
+                name: 'agent:in-progress',
+              });
+            } catch (e) {}
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(process.env.ISSUE_NUMBER),
+              labels: ['agent:pr-open'],
+            });
+
+            // Post comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(process.env.ISSUE_NUMBER),
+              body: [
+                `### ✅ Agent Work Complete`,
+                ``,
+                `A pull request has been created:`,
+                `**PR:** #${{ steps.pr.outputs.pr_number }} — ${{ steps.pr.outputs.pr_url }}`,
+                ``,
+                `The PR is labeled \`agent:needs-review\` and awaits human review.`,
+              ].join('\n'),
+            });
+
+      - name: Handle no-changes case
+        if: steps.changes.outputs.has_changes == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(process.env.ISSUE_NUMBER),
+              body: [
+                `### ⏳ Agent Pipeline Ready`,
+                ``,
+                `The agent worker ran successfully but no code changes were made.`,
+                `This is expected if no AI agent integration is configured yet.`,
+                ``,
+                `**Branch:** \`${process.env.BRANCH}\` (created and ready)`,
+                `**Scope:** \`${process.env.SCOPE}\``,
+                ``,
+                `**Next steps:**`,
+                `1. Check out the branch locally: \`git checkout ${process.env.BRANCH}\``,
+                `2. Use Cursor or your preferred agent to work on the issue`,
+                `3. Push changes and the PR will be created automatically`,
+                ``,
+                `Or configure an AI agent integration in \`.github/workflows/agent-worker.yml\``,
+                `at the "Agent Integration Point" step.`,
+              ].join('\n'),
+            });

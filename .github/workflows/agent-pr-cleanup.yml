@@ -1,0 +1,117 @@
+name: "Agent Cleanup: Post-Merge Housekeeping"
+
+# =============================================================================
+# After an agent PR is merged:
+#   1. Closes the linked issue
+#   2. Removes agent labels
+#   3. Deletes the agent working branch
+#   4. Posts a completion summary
+# =============================================================================
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+  contents: write
+
+jobs:
+  cleanup:
+    if: |
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'agent/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract issue number and clean up
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const branch = pr.head.ref;
+            const body = pr.body || '';
+
+            // Extract issue number from PR body or branch name
+            let issueNumber = null;
+
+            // Try PR body first (pattern: #123)
+            const bodyMatch = body.match(/Issue:\s*#(\d+)/);
+            if (bodyMatch) {
+              issueNumber = parseInt(bodyMatch[1]);
+            }
+
+            // Fallback: extract from branch name (agent/fix/app/description-123)
+            if (!issueNumber) {
+              const branchMatch = branch.match(/-(\d+)$/);
+              if (branchMatch) {
+                issueNumber = parseInt(branchMatch[1]);
+              }
+            }
+
+            if (!issueNumber) {
+              console.log('Could not determine linked issue number');
+              return;
+            }
+
+            console.log(`Cleaning up after agent PR #${pr.number} for issue #${issueNumber}`);
+
+            // Close the issue
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              state: 'closed',
+              state_reason: 'completed',
+            });
+
+            // Remove agent labels, add completion label
+            const labelsToRemove = [
+              'agent:in-progress',
+              'agent:pr-open',
+              'agent:needs-review',
+              'agent:ready',
+            ];
+
+            for (const label of labelsToRemove) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: label,
+                });
+              } catch (e) {}
+            }
+
+            // Post completion comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: [
+                `### 🎉 Resolved by Agent`,
+                ``,
+                `This issue was resolved by agent-generated PR #${pr.number}.`,
+                ``,
+                `| Field | Value |`,
+                `|-------|-------|`,
+                `| **PR** | #${pr.number} |`,
+                `| **Branch** | \`${branch}\` |`,
+                `| **Merged by** | @${pr.merged_by?.login || 'unknown'} |`,
+                `| **Merged at** | ${pr.merged_at} |`,
+              ].join('\n'),
+            });
+
+            // Delete the agent branch
+            try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${branch}`,
+              });
+              console.log(`Deleted branch: ${branch}`);
+            } catch (e) {
+              console.log(`Could not delete branch: ${branch}`);
+            }

@@ -1,0 +1,84 @@
+name: "Bug Report"
+description: "Report a bug in the ARTi platform"
+labels: ["type:bug", "status:triage"]
+body:
+  - type: dropdown
+    id: app
+    attributes:
+      label: "App Module"
+      description: "Which app is affected?"
+      options:
+        - "Spotify (playlist campaigns, vendors, stream strategist)"
+        - "Instagram (creator campaigns, seedstorm builder)"
+        - "YouTube (video campaigns, vidi health flow)"
+        - "SoundCloud (repost network, member portal)"
+        - "Dashboard (cross-platform overview)"
+        - "Operator (internal ops tools)"
+        - "Admin (user management, settings)"
+        - "API / Backend"
+        - "Scrapers (Spotify, Instagram, Roster)"
+        - "Shared (components, hooks, utilities)"
+        - "Infrastructure (CI/CD, deployment)"
+        - "Database (schema, migrations)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Bug Description"
+      description: "A clear description of what the bug is."
+      placeholder: "When I click X, Y happens instead of Z..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: "How can we reproduce this?"
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Behavior"
+      description: "What should happen instead?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "Additional Context"
+      description: "Error messages, screenshots, console logs, relevant URLs."
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "Severity"
+      options:
+        - "Critical - Production broken"
+        - "High - Major feature broken"
+        - "Medium - Feature degraded"
+        - "Low - Minor cosmetic issue"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: agent_assignable
+    attributes:
+      label: "Agent Assignable?"
+      description: "Can an AI agent potentially fix this? (Set 'Yes' for well-scoped, isolated bugs)"
+      options:
+        - "Yes - Well-scoped, isolated fix"
+        - "Needs Triage - Not sure yet"
+        - "No - Requires human judgment or access"
+    validations:
+      required: true

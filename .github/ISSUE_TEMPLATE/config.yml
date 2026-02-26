@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/Corbinvking/ARTi-project/blob/main/docs/AGENTIC-INFRASTRUCTURE.md
+    about: Read the agentic infrastructure docs before filing
