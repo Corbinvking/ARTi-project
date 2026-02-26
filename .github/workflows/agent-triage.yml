@@ -12,12 +12,24 @@ on:
 
 permissions:
   issues: write
+  repository-projects: write
+
+env:
+  # GitHub Project v2 IDs (owner: Corbinvking)
+  PROJECT_SPOTIFY: "PVT_kwHOCLGpZM4BQRpJ"
+  PROJECT_YOUTUBE: "PVT_kwHOCLGpZM4BQRpO"
+  PROJECT_INSTAGRAM: "PVT_kwHOCLGpZM4BQRpR"
+  PROJECT_SOUNDCLOUD: "PVT_kwHOCLGpZM4BQRpU"
+  PROJECT_CORE: "PVT_kwHOCLGpZM4BQRpV"
+  PROJECT_API: "PVT_kwHOCLGpZM4BQRpb"
+  PROJECT_SCRAPERS: "PVT_kwHOCLGpZM4BQRpc"
 
 jobs:
   triage:
     runs-on: ubuntu-latest
     steps:
-      - name: Parse issue and apply labels
+      - name: Parse issue, apply labels, and triage comment
+        id: triage
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -126,3 +138,52 @@ jobs:
               issue_number: issue.number,
               body: comment,
             });
+
+            // Output app label for the next step
+            core.setOutput('app_label', appLabel);
+
+      - name: Route issue to the correct GitHub Project
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECT_PAT }}
+          script: |
+            const issue = context.payload.issue;
+            const appLabel = '${{ steps.triage.outputs.app_label }}';
+
+            const projectMap = {
+              'app:spotify':    process.env.PROJECT_SPOTIFY,
+              'app:instagram':  process.env.PROJECT_INSTAGRAM,
+              'app:youtube':    process.env.PROJECT_YOUTUBE,
+              'app:soundcloud': process.env.PROJECT_SOUNDCLOUD,
+              'app:dashboard':  process.env.PROJECT_CORE,
+              'app:operator':   process.env.PROJECT_CORE,
+              'app:admin':      process.env.PROJECT_CORE,
+              'app:shared':     process.env.PROJECT_CORE,
+              'app:api':        process.env.PROJECT_API,
+              'app:scraper':    process.env.PROJECT_SCRAPERS,
+              'app:infra':      process.env.PROJECT_CORE,
+              'app:database':   process.env.PROJECT_API,
+            };
+
+            const projectId = projectMap[appLabel];
+            if (!projectId) {
+              console.log(`No project mapping for label: ${appLabel}`);
+              return;
+            }
+
+            try {
+              const result = await github.graphql(`
+                mutation($projectId: ID!, $contentId: ID!) {
+                  addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
+                    item { id }
+                  }
+                }
+              `, {
+                projectId: projectId,
+                contentId: issue.node_id,
+              });
+              console.log(`Added issue #${issue.number} to project ${projectId}`);
+            } catch (error) {
+              console.error(`Failed to add issue to project: ${error.message}`);
+              core.warning(`Could not route issue to project: ${error.message}`);
+            }
