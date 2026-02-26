@@ -360,12 +360,12 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {genreFamilies.map((f) => (
-                    <Badge key={f.id} variant="outline" className="font-normal pr-1 gap-1">
+                    <Badge key={f.id} variant="outline" className="font-normal pr-0.5 gap-1 group">
                       {f.name}
                       <button
                         type="button"
                         onClick={() => setDeleteGenreTarget(f)}
-                        className="rounded-full hover:bg-destructive/20 p-0.5 text-muted-foreground hover:text-destructive transition-colors"
+                        className="ml-0.5 rounded-full bg-muted-foreground/15 hover:bg-destructive/30 p-0.5 text-muted-foreground hover:text-destructive transition-colors"
                         aria-label={`Delete genre ${f.name}`}
                       >
                         <X className="h-3 w-3" />
