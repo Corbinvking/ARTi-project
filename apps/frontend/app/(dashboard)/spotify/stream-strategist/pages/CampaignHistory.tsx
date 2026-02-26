@@ -15,6 +15,7 @@ import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_SOURCE_INTAKE, APP_CAMPAIGN_TYPE } fr
 import { StatusBadge } from "../components/ui/status-badge";
 import { InteractiveStatusBadge } from "../components/ui/interactive-status-badge";
 import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Table,
@@ -772,6 +773,11 @@ export default function CampaignHistory() {
 
     notifyOpsStatusChange({
       service: "spotify",
+      campaignId,
+      status: newStatus,
+      actorEmail: user?.email || null,
+    });
+    notifySlack("spotify", "campaign_status_change", {
       campaignId,
       status: newStatus,
       actorEmail: user?.email || null,

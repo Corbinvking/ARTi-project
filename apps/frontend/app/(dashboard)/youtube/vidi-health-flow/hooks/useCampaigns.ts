@@ -4,6 +4,7 @@ import { supabase } from "../integrations/supabase/client";
 import type { Database } from "../integrations/supabase/types";
 import { getApiUrl } from "../lib/getApiUrl";
 import { notifyOpsCampaignCreated } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 
 // Use YouTube-specific table types
 type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'] & {
@@ -182,8 +183,12 @@ export const useCampaigns = () => {
           campaignId: data.id,
           campaignName: data.campaign_name,
           youtubeUrl: data.youtube_url,
-          clientName: null, // Will be enhanced when client info is available
-          actorEmail: null, // Can be passed from component if needed
+          clientName: null,
+          actorEmail: null,
+        });
+        notifySlack("youtube", "campaign_created", {
+          campaignId: data.id,
+          campaignName: data.campaign_name,
         });
       } catch (notifyError) {
         console.warn('Failed to send campaign creation notification:', notifyError);

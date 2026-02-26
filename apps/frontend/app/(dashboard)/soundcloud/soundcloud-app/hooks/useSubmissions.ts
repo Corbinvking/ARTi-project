@@ -57,6 +57,17 @@ export const useSubmissions = () => {
 
   useEffect(() => {
     fetchStats();
+
+    const channel = supabase
+      .channel('submission-stats')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'soundcloud_submissions' },
+        () => { fetchStats(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   return { stats, loading, refetch: fetchStats };

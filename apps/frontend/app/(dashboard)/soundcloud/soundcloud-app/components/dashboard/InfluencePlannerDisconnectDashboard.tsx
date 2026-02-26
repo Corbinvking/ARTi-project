@@ -52,6 +52,7 @@ import {
 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
+import { notifySlack } from "@/lib/slack-notify"
 
 interface DisconnectedMember {
   id: string
@@ -180,6 +181,12 @@ export const InfluencePlannerDisconnectDashboard = ({
       toast({
         title: "Email Sent",
         description: `Reconnect email sent to ${member.primary_email}`,
+      })
+
+      notifySlack("soundcloud", "reconnect_email_sent", {
+        memberName: member.name,
+        email: member.primary_email,
+        soundcloudHandle: member.soundcloud_handle,
       })
 
       // Refresh list

@@ -20,6 +20,7 @@ import {
   Check,
   Loader2,
   Radio,
+  Search,
   Settings2,
   Sparkles,
   Users,
@@ -91,6 +92,7 @@ export const ScheduleSuggestionPanel = ({
   const [loadingChannels, setLoadingChannels] = useState(false)
   const [selectedChannels, setSelectedChannels] = useState<Set<string>>(new Set())
   const [channelsOverridden, setChannelsOverridden] = useState(false)
+  const [channelSearch, setChannelSearch] = useState("")
 
   // Channel loading progress
   const [channelProgress, setChannelProgress] = useState<{
@@ -355,7 +357,6 @@ export const ScheduleSuggestionPanel = ({
       const token = await getAuthToken()
       if (!token) throw new Error("Not authenticated")
 
-      // Build the schedule payload for Influence Planner API
       const schedulePayload = {
         types: ["REPOST", "UNREPOST"],
         medias: [trackUrl],
@@ -368,9 +369,9 @@ export const ScheduleSuggestionPanel = ({
         },
         removeDuplicates: true,
         shuffle: true,
+        submissionId,
       }
 
-      // Call the existing schedule creation endpoint
       const res = await fetch("/api/soundcloud/influenceplanner/schedule", {
         method: "POST",
         headers: {
@@ -388,33 +389,22 @@ export const ScheduleSuggestionPanel = ({
       const result = await res.json()
       const scheduleUrls: string[] = result.body?.data || []
 
-      // Store schedule URLs and update submission record
       const updatePayload: Record<string, any> = {
-        support_date: selectedSlot,
-        date_is_override: slotOverridden,
-        channel_is_override: channelsOverridden,
+        start_date: selectedSlot,
         ip_schedule_urls: scheduleUrls,
         ip_schedule_id: scheduleUrls[0]?.split("/").pop() || null,
-        suggested_dates: JSON.stringify(slotSuggestions.slice(0, 5)),
-        selected_channels: Array.from(selectedChannels),
-        status: "active",
+        status: "Active",
         updated_at: new Date().toISOString(),
       }
 
-      if (slotOverridden) {
-        updatePayload.date_override_reason = "Manual date selection during scheduling"
-        updatePayload.date_override_at = new Date().toISOString()
-      }
-
-      if (channelsOverridden) {
-        updatePayload.channel_override_reason = "Manual channel selection during scheduling"
-        updatePayload.channel_override_at = new Date().toISOString()
-      }
-
-      await supabase
-        .from("soundcloud_submissions")
+      const { error: updateError } = await supabase
+        .from("soundcloud_campaigns")
         .update(updatePayload)
         .eq("id", submissionId)
+
+      if (updateError) {
+        console.error("Failed to update campaign record:", updateError)
+      }
 
       toast({
         title: "Schedule Created",
@@ -646,6 +636,18 @@ export const ScheduleSuggestionPanel = ({
             )}
           </div>
 
+          {!loadingChannels && channelSuggestions.length > 0 && (
+            <div className="relative mb-3">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search channels..."
+                value={channelSearch}
+                onChange={(e) => setChannelSearch(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+          )}
+
           {loadingChannels ? (
             <div className="space-y-3 py-4">
               <div className="flex items-center justify-between text-sm">
@@ -680,9 +682,20 @@ export const ScheduleSuggestionPanel = ({
                 />
               </div>
             </div>
-          ) : (
+          ) : (() => {
+            const filteredChannels = channelSearch.trim()
+              ? channelSuggestions.filter((ch) =>
+                  ch.name.toLowerCase().includes(channelSearch.toLowerCase())
+                )
+              : channelSuggestions
+            return (
             <div className="space-y-1 max-h-64 overflow-y-auto">
-              {channelSuggestions.map((channel) => (
+              {channelSearch.trim() && (
+                <div className="text-xs text-muted-foreground mb-2">
+                  {filteredChannels.length} of {channelSuggestions.length} channels shown
+                </div>
+              )}
+              {filteredChannels.map((channel) => (
                 <div
                   key={channel.user_id}
                   className={cn(
@@ -733,13 +746,19 @@ export const ScheduleSuggestionPanel = ({
                 </div>
               ))}
 
-              {channelSuggestions.length === 0 && (
+              {filteredChannels.length === 0 && channelSearch.trim() && (
+                <div className="text-center py-4 text-sm text-muted-foreground">
+                  No channels matching &ldquo;{channelSearch}&rdquo;
+                </div>
+              )}
+              {channelSuggestions.length === 0 && !channelSearch.trim() && (
                 <div className="text-center py-4 text-sm text-muted-foreground">
                   No channels available. Check Influence Planner connection.
                 </div>
               )}
             </div>
-          )}
+            )
+          })()}
 
           {channelsOverridden && (
             <div className="flex items-center gap-2 mt-2 p-2 bg-amber-50 border border-amber-200 rounded-md">

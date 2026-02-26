@@ -5,6 +5,7 @@ import { supabase } from '../integrations/supabase/client';
 import { useToast } from '../hooks/use-toast';
 import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_SOURCE_INTAKE, APP_CAMPAIGN_TYPE } from '../lib/constants';
 import { notifyOpsStatusChange } from '@/lib/status-notify';
+import { notifySlack } from '@/lib/slack-notify';
 
 interface CampaignSubmission {
   id: string;
@@ -536,6 +537,10 @@ export function useApproveCampaignSubmission() {
         campaignId: submissionId,
         status: 'ready',
       });
+      notifySlack("spotify", "submission_status_change", {
+        submissionId,
+        status: 'ready',
+      });
       return submission;
     },
     onSuccess: () => {
@@ -594,6 +599,10 @@ export function useRejectCampaignSubmission() {
       await notifyOpsStatusChange({
         service: 'spotify',
         campaignId: submissionId,
+        status: 'on_hold',
+      });
+      notifySlack("spotify", "submission_status_change", {
+        submissionId,
         status: 'on_hold',
       });
     },

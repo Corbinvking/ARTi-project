@@ -23,6 +23,7 @@ import { saveOverride } from "@/lib/overrides";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useInstagramCampaignMutations } from "../seedstorm-builder/hooks/useInstagramCampaignMutations";
 import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -488,6 +489,13 @@ export default function InstagramCampaignsPage() {
       await notifyOpsStatusChange({
         service: "instagram",
         campaignId: String(selectedCampaign?.id || ''),
+        status: nextStatus,
+        previousStatus,
+        actorEmail: user?.email || null,
+      });
+      notifySlack("instagram", "campaign_status_change", {
+        campaignId: String(selectedCampaign?.id || ''),
+        campaignName: selectedCampaign?.campaign_name || '',
         status: nextStatus,
         previousStatus,
         actorEmail: user?.email || null,

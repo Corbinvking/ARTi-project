@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { useAuth } from "../../contexts/AuthContext";
 import { RatioFixerModal } from "../campaigns/RatioFixerModal";
 import { CampaignSettingsModal } from "../campaigns/CampaignSettingsModal";
@@ -109,6 +110,13 @@ export const CampaignTable = ({ onConfigureTable }: CampaignTableProps) => {
     await notifyOpsStatusChange({
       service: "youtube",
       campaignId,
+      status: newStatus,
+      previousStatus: previousStatus || null,
+      actorEmail: user?.email || null,
+    });
+    notifySlack("youtube", "campaign_status_change", {
+      campaignId,
+      campaignName: campaigns.find(c => c.id === campaignId)?.campaign_name || campaignId,
       status: newStatus,
       previousStatus: previousStatus || null,
       actorEmail: user?.email || null,

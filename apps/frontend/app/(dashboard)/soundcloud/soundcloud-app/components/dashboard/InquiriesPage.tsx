@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '../../integrations/supabase/client';
 import { useToast } from '../../hooks/use-toast';
 import { format } from 'date-fns';
+import { notifySlack } from '@/lib/slack-notify';
 
 interface Inquiry {
   id: string;
@@ -138,6 +139,13 @@ export const InquiriesPage: React.FC = () => {
         } catch (emailError) {
           console.error('Email function call failed:', emailError);
         }
+
+        notifySlack("soundcloud", "inquiry_status_change", {
+          name: selectedInquiry.name,
+          email: selectedInquiry.email,
+          status,
+          admittedGroup: admittedGroup || undefined,
+        });
       }
 
       toast({

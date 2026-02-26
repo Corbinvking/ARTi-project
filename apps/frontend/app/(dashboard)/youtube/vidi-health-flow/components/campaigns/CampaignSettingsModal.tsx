@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { notifyOpsStatusChange, notifyScraperCommentsNeeded } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { supabase } from "../../integrations/supabase/client";
 import { useAuth } from "../../contexts/AuthContext";
 import { RatioFixerContent } from "./RatioFixerContent";
@@ -605,6 +606,13 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
           previousStatus: previousStatus || null,
           actorEmail: user?.email || null,
         });
+        notifySlack("youtube", "campaign_status_change", {
+          campaignId: campaign.id,
+          campaignName: formData.campaign_name,
+          status: updateData.status,
+          previousStatus: previousStatus || null,
+          actorEmail: user?.email || null,
+        });
         
         // Notify comment scraper when campaign is marked as ready and needs comments
         if (updateData.status === 'ready' && !formData.comments_sheet_url && !formData.comments_csv_file_path) {
@@ -703,6 +711,13 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
       await notifyOpsStatusChange({
         service: "youtube",
         campaignId: campaign.id,
+        status: updateData.status,
+        previousStatus: previousStatus || null,
+        actorEmail: user?.email || null,
+      });
+      notifySlack("youtube", "campaign_status_change", {
+        campaignId: campaign.id,
+        campaignName: formData.campaign_name,
         status: updateData.status,
         previousStatus: previousStatus || null,
         actorEmail: user?.email || null,

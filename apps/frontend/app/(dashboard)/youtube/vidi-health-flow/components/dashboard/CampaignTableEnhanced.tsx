@@ -70,6 +70,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { useAuth } from "../../contexts/AuthContext";
 import { CampaignSettingsModal } from "../campaigns/CampaignSettingsModal";
 import { getApiUrl } from "../../lib/getApiUrl";
@@ -831,6 +832,13 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                             await notifyOpsStatusChange({
                               service: "youtube",
                               campaignId: campaign.id,
+                              status: value,
+                              previousStatus,
+                              actorEmail: user?.email || null,
+                            });
+                            notifySlack("youtube", "campaign_status_change", {
+                              campaignId: campaign.id,
+                              campaignName: campaign.campaign_name,
                               status: value,
                               previousStatus,
                               actorEmail: user?.email || null,

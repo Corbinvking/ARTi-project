@@ -3,19 +3,15 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { supabase } from "../../integrations/supabase/client";
 import { useToast } from "../../hooks/use-toast";
-import { useWeeklyCampaignReports } from "../../hooks/useWeeklyCampaignReports";
 import { ReceiptLinksManager } from "./ReceiptLinksManager";
 import { ScheduleSuggestionPanel } from "./ScheduleSuggestionPanel";
-import { Mail, TrendingUp, TrendingDown, ExternalLink, BarChart3 } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { formatFollowerCount } from "../../utils/creditCalculations";
 import { useAuth } from "@/hooks/use-auth";
 import { OverrideField } from "@/components/overrides/OverrideField";
@@ -35,7 +31,6 @@ interface Campaign {
   source_invoice_id?: string;
   start_date: string;
   submission_date: string;
-  weekly_reporting_enabled?: boolean;
   notes: string;
   internal_notes?: string;
   client_notes?: string;
@@ -53,8 +48,6 @@ interface CampaignDetailModalProps {
 }
 
 export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdate }: CampaignDetailModalProps) {
-  const [weeklyReporting, setWeeklyReporting] = useState(campaign?.weekly_reporting_enabled || false);
-  const [sendingReport, setSendingReport] = useState(false);
   const [totalReceiptsReach, setTotalReceiptsReach] = useState(0);
   const [internalNotes, setInternalNotes] = useState(campaign?.internal_notes || campaign?.notes || '');
   const [clientNotes, setClientNotes] = useState(campaign?.client_notes || '');
@@ -62,7 +55,6 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
   const [suggestedInternalNotes, setSuggestedInternalNotes] = useState(campaign?.internal_notes || campaign?.notes || '');
   const [suggestedClientNotes, setSuggestedClientNotes] = useState(campaign?.client_notes || '');
   const { toast } = useToast();
-  const { fetchCampaignWeeklyReport } = useWeeklyCampaignReports();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -180,59 +172,6 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
     }
   };
 
-  const handleToggleWeeklyReporting = async (enabled: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('soundcloud_campaigns')
-        .update({ weekly_reporting_enabled: enabled })
-        .eq('id', campaign.id);
-
-      if (error) throw error;
-
-      setWeeklyReporting(enabled);
-      onCampaignUpdate();
-      
-      toast({
-        title: "Success",
-        description: `Weekly reporting ${enabled ? 'enabled' : 'disabled'} for ${campaign.track_name}`,
-      });
-    } catch (error) {
-      console.error('Error updating weekly reporting:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update weekly reporting setting",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSendWeeklyReport = async () => {
-    setSendingReport(true);
-    try {
-      // Get the current week's report data
-      const currentWeek = new Date();
-      const reportData = await fetchCampaignWeeklyReport(campaign.id, currentWeek);
-      
-      // Here you would implement the actual email sending logic
-      // For now, we'll simulate sending
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Report Sent",
-        description: `Weekly report sent to ${campaign.client.email}`,
-      });
-    } catch (error) {
-      console.error('Error sending report:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send weekly report",
-        variant: "destructive",
-      });
-    } finally {
-      setSendingReport(false);
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-500 text-white';
@@ -251,6 +190,25 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
 
   const handleReachUpdate = (newTotalReach: number) => {
     setTotalReceiptsReach(newTotalReach);
+  };
+
+  const handleReachChanged = async (newTotalReach: number) => {
+    if (!campaign || !campaign.goals || campaign.goals <= 0) return;
+
+    const newRemaining = Math.max(0, campaign.goals - newTotalReach);
+    const remainingStr = String(newRemaining);
+
+    try {
+      await supabase
+        .from('soundcloud_campaigns')
+        .update({
+          remaining: remainingStr,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', campaign.id);
+    } catch (err) {
+      console.error('Failed to auto-update remaining:', err);
+    }
   };
 
   // Mock streaming data for visualization
@@ -326,6 +284,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
           <ReceiptLinksManager 
             campaignId={campaign.id}
             onReachUpdate={handleReachUpdate}
+            onReachChanged={handleReachChanged}
           />
 
           {/* Influence Planner Scheduling - only show for paid campaigns that aren't yet complete */}
@@ -397,29 +356,35 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
                   <Line 
                     type="monotone" 
                     dataKey="plays" 
-                    stroke="hsl(var(--primary))" 
+                    stroke="#22c55e"
                     strokeWidth={2} 
                     name="Plays"
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="likes" 
-                    stroke="hsl(var(--secondary))" 
+                    stroke="#3b82f6"
                     strokeWidth={2} 
                     name="Likes"
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="reposts" 
-                    stroke="hsl(var(--accent))" 
+                    stroke="#f97316"
                     strokeWidth={2} 
                     name="Reposts"
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">2,850</p>
+                  <p className="text-2xl font-bold text-green-500">2,850</p>
                   <p className="text-sm text-muted-foreground">Total Plays</p>
                   <div className="flex items-center justify-center gap-1 mt-1">
                     <TrendingUp className="h-3 w-3 text-green-500" />
@@ -427,7 +392,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
                   </div>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-secondary">215</p>
+                  <p className="text-2xl font-bold text-blue-500">215</p>
                   <p className="text-sm text-muted-foreground">Total Likes</p>
                   <div className="flex items-center justify-center gap-1 mt-1">
                     <TrendingUp className="h-3 w-3 text-green-500" />
@@ -435,7 +400,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
                   </div>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-accent">38</p>
+                  <p className="text-2xl font-bold text-orange-500">38</p>
                   <p className="text-sm text-muted-foreground">Total Reposts</p>
                   <div className="flex items-center justify-center gap-1 mt-1">
                     <TrendingUp className="h-3 w-3 text-green-500" />
@@ -446,50 +411,6 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
             </CardContent>
           </Card>
 
-          {/* Weekly Reporting Controls */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                Weekly Reporting
-              </CardTitle>
-              <CardDescription>
-                Automatically generate and send weekly reports to the client
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="font-medium">Enable Weekly Reports</p>
-                  <p className="text-sm text-muted-foreground">
-                    Reports will be sent to {campaign.client.email}
-                  </p>
-                </div>
-                <Switch
-                  checked={weeklyReporting}
-                  onCheckedChange={handleToggleWeeklyReporting}
-                />
-              </div>
-              
-              {weeklyReporting && (
-                <div className="mt-6 pt-4 border-t">
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" />
-                      Report Preview - What will be sent to client:
-                    </h4>
-                  </div>
-                  <Button 
-                    onClick={handleSendWeeklyReport}
-                    disabled={sendingReport}
-                    className="w-full"
-                  >
-                    {sendingReport ? "Sending Report..." : "Send Weekly Report Now"}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </DialogContent>
     </Dialog>
