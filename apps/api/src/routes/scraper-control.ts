@@ -190,7 +190,7 @@ export async function scraperControlRoutes(server: FastifyInstance) {
       const cronSchedule = '0 2 * * * (Daily at 2 AM UTC)';
 
       // Read session keepalive status
-      let keepalive: {
+      const keepalive: {
         sessionActive: boolean;
         sessionExpiredAt: string | null;
         lastKeepaliveAt: string | null;
