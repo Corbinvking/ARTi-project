@@ -26,6 +26,8 @@ import { TagSelectDropdown } from "../components/TagSelectDropdown";
 import { MultiGenreSelect } from "../components/MultiGenreSelect";
 import { CampaignSuccessPredictor } from "../components/CampaignSuccessPredictor";
 import { SmartRecommendations } from "../components/SmartRecommendations";
+import { NicheCreatorSuggestions } from "../components/NicheCreatorSuggestions";
+import { useNicheCreatorSuggestions } from "../hooks/useNicheCreatorSuggestions";
 
 const CampaignBuilder = () => {
   const router = useRouter();
@@ -60,6 +62,11 @@ const CampaignBuilder = () => {
   // Page selection approval state
   const [pageSelectionApproved, setPageSelectionApproved] = useState(false);
   const [doNotUsePages, setDoNotUsePages] = useState<string[]>([]);
+
+  const { suggestions: nicheSuggestions, totalMatchingCreators } = useNicheCreatorSuggestions({
+    selectedNiches: formData.selected_genres,
+    creators,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -682,6 +689,15 @@ const CampaignBuilder = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Niche Creator Suggestions */}
+              {formData.selected_genres.length > 0 && (
+                <NicheCreatorSuggestions
+                  suggestions={nicheSuggestions}
+                  totalMatchingCreators={totalMatchingCreators}
+                  selectedNiches={formData.selected_genres}
+                />
+              )}
 
               {/* Post Type Preference */}
               <div className="space-y-3">

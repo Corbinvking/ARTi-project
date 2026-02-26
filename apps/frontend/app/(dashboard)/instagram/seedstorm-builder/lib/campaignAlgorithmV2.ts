@@ -104,6 +104,9 @@ export function generateCampaignV2(
   const minEngagement = formData.min_engagement_rate || 0;
 
   // --- Phase 0: Eligibility ---
+  // Only hard-filter on genre match. Soft factors (median_views, engagement_rate,
+  // content_types, territory) influence ranking instead of gating eligibility so
+  // that creators with incomplete data still appear for manual selection.
   const eligible = allCreators.filter(c => {
     if (selectedGenres.length > 0) {
       const hasGenre = c.music_genres.some(g =>
@@ -112,13 +115,7 @@ export function generateCampaignV2(
       if (!hasGenre) return false;
     }
 
-    const hasStandardTypes = c.content_types.some(t => t.toLowerCase().includes('audio') || t.toLowerCase().includes('footage'));
-    if (hasStandardTypes) {
-      if (campaignType === 'Audio Seeding' && !c.content_types.some(t => t.toLowerCase().includes('audio'))) return false;
-      if (campaignType === 'Footage Seeding' && !c.content_types.some(t => t.toLowerCase().includes('footage'))) return false;
-    }
-
-    if (contentTypePrefs.length > 0) {
+    if (contentTypePrefs.length > 0 && c.content_types.length > 0) {
       const hasType = c.content_types.some(t => contentTypePrefs.some(cp => t.toLowerCase().includes(cp.toLowerCase())));
       if (!hasType) return false;
     }
@@ -128,15 +125,13 @@ export function generateCampaignV2(
         const pNorm = p.replace(' Primary', '').replace(' Focus', '').replace(' Audience', '').trim();
         return c.audience_territory === pNorm || c.audience_territory.toLowerCase().includes(pNorm.toLowerCase());
       });
-      const isGlobalOk = c.audience_territory === 'Global' && (c.audience_territory_confidence === 'High' || c.audience_territory_confidence === 'Med');
+      const isGlobalOk = c.audience_territory === 'Global' || c.audience_territory === 'Unknown';
       if (!tMatch && !isGlobalOk) return false;
     }
 
-    if (minMedianViews > 0 && (c.median_views == null || c.median_views < minMedianViews)) return false;
-    if (minEngagement > 0 && c.engagement_rate < minEngagement / 100) return false;
+    if (minMedianViews > 0 && c.median_views != null && c.median_views < minMedianViews) return false;
+    if (minEngagement > 0 && c.engagement_rate > 0 && c.engagement_rate < minEngagement / 100) return false;
 
-    if (c.followers <= 0 || c.engagement_rate <= 0) return false;
-    if (c.median_views == null || c.median_views <= 0) return false;
     if (c.reel_rate <= 0) return false;
 
     return true;
@@ -144,12 +139,21 @@ export function generateCampaignV2(
 
   // --- Phase 1: Predicted Views ---
   const allEngagementRates = allCreators.filter(c => c.engagement_rate > 0).map(c => c.engagement_rate);
-  const erBaseline = medianOf(allEngagementRates);
+  const erBaseline = medianOf(allEngagementRates) || 0.03;
+
+  const allMedianViews = allCreators.filter(c => c.median_views != null && c.median_views > 0).map(c => c.median_views!);
+  const globalMedianViews = medianOf(allMedianViews) || 5000;
 
   const withPredictions: CreatorWithPredictions[] = eligible.map(c => {
+    const effectiveMedianViews = (c.median_views != null && c.median_views > 0)
+      ? c.median_views
+      : (c.followers > 0 ? Math.round(c.followers * 0.02) : globalMedianViews);
+
+    const effectiveEngagement = c.engagement_rate > 0 ? c.engagement_rate : erBaseline;
+
     const pv = computePredictedViews(
-      c.median_views!,
-      c.engagement_rate,
+      effectiveMedianViews,
+      effectiveEngagement,
       erBaseline,
       c.audience_territory,
       c.audience_territory_confidence,
@@ -160,6 +164,7 @@ export function generateCampaignV2(
     const cp1k = pv > 0 ? (c.reel_rate / (pv / 1000)) : null;
     return {
       ...c,
+      median_views: c.median_views ?? effectiveMedianViews,
       predicted_views_per_post: pv,
       predicted_views_total: pv,
       cp1k_predicted: cp1k,
@@ -280,9 +285,20 @@ export function generateCampaignV2(
     budget_utilization: budget > 0 ? Math.round((totalCost / budget) * 1000) / 10 : 0,
   };
 
-  const insight = finalSelected.length > 0
-    ? `Optimized for lowest CP1K while meeting niche + territory filters. ${finalSelected.length} creators selected, ${totalPosts} posts, $${avgCp1k.toFixed(2)} avg CP1K.`
-    : 'No eligible creators matched the campaign criteria. Try broadening niche, territory, or guardrail filters.';
+  let insight: string;
+  if (finalSelected.length > 0) {
+    insight = `Optimized for lowest CP1K while meeting niche + territory filters. ${finalSelected.length} creators selected, ${totalPosts} posts, $${avgCp1k.toFixed(2)} avg CP1K.`;
+  } else if (afterCp1kFilter.length > 0) {
+    insight = `${afterCp1kFilter.length} eligible creators found but none fit within the $${budget.toLocaleString()} budget. Try increasing budget or toggle creators manually.`;
+  } else if (eligible.length > 0) {
+    insight = `${eligible.length} creators matched your niches but were filtered out by the CP1K guardrail ($${maxCp1k}). Try removing or increasing the Max CP1K target.`;
+  } else if (allCreators.length > 0) {
+    const creatorsWithGenres = allCreators.filter(c => c.music_genres.length > 0);
+    const creatorsWithRate = allCreators.filter(c => c.reel_rate > 0);
+    insight = `No creators matched the selected niches. ${allCreators.length} total creators in database (${creatorsWithGenres.length} have niches assigned, ${creatorsWithRate.length} have rates). Try broadening niche selection or ensure creators have niches assigned.`;
+  } else {
+    insight = 'No creators found in the database. Add creators first before building a campaign.';
+  }
 
   return {
     selectedCreators: finalSelected,
