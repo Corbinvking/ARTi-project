@@ -6,14 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import {
-  Search, Plus, Upload, Download, RefreshCw, ArrowUpDown, Loader2, Edit, ChevronDown, ChevronUp, X, Trash2
+  Search, Plus, Upload, Download, RefreshCw, ArrowUpDown, Loader2, Edit, ChevronDown, ChevronUp, X, Trash2, ExternalLink
 } from "lucide-react";
 import { supabase } from "@/lib/auth";
 import { useAuth } from "@/hooks/use-auth";
@@ -86,6 +86,7 @@ export default function InstagramCreatorsPage() {
   const [refreshingHandle, setRefreshingHandle] = useState<string | null>(null);
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState<{ current: number; total: number } | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -190,6 +191,7 @@ export default function InstagramCreatorsPage() {
     try {
       const { error } = await supabase.from("creators").insert({
         instagram_handle: handle,
+        profile_url: `https://instagram.com/${handle}`,
         email: addForm.email || null,
         reel_rate: Number(addForm.reel_rate) || 0,
         music_genres: addForm.genres.length > 0 ? addForm.genres : ['General'],
@@ -275,19 +277,84 @@ export default function InstagramCreatorsPage() {
   const handleImportCSV = (file: File) => {
     setImporting(true);
     setImportProgress(null);
+
+    const extractHandle = (raw: string): string => {
+      if (!raw) return "";
+      let val = raw.trim();
+      // Strip spreadsheet HYPERLINK formulas: =HYPERLINK("url","label")
+      const hMatch = val.match(/=HYPERLINK\([^,]+,\s*"?([^")\s]+)"?\)/i);
+      if (hMatch) val = hMatch[1];
+      // Strip URLs — keep only the last path segment
+      if (val.startsWith("http")) {
+        const parts = val.replace(/\/+$/, "").split("/");
+        val = parts[parts.length - 1] || "";
+      }
+      return val.replace(/^@/, "").trim();
+    };
+
+    const parseDollar = (raw: string): number => {
+      if (!raw) return 0;
+      return parseFloat(String(raw).replace(/[$,\s]/g, "")) || 0;
+    };
+
+    const HANDLE_KEYS = ['handle', 'instagram_handle', 'Handle', 'Instagram', 'Instagram Handle', 'username', 'Page Name', 'page name', 'Page name', 'page_name'];
+    const RATE_KEYS = ['reel_rate', 'rate_per_reel', 'Rate', 'Price Per Posts', 'Price Per Post', 'price_per_post', 'price', 'Price'];
+    const GENRE_KEYS = ['genres', 'music_genres', 'Music_Genres', 'niches', 'Niches', 'Genre // Niche', 'Genre', 'genre', 'Niche'];
+    const EMAIL_KEYS = ['email', 'Email', 'EMAIL'];
+    const COUNTRY_KEYS = ['country', 'base_country', 'Country'];
+    const CONTENT_TYPE_KEYS = ['content_types', 'content_type', 'Content_Types'];
+    const FOLLOWERS_KEYS = ['followers', 'Followers'];
+    const VIEWS_KEYS = ['median_views', 'median_views_per_video', 'avg_views'];
+
+    const pick = (row: any, keys: string[]): string => {
+      for (const k of keys) {
+        if (row[k] != null && String(row[k]).trim() !== "") return String(row[k]).trim();
+      }
+      return "";
+    };
+
     Papa.parse(file, {
-      header: true,
+      header: false,
       skipEmptyLines: true,
       complete: async (results) => {
         try {
-          const rows = results.data as any[];
-          const validRows = rows.filter((row) => {
-            const handle = (row.handle || row.instagram_handle || row.Handle || row.Instagram || row['Instagram Handle'] || row.username || "").replace(/^@/, "").trim();
-            return !!handle;
+          const rawRows = results.data as string[][];
+
+          // Find the header row: first row with >=2 non-empty cells
+          let headerIdx = -1;
+          for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
+            const nonEmpty = rawRows[i].filter((c) => c && c.trim()).length;
+            if (nonEmpty >= 2) { headerIdx = i; break; }
+          }
+          if (headerIdx === -1) {
+            toast({ title: "No valid headers", description: "Could not find a header row in the CSV.", variant: "destructive" });
+            setImporting(false);
+            return;
+          }
+
+          const headers = rawRows[headerIdx].map((h) => h.trim());
+          const dataRows: Record<string, string>[] = [];
+          for (let i = headerIdx + 1; i < rawRows.length; i++) {
+            const row: Record<string, string> = {};
+            let hasContent = false;
+            headers.forEach((h, ci) => {
+              const val = rawRows[i]?.[ci] ?? "";
+              row[h] = val;
+              if (val.trim()) hasContent = true;
+            });
+            if (hasContent) dataRows.push(row);
+          }
+
+          const validRows = dataRows.filter((row) => {
+            const raw = pick(row, HANDLE_KEYS);
+            const handle = extractHandle(raw);
+            // Skip footer/total rows
+            if (!handle || /^total/i.test(handle)) return false;
+            return true;
           });
 
           if (validRows.length === 0) {
-            toast({ title: "No valid rows", description: "CSV must have a 'handle' or 'instagram_handle' column with data.", variant: "destructive" });
+            toast({ title: "No valid rows", description: "CSV must have a 'handle', 'instagram_handle', or 'Page Name' column with data.", variant: "destructive" });
             setImporting(false);
             return;
           }
@@ -300,22 +367,23 @@ export default function InstagramCreatorsPage() {
 
           for (let i = 0; i < validRows.length; i++) {
             const row = validRows[i];
-            const handle = (row.handle || row.instagram_handle || row.Handle || row.Instagram || row['Instagram Handle'] || row.username || "").replace(/^@/, "").trim();
+            const handle = extractHandle(pick(row, HANDLE_KEYS));
 
-            const genres = (row.genres || row.music_genres || row.Music_Genres || row.niches || row.Niches || "")
+            const genres = pick(row, GENRE_KEYS)
               .split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean);
-            const contentTypes = (row.content_types || row.content_type || row.Content_Types || "")
+            const contentTypes = pick(row, CONTENT_TYPE_KEYS)
               .split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean);
 
             const { error } = await supabase.from("creators").upsert({
               instagram_handle: handle,
-              email: row.email || row.Email || null,
-              reel_rate: Number(row.reel_rate || row.rate_per_reel || row.Rate || 0),
+              profile_url: `https://instagram.com/${handle}`,
+              email: pick(row, EMAIL_KEYS) || null,
+              reel_rate: parseDollar(pick(row, RATE_KEYS)),
               music_genres: genres.length > 0 ? genres : ['General'],
               content_types: contentTypes.length > 0 ? contentTypes : ['Audio Seeding'],
-              base_country: row.country || row.base_country || row.Country || "",
-              followers: Number(row.followers || row.Followers || 0),
-              median_views_per_video: Number(row.median_views || row.median_views_per_video || row.avg_views || 0),
+              base_country: pick(row, COUNTRY_KEYS),
+              followers: Number(pick(row, FOLLOWERS_KEYS)) || 0,
+              median_views_per_video: Number(pick(row, VIEWS_KEYS)) || 0,
               engagement_rate: 0,
               scrape_status: "pending",
               org_id: orgId,
@@ -340,6 +408,7 @@ export default function InstagramCreatorsPage() {
           }
 
           setImportOpen(false);
+          setImportFile(null);
           setImporting(false);
           setImportProgress(null);
           refetch();
@@ -528,7 +597,12 @@ export default function InstagramCreatorsPage() {
               <TableBody>
                 {filtered.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="font-medium text-sm">@{c.instagram_handle}</TableCell>
+                    <TableCell className="font-medium text-sm">
+                      <a href={c.profile_url || `https://instagram.com/${c.instagram_handle}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+                        @{c.instagram_handle}
+                        <ExternalLink className="h-3 w-3 opacity-50" />
+                      </a>
+                    </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{c.email || "—"}</TableCell>
                     <TableCell className="text-right text-sm">
                       {c.followers > 0 ? fmtNum(c.followers) : <span className="text-xs text-orange-500">Needs Refresh</span>}
@@ -643,14 +717,14 @@ export default function InstagramCreatorsPage() {
       </AlertDialog>
 
       {/* Import CSV Dialog */}
-      <Dialog open={importOpen} onOpenChange={(open) => { if (!importing) setImportOpen(open); }}>
+      <Dialog open={importOpen} onOpenChange={(open) => { if (!importing) { setImportOpen(open); if (!open) setImportFile(null); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Import Creators CSV</DialogTitle>
             <DialogDescription>{"Upload a CSV with at minimum a \"handle\" or \"instagram_handle\" column. Optional: email, niches, content_types, reel_rate, country. Metrics will be scraped automatically."}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Input type="file" accept=".csv" disabled={importing} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportCSV(f); }} />
+            <Input type="file" accept=".csv" disabled={importing} onChange={(e) => { setImportFile(e.target.files?.[0] ?? null); }} />
             {importing && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -672,6 +746,14 @@ export default function InstagramCreatorsPage() {
               </div>
             )}
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setImportOpen(false); setImportFile(null); }} disabled={importing}>
+              Cancel
+            </Button>
+            <Button onClick={() => { if (importFile) handleImportCSV(importFile); }} disabled={!importFile || importing}>
+              {importing ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Importing...</> : "Import"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

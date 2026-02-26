@@ -7,6 +7,7 @@ import { supabase } from '../integrations/supabase/client';
 export interface CreatorRow {
   id: string;
   instagram_handle: string;
+  profile_url: string;
   email: string | null;
   followers: number;
   engagement_rate: number;
@@ -130,6 +131,7 @@ export function useCreatorsTable() {
       return {
         id: c.id,
         instagram_handle: c.instagram_handle || '',
+        profile_url: c.profile_url || `https://instagram.com/${(c.instagram_handle || '').replace(/^@/, '')}`,
         email: c.email || null,
         followers: c.followers || 0,
         engagement_rate: c.engagement_rate || 0,

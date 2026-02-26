@@ -63,6 +63,20 @@ else
     log "Response: $TRACK_RESPONSE"
 fi
 
+# Check if it's Monday - if so, also run creator profile refresh
+DAY_OF_WEEK=$(date +%u)
+if [ "$DAY_OF_WEEK" = "1" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    log ""
+    log "📅 Monday detected — running weekly creator profile refresh..."
+    if command -v node >/dev/null 2>&1; then
+        node "${SCRIPT_DIR}/run_creator_refresh.js" 2>&1 | while IFS= read -r line; do log "$line"; done
+        log "✅ Creator profile refresh complete"
+    else
+        log "⚠️ Node.js not found, skipping creator refresh"
+    fi
+fi
+
 log "=========================================="
 log "Instagram Scraper Cron Job Complete"
 log "=========================================="
