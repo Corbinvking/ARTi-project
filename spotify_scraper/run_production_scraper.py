@@ -1491,7 +1491,7 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
             logger.error("Automated login is DISABLED because it triggers bot detection.")
             logger.error("Please log in manually via VNC and run the scraper again:")
             logger.error("  1. Connect to VNC: artistinfluence:99")
-            logger.error("  2. Run: cd /root/arti-marketing-ops/spotify_scraper && python3 manual_login_prod.py")
+            logger.error("  2. Run: cd /root/arti-marketing-ops/spotify_scraper && python3 manual_browser_login.py")
             logger.error("  3. Complete the login manually (including CAPTCHA if needed)")
             logger.error("  4. Run the scraper again")
             logger.error("="*60)

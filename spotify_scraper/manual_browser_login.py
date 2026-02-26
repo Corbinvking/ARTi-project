@@ -75,7 +75,35 @@ async def main():
             await asyncio.sleep(900)  # 15 minutes
         except asyncio.CancelledError:
             print()
-            print("✅ Ctrl+C detected - closing browser and saving session...")
+            print("Ctrl+C detected - verifying session and saving...")
+        
+        # Verify session before closing by hitting an authenticated route
+        session_valid = False
+        try:
+            page = context.pages[0] if context.pages else None
+            if page and not page.is_closed():
+                print()
+                print("Verifying session with /c/roster ...")
+                await page.goto('https://artists.spotify.com/c/roster', timeout=15000, wait_until='domcontentloaded')
+                await asyncio.sleep(3)
+                verify_url = page.url
+                if 'accounts.spotify.com' in verify_url or 'login' in verify_url.lower():
+                    print("❌ Session is NOT valid - you were redirected to login.")
+                    print("   Make sure you complete the full login before pressing Ctrl+C.")
+                else:
+                    session_valid = True
+                    print(f"✓ Session verified (landed on {verify_url})")
+        except Exception as e:
+            print(f"⚠️  Could not verify session: {e}")
+        
+        # Clear session_expired.flag if session is valid
+        flag_path = Path(__file__).parent / 'logs' / 'session_expired.flag'
+        if session_valid and flag_path.exists():
+            try:
+                flag_path.unlink()
+                print("✓ Cleared session_expired.flag")
+            except Exception:
+                pass
         
         # Always close browser so cookies/session are persisted (critical after Ctrl+C)
         try:
@@ -88,16 +116,24 @@ async def main():
             pass
         
         print()
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print("✅ SESSION SAVED!")
-        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        print()
-        print("🧪 Test the scraper:")
-        print("   cd /root/arti-marketing-ops/spotify_scraper")
-        print("   bash run_production_scraper.sh")
-        print()
-        print("Expected output:")
-        print('   ✓ Existing session found! Already logged in.')
+        if session_valid:
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print("✅ SESSION SAVED AND VERIFIED!")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print()
+            print("🧪 Run the scraper:")
+            print("   cd /root/arti-marketing-ops/spotify_scraper")
+            print("   bash run_production_scraper.sh")
+            print()
+            print("Expected output:")
+            print('   ✓ Existing session found! Already logged in.')
+        else:
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print("⚠️  SESSION SAVED BUT NOT VERIFIED")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print()
+            print("The browser session was saved, but login could not be confirmed.")
+            print("Please re-run this script and complete the Spotify login before pressing Ctrl+C.")
         print()
         
     except Exception as e:
