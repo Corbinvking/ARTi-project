@@ -34,7 +34,8 @@ export interface DashboardMetrics {
 
 function getPrice(row: Record<string, unknown>): number {
   const v = row.sale_price ?? row.sales_price ?? row.price_usd ?? 0;
-  return typeof v === 'number' ? v : parseFloat(String(v)) || 0;
+  if (typeof v === 'number') return v;
+  return parseFloat(String(v).replace(/[$,]/g, '')) || 0;
 }
 
 async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
