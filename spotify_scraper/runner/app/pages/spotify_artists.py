@@ -29,6 +29,8 @@ class SpotifyArtistsPage:
         base_url = re.sub(r'/(stats|playlists|source-of-stream|location)$', '', url)
         if target_tab == 'playlists':
             url = base_url + '/playlists'
+        elif target_tab == 'location':
+            url = base_url + '/location'
         else:
             url = base_url + '/stats'
         
@@ -489,6 +491,8 @@ class SpotifyArtistsPage:
             await self.page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
             await asyncio.sleep(1)
 
+            await asyncio.sleep(2)
+
             rows = await self.page.query_selector_all('[data-testid="sort-table-body-row"]')
             if not rows:
                 rows = await self.page.query_selector_all('tbody tr')
@@ -499,25 +503,53 @@ class SpotifyArtistsPage:
 
             print(f"  Found {len(rows)} country rows")
 
+            # Diagnostic: log first row structure
+            if rows:
+                first_cells = await rows[0].query_selector_all('td')
+                if not first_cells:
+                    first_cells = await rows[0].query_selector_all('[role="cell"], > div')
+                cell_texts = []
+                for c in (first_cells or []):
+                    cell_texts.append((await c.text_content() or '').strip())
+                print(f"  First row cells ({len(first_cells or [])}): {cell_texts}")
+
             for row in rows:
                 try:
                     cells = await row.query_selector_all('td')
-                    if not cells or len(cells) < 3:
+                    if not cells or len(cells) < 2:
                         cells = await row.query_selector_all('[role="cell"], > div')
 
-                    if len(cells) >= 3:
-                        rank_text = (await cells[0].text_content() or '').strip()
-                        country = (await cells[1].text_content() or '').strip()
-                        streams_text = (await cells[2].text_content() or '').strip()
+                    cell_values = []
+                    for c in (cells or []):
+                        cell_values.append((await c.text_content() or '').strip())
 
-                        streams_cleaned = re.sub(r'[^\d]', '', streams_text) or '0'
+                    # Determine which cells are rank, country, and streams
+                    # by analyzing content: numbers-only = rank or streams, text = country
+                    rank_val = len(countries) + 1
+                    country_val = ''
+                    streams_val = 0
 
-                        if country and country != '\u2014':
-                            countries.append({
-                                'rank': int(rank_text) if rank_text.isdigit() else len(countries) + 1,
-                                'country': country,
-                                'streams': int(streams_cleaned),
-                            })
+                    if len(cell_values) >= 3:
+                        rank_val = int(cell_values[0]) if cell_values[0].isdigit() else len(countries) + 1
+                        country_val = cell_values[1]
+                        streams_val = int(re.sub(r'[^\d]', '', cell_values[2]) or '0')
+                    elif len(cell_values) == 2:
+                        # Two-column layout: country and streams
+                        country_val = cell_values[0]
+                        streams_val = int(re.sub(r'[^\d]', '', cell_values[1]) or '0')
+
+                    # Skip if country looks like a number (wrong data) or is empty
+                    if not country_val or country_val == '\u2014':
+                        continue
+                    # If country is purely numeric, it's not a country name
+                    if re.match(r'^[\d,. ]+$', country_val):
+                        continue
+
+                    countries.append({
+                        'rank': rank_val,
+                        'country': country_val,
+                        'streams': streams_val,
+                    })
                 except Exception as e:
                     print(f"  Error extracting country row: {e}")
                     continue

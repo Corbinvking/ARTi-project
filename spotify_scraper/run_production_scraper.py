@@ -1350,16 +1350,28 @@ async def save_regions_history(campaign_id, region_records, headers):
         if not history_entries:
             return
 
-        # Upsert to avoid duplicates if run multiple times in a day
         upsert_url = f"{SUPABASE_URL}/rest/v1/campaign_regions_history"
-        upsert_headers = {**headers, 'Prefer': 'resolution=merge-duplicates'}
+        upsert_headers = {
+            **headers,
+            'Prefer': 'resolution=merge-duplicates',
+        }
+        upsert_params = {
+            'on_conflict': 'campaign_id,country,date_recorded',
+        }
 
-        response = requests.post(upsert_url, headers=upsert_headers, json=history_entries)
+        # Batch in chunks to avoid oversized payloads
+        batch_size = 50
+        saved = 0
+        for i in range(0, len(history_entries), batch_size):
+            batch = history_entries[i:i + batch_size]
+            response = requests.post(upsert_url, headers=upsert_headers, json=batch, params=upsert_params)
+            if response.status_code in [200, 201]:
+                saved += len(batch)
+            else:
+                logger.warning(f"[{campaign_id}] Region history batch failed: {response.status_code} - {response.text[:200]}")
 
-        if response.status_code in [200, 201]:
-            logger.info(f"[{campaign_id}] ✓ Saved {len(history_entries)} region history entries for {today}")
-        else:
-            logger.warning(f"[{campaign_id}] Could not save region history: {response.status_code}")
+        if saved > 0:
+            logger.info(f"[{campaign_id}] ✓ Saved {saved} region history entries for {today}")
 
     except Exception as e:
         logger.warning(f"[{campaign_id}] Error saving region history: {e}")
