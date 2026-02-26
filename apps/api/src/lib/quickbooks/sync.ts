@@ -30,6 +30,7 @@ export async function fullSyncEntity(
 
   logger.info({ connectionId, entityType }, `Starting full sync for ${entityType}`);
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const query = `SELECT * FROM ${entityType} STARTPOSITION ${startPosition} MAXRESULTS ${PAGE_SIZE}`;
 

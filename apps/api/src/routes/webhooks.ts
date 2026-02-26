@@ -69,7 +69,7 @@ export async function webhookRoutes(server: FastifyInstance) {
 
     try {
       // Sign the payload if secret is available
-      let headers: Record<string, string> = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'User-Agent': 'arti-marketing-ops-api/1.0.0',
       };

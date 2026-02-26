@@ -210,7 +210,7 @@ export async function insightsRoutes(fastify: FastifyInstance) {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${openrouter.apiKey}`,
-          'HTTP-Referer': 'https://api.artistinfluence.com',
+          'HTTP-Referer': '[REDACTED]',
           'X-Title': 'ARTi Platform API',
         },
         body: JSON.stringify({
@@ -276,7 +276,9 @@ export async function insightsRoutes(fastify: FastifyInstance) {
 
       // This would typically trigger the generate-embeddings.js script
       // For now, we'll do it synchronously (consider using a job queue in production)
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { exec } = require('child_process')
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const scriptPath = require('path').join(__dirname, '../../scripts/generate-embeddings.js')
 
       exec(`node ${scriptPath} --generate-all --content-type ${contentType}`, (error: any, stdout: string) => {

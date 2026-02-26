@@ -85,8 +85,8 @@ async function fetchVideoStats(videoId: string) {
     
     const stats = video.statistics;
     let title = video.snippet?.title || '';
-    let publishedAt = video.snippet?.publishedAt || null;
-    let duration = video.contentDetails?.duration || '';
+    const publishedAt = video.snippet?.publishedAt || null;
+    const duration = video.contentDetails?.duration || '';
 
     // Fallback: some deployments/configs have returned blank snippet/contentDetails.
     // Use YouTube oEmbed (no API key required) to fetch title reliably for public videos.

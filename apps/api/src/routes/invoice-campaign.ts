@@ -26,8 +26,8 @@ type CreateCampaignFromInvoiceBody = {
 function extractVideoId(url: string): string | null {
   try {
     const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?\/\s]+)/,
-      /youtube\.com\/shorts\/([^&?\/\s]+)/,
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/\s]+)/,
+      /youtube\.com\/shorts\/([^&?/\s]+)/,
     ];
     
     for (const pattern of patterns) {
