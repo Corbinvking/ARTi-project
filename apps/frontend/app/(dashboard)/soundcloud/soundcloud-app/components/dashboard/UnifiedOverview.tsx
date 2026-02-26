@@ -20,7 +20,6 @@ import {
   ArrowDownRight,
   CheckCircle2,
   XCircle,
-  AlertCircle,
   Clock,
 } from 'lucide-react';
 import { CampaignIntakeForm } from './CampaignIntakeForm';

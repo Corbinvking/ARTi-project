@@ -42,7 +42,6 @@ export interface OperationalDashboardData {
 }
 
 const ACTIVE_STATUSES = ["active", "in_progress", "running", "live"]
-const PAID_TYPES = ["paid", "premium", "pro"]
 const normalize = (s: string | null | undefined) => (s || "").toLowerCase().trim()
 const parseNum = (v: any) => parseFloat(String(v)) || 0
 
