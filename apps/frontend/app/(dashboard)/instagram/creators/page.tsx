@@ -86,6 +86,8 @@ export default function InstagramCreatorsPage() {
   const [refreshingHandle, setRefreshingHandle] = useState<string | null>(null);
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState<{ current: number; total: number } | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deletingCreator, setDeletingCreator] = useState(false);
 
@@ -271,40 +273,96 @@ export default function InstagramCreatorsPage() {
   };
 
   const handleImportCSV = (file: File) => {
+    setImporting(true);
+    setImportProgress(null);
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
-        const rows = results.data as any[];
-        const handles: string[] = [];
-        let inserted = 0;
-        for (const row of rows) {
-          const handle = (row.handle || row.instagram_handle || row.Handle || row.Instagram || "").replace(/^@/, "").trim();
-          if (!handle) continue;
-          const { error } = await supabase.from("creators").upsert({
-            instagram_handle: handle,
-            email: row.email || row.Email || null,
-            reel_rate: Number(row.reel_rate || row.rate_per_reel || row.Rate || 0),
-            music_genres: (row.genres || row.music_genres || "").split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean),
-            content_types: (row.content_types || row.content_type || "").split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean),
-            base_country: row.country || row.base_country || "",
-            scrape_status: "pending",
-          }, { onConflict: "instagram_handle" });
-          if (!error) {
-            handles.push(handle);
-            inserted++;
+        try {
+          const rows = results.data as any[];
+          const validRows = rows.filter((row) => {
+            const handle = (row.handle || row.instagram_handle || row.Handle || row.Instagram || row['Instagram Handle'] || row.username || "").replace(/^@/, "").trim();
+            return !!handle;
+          });
+
+          if (validRows.length === 0) {
+            toast({ title: "No valid rows", description: "CSV must have a 'handle' or 'instagram_handle' column with data.", variant: "destructive" });
+            setImporting(false);
+            return;
           }
+
+          setImportProgress({ current: 0, total: validRows.length });
+          const orgId = user?.tenantId || '00000000-0000-0000-0000-000000000001';
+          const handles: string[] = [];
+          let inserted = 0;
+          const errors: string[] = [];
+
+          for (let i = 0; i < validRows.length; i++) {
+            const row = validRows[i];
+            const handle = (row.handle || row.instagram_handle || row.Handle || row.Instagram || row['Instagram Handle'] || row.username || "").replace(/^@/, "").trim();
+
+            const genres = (row.genres || row.music_genres || row.Music_Genres || row.niches || row.Niches || "")
+              .split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean);
+            const contentTypes = (row.content_types || row.content_type || row.Content_Types || "")
+              .split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean);
+
+            const { error } = await supabase.from("creators").upsert({
+              instagram_handle: handle,
+              email: row.email || row.Email || null,
+              reel_rate: Number(row.reel_rate || row.rate_per_reel || row.Rate || 0),
+              music_genres: genres.length > 0 ? genres : ['General'],
+              content_types: contentTypes.length > 0 ? contentTypes : ['Audio Seeding'],
+              base_country: row.country || row.base_country || row.Country || "",
+              followers: Number(row.followers || row.Followers || 0),
+              median_views_per_video: Number(row.median_views || row.median_views_per_video || row.avg_views || 0),
+              engagement_rate: 0,
+              scrape_status: "pending",
+              org_id: orgId,
+            }, { onConflict: "instagram_handle" });
+
+            if (error) {
+              console.error(`CSV import error for @${handle}:`, error);
+              errors.push(`@${handle}: ${error.message}`);
+            } else {
+              handles.push(handle);
+              inserted++;
+            }
+            setImportProgress({ current: i + 1, total: validRows.length });
+          }
+
+          if (errors.length > 0 && inserted === 0) {
+            toast({ title: "Import failed", description: `All ${errors.length} rows failed. Check console for details.`, variant: "destructive" });
+          } else if (errors.length > 0) {
+            toast({ title: "Partial import", description: `${inserted} imported, ${errors.length} failed. Check console for details.` });
+          } else {
+            toast({ title: "Import complete", description: `${inserted} creators imported successfully` });
+          }
+
+          setImportOpen(false);
+          setImporting(false);
+          setImportProgress(null);
+          refetch();
+
+          if (handles.length > 0) {
+            fetch("/api/instagram-scraper/creator-refresh", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ handles: handles.slice(0, 50) }),
+            }).catch(() => {});
+          }
+        } catch (err: any) {
+          console.error("CSV import error:", err);
+          toast({ title: "Import failed", description: err?.message || "Unexpected error during import", variant: "destructive" });
+          setImporting(false);
+          setImportProgress(null);
         }
-        toast({ title: "Import complete", description: `${inserted} creators imported` });
-        setImportOpen(false);
-        refetch();
-        if (handles.length > 0) {
-          fetch("/api/instagram-scraper/creator-refresh", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ handles: handles.slice(0, 50) }),
-          }).catch(() => {});
-        }
+      },
+      error: (err: any) => {
+        console.error("CSV parse error:", err);
+        toast({ title: "CSV parse error", description: err?.message || "Failed to read CSV file", variant: "destructive" });
+        setImporting(false);
+        setImportProgress(null);
       },
     });
   };
@@ -585,14 +643,34 @@ export default function InstagramCreatorsPage() {
       </AlertDialog>
 
       {/* Import CSV Dialog */}
-      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+      <Dialog open={importOpen} onOpenChange={(open) => { if (!importing) setImportOpen(open); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Import Creators CSV</DialogTitle>
-            <DialogDescription>Upload a CSV with at minimum a "handle" column. Optional: email, niches, content_types, reel_rate. Metrics will be scraped automatically.</DialogDescription>
+            <DialogDescription>{"Upload a CSV with at minimum a \"handle\" or \"instagram_handle\" column. Optional: email, niches, content_types, reel_rate, country. Metrics will be scraped automatically."}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Input type="file" accept=".csv" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportCSV(f); }} />
+            <Input type="file" accept=".csv" disabled={importing} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImportCSV(f); }} />
+            {importing && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>
+                    {importProgress
+                      ? `Importing... ${importProgress.current} of ${importProgress.total} rows`
+                      : "Parsing CSV..."}
+                  </span>
+                </div>
+                {importProgress && (
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full transition-all duration-200"
+                      style={{ width: `${Math.round((importProgress.current / importProgress.total) * 100)}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
