@@ -700,8 +700,9 @@ async def scrape_campaign(page, spotify_page, campaign):
     
     Flow (2026 S4A UI):
       1. Navigate to /stats (Overview) page -> extract all-time streams from hero
-      2. Navigate to /playlists page
-      3. For each time range (7d, 28d, 12m): switch dropdown, extract playlist table
+      2. Stay on /stats -> click chip filters to read total streams per time range
+      3. Navigate to /playlists page -> scrape playlist table per time range
+      4. Combine: use overview totals for stream counts, playlists for breakdown
     """
     campaign_id = campaign['id']
     campaign_name = campaign['campaign']
@@ -722,58 +723,64 @@ async def scrape_campaign(page, spotify_page, campaign):
         alltime_streams = await spotify_page.get_alltime_streams()
         logger.info(f"  All-time streams: {alltime_streams:,}")
         
-        # --- Step 2: Navigate to Playlists page (full page.goto, not tab click) ---
+        # --- Step 2: Read total streams per time range from Overview page ---
+        overview_streams = {}
+        for time_range in ['7day', '28day', '12months']:
+            streams = await spotify_page.get_period_streams(time_range)
+            overview_streams[time_range] = streams
+            logger.info(f"  {time_range} total streams (overview): {streams:,}")
+        
+        # --- Step 3: Navigate to Playlists page for playlist breakdown ---
         await spotify_page.navigate_to_song(sfa_url, target_tab='playlists')
         await asyncio.sleep(2)
         
-        # --- Step 3: Scrape each available time range ---
-        # S4A playlists page offers: 7 days, 28 days, 12 months (no 24-hour option)
         song_data = {'time_ranges': {}, 'alltime_streams': alltime_streams}
         
         for time_range in ['7day', '28day', '12months']:
-            logger.info(f"  Extracting {time_range} data...")
+            logger.info(f"  Extracting {time_range} playlist data...")
             
-            # Switch time range via dropdown
             await spotify_page.switch_time_range(time_range)
             await asyncio.sleep(2)
             
-            # Get stats from the playlist table
             stats = await spotify_page.get_song_stats()
             
-            # If 0 playlists found, the dropdown switch likely failed -- retry
             if len(stats.get('playlists', [])) == 0:
                 logger.warning(f"    {time_range}: 0 playlists -- dropdown switch may have failed, retrying...")
-                # Re-navigate to playlists page and try again
                 await spotify_page.navigate_to_song(sfa_url, target_tab='playlists')
                 await asyncio.sleep(3)
                 await spotify_page.switch_time_range(time_range)
                 await asyncio.sleep(2)
                 stats = await spotify_page.get_song_stats()
             
+            # Use accurate total from overview; keep playlist detail for breakdown
+            stats['streams'] = overview_streams.get(time_range, stats.get('streams', 0))
             song_data['time_ranges'][time_range] = {'stats': stats}
             
-            streams = stats.get('streams', 0)
             playlists_count = len(stats.get('playlists', []))
-            logger.info(f"    {time_range}: {streams:,} streams, {playlists_count} playlists")
+            logger.info(f"    {time_range}: {stats['streams']:,} streams (overview), {playlists_count} playlists")
         
-        # Extract data for database update
-        # Map to existing DB fields for backward compatibility:
-        #   streams_24h  <- 7-day data (finest granularity available; S4A no longer offers 24h)
-        #   streams_7d   <- 28-day data  
-        #   streams_12m  <- 12-month data
-        #   streams_alltime <- all-time from hero stats (NEW)
+        # --- Step 4: Navigate to Location page for regional data ---
+        try:
+            await spotify_page.navigate_to_song(sfa_url, target_tab='location')
+            await asyncio.sleep(2)
+            region_data = await spotify_page.get_location_data()
+            song_data['regions'] = region_data
+            logger.info(f"  Regions: {len(region_data)} countries")
+        except Exception as e:
+            logger.warning(f"  Could not scrape location data: {e}")
+            song_data['regions'] = []
+        
         stats_7d = song_data['time_ranges']['7day']['stats']
         stats_28d = song_data['time_ranges']['28day']['stats']
         stats_12m = song_data['time_ranges']['12months']['stats']
         
-        # Store alltime_streams in the scrape_data JSON (no schema change needed)
         song_data['alltime_streams'] = alltime_streams
         
         now_iso = datetime.now(timezone.utc).isoformat()
         result = {
-            'streams_24h': stats_7d.get('streams', 0),        # Actually 7-day (finest available)
-            'streams_7d': stats_28d.get('streams', 0),         # Actually 28-day
-            'streams_12m': stats_12m.get('streams', 0),        # 12-month
+            'streams_24h': overview_streams.get('7day', 0),
+            'streams_7d': overview_streams.get('28day', 0),
+            'streams_12m': overview_streams.get('12months', 0),
             'playlists_24h_count': len(stats_7d.get('playlists', [])),
             'playlists_7d_count': len(stats_28d.get('playlists', [])),
             'playlists_12m_count': len(stats_12m.get('playlists', [])),
@@ -782,8 +789,6 @@ async def scrape_campaign(page, spotify_page, campaign):
             'scrape_data': song_data
         }
         
-        # Add streams_alltime as a top-level DB field if the column exists
-        # (will be stripped by update_campaign_in_database if column is missing)
         result['streams_alltime'] = alltime_streams
         
         return result
@@ -1275,6 +1280,91 @@ async def save_performance_entries(campaign_id, playlist_records, headers):
         logger.warning(f"[{campaign_id}] Error saving performance entries: {e}")
 
 
+async def sync_campaign_regions(campaign_id, scrape_data):
+    """Sync scraped location/region data to the campaign_regions table."""
+    headers = {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
+        'Content-Type': 'application/json'
+    }
+
+    try:
+        regions = scrape_data.get('regions', [])
+        if not regions:
+            return True
+
+        # Delete existing region records for this campaign
+        delete_url = f"{SUPABASE_URL}/rest/v1/campaign_regions"
+        delete_params = {'campaign_id': f'eq.{campaign_id}'}
+        delete_response = requests.delete(delete_url, headers=headers, params=delete_params)
+        if delete_response.status_code not in [200, 204]:
+            logger.warning(f"[{campaign_id}] Could not delete old regions: {delete_response.status_code}")
+
+        # Build records
+        region_records = []
+        for r in regions:
+            region_records.append({
+                'campaign_id': campaign_id,
+                'country': r.get('country', 'Unknown'),
+                'streams_28d': r.get('streams', 0),
+                'rank': r.get('rank'),
+            })
+
+        # Batch insert
+        insert_url = f"{SUPABASE_URL}/rest/v1/campaign_regions"
+        insert_response = requests.post(insert_url, headers=headers, json=region_records)
+
+        if insert_response.status_code not in [200, 201]:
+            logger.error(f"[{campaign_id}] Failed to sync regions: {insert_response.status_code} - {insert_response.text}")
+            return False
+
+        logger.info(f"[{campaign_id}] ✓ Synced {len(region_records)} regions")
+
+        # Save daily history snapshot
+        await save_regions_history(campaign_id, region_records, headers)
+
+        return True
+
+    except Exception as e:
+        logger.error(f"[{campaign_id}] Error syncing regions: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
+async def save_regions_history(campaign_id, region_records, headers):
+    """Save daily region snapshots to campaign_regions_history for trend tracking."""
+    try:
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+
+        history_entries = []
+        for r in region_records:
+            if r.get('streams_28d', 0) > 0:
+                history_entries.append({
+                    'campaign_id': campaign_id,
+                    'country': r['country'],
+                    'streams_28d': r['streams_28d'],
+                    'date_recorded': today,
+                })
+
+        if not history_entries:
+            return
+
+        # Upsert to avoid duplicates if run multiple times in a day
+        upsert_url = f"{SUPABASE_URL}/rest/v1/campaign_regions_history"
+        upsert_headers = {**headers, 'Prefer': 'resolution=merge-duplicates'}
+
+        response = requests.post(upsert_url, headers=upsert_headers, json=history_entries)
+
+        if response.status_code in [200, 201]:
+            logger.info(f"[{campaign_id}] ✓ Saved {len(history_entries)} region history entries for {today}")
+        else:
+            logger.warning(f"[{campaign_id}] Could not save region history: {response.status_code}")
+
+    except Exception as e:
+        logger.warning(f"[{campaign_id}] Error saving region history: {e}")
+
+
 def get_directory_size(path):
     """Get total size of directory in bytes"""
     import shutil
@@ -1619,6 +1709,7 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
                         success_count += 1
                     else:
                         success_count += 1  # Still count as success
+                    await sync_campaign_regions(campaign['id'], scrape_data)
                 else:
                     failure_count += 1
             else:

@@ -423,6 +423,49 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
   const algorithmicPlaylists = campaignPlaylistsData.algorithmic || [];
   const organicPlaylists = campaignPlaylistsData.organic || [];
   const unassignedPlaylists = campaignPlaylistsData.unassigned || [];
+
+  const { data: regionData = [], isLoading: regionsLoading } = useQuery({
+    queryKey: ['campaign-regions', campaign?.id],
+    queryFn: async () => {
+      if (!campaign?.id) return [];
+
+      const isSpotifyCampaign = typeof campaign.id === 'number' ||
+                                 (typeof campaign.id === 'string' && !campaign.id.includes('-')) ||
+                                 campaign.campaign !== undefined;
+
+      let songIds: number[] = [];
+
+      if (isSpotifyCampaign) {
+        songIds = [typeof campaign.id === 'number' ? campaign.id : parseInt(campaign.id)];
+      } else {
+        const { data: songs } = await supabase
+          .from('spotify_campaigns')
+          .select('id')
+          .eq('campaign_group_id', campaign.id);
+        songIds = (songs || []).map((s: any) => s.id);
+      }
+
+      if (songIds.length === 0) return [];
+
+      let query = supabase
+        .from('campaign_regions')
+        .select('*');
+
+      if (songIds.length === 1) {
+        query = query.eq('campaign_id', songIds[0]);
+      } else {
+        query = query.in('campaign_id', songIds);
+      }
+
+      const { data, error } = await query.order('rank', { ascending: true });
+      if (error) {
+        console.error('Error fetching campaign regions:', error);
+        return [];
+      }
+      return data || [];
+    },
+    enabled: !!campaign?.id && open,
+  });
   
   // Fetch all vendor playlists for name matching
   const { data: vendorPlaylistsForMatching = [] } = useQuery({
@@ -1651,13 +1694,17 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               Campaign Details
             </TabsTrigger>
             <TabsTrigger value="playlists" className="flex items-center gap-2">
               <Music className="h-4 w-4" />
               Playlists
+            </TabsTrigger>
+            <TabsTrigger value="regions" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Regions
             </TabsTrigger>
             <TabsTrigger value="performance" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -3317,6 +3364,92 @@ export function CampaignDetailsModal({ campaign, open, onClose }: CampaignDetail
                 </Card>
                 )}
               </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="regions" className="space-y-6">
+            {regionsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : regionData.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Globe className="h-12 w-12 mx-auto mb-3 opacity-40" />
+                <p className="text-lg font-medium">No region data yet</p>
+                <p className="text-sm">Region data will appear after the next scraper run.</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-3 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Total Countries</CardDescription>
+                      <CardTitle className="text-2xl">{regionData.length}</CardTitle>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Top Country</CardDescription>
+                      <CardTitle className="text-2xl flex items-center gap-2">
+                        {regionData[0]?.country || '—'}
+                        <span className="text-base font-normal text-muted-foreground">
+                          {(regionData[0]?.streams_28d || 0).toLocaleString()} streams
+                        </span>
+                      </CardTitle>
+                    </CardHeader>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardDescription>Total 28d Streams</CardDescription>
+                      <CardTitle className="text-2xl">
+                        {regionData.reduce((sum: number, r: any) => sum + (r.streams_28d || 0), 0).toLocaleString()}
+                      </CardTitle>
+                    </CardHeader>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Globe className="h-5 w-5" />
+                      Streams by Country (28 Days)
+                    </CardTitle>
+                    <CardDescription>
+                      Top countries contributing streams to this campaign
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-16">Rank</TableHead>
+                            <TableHead>Country</TableHead>
+                            <TableHead className="text-right">Streams (28d)</TableHead>
+                            <TableHead className="text-right w-24">Share</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(() => {
+                            const totalStreams = regionData.reduce((sum: number, r: any) => sum + (r.streams_28d || 0), 0);
+                            return regionData.map((region: any, idx: number) => {
+                              const share = totalStreams > 0 ? ((region.streams_28d || 0) / totalStreams * 100) : 0;
+                              return (
+                                <TableRow key={region.id || idx}>
+                                  <TableCell className="font-medium text-muted-foreground">{region.rank || idx + 1}</TableCell>
+                                  <TableCell className="font-medium">{region.country}</TableCell>
+                                  <TableCell className="text-right tabular-nums">{(region.streams_28d || 0).toLocaleString()}</TableCell>
+                                  <TableCell className="text-right tabular-nums text-muted-foreground">{share.toFixed(1)}%</TableCell>
+                                </TableRow>
+                              );
+                            });
+                          })()}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
             )}
           </TabsContent>
 
