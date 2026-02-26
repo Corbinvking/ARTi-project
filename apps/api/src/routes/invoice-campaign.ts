@@ -32,7 +32,7 @@ function extractVideoId(url: string): string | null {
     
     for (const pattern of patterns) {
       const match = url.match(pattern);
-      if (match) return match[1];
+      if (match?.[1]) return match[1];
     }
     return null;
   } catch {
@@ -123,7 +123,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
             .single();
 
           if (clientError) {
-            request.log.warn('Failed to create client:', clientError);
+            request.log.warn({ err: clientError }, 'Failed to create client');
           } else {
             clientId = newClient.id;
           }
@@ -174,7 +174,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
         .single();
 
       if (campaignError) {
-        request.log.error('Failed to create campaign:', campaignError);
+        request.log.error({ err: campaignError }, 'Failed to create campaign');
         return reply.code(500).send({
           ok: false,
           message: 'Failed to create campaign',
@@ -197,10 +197,9 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
             clientName: clientName || null,
           },
         });
-        request.log.info('Ops notification sent:', notifyResponse.statusCode);
+        request.log.info({ statusCode: notifyResponse.statusCode }, 'Ops notification sent');
       } catch (notifyError) {
-        request.log.warn('Failed to send ops notification:', notifyError);
-        // Don't fail the request if notification fails
+        request.log.warn({ err: notifyError }, 'Failed to send ops notification');
       }
 
       return reply.code(201).send({
@@ -216,7 +215,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
         },
       });
     } catch (error) {
-      request.log.error('Error creating campaign from invoice:', error);
+      request.log.error({ err: error }, 'Error creating campaign from invoice');
       return reply.code(500).send({
         ok: false,
         message: 'Server error while creating campaign',
@@ -258,7 +257,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
         .single();
 
       if (error) {
-        request.log.error('Failed to update invoice status:', error);
+        request.log.error({ err: error }, 'Failed to update invoice status');
         return reply.code(500).send({
           ok: false,
           message: 'Failed to update invoice status',
@@ -274,7 +273,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
         },
       });
     } catch (error) {
-      request.log.error('Error updating invoice status:', error);
+      request.log.error({ err: error }, 'Error updating invoice status');
       return reply.code(500).send({
         ok: false,
         message: 'Server error',
@@ -381,7 +380,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
         .single();
 
       if (campaignError) {
-        request.log.error('Failed to create SoundCloud campaign:', campaignError);
+        request.log.error({ err: campaignError }, 'Failed to create SoundCloud campaign');
         return reply.code(500).send({
           ok: false,
           message: 'Failed to create SoundCloud campaign',
@@ -405,9 +404,9 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
             campaignType: 'paid',
           },
         });
-        request.log.info('Ops notification sent:', notifyResponse.statusCode);
+        request.log.info({ statusCode: notifyResponse.statusCode }, 'Ops notification sent');
       } catch (notifyError) {
-        request.log.warn('Failed to send ops notification:', notifyError);
+        request.log.warn({ err: notifyError }, 'Failed to send ops notification');
       }
 
       return reply.code(201).send({
@@ -425,7 +424,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
         },
       });
     } catch (error) {
-      request.log.error('Error creating SoundCloud campaign from invoice:', error);
+      request.log.error({ err: error }, 'Error creating SoundCloud campaign from invoice');
       return reply.code(500).send({
         ok: false,
         message: 'Server error while creating SoundCloud campaign',
@@ -467,7 +466,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
         .single();
 
       if (error) {
-        request.log.error('Failed to update SoundCloud invoice status:', error);
+        request.log.error({ err: error }, 'Failed to update SoundCloud invoice status');
         return reply.code(500).send({
           ok: false,
           message: 'Failed to update invoice status',
@@ -483,7 +482,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
         },
       });
     } catch (error) {
-      request.log.error('Error updating SoundCloud invoice status:', error);
+      request.log.error({ err: error }, 'Error updating SoundCloud invoice status');
       return reply.code(500).send({ ok: false, message: 'Server error' });
     }
   });
@@ -518,7 +517,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
 
       return reply.code(200).send({ ok: true, campaign: data });
     } catch (error) {
-      request.log.error('Error fetching SoundCloud campaign by invoice:', error);
+      request.log.error({ err: error }, 'Error fetching SoundCloud campaign by invoice');
       return reply.code(500).send({ ok: false, message: 'Server error' });
     }
   });
@@ -571,7 +570,7 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
         campaign: data,
       });
     } catch (error) {
-      request.log.error('Error fetching campaign by invoice:', error);
+      request.log.error({ err: error }, 'Error fetching campaign by invoice');
       return reply.code(500).send({
         ok: false,
         message: 'Server error',

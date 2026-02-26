@@ -1004,7 +1004,8 @@ function inferTerritory(
   }
 
   if (Object.keys(scores).length > 0) {
-    const best = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+    const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+    const best = sorted[0]!;
     return { territory: best[0], confidence: best[1] >= 3 ? 'High' : 'Med' };
   }
 
@@ -1023,8 +1024,9 @@ function inferTerritory(
     .filter(([, v]) => v >= 5)
     .sort((a, b) => b[1] - a[1])[0];
 
-  if (bestLang && LANGUAGE_TERRITORY[bestLang[0]]) {
-    return { territory: LANGUAGE_TERRITORY[bestLang[0]], confidence: 'Low' };
+  const mappedTerritory = bestLang ? LANGUAGE_TERRITORY[bestLang[0]] : undefined;
+  if (mappedTerritory) {
+    return { territory: mappedTerritory, confidence: 'Low' };
   }
 
   return { territory: 'Unknown', confidence: 'Low' };

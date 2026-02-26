@@ -2,6 +2,7 @@
 // QuickBooks Online — OAuth 2.0 wrapper (using official intuit-oauth)
 // ============================================================================
 
+// @ts-ignore -- intuit-oauth has no type declarations
 import OAuthClient from 'intuit-oauth';
 import { supabase } from '../supabase.js';
 import { logger } from '../logger.js';
@@ -205,7 +206,7 @@ async function fetchAndStoreCompanyName(
   );
 
   if (res.ok) {
-    const data = await res.json();
+    const data: any = await res.json();
     const companyName = data?.CompanyInfo?.CompanyName;
     if (companyName) {
       await supabase

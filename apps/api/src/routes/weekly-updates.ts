@@ -64,14 +64,14 @@ export async function weeklyUpdatesRoutes(server: FastifyInstance) {
         .single();
 
       if (campaignError || !campaign) {
-        request.log.error('Failed to fetch campaign:', campaignError);
+        request.log.error({ err: campaignError }, 'Failed to fetch campaign');
         return reply.code(404).send({ ok: false, message: 'Campaign not found' });
       }
 
       // Get client email
       const clientEmail = campaign.youtube_clients?.email;
       if (!clientEmail) {
-        request.log.warn('No client email found for campaign:', campaign_id);
+        request.log.warn({ campaignId: campaign_id }, 'No client email found for campaign');
         return reply.code(400).send({ ok: false, message: 'No client email configured' });
       }
 
@@ -270,7 +270,7 @@ export async function weeklyUpdatesRoutes(server: FastifyInstance) {
       request.log.info(`Weekly update sent for campaign ${campaign_id} to ${clientEmail}`);
       return reply.code(200).send({ ok: true, recipient: clientEmail });
     } catch (error) {
-      request.log.error('Error sending weekly update:', error);
+      request.log.error({ err: error }, 'Error sending weekly update');
       return reply.code(500).send({ ok: false, message: 'Failed to send weekly update' });
     }
   });
@@ -293,7 +293,7 @@ export async function weeklyUpdatesRoutes(server: FastifyInstance) {
         .in('status', ['active', 'pending']);
 
       if (error) {
-        request.log.error('Failed to fetch campaigns:', error);
+        request.log.error({ err: error }, 'Failed to fetch campaigns');
         return reply.code(500).send({ ok: false, message: 'Failed to fetch campaigns' });
       }
 
@@ -328,7 +328,7 @@ export async function weeklyUpdatesRoutes(server: FastifyInstance) {
       request.log.info(`Weekly updates batch complete: ${results.success}/${results.total} succeeded`);
       return reply.code(200).send({ ok: true, results });
     } catch (error) {
-      request.log.error('Error in batch weekly updates:', error);
+      request.log.error({ err: error }, 'Error in batch weekly updates');
       return reply.code(500).send({ ok: false, message: 'Failed to process batch updates' });
     }
   });
