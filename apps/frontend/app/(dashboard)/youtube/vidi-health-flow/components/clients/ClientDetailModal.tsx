@@ -44,10 +44,11 @@ export function ClientDetailModal({
   onClose, 
   onCampaignClick 
 }: ClientDetailModalProps) {
-  if (!client) return null;
-
   // Calculate client-level statistics
   const stats = React.useMemo(() => {
+    if (!client) {
+      return { total: 0, active: 0, complete: 0, totalViews: 0, totalGoal: 0, totalRevenue: 0, inRatioFixer: 0, overallProgress: 0, avgHealthScore: 0 };
+    }
     const total = campaigns.length;
     const active = campaigns.filter(c => c.status === 'active').length;
     const complete = campaigns.filter(c => c.status === 'complete').length;
@@ -78,7 +79,9 @@ export function ClientDetailModal({
       overallProgress,
       avgHealth
     };
-  }, [campaigns]);
+  }, [client, campaigns]);
+
+  if (!client) return null;
 
   const getHealthColor = (health: number) => {
     if (health >= 80) return 'bg-green-100 text-green-800 border-green-300';

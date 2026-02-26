@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import UserMenu from './UserMenu';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { useBreadcrumbs } from "../../hooks/useBreadcrumbs';
+import { useBreadcrumbs } from "../../hooks/useBreadcrumbs";
 import logoImage from '@/assets/artist-influence-logo.png';
 
 const AppHeader = () => {
