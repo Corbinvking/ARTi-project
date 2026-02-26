@@ -49,19 +49,19 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     todayNewEntries,
     disconnectedMembers,
   ] = await Promise.all([
-    // Active campaigns + current month revenue
+    // All non-draft campaigns for active counts + current month revenue
     supabase
-      .from('soundcloud_campaigns')
-      .select('id, status, campaign_type, sales_price, created_at')
-      .in('status', ['active', 'completed', 'in_progress']),
+      .from('campaigns')
+      .select('id, status, price_usd, created_at')
+      .in('status', ['intake', 'scheduled', 'live', 'completed']),
 
     // Previous month campaigns for revenue comparison
     supabase
-      .from('soundcloud_campaigns')
-      .select('sales_price, status')
+      .from('campaigns')
+      .select('price_usd, status')
       .gte('created_at', prevMonthStart)
       .lt('created_at', monthStart)
-      .not('sales_price', 'is', null),
+      .not('price_usd', 'is', null),
 
     // Today's queue capacity
     supabase
@@ -84,7 +84,7 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
 
     // Throughput: campaigns completed today
     supabase
-      .from('soundcloud_campaigns')
+      .from('campaigns')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'completed')
       .gte('updated_at', todayStart),
@@ -107,19 +107,20 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
   const queues = queuesResult.data ?? [];
   const integrations = integrationResult.data ?? [];
 
-  // --- Revenue ---
-  const paidActiveCampaigns = campaigns.filter(
-    (c) => c.sales_price != null && c.sales_price > 0
-  );
-  const currentMonthPaid = paidActiveCampaigns.filter(
-    (c) => c.created_at >= monthStart
+  // --- Revenue (paid campaigns only, current month) ---
+  const currentMonthPaid = campaigns.filter(
+    (c) =>
+      c.price_usd != null &&
+      c.price_usd > 0 &&
+      c.created_at != null &&
+      c.created_at >= monthStart
   );
   const monthlyRevenue = currentMonthPaid.reduce(
-    (sum, c) => sum + (c.sales_price ?? 0),
+    (sum, c) => sum + (parseFloat(String(c.price_usd ?? 0)) || 0),
     0
   );
   const previousMonthRevenue = prevCampaigns.reduce(
-    (sum, c) => sum + (parseFloat(String(c.sales_price ?? 0)) || 0),
+    (sum, c) => sum + (parseFloat(String(c.price_usd ?? 0)) || 0),
     0
   );
   const revenueChangePercent =
@@ -127,19 +128,25 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
       ? ((monthlyRevenue - previousMonthRevenue) / previousMonthRevenue) * 100
       : 0;
 
-  // --- Active Campaigns ---
-  const activeCampaigns = campaigns.filter((c) => c.status === 'active' || c.status === 'in_progress');
+  // --- Active Campaigns (live or scheduled) ---
+  const activeCampaigns = campaigns.filter(
+    (c) => c.status === 'live' || c.status === 'scheduled'
+  );
   const paidCount = activeCampaigns.filter(
-    (c) => c.sales_price != null && c.sales_price > 0
+    (c) => c.price_usd != null && c.price_usd > 0
   ).length;
   const freeCount = activeCampaigns.length - paidCount;
 
-  // --- Avg Campaign Value ---
+  // --- Avg Campaign Value (across all paid campaigns, not just this month) ---
+  const allPaidCampaigns = campaigns.filter(
+    (c) => c.price_usd != null && c.price_usd > 0
+  );
   const avgCampaignValue =
-    paidCount > 0
-      ? activeCampaigns
-          .filter((c) => c.sales_price != null && c.sales_price > 0)
-          .reduce((sum, c) => sum + (c.sales_price ?? 0), 0) / paidCount
+    allPaidCampaigns.length > 0
+      ? allPaidCampaigns.reduce(
+          (sum, c) => sum + (parseFloat(String(c.price_usd ?? 0)) || 0),
+          0
+        ) / allPaidCampaigns.length
       : 0;
 
   // --- Queue Capacity ---
@@ -210,16 +217,16 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     });
   }
 
-  // Stuck campaigns: active for more than 30 days
+  // Stuck campaigns: live for more than 30 days
   const stuckThreshold = subDays(now, 30).toISOString();
   const stuckCampaigns = activeCampaigns.filter(
-    (c) => c.created_at < stuckThreshold
+    (c) => c.created_at != null && c.created_at < stuckThreshold
   );
   if (stuckCampaigns.length > 0) {
     actionAlerts.push({
       id: 'stuck-campaigns',
       severity: stuckCampaigns.length > 3 ? 'critical' : 'warning',
-      title: `${stuckCampaigns.length} campaign${stuckCampaigns.length === 1 ? '' : 's'} active for 30+ days`,
+      title: `${stuckCampaigns.length} campaign${stuckCampaigns.length === 1 ? '' : 's'} live for 30+ days`,
       description: 'Review campaigns that may be stalled',
       link: '/soundcloud/dashboard/campaigns',
     });
