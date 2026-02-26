@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,9 @@ import { TagSelectDropdown } from "../seedstorm-builder/components/TagSelectDrop
 import { MultiGenreSelect } from "../seedstorm-builder/components/MultiGenreSelect";
 import { useCreatorsTable } from "../seedstorm-builder/hooks/useCreatorsTable";
 import { generateCampaignV2, recalcTotals, reoptimizeAllocation, CreatorWithPredictions, CampaignV2Result } from "../seedstorm-builder/lib/campaignAlgorithmV2";
+import { NicheCreatorSuggestions } from "../seedstorm-builder/components/NicheCreatorSuggestions";
+import { useNicheCreatorSuggestions } from "../seedstorm-builder/hooks/useNicheCreatorSuggestions";
+import type { Creator } from "../seedstorm-builder/lib/types";
 
 function Breadcrumbs() {
   return (
@@ -67,6 +70,28 @@ export default function InstagramCampaignBuilderPage() {
   const [campaignResult, setCampaignResult] = useState<CampaignV2Result | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const creatorsForSuggestions: Creator[] = useMemo(
+    () =>
+      creatorsFromDb.map((c) => ({
+        id: c.id,
+        instagram_handle: c.instagram_handle,
+        followers: c.followers,
+        median_views_per_video: c.median_views ?? 0,
+        engagement_rate: c.engagement_rate,
+        base_country: c.base_country,
+        audience_countries: [],
+        content_types: c.content_types,
+        music_genres: c.music_genres,
+        reel_rate: c.reel_rate,
+        created_at: c.created_at,
+      })),
+    [creatorsFromDb]
+  );
+
+  const { suggestions: nicheSuggestions, totalMatchingCreators } = useNicheCreatorSuggestions({
+    selectedNiches: formData.selected_genres,
+    creators: creatorsForSuggestions,
+  });
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
@@ -314,6 +339,16 @@ export default function InstagramCampaignBuilderPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Niche Creator Suggestions */}
+              {formData.selected_genres.length > 0 && (
+                <NicheCreatorSuggestions
+                  suggestions={nicheSuggestions}
+                  totalMatchingCreators={totalMatchingCreators}
+                  selectedNiches={formData.selected_genres}
+                  isLoading={creatorsLoading}
+                />
+              )}
 
               <div>
                 <Label>Post Type Preference</Label>
