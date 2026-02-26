@@ -32,88 +32,70 @@ export interface DashboardMetrics {
   actionAlerts: ActionAlert[];
 }
 
+function getPrice(row: Record<string, unknown>): number {
+  const v = row.sale_price ?? row.sales_price ?? row.price_usd ?? 0;
+  return typeof v === 'number' ? v : parseFloat(String(v)) || 0;
+}
+
 async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
   const now = new Date();
   const monthStart = startOfMonth(now).toISOString();
   const prevMonthStart = startOfMonth(subMonths(now, 1)).toISOString();
   const todayStart = startOfDay(now).toISOString();
 
+  // Use select('*') for soundcloud_campaigns to avoid 400s from mismatched column names.
+  // The production schema may differ from the generated types.
   const [
     campaignsResult,
-    prevCampaignsResult,
-    queuesResult,
     membersResult,
     todaySubmissionsCompleted,
-    todayCampaignsCompleted,
     todayNewEntries,
   ] = await Promise.all([
-    // All campaigns for active counts + current month revenue
     supabase
       .from('soundcloud_campaigns')
-      .select('id, status, sales_price, created_at'),
+      .select('*'),
 
-    // Previous month paid campaigns for revenue comparison
-    supabase
-      .from('soundcloud_campaigns')
-      .select('sales_price')
-      .gte('created_at', prevMonthStart)
-      .lt('created_at', monthStart)
-      .not('sales_price', 'is', null),
-
-    // Today's queue capacity
-    supabase
-      .from('soundcloud_queues')
-      .select('filled_slots, total_slots')
-      .eq('date', now.toISOString().split('T')[0])
-      .limit(1),
-
-    // Member statuses for system health + IP disconnects
     supabase
       .from('members')
       .select('status, influence_planner_status'),
 
-    // Throughput: submissions completed today
     supabase
       .from('submissions')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'complete')
       .gte('updated_at', todayStart),
 
-    // Throughput: campaigns completed today
-    supabase
-      .from('soundcloud_campaigns')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'Complete')
-      .gte('updated_at', todayStart),
-
-    // Throughput: new submissions today
     supabase
       .from('submissions')
       .select('id', { count: 'exact', head: true })
       .gte('created_at', todayStart),
   ]);
 
-  const campaigns = campaignsResult.data ?? [];
-  const prevCampaigns = prevCampaignsResult.data ?? [];
-  const queues = queuesResult.data ?? [];
+  const campaigns = (campaignsResult.data ?? []) as Record<string, unknown>[];
   const members = membersResult.data ?? [];
 
-  // --- Revenue (paid campaigns only, current month) ---
-  const currentMonthPaid = campaigns.filter(
-    (c) =>
-      c.sales_price != null &&
-      c.sales_price > 0 &&
-      c.created_at != null &&
-      c.created_at >= monthStart
+  // --- Revenue (paid campaigns, current month vs previous month) ---
+  const paidCampaigns = campaigns.filter((c) => getPrice(c) > 0);
+
+  const currentMonthPaid = paidCampaigns.filter(
+    (c) => typeof c.created_at === 'string' && c.created_at >= monthStart
   );
   const monthlyRevenue = currentMonthPaid.reduce(
-    (sum, c) => sum + (c.sales_price ?? 0),
+    (sum, c) => sum + getPrice(c),
     0
   );
-  const previousMonthRevenue = prevCampaigns.reduce(
-    (sum, c) => sum + (c.sales_price ?? 0),
+
+  const prevMonthPaid = paidCampaigns.filter(
+    (c) =>
+      typeof c.created_at === 'string' &&
+      c.created_at >= prevMonthStart &&
+      c.created_at < monthStart
+  );
+  const previousMonthRevenue = prevMonthPaid.reduce(
+    (sum, c) => sum + getPrice(c),
     0
   );
+
   const revenueChangePercent =
     previousMonthRevenue > 0
       ? ((monthlyRevenue - previousMonthRevenue) / previousMonthRevenue) * 100
@@ -121,30 +103,41 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
 
   // --- Active Campaigns (status = 'Active') ---
   const activeCampaigns = campaigns.filter((c) => c.status === 'Active');
-  const paidCount = activeCampaigns.filter(
-    (c) => c.sales_price != null && c.sales_price > 0
-  ).length;
-  const freeCount = activeCampaigns.length - paidCount;
+  const paidActiveCount = activeCampaigns.filter((c) => getPrice(c) > 0).length;
+  const freeActiveCount = activeCampaigns.length - paidActiveCount;
 
-  // --- Avg Campaign Value (across all paid campaigns) ---
-  const allPaidCampaigns = campaigns.filter(
-    (c) => c.sales_price != null && c.sales_price > 0
-  );
+  // --- Avg Campaign Value ---
   const avgCampaignValue =
-    allPaidCampaigns.length > 0
-      ? allPaidCampaigns.reduce((sum, c) => sum + (c.sales_price ?? 0), 0) /
-        allPaidCampaigns.length
+    paidCampaigns.length > 0
+      ? paidCampaigns.reduce((sum, c) => sum + getPrice(c), 0) /
+        paidCampaigns.length
       : 0;
 
-  // --- Queue Capacity ---
+  // --- Today's completed campaigns (count in JS since we already have all campaigns) ---
+  const campaignsCompletedToday = campaigns.filter(
+    (c) =>
+      c.status === 'Complete' &&
+      typeof c.updated_at === 'string' &&
+      c.updated_at >= todayStart
+  ).length;
+
+  // --- Queue Capacity (table may not exist in production — handle gracefully) ---
   let queueCapacityPercent = 0;
-  if (queues.length > 0 && queues[0].total_slots > 0) {
-    queueCapacityPercent = Math.round(
-      (queues[0].filled_slots / queues[0].total_slots) * 100
-    );
+  try {
+    const { data: queues } = await supabase
+      .from('soundcloud_queues' as string)
+      .select('filled_slots, total_slots')
+      .eq('date', now.toISOString().split('T')[0])
+      .limit(1);
+    if (queues && queues.length > 0 && (queues[0] as Record<string, number>).total_slots > 0) {
+      const q = queues[0] as Record<string, number>;
+      queueCapacityPercent = Math.round((q.filled_slots / q.total_slots) * 100);
+    }
+  } catch {
+    // Table doesn't exist — queue capacity stays at 0
   }
 
-  // --- System Health (derived from member connection statuses) ---
+  // --- System Health (from member connection statuses) ---
   const totalMembers = members.length;
   const activeMembers = members.filter((m) => m.status === 'active').length;
   const needsReconnect = members.filter(
@@ -154,12 +147,11 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     totalMembers > 0
       ? Math.round((activeMembers / totalMembers) * 1000) / 10
       : 100;
-  const activeWarnings = needsReconnect;
 
   // --- Throughput ---
   const throughputToday = {
     tracksProcessed: todaySubmissionsCompleted.count ?? 0,
-    campaignsCompleted: todayCampaignsCompleted.count ?? 0,
+    campaignsCompleted: campaignsCompletedToday,
     newEntries: todayNewEntries.count ?? 0,
   };
 
@@ -199,10 +191,9 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     });
   }
 
-  // Stuck campaigns: Active for more than 30 days
   const stuckThreshold = subDays(now, 30).toISOString();
   const stuckCampaigns = activeCampaigns.filter(
-    (c) => c.created_at != null && c.created_at < stuckThreshold
+    (c) => typeof c.created_at === 'string' && c.created_at < stuckThreshold
   );
   if (stuckCampaigns.length > 0) {
     actionAlerts.push({
@@ -220,14 +211,14 @@ async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
     revenueChangePercent: Math.round(revenueChangePercent * 10) / 10,
     activeCampaigns: {
       total: activeCampaigns.length,
-      paid: paidCount,
-      free: freeCount,
+      paid: paidActiveCount,
+      free: freeActiveCount,
     },
     queueCapacityPercent,
     systemHealth: {
       successRate,
       failuresLast24h: needsReconnect,
-      activeWarnings,
+      activeWarnings: needsReconnect,
     },
     throughputToday,
     avgCampaignValue: Math.round(avgCampaignValue),
