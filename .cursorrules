@@ -1,8 +1,36 @@
-# Cursor Rules for ARTi Spotify Platform
+# Cursor Rules for ARTi Platform
 
-## Project Context
+## Quick Start for Cloud Agents
 
-This is a **Spotify playlist campaign management platform** for Artist Influence. It manages music promotion campaigns where artists pay vendors to place their songs on Spotify playlists.
+**Before starting ANY task, read these documents:**
+1. `docs/AGENT-QUICK-START.md` - Essential reference (2 min read)
+2. `docs/BRANCHING-STRATEGY.md` - Full navigation guide
+
+**Branch naming**: `{type}/{app}/{description}` (e.g., `feature/spotify/playlist-filter`)
+
+---
+
+## Platform Overview
+
+This is a **multi-platform music promotion management system** for Artist Influence with 7 apps:
+
+| App | Route | Purpose |
+|-----|-------|---------|
+| **Dashboard** | `/dashboard` | Cross-platform overview |
+| **Spotify** | `/spotify` | Playlist campaign management |
+| **Instagram** | `/instagram` | Creator promotion campaigns |
+| **YouTube** | `/youtube` | Video promotion campaigns |
+| **SoundCloud** | `/soundcloud` | Repost network management |
+| **Operator** | `/operator` | Internal ops tools |
+| **Admin** | `/admin` | System administration |
+
+**Frontend Location**: `apps/frontend/app/(dashboard)/{app}/`
+
+---
+
+## Spotify App Context (Most Detailed)
+
+This section focuses on Spotify as it's the most complex app. See `docs/BRANCHING-STRATEGY.md` for other apps.
 
 ## Database Schema Understanding
 
@@ -249,7 +277,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ### For Running Scripts on Production
 ```bash
 # Use external URL (scripts run on host, not in container)
-export SUPABASE_URL="https://api.artistinfluence.com"
+export SUPABASE_URL="[REDACTED]"
 export SUPABASE_SERVICE_ROLE_KEY="eyJ..."
 export SPOTIFY_CLIENT_ID="294f0422469444b5b4b0178ce438b5b8"
 export SPOTIFY_CLIENT_SECRET="7320687e4ceb475b82c2f3a543eb2f9e"
