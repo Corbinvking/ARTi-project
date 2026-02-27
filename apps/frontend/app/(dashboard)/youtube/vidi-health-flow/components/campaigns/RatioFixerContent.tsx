@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -7,12 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, TrendingDown, AlertTriangle, Target, Clock, Play, Square, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, Target, Clock, Play, Square, Loader2, CheckCircle2, XCircle, Wifi, WifiOff, Timer, ThumbsUp, MessageCircle, BarChart3 } from "lucide-react";
 import { LIKE_SERVER_OPTIONS, COMMENT_SERVER_OPTIONS, SHEET_TIER_OPTIONS } from "../../lib/constants";
 import { useRatioFixer } from "../../hooks/useRatioFixer";
 import type { Database } from "../../integrations/supabase/types";
 
-type Campaign = Database['public']['Tables']['campaigns']['Row'] & {
+type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'] & {
   clients?: { name: string; company: string } | null;
 };
 
@@ -34,12 +34,32 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
   } = useRatioFixer();
 
   // Get ratio fixer status if campaign has one running
-  const ratioFixerCampaignId = (campaign as any).ratio_fixer_campaign_id;
-  const ratioFixerStatus = (campaign as any).ratio_fixer_status;
-  const { data: fixerStatus, isLoading: isLoadingStatus } = useRatioFixerStatus(
+  const ratioFixerCampaignId = campaign?.ratio_fixer_campaign_id;
+  const ratioFixerStatus = campaign?.ratio_fixer_status;
+  const { data: fixerStatus, isLoading: isLoadingStatus, dataUpdatedAt } = useRatioFixerStatus(
     ratioFixerCampaignId,
     ratioFixerStatus === 'running'
   );
+
+  // Live runtime timer
+  const [runtimeStr, setRuntimeStr] = useState('');
+  useEffect(() => {
+    if (ratioFixerStatus !== 'running' || !campaign?.ratio_fixer_started_at) {
+      setRuntimeStr('');
+      return;
+    }
+    const tick = () => {
+      const start = new Date(campaign.ratio_fixer_started_at!).getTime();
+      const diff = Math.max(0, Date.now() - start);
+      const h = Math.floor(diff / 3_600_000);
+      const m = Math.floor((diff % 3_600_000) / 60_000);
+      const s = Math.floor((diff % 60_000) / 1000);
+      setRuntimeStr(`${h}h ${m}m ${s}s`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [ratioFixerStatus, campaign?.ratio_fixer_started_at]);
 
   if (!campaign) return null;
 
@@ -350,40 +370,122 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
             </Alert>
           )}
 
-          {/* Current Status */}
-          {ratioFixerStatus === 'running' && fixerStatus && (
-            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
+          {/* Live Performance Panel - shown when running */}
+          {ratioFixerStatus === 'running' && (
+            <div className="space-y-4">
+              {/* Header row: status + connection + runtime */}
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
                   <span className="font-semibold">Ratio Fixer Active</span>
+                  <Badge variant="default" className="bg-green-600">Running</Badge>
                 </div>
-                <Badge variant="default">Running</Badge>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  {fixerStatus ? (
+                    <span className="flex items-center gap-1 text-green-400">
+                      <Wifi className="h-3 w-3" />
+                      Connected
+                      {dataUpdatedAt > 0 && (
+                        <span className="ml-1">({Math.round((Date.now() - dataUpdatedAt) / 1000)}s ago)</span>
+                      )}
+                    </span>
+                  ) : isLoadingStatus ? (
+                    <span className="flex items-center gap-1 text-yellow-400">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Connecting...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-red-400">
+                      <WifiOff className="h-3 w-3" />
+                      Disconnected
+                    </span>
+                  )}
+                  {runtimeStr && (
+                    <span className="flex items-center gap-1">
+                      <Timer className="h-3 w-3" />
+                      {runtimeStr}
+                    </span>
+                  )}
+                </div>
               </div>
-              
-              {/* Live Stats */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Target Likes:</span>
-                  <span className="ml-2 font-medium">{fixerStatus.desired_likes?.toLocaleString() || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Target Comments:</span>
-                  <span className="ml-2 font-medium">{fixerStatus.desired_comments?.toLocaleString() || 'N/A'}</span>
-                </div>
-                {fixerStatus.ordered_likes !== undefined && (
-                  <div>
-                    <span className="text-muted-foreground">Ordered Likes:</span>
-                    <span className="ml-2 font-medium text-primary">{fixerStatus.ordered_likes.toLocaleString()}</span>
+
+              {/* Live stats from Flask */}
+              {fixerStatus && (
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Likes progress */}
+                  <div className="p-3 rounded-lg bg-card border space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <ThumbsUp className="h-3.5 w-3.5 text-blue-400" />
+                        Likes Ordered
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {(fixerStatus.ordered_likes ?? 0).toLocaleString()} / {(fixerStatus.desired_likes ?? 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <Progress
+                      value={fixerStatus.desired_likes ? Math.min(100, ((fixerStatus.ordered_likes ?? 0) / fixerStatus.desired_likes) * 100) : 0}
+                      className="h-2"
+                    />
+                    <div className="text-xs text-muted-foreground">
+                      {fixerStatus.desired_likes
+                        ? `${Math.round(((fixerStatus.ordered_likes ?? 0) / fixerStatus.desired_likes) * 100)}% fulfilled`
+                        : 'Calculating target...'}
+                    </div>
                   </div>
-                )}
-                {fixerStatus.ordered_comments !== undefined && (
-                  <div>
-                    <span className="text-muted-foreground">Ordered Comments:</span>
-                    <span className="ml-2 font-medium text-primary">{fixerStatus.ordered_comments.toLocaleString()}</span>
+
+                  {/* Comments progress */}
+                  <div className="p-3 rounded-lg bg-card border space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <MessageCircle className="h-3.5 w-3.5 text-purple-400" />
+                        Comments Ordered
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {(fixerStatus.ordered_comments ?? 0).toLocaleString()} / {(fixerStatus.desired_comments ?? 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <Progress
+                      value={fixerStatus.desired_comments ? Math.min(100, ((fixerStatus.ordered_comments ?? 0) / fixerStatus.desired_comments) * 100) : 0}
+                      className="h-2"
+                    />
+                    <div className="text-xs text-muted-foreground">
+                      {fixerStatus.desired_comments
+                        ? `${Math.round(((fixerStatus.ordered_comments ?? 0) / fixerStatus.desired_comments) * 100)}% fulfilled`
+                        : 'Calculating target...'}
+                    </div>
                   </div>
-                )}
-              </div>
+
+                  {/* Current video stats from Flask */}
+                  <div className="p-3 rounded-lg bg-card border space-y-1.5 text-sm">
+                    <span className="font-medium text-xs text-muted-foreground uppercase tracking-wider">Live Video Stats</span>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Views</span><span className="font-medium">{fixerStatus.views?.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Likes</span><span className="font-medium">{fixerStatus.likes?.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Comments</span><span className="font-medium">{fixerStatus.comments?.toLocaleString()}</span></div>
+                  </div>
+
+                  {/* Engagement deltas since fixer started */}
+                  <div className="p-3 rounded-lg bg-card border space-y-1.5 text-sm">
+                    <span className="font-medium text-xs text-muted-foreground uppercase tracking-wider">Growth Since Start</span>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Likes gained</span>
+                      <span className="font-medium text-green-400">
+                        +{Math.max(0, (fixerStatus.likes ?? 0) - (campaign.likes_at_fixer_start ?? campaign.current_likes ?? 0)).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Comments gained</span>
+                      <span className="font-medium text-green-400">
+                        +{Math.max(0, (fixerStatus.comments ?? 0) - (campaign.comments_at_fixer_start ?? campaign.current_comments ?? 0)).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Flask status</span>
+                      <Badge variant="outline" className="text-xs">{fixerStatus.status}</Badge>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Stop Button */}
               <Button
@@ -408,6 +510,102 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
                   </>
                 )}
               </Button>
+            </div>
+          )}
+
+          {/* Session Summary - shown when fixer was previously run */}
+          {ratioFixerStatus !== 'running' && campaign.ratio_fixer_started_at && (
+            <div className="p-4 rounded-lg border bg-muted/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 font-semibold text-sm">
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  Last Fixer Session
+                </span>
+                <Badge variant="outline" className="text-xs">
+                  {ratioFixerStatus === 'stopped' ? 'Stopped' : ratioFixerStatus || 'Ended'}
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Started</span>
+                  <span>{new Date(campaign.ratio_fixer_started_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Stopped</span>
+                  <span>
+                    {campaign.ratio_fixer_stopped_at
+                      ? new Date(campaign.ratio_fixer_stopped_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                      : '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Duration</span>
+                  <span>
+                    {(() => {
+                      const start = new Date(campaign.ratio_fixer_started_at!).getTime();
+                      const end = campaign.ratio_fixer_stopped_at
+                        ? new Date(campaign.ratio_fixer_stopped_at).getTime()
+                        : Date.now();
+                      const diff = Math.max(0, end - start);
+                      const h = Math.floor(diff / 3_600_000);
+                      const m = Math.floor((diff % 3_600_000) / 60_000);
+                      if (h > 0) return `${h}h ${m}m`;
+                      return `${m}m`;
+                    })()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Last check</span>
+                  <span>
+                    {campaign.ratio_fixer_last_check
+                      ? new Date(campaign.ratio_fixer_last_check).toLocaleString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                      : '—'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Ordered totals */}
+              {((campaign.ordered_likes ?? 0) > 0 || (campaign.ordered_comments ?? 0) > 0) && (
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="p-2.5 rounded bg-blue-500/5 border border-blue-500/20 text-center">
+                    <div className="text-lg font-bold text-blue-400">{(campaign.ordered_likes ?? 0).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">Likes Ordered</div>
+                    {(campaign.desired_likes ?? 0) > 0 && (
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        of {campaign.desired_likes!.toLocaleString()} target
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-2.5 rounded bg-purple-500/5 border border-purple-500/20 text-center">
+                    <div className="text-lg font-bold text-purple-400">{(campaign.ordered_comments ?? 0).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">Comments Ordered</div>
+                    {(campaign.desired_comments ?? 0) > 0 && (
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        of {campaign.desired_comments!.toLocaleString()} target
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Engagement delta */}
+              {campaign.likes_at_fixer_start != null && (
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Likes gained</span>
+                    <span className="font-medium text-green-400">
+                      +{Math.max(0, (campaign.current_likes ?? 0) - (campaign.likes_at_fixer_start ?? 0)).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Comments gained</span>
+                    <span className="font-medium text-green-400">
+                      +{Math.max(0, (campaign.current_comments ?? 0) - (campaign.comments_at_fixer_start ?? 0)).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

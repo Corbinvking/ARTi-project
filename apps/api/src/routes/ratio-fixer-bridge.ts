@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { logger } from '@/lib/logger';
+import { supabase } from '@/lib/supabase';
 
 // Ratio Fixer Flask app configuration
 const RATIO_FIXER_URL = process.env.RATIO_FIXER_URL || 'http://localhost:5001';
@@ -96,7 +97,37 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
       const flaskData = await flaskResponse.json() as FlaskCreateCampaignResponse;
       
       logger.info('Ratio fixer started successfully:', flaskData);
-      
+
+      // Sync status back to the youtube_campaigns table so the UI
+      // shows "In Fixer" automatically without a manual toggle.
+      // Also snapshot current likes/comments as baseline for delta tracking.
+      if (body.campaignId && flaskData.campaign_id) {
+        const { data: currentCampaign } = await supabase
+          .from('youtube_campaigns')
+          .select('current_likes, current_comments')
+          .eq('id', body.campaignId)
+          .single();
+
+        const { error: updateErr } = await supabase
+          .from('youtube_campaigns')
+          .update({
+            in_fixer: true,
+            ratio_fixer_campaign_id: flaskData.campaign_id,
+            ratio_fixer_status: 'running',
+            ratio_fixer_started_at: new Date().toISOString(),
+            ratio_fixer_stopped_at: null,
+            ordered_likes: 0,
+            ordered_comments: 0,
+            likes_at_fixer_start: currentCampaign?.current_likes ?? 0,
+            comments_at_fixer_start: currentCampaign?.current_comments ?? 0,
+          })
+          .eq('id', body.campaignId);
+
+        if (updateErr) {
+          logger.warn('Failed to sync ratio fixer state to youtube_campaigns:', updateErr);
+        }
+      }
+
       return reply.send({
         success: true,
         ratioFixerCampaignId: flaskData.campaign_id,
@@ -150,6 +181,23 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
       }
       
       const statusData = await flaskResponse.json() as RatioFixerStatus;
+
+      // Persist Flask stats back to youtube_campaigns so data survives
+      // Flask restarts and the UI can show session summaries.
+      const { error: syncErr } = await supabase
+        .from('youtube_campaigns')
+        .update({
+          ordered_likes: statusData.ordered_likes ?? 0,
+          ordered_comments: statusData.ordered_comments ?? 0,
+          desired_likes: statusData.desired_likes ?? 0,
+          desired_comments: statusData.desired_comments ?? 0,
+          ratio_fixer_last_check: new Date().toISOString(),
+        })
+        .eq('ratio_fixer_campaign_id', ratioFixerCampaignId);
+
+      if (syncErr) {
+        logger.warn('Failed to sync ratio fixer stats to youtube_campaigns:', syncErr);
+      }
       
       return reply.send(statusData);
       
@@ -172,6 +220,29 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
       const { ratioFixerCampaignId } = request.params as { ratioFixerCampaignId: string };
       
       logger.info('Stopping ratio fixer campaign:', ratioFixerCampaignId);
+
+      // Snapshot final stats from Flask before stopping
+      try {
+        const statusRes = await fetch(
+          `${RATIO_FIXER_URL}/api/campaign_status/${ratioFixerCampaignId}`,
+          { headers: { 'X-API-Key': RATIO_FIXER_API_KEY } }
+        );
+        if (statusRes.ok) {
+          const finalStats = await statusRes.json() as RatioFixerStatus;
+          await supabase
+            .from('youtube_campaigns')
+            .update({
+              ordered_likes: finalStats.ordered_likes ?? 0,
+              ordered_comments: finalStats.ordered_comments ?? 0,
+              desired_likes: finalStats.desired_likes ?? 0,
+              desired_comments: finalStats.desired_comments ?? 0,
+              ratio_fixer_last_check: new Date().toISOString(),
+            })
+            .eq('ratio_fixer_campaign_id', ratioFixerCampaignId);
+        }
+      } catch (snapErr: any) {
+        logger.warn('Could not snapshot final stats before stop:', snapErr.message);
+      }
       
       // Call Flask API to stop campaign
       const flaskResponse = await fetch(
@@ -198,7 +269,21 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
       const responseData = await flaskResponse.json();
       
       logger.info('Ratio fixer stopped successfully');
-      
+
+      // Sync status back to the youtube_campaigns table
+      const { error: updateErr } = await supabase
+        .from('youtube_campaigns')
+        .update({
+          in_fixer: false,
+          ratio_fixer_status: 'stopped',
+          ratio_fixer_stopped_at: new Date().toISOString(),
+        })
+        .eq('ratio_fixer_campaign_id', ratioFixerCampaignId);
+
+      if (updateErr) {
+        logger.warn('Failed to sync ratio fixer stop state to youtube_campaigns:', updateErr);
+      }
+
       return reply.send({
         success: true,
         message: 'Ratio fixer stopped successfully',

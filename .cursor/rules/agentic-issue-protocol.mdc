@@ -1,7 +1,7 @@
 ---
-description: Protocol for creating and managing GitHub issues using the ARTi agentic infrastructure. Follow this when users report bugs, request features, or describe problems — whether via Slack, Cursor chat, or any other channel.
+description: Protocol for creating GitHub issues when users report bugs, request features, or describe problems. Activate when someone reports something broken, wants a new feature, or describes an error. Not needed for general coding or platform questions.
 globs:
-alwaysApply: true
+alwaysApply: false
 ---
 
 # ARTi Agentic Issue Protocol

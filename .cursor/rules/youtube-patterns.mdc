@@ -1,0 +1,128 @@
+---
+description: YouTube module (Vidi Health Flow) development patterns, routing, auth, and database schema. Apply when working on YouTube campaigns, health monitoring, ratio fixer, or any files in apps/frontend/app/(dashboard)/youtube/.
+globs: apps/frontend/app/(dashboard)/youtube/**
+alwaysApply: false
+---
+
+# YouTube Development Patterns
+
+## Architecture
+
+- **Location**: `apps/frontend/app/(dashboard)/youtube/`
+- **Internal name**: Vidi Health Flow
+- **Routing**: Next.js App Router (migrated from React Router)
+- **Base path**: All routes MUST be prefixed with `/youtube/`
+- **Source**: `youtube/vidi-health-flow/` contains the original app components
+
+## Critical Rules
+
+### Routing — Always use `/youtube/` prefix
+```typescript
+// CORRECT
+router.push('/youtube/campaigns')
+<Link href="/youtube/settings">
+
+// WRONG
+router.push('/campaigns')
+<Link href="/settings">
+```
+
+### Auth — Metadata only, NO database queries
+```typescript
+// CORRECT
+const { data: userData } = await supabase.auth.getUser();
+const role = userData.user?.user_metadata?.role || 'admin';
+
+// WRONG — will cause RLS issues
+const { data } = await supabase.from('user_profiles').select('*');
+```
+
+### SearchParams — Always use optional chaining
+```typescript
+// CORRECT
+const tab = searchParams?.get('tab');
+
+// WRONG — crashes if searchParams is undefined
+const tab = searchParams.get('tab');
+```
+
+### Import paths — Relative from file depth
+```typescript
+// From components/campaigns/Modal.tsx (depth 2)
+import { supabase } from "../../integrations/supabase/client";
+
+// From pages/Dashboard.tsx (depth 1)
+import { supabase } from "../integrations/supabase/client";
+```
+
+### Router — Use Next.js, NOT React Router
+```typescript
+// CORRECT
+import { useRouter } from 'next/navigation';
+const router = useRouter();
+
+// WRONG
+import { useNavigate } from 'react-router-dom';
+```
+
+## File Structure
+
+```
+youtube/
+├── layout.tsx              # QueryClient + navigation
+├── page.tsx                # Dashboard wrapper
+├── campaigns/page.tsx      # Campaign list
+├── campaign-intake/page.tsx
+├── clients/page.tsx
+├── vendor-payments/page.tsx
+├── users/page.tsx          # Admin only
+├── system-health/page.tsx  # Admin only
+├── settings/page.tsx
+├── help/page.tsx
+└── vidi-health-flow/       # Original app source
+    ├── components/
+    ├── contexts/AuthContext.tsx
+    ├── hooks/
+    ├── integrations/supabase/
+    │   ├── client.ts
+    │   └── types.ts
+    ├── lib/constants.ts
+    └── pages/
+```
+
+## Database Tables
+
+- `youtube_campaigns` — Campaign records with video URL, goals, status, health scores
+- `youtube_clients` — Client entities
+- `youtube_vendors` — Vendor info with service types and rates
+- `youtube_vendor_payments` — Payment records and audit trail
+- `youtube_campaign_services` — Links campaigns to service types
+
+## Sidebar Navigation (Role-Based)
+
+| Page | Roles |
+|------|-------|
+| Dashboard | admin, manager, salesperson |
+| Campaigns | admin, manager, salesperson |
+| Campaign Intake | admin, manager |
+| Clients | admin, manager, salesperson |
+| Vendor Payments | admin, manager |
+| Users | admin |
+| System Health | admin |
+| Settings | admin, manager, salesperson |
+
+## Common Errors
+
+| Error | Fix |
+|-------|-----|
+| `Module not found: Can't resolve '../../integrations/...'` | Recalculate relative path based on file depth |
+| `Cannot read properties of undefined (reading 'get')` | Add `?.` to `searchParams?.get()` |
+| `useNavigate is not defined` | Replace with `useRouter` from `next/navigation` |
+| 404 on route | Missing `/youtube/` prefix |
+| `Could not find table 'user_profiles'` | Use auth metadata, not DB query |
+
+## Full Reference
+
+For complete YouTube documentation, see:
+- `.cursorrules-youtube` (977 lines of detailed patterns)
+- `docs/knowledge-base/youtube.md` (user-facing feature documentation)

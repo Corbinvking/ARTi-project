@@ -1,0 +1,113 @@
+---
+description: Spotify module database schema, code patterns, and common pitfalls. Apply when working on Spotify campaigns, playlists, vendors, Stream Strategist, or any files in apps/frontend/app/(dashboard)/spotify/.
+globs: apps/frontend/app/(dashboard)/spotify/**
+alwaysApply: false
+---
+
+# Spotify Development Patterns
+
+## Database Schema
+
+### Core Tables
+
+**spotify_campaigns** — Individual song placements
+- PK: `id` (integer, NOT uuid)
+- Campaign name column: `campaign` (NOT `campaign_name`)
+- Links: `client_id`, `vendor_id`, `campaign_group_id`
+- Playlist data: `playlist_links` (text)
+- Enriched: `track_name`, `artist_name`, `primary_genre`, `all_genres[]`, `track_popularity`
+- Scraped: `plays_last_7d`, `plays_last_3m`, `plays_last_12m`, `playlist_adds`, `saves`
+
+**campaign_groups** — Campaign containers (multiple songs)
+- PK: `id` (uuid)
+- Links multiple `spotify_campaigns` together
+
+**campaign_playlists** — Songs linked to playlists with performance data
+- PK: `id` (uuid)
+- `campaign_id` → `spotify_campaigns.id` (INTEGER, not uuid!)
+- `vendor_id` → vendors
+- Key: `playlist_spotify_id`, `playlist_follower_count`, `playlist_url`
+- `is_algorithmic` flag for Spotify-owned playlists
+
+**playlists** — Aggregated playlist data for vendor display
+- PK: `id` (uuid)
+- `vendor_id` can be NULL
+- `genres` is `text[]` (PostgreSQL array, NOT jsonb!)
+- `spotify_id` is unique constraint (VARCHAR 22)
+
+**clients** — `id` (uuid), `name`, `emails` (text[])
+**vendors** — `id` (uuid), `name`, `cost_per_1k_streams`, `is_active`
+
+## Critical Column Name Rules
+
+```typescript
+// CORRECT
+.eq('campaign', campaignName)   // Column is 'campaign'
+.eq('spotify_id', playlistId)   // Column is 'spotify_id'
+
+// WRONG — these columns don't exist
+.eq('campaign_name', name)
+.eq('playlist_id', id)
+```
+
+## ID Type Confusion (Common Bug Source)
+
+- `campaign_groups.id` → UUID
+- `spotify_campaigns.id` → INTEGER
+- `campaign_playlists.campaign_id` → references INTEGER (`spotify_campaigns.id`)
+
+## Genre Handling
+
+- Database: `text[]` (PostgreSQL array)
+- TypeScript: `string[]`
+- Inserting from JSON: `ARRAY(SELECT jsonb_array_elements_text('["pop","rock"]'::jsonb))`
+- Genres come from ARTISTS, not playlists (Spotify Web API)
+
+## Vendor Playlist Query Pattern
+
+```typescript
+// 1. Direct playlists (vendor_id set)
+const { data: direct } = await supabase.from('playlists').select('*').eq('vendor_id', vendorId);
+
+// 2. Playlist IDs from campaign_playlists
+const { data: cpIds } = await supabase.from('campaign_playlists').select('playlist_spotify_id').eq('vendor_id', vendorId);
+
+// 3. Fetch full data for those IDs
+const spotifyIds = cpIds.map(cp => cp.playlist_spotify_id).filter(Boolean);
+const { data: enriched } = await supabase.from('playlists').select('*').in('spotify_id', spotifyIds);
+
+// 4. Combine and deduplicate
+```
+
+## Algorithmic Playlist Filtering
+
+```typescript
+const algorithmicPlaylists = data.filter((p: any) =>
+  p.is_algorithmic === true &&
+  !p.vendor_id &&
+  (p.playlist_curator?.toLowerCase() === 'spotify' || !p.playlist_curator)
+);
+```
+
+## Common Pitfalls
+
+1. **Duplicate playlists**: Match by `spotify_id` first, fallback to name
+2. **vendor_id NULL**: Enriched playlists often have NULL vendor_id — query `campaign_playlists` table too
+3. **Genre type mismatch**: Database is `text[]`, not jsonb
+4. **sale_price format**: Stored as string with "$" — parse by removing "$" and commas
+5. **paid_vendor format**: Stored as string "true" — check `=== 'true'` OR `=== true`
+
+## Key File Locations
+
+- Playlists page: `apps/frontend/app/(dashboard)/spotify/stream-strategist/pages/PlaylistsPage.tsx`
+- Campaign details: `components/CampaignDetailsModal.tsx`
+- Playlist selector: `components/PlaylistSelector.tsx`
+- Vendor payouts: `hooks/useVendorPayouts.ts`
+- API routes: `apps/api/src/routes/spotify-web-api.ts`
+- Spotify client: `apps/api/src/lib/spotify-web-api.ts`
+
+## Spotify Web API
+
+- Auth: Client Credentials Flow (server-side), token cached ~1 hour
+- Rate limit: 200ms delay between requests
+- Endpoints: `GET /api/spotify-web-api/playlist/:id`, `GET /api/spotify-web-api/track/:id`, `POST /api/spotify-web-api/enrich-playlists`

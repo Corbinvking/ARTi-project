@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from "../integrations/supabase/client";
 import { useToast } from '@/hooks/use-toast';
+import { getApiUrl } from '../lib/getApiUrl';
 
 export interface Settings {
   id?: string;
@@ -89,32 +90,38 @@ export const useSettings = () => {
     try {
       toast({
         title: "Running Detection",
-        description: "Testing stalling campaign detection...",
+        description: "Scanning campaigns for stalling indicators...",
       });
 
-      const { data, error } = await supabase.functions.invoke('detect_stalling_campaigns');
+      const response = await fetch(`${getApiUrl()}/api/youtube-data-api/detect-stalling`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-      if (error) {
-        console.error('Error testing detection:', error);
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        console.error('Stalling detection failed:', err);
         toast({
-          title: "Test Failed",
-          description: "Failed to run stalling detection test.",
+          title: "Detection Failed",
+          description: err.error || 'Failed to run stalling detection.',
           variant: "destructive"
         });
         return;
       }
 
+      const data = await response.json();
+
       toast({
-        title: "Test Complete",
-        description: `Checked ${data.checked} campaigns, found ${data.stalled} stalling.`,
+        title: "Detection Complete",
+        description: `Checked ${data.checked} campaigns. ${data.stalled} stalling, ${data.recovered} recovered.`,
       });
 
       return data;
     } catch (error) {
       console.error('Error in testStallingDetection:', error);
       toast({
-        title: "Test Failed",
-        description: "Failed to run stalling detection test.",
+        title: "Detection Failed",
+        description: "Could not reach the API. Check that the server is running.",
         variant: "destructive"
       });
     }

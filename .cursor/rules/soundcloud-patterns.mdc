@@ -1,0 +1,147 @@
+---
+description: SoundCloud module development patterns, routing, auth, database schema, and member portal. Apply when working on SoundCloud repost campaigns, member portal, credits, queue, or any files in apps/frontend/app/(dashboard)/soundcloud/.
+globs: apps/frontend/app/(dashboard)/soundcloud/**
+alwaysApply: false
+---
+
+# SoundCloud Development Patterns
+
+## Architecture
+
+- **Location**: `apps/frontend/app/(dashboard)/soundcloud/`
+- **Routing**: Next.js App Router (migrated from React Router v6)
+- **Base path**: All routes MUST include `/soundcloud/` prefix
+- **Source**: `soundcloud/soundcloud-app/` contains the original components
+- **Database**: 57 tables (10 primary + 47 supporting)
+- **Types**: `soundcloud-app/integrations/supabase/types.ts` (2700+ lines)
+
+## Critical Rules
+
+### Auth — Metadata ONLY, NEVER query database
+```typescript
+// CORRECT
+const { data } = await supabase.auth.getUser();
+const role = data.user?.user_metadata?.role;
+
+// WRONG — NEVER do this in AuthContext.tsx
+const { data } = await supabase.from('user_profiles').select('*');
+```
+
+### Navigation — Always include `/soundcloud/` prefix
+```typescript
+// CORRECT
+router.push('/soundcloud/dashboard/campaigns');
+
+// WRONG
+router.push('/dashboard/campaigns');
+```
+
+### Import Paths — Relative within `soundcloud-app/`
+```typescript
+// From soundcloud-app/components/dashboard/CampaignList.tsx
+import { supabase } from "../../integrations/supabase/client";
+```
+
+### SearchParams — Optional chaining required
+```typescript
+const tab = searchParams?.get('tab');
+```
+
+### React Query Keys — Prefix with `soundcloud-`
+```typescript
+// CORRECT — avoids collision with other modules
+useQuery({ queryKey: ["soundcloud-campaigns"], ... });
+
+// WRONG — may collide with Spotify or YouTube queries
+useQuery({ queryKey: ["campaigns"], ... });
+```
+
+### Safe Array Rendering — Check PostgreSQL arrays
+```typescript
+{(items && Array.isArray(items) && items.length > 0) ? (
+  items.map(item => ...)
+) : (
+  <span>-</span>
+)}
+```
+
+### Number Formatting — Use toLocaleString()
+```typescript
+// CORRECT
+{count.toLocaleString()}
+
+// WRONG — AnimatedCounter causes issues
+<AnimatedCounter value={count} />
+```
+
+## File Structure
+
+```
+soundcloud/
+├── layout.tsx
+├── page.tsx                     # Entry → UnifiedOverview
+├── dashboard/                   # Admin/moderator pages
+│   ├── analytics/page.tsx
+│   ├── automation/page.tsx
+│   ├── campaigns/page.tsx
+│   ├── genres/page.tsx
+│   ├── health/page.tsx
+│   ├── members/page.tsx
+│   ├── planner/page.tsx
+│   ├── queue/page.tsx
+│   └── settings/page.tsx
+├── portal/                      # Member-only pages
+│   ├── submit/page.tsx
+│   ├── campaigns/page.tsx
+│   ├── profile/page.tsx
+│   ├── analytics/page.tsx
+│   ├── credits/page.tsx
+│   ├── queue/page.tsx
+│   ├── attribution/page.tsx
+│   ├── avoid-list/page.tsx
+│   └── history/page.tsx
+└── soundcloud-app/              # Core application
+    ├── components/ (150+)
+    ├── contexts/AuthContext.tsx
+    ├── hooks/ (22 custom)
+    ├── integrations/supabase/
+    └── types/
+```
+
+## Key Database Tables
+
+| Table | Purpose |
+|-------|---------|
+| `soundcloud_campaigns` | Campaign records |
+| `soundcloud_members` | Member profiles with credits |
+| `soundcloud_submissions` | Track submissions |
+| `soundcloud_credits` | Credit transaction ledger |
+| `soundcloud_genres` | Genre families and subgenres |
+| `soundcloud_reposts` | Individual repost records |
+| `soundcloud_channels` | Repost channels/accounts |
+
+## Member vs Admin Access
+
+- Members (role `member`) → ONLY see `/soundcloud/portal/*` pages
+- Admins/Operators → See `/soundcloud/dashboard/*` pages
+- Members are auto-redirected away from non-portal paths
+
+## Slack Notification Events
+
+Supported: `campaign_status_change`, `submission_status_change`, `inquiry_status_change`, `reconnect_email_sent`
+
+Configure via: SoundCloud > Dashboard > Settings (webhook URL + channel)
+
+## Common Pitfalls
+
+1. **Auth database queries** — NEVER in AuthContext, use metadata only
+2. **Missing `/soundcloud/` prefix** — Causes routing errors
+3. **Query key collisions** — Always prefix with `soundcloud-`
+4. **Array rendering crashes** — Always null-check before `.map()`
+5. **SearchParams crash** — Always use optional chaining
+
+## Full Reference
+
+For complete SoundCloud documentation, see:
+- `.cursorrules-soundcloud` (1244 lines of detailed patterns)
+- `docs/knowledge-base/soundcloud.md` (user-facing feature documentation)

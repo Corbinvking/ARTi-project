@@ -24,6 +24,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { RatioFixerContent } from "./RatioFixerContent";
 import { sanitizeYouTubeUrl } from "../../lib/youtube";
 import { getApiUrl } from "../../lib/getApiUrl";
+import { calculateHealthScore } from "../../lib/healthScore";
 import { MultiServiceTypeSelector } from "./MultiServiceTypeSelector";
 import { CommentsCSVUpload } from "./CommentsCSVUpload";
 import { FinalReportModal } from "./FinalReportModal";
@@ -406,18 +407,7 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
     return num.toString();
   };
 
-  const calculateHealthScore = (campaign: any): number => {
-    let score = 50; // Base score
-    
-    const viewsProgress = campaign.goal_views > 0 ? (campaign.current_views || 0) / campaign.goal_views : 0;
-    score += viewsProgress * 30; // Up to 30 points for view progress
-    
-    if (campaign.status === 'active') score += 10;
-    if (!campaign.views_stalled) score += 10;
-    if (!campaign.in_fixer) score += 5;
-    
-    return Math.min(100, Math.max(0, Math.round(score)));
-  };
+  // Health score calculation imported from ../../lib/healthScore
 
   const handleInputChange = (field: string, value: string | Date | boolean) => {
     const newData = { ...formData, [field]: value };

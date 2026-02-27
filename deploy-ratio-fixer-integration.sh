@@ -72,6 +72,8 @@ else
 [Unit]
 Description=Ratio Fixer Flask App
 After=network.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -84,6 +86,8 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
+MemoryMax=512M
+TasksMax=50
 
 [Install]
 WantedBy=multi-user.target
@@ -113,7 +117,7 @@ fi
 echo ""
 echo -e "${YELLOW}Step 5: Testing Flask health endpoint...${NC}"
 sleep 2
-HEALTH_RESPONSE=$(curl -s http://localhost:5000/healthz || echo "FAILED")
+HEALTH_RESPONSE=$(curl -s http://localhost:5001/healthz || echo "FAILED")
 if [ "$HEALTH_RESPONSE" = '{"status":"healthy"}' ]; then
     echo -e "${GREEN}✅ Flask health check passed${NC}"
 else
@@ -132,7 +136,7 @@ if ! grep -q "RATIO_FIXER_URL" apps/api/production.env; then
     echo -e "${YELLOW}⚠️  Manual step required:${NC}"
     echo "Add these lines to apps/api/production.env:"
     echo ""
-    echo "RATIO_FIXER_URL=http://localhost:5000"
+    echo "RATIO_FIXER_URL=http://\$(hostname -I | awk '{print \$1}'):5001"
     echo "RATIO_FIXER_API_KEY=$API_KEY"
     echo "JINGLE_SMM_API_KEY=708ff328d63c1ce1548596a16f5f67b1"
     echo ""
@@ -168,7 +172,7 @@ echo ""
 echo -e "${YELLOW}Step 8: Running final tests...${NC}"
 
 # Test Flask health
-FLASK_HEALTH=$(curl -s http://localhost:5000/healthz)
+FLASK_HEALTH=$(curl -s http://localhost:5001/healthz)
 if [ "$FLASK_HEALTH" = '{"status":"healthy"}' ]; then
     echo -e "${GREEN}✅ Flask health: OK${NC}"
 else
@@ -197,7 +201,7 @@ echo "2. Monitor logs: sudo journalctl -u ratio-fixer -f"
 echo "3. Check API logs: docker compose logs api -f"
 echo ""
 echo "If API bridge health check failed, verify:"
-echo "- Flask is running: curl http://localhost:5000/healthz"
+echo "- Flask is running: curl http://localhost:5001/healthz"
 echo "- API keys match in both .env files"
 echo "- API container is running: docker compose ps api"
 echo ""

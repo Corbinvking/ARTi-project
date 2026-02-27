@@ -135,11 +135,19 @@ export type Database = {
           last_youtube_fetch: string | null
           like_server: string | null
           likes_7_days: number | null
+          likes_at_fixer_start: number | null
           manual_progress: number
           minimum_engagement: number | null
           needs_update: boolean | null
+          ordered_comments: number | null
+          ordered_likes: number | null
           paid_reach: boolean | null
           payment_calculation_date: string | null
+          ratio_fixer_campaign_id: string | null
+          ratio_fixer_last_check: string | null
+          ratio_fixer_started_at: string | null
+          ratio_fixer_status: string | null
+          ratio_fixer_stopped_at: string | null
           sale_price: number | null
           salesperson_id: string | null
           source_invoice_id: string | null
@@ -154,6 +162,9 @@ export type Database = {
           technical_setup_complete: boolean
           total_subscribers: number | null
           updated_at: string
+          desired_likes: number | null
+          desired_comments: number | null
+          comments_at_fixer_start: number | null
           vendor_paid: boolean
           video_id: string | null
           views_7_days: number | null
@@ -194,11 +205,19 @@ export type Database = {
           last_youtube_fetch?: string | null
           like_server?: string | null
           likes_7_days?: number | null
+          likes_at_fixer_start?: number | null
           manual_progress?: number
           minimum_engagement?: number | null
           needs_update?: boolean | null
+          ordered_comments?: number | null
+          ordered_likes?: number | null
           paid_reach?: boolean | null
           payment_calculation_date?: string | null
+          ratio_fixer_campaign_id?: string | null
+          ratio_fixer_last_check?: string | null
+          ratio_fixer_started_at?: string | null
+          ratio_fixer_status?: string | null
+          ratio_fixer_stopped_at?: string | null
           sale_price?: number | null
           salesperson_id?: string | null
           source_invoice_id?: string | null
@@ -213,6 +232,9 @@ export type Database = {
           technical_setup_complete?: boolean
           total_subscribers?: number | null
           updated_at?: string
+          desired_likes?: number | null
+          desired_comments?: number | null
+          comments_at_fixer_start?: number | null
           vendor_paid?: boolean
           video_id?: string | null
           views_7_days?: number | null
@@ -253,11 +275,19 @@ export type Database = {
           last_youtube_fetch?: string | null
           like_server?: string | null
           likes_7_days?: number | null
+          likes_at_fixer_start?: number | null
           manual_progress?: number
           minimum_engagement?: number | null
           needs_update?: boolean | null
+          ordered_comments?: number | null
+          ordered_likes?: number | null
           paid_reach?: boolean | null
           payment_calculation_date?: string | null
+          ratio_fixer_campaign_id?: string | null
+          ratio_fixer_last_check?: string | null
+          ratio_fixer_started_at?: string | null
+          ratio_fixer_status?: string | null
+          ratio_fixer_stopped_at?: string | null
           sale_price?: number | null
           salesperson_id?: string | null
           source_invoice_id?: string | null
@@ -272,6 +302,9 @@ export type Database = {
           technical_setup_complete?: boolean
           total_subscribers?: number | null
           updated_at?: string
+          desired_likes?: number | null
+          desired_comments?: number | null
+          comments_at_fixer_start?: number | null
           vendor_paid?: boolean
           video_id?: string | null
           views_7_days?: number | null
@@ -784,6 +817,7 @@ export type Database = {
           comment_server: string | null
           comment_server_auto_selected: boolean | null
           comments_7_days: number | null
+          comments_at_fixer_start: number | null
           comments_sheet_url: string | null
           comments_csv_file_path: string | null
           confirm_start_date: boolean | null
@@ -792,7 +826,9 @@ export type Database = {
           current_likes: number | null
           current_views: number | null
           custom_service_type: string | null
+          desired_comments: number | null
           desired_daily: number | null
+          desired_likes: number | null
           end_date: string | null
           genre: string | null
           goal_views: number | null
@@ -810,12 +846,20 @@ export type Database = {
           like_server: string | null
           like_server_auto_selected: boolean | null
           likes_7_days: number | null
+          likes_at_fixer_start: number | null
           manual_progress: number | null
           minimum_engagement: number | null
           needs_update: boolean | null
+          ordered_comments: number | null
+          ordered_likes: number | null
           org_id: string | null
           paid_reach: boolean | null
           payment_calculation_date: string | null
+          ratio_fixer_campaign_id: string | null
+          ratio_fixer_last_check: string | null
+          ratio_fixer_started_at: string | null
+          ratio_fixer_status: string | null
+          ratio_fixer_stopped_at: string | null
           sale_price: number | null
           salesperson_id: string | null
           service_type: Database["public"]["Enums"]["service_type"]
@@ -850,6 +894,7 @@ export type Database = {
           comment_server?: string | null
           comment_server_auto_selected?: boolean | null
           comments_7_days?: number | null
+          comments_at_fixer_start?: number | null
           comments_sheet_url?: string | null
           comments_csv_file_path?: string | null
           confirm_start_date?: boolean | null
@@ -858,7 +903,9 @@ export type Database = {
           current_likes?: number | null
           current_views?: number | null
           custom_service_type?: string | null
+          desired_comments?: number | null
           desired_daily?: number | null
+          desired_likes?: number | null
           end_date?: string | null
           genre?: string | null
           goal_views?: number | null
@@ -876,12 +923,20 @@ export type Database = {
           like_server?: string | null
           like_server_auto_selected?: boolean | null
           likes_7_days?: number | null
+          likes_at_fixer_start?: number | null
           manual_progress?: number | null
           minimum_engagement?: number | null
           needs_update?: boolean | null
+          ordered_comments?: number | null
+          ordered_likes?: number | null
           org_id?: string | null
           paid_reach?: boolean | null
           payment_calculation_date?: string | null
+          ratio_fixer_campaign_id?: string | null
+          ratio_fixer_last_check?: string | null
+          ratio_fixer_started_at?: string | null
+          ratio_fixer_status?: string | null
+          ratio_fixer_stopped_at?: string | null
           sale_price?: number | null
           salesperson_id?: string | null
           service_type: Database["public"]["Enums"]["service_type"]
@@ -916,6 +971,7 @@ export type Database = {
           comment_server?: string | null
           comment_server_auto_selected?: boolean | null
           comments_7_days?: number | null
+          comments_at_fixer_start?: number | null
           comments_sheet_url?: string | null
           comments_csv_file_path?: string | null
           confirm_start_date?: boolean | null
@@ -924,7 +980,9 @@ export type Database = {
           current_likes?: number | null
           current_views?: number | null
           custom_service_type?: string | null
+          desired_comments?: number | null
           desired_daily?: number | null
+          desired_likes?: number | null
           end_date?: string | null
           genre?: string | null
           goal_views?: number | null
@@ -942,12 +1000,20 @@ export type Database = {
           like_server?: string | null
           like_server_auto_selected?: boolean | null
           likes_7_days?: number | null
+          likes_at_fixer_start?: number | null
           manual_progress?: number | null
           minimum_engagement?: number | null
           needs_update?: boolean | null
+          ordered_comments?: number | null
+          ordered_likes?: number | null
           org_id?: string | null
           paid_reach?: boolean | null
           payment_calculation_date?: string | null
+          ratio_fixer_campaign_id?: string | null
+          ratio_fixer_last_check?: string | null
+          ratio_fixer_started_at?: string | null
+          ratio_fixer_status?: string | null
+          ratio_fixer_stopped_at?: string | null
           sale_price?: number | null
           salesperson_id?: string | null
           service_type?: Database["public"]["Enums"]["service_type"]
