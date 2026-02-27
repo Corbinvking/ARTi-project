@@ -15,7 +15,7 @@ import Link from "next/link";
 
 import { CampaignForm, Campaign, POST_TYPES } from "../seedstorm-builder/lib/types";
 import { generateUUID } from "../seedstorm-builder/lib/campaignAlgorithm";
-import { formatNumber, formatCurrency, saveCampaign } from "../seedstorm-builder/lib/localStorage";
+import { formatNumber, formatCurrency, saveCampaign, type SaveCampaignResult } from "../seedstorm-builder/lib/localStorage";
 import { exportCampaignCSV } from "../seedstorm-builder/lib/csvUtils";
 import { toast } from "@/components/ui/use-toast";
 import { TagSelectDropdown } from "../seedstorm-builder/components/TagSelectDropdown";
@@ -205,8 +205,19 @@ export default function InstagramCampaignBuilderPage() {
       totals: campaignResult.totals,
     };
     try {
-      await saveCampaign(campaign);
-      toast({ title: "Campaign Saved!", description: `"${campaign.campaign_name}" saved with ${campaignResult.selectedCreators.length} creators.` });
+      const result = await saveCampaign(campaign);
+      if (result.placementError) {
+        toast({
+          title: "Campaign Saved (with warnings)",
+          description: `"${campaign.campaign_name}" saved but ${result.placementError}. You can add creators manually from the campaigns page.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Campaign Saved!",
+          description: `"${campaign.campaign_name}" saved with ${result.placementsCreated} creators.`,
+        });
+      }
       router.push("/instagram/campaigns");
     } catch (error: any) {
       toast({ title: "Save Failed", description: error?.message || "Please try again.", variant: "destructive" });

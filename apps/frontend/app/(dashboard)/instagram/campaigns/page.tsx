@@ -213,6 +213,44 @@ export default function InstagramCampaignsPage() {
     }
   };
 
+  // Fallback sync: if campaign has selected_creators but no placements, create them
+  const [syncAttempted, setSyncAttempted] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isDetailsOpen || !selectedCampaign?.id || loadingCreators) return;
+    if (campaignCreators.length > 0) return;
+    if (syncAttempted === String(selectedCampaign.id)) return;
+
+    const selected: any[] = selectedCampaign.selected_creators;
+    if (!Array.isArray(selected) || selected.length === 0) return;
+
+    setSyncAttempted(String(selectedCampaign.id));
+
+    const placementRows = selected.map((creator: any) => ({
+      campaign_id: String(selectedCampaign.id),
+      instagram_handle: creator.instagram_handle,
+      rate: creator.campaign_rate || creator.reel_rate || creator.selected_rate || 0,
+      posts_count: creator.posts_count || 1,
+      post_type: creator.selected_post_type || 'reel',
+      page_status: 'proposed' as const,
+      payment_status: 'unpaid' as const,
+      post_status: 'not_posted' as const,
+      approval_status: 'pending' as const,
+      is_auto_selected: false,
+    }));
+
+    supabase
+      .from('instagram_campaign_creators')
+      .insert(placementRows)
+      .then(({ error }) => {
+        if (error) {
+          console.error('Fallback sync failed:', error);
+        } else {
+          console.log(`Fallback sync: created ${placementRows.length} placements`);
+        }
+        refetchCreators();
+      });
+  }, [isDetailsOpen, selectedCampaign?.id, campaignCreators.length, loadingCreators, syncAttempted]);
+
   // State for adding post URLs
   const [newPostUrl, setNewPostUrl] = useState("");
   const [addingPost, setAddingPost] = useState(false);

@@ -245,22 +245,29 @@ function buildCampaignSummary(campaign: UICampaign): string {
   return lines.join('\n');
 }
 
+export interface SaveCampaignResult {
+  campaignId: string;
+  placementError?: string;
+  placementsCreated: number;
+}
+
 // Save campaign to instagram_campaigns table
 // Uses the ACTUAL production schema from migration 011 (Airtable import format)
-export const saveCampaign = async (campaign: UICampaign): Promise<string> => {
+export const saveCampaign = async (campaign: UICampaign): Promise<SaveCampaignResult> => {
   verifyProjectIntegrity();
 
   // Map UI data to actual production schema columns
   const payload: any = {
     campaign: campaign.campaign_name || 'Untitled Campaign',
-    clients: campaign.campaign_name || 'Client', // Use campaign name as client name
+    clients: campaign.campaign_name || 'Client',
     price: `$${campaign.form_data?.total_budget ?? campaign.totals?.total_cost ?? 0}`,
     spend: '$0',
     remaining: `$${campaign.form_data?.total_budget ?? campaign.totals?.total_cost ?? 0}`,
     status: mapUIStatusToDb(campaign.status),
-    sound_url: '', // Audio URL if available
-    tracker: '', // Tracker URL
+    sound_url: '',
+    tracker: '',
     report_notes: buildCampaignSummary(campaign),
+    selected_creators: campaign.selected_creators ?? [],
   };
 
   console.log('📝 Saving to instagram_campaigns:', payload.campaign);
@@ -276,8 +283,64 @@ export const saveCampaign = async (campaign: UICampaign): Promise<string> => {
     throw error;
   }
 
-  console.log('✅ Saved campaign with ID:', data?.id);
-  return data?.id as string;
+  const campaignId = data?.id as string;
+  console.log('✅ Saved campaign with ID:', campaignId);
+
+  // Immediately create placement rows in instagram_campaign_creators
+  const creators = campaign.selected_creators ?? [];
+  if (creators.length === 0) {
+    return { campaignId, placementsCreated: 0 };
+  }
+
+  const placementRows = creators.map((creator: any) => ({
+    campaign_id: String(campaignId),
+    instagram_handle: creator.instagram_handle,
+    rate: creator.campaign_rate || creator.reel_rate || creator.selected_rate || 0,
+    posts_count: creator.posts_count || 1,
+    post_type: creator.selected_post_type || 'reel',
+    page_status: 'proposed',
+    payment_status: 'unpaid',
+    post_status: 'not_posted',
+    approval_status: 'pending',
+    is_auto_selected: false,
+  }));
+
+  console.log(`📝 Inserting ${placementRows.length} placements for campaign ${campaignId}:`,
+    placementRows.map(r => `@${r.instagram_handle}`).join(', '));
+
+  const { error: placementError } = await supabase
+    .from('instagram_campaign_creators')
+    .insert(placementRows);
+
+  if (placementError) {
+    console.error('⚠️ Failed to create placements (campaign still saved):', placementError);
+
+    // Retry one-by-one so partial successes are preserved
+    let inserted = 0;
+    for (const row of placementRows) {
+      const { error: singleErr } = await supabase
+        .from('instagram_campaign_creators')
+        .insert(row);
+      if (!singleErr) {
+        inserted++;
+      } else {
+        console.error(`  ⚠️ Failed to insert @${row.instagram_handle}:`, singleErr.message);
+      }
+    }
+
+    if (inserted > 0) {
+      console.log(`✅ Inserted ${inserted}/${placementRows.length} placements via retry`);
+    }
+
+    return {
+      campaignId,
+      placementsCreated: inserted,
+      placementError: `Failed to create ${placementRows.length - inserted} of ${placementRows.length} placements: ${placementError.message}`,
+    };
+  }
+
+  console.log(`✅ Created ${placementRows.length} placements for campaign ${campaignId}`);
+  return { campaignId, placementsCreated: placementRows.length };
 };
 
 export const deleteCampaign = async (id: string): Promise<void> => {

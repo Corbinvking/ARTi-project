@@ -109,7 +109,10 @@ async function main() {
   // Step 1: Check API health
   log('Checking API health...');
   try {
-    const healthRes = await makeRequest(`${API_URL}/health`);
+    let healthRes = await makeRequest(`${API_URL}/health`);
+    if (healthRes.status !== 200) {
+      healthRes = await makeRequest(`${API_URL}/api/health`);
+    }
     if (healthRes.status !== 200) throw new Error(`Health check failed: ${healthRes.status}`);
     log('API is healthy');
   } catch (e) {
