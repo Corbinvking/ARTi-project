@@ -1,0 +1,147 @@
+name: Sync Project Board Status to Issue Labels
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+env:
+  GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+  REPO: Corbinvking/ARTi-project
+  IN_PROGRESS_OPTION_ID: "47fc9ee4"
+  TODO_OPTION_ID: "f75ad846"
+  DONE_OPTION_ID: "98236657"
+
+jobs:
+  sync-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync project board status to issue labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECT_PAT }}
+          script: |
+            const PROJECT_IDS = [
+              "PVT_kwHOCLGpZM4BQRpJ", // Spotify
+              "PVT_kwHOCLGpZM4BQRpR", // Instagram
+              "PVT_kwHOCLGpZM4BQRpO", // YouTube
+              "PVT_kwHOCLGpZM4BQRpU", // SoundCloud
+              "PVT_kwHOCLGpZM4BQRpV", // Core Platform
+              "PVT_kwHOCLGpZM4BQRpb", // API and Backend
+              "PVT_kwHOCLGpZM4BQRpc", // Scrapers and Data
+            ];
+
+            const OWNER = "Corbinvking";
+            const REPO = "ARTi-project";
+            let totalSynced = 0;
+
+            for (const projectId of PROJECT_IDS) {
+              const query = `query($projectId: ID!) {
+                node(id: $projectId) {
+                  ... on ProjectV2 {
+                    title
+                    items(first: 100) {
+                      nodes {
+                        fieldValueByName(name: "Status") {
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                            optionId
+                          }
+                        }
+                        content {
+                          ... on Issue {
+                            number
+                            state
+                            labels(first: 20) {
+                              nodes { name }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }`;
+
+              let result;
+              try {
+                result = await github.graphql(query, { projectId });
+              } catch (err) {
+                console.log(`Failed to query project ${projectId}: ${err.message}`);
+                continue;
+              }
+
+              const project = result.node;
+              if (!project?.items?.nodes) continue;
+
+              console.log(`\n=== ${project.title} (${project.items.nodes.length} items) ===`);
+
+              for (const item of project.items.nodes) {
+                const issue = item.content;
+                if (!issue?.number) continue;
+
+                const projectStatus = item.fieldValueByName?.name;
+                if (!projectStatus) continue;
+
+                const labels = issue.labels?.nodes?.map(l => l.name) || [];
+                const hasInProgress = labels.includes("status:in-progress");
+                const hasTriage = labels.includes("status:triage");
+                const hasDone = labels.includes("status:done");
+
+                if (projectStatus === "In Progress" && !hasInProgress) {
+                  console.log(`  #${issue.number}: project="In Progress", adding status:in-progress`);
+                  try {
+                    await github.rest.issues.addLabels({ owner: OWNER, repo: REPO, issue_number: issue.number, labels: ["status:in-progress"] });
+                    if (hasTriage) {
+                      await github.rest.issues.removeLabel({ owner: OWNER, repo: REPO, issue_number: issue.number, name: "status:triage" }).catch(() => {});
+                    }
+                    if (hasDone) {
+                      await github.rest.issues.removeLabel({ owner: OWNER, repo: REPO, issue_number: issue.number, name: "status:done" }).catch(() => {});
+                    }
+                    if (issue.state === "closed") {
+                      await github.rest.issues.update({ owner: OWNER, repo: REPO, issue_number: issue.number, state: "open" });
+                    }
+                    totalSynced++;
+                  } catch (err) {
+                    console.log(`    Failed: ${err.message}`);
+                  }
+                }
+
+                else if (projectStatus === "Todo" && hasInProgress) {
+                  console.log(`  #${issue.number}: project="Todo", removing status:in-progress`);
+                  try {
+                    await github.rest.issues.removeLabel({ owner: OWNER, repo: REPO, issue_number: issue.number, name: "status:in-progress" }).catch(() => {});
+                    if (!hasTriage) {
+                      await github.rest.issues.addLabels({ owner: OWNER, repo: REPO, issue_number: issue.number, labels: ["status:triage"] });
+                    }
+                    if (issue.state === "closed") {
+                      await github.rest.issues.update({ owner: OWNER, repo: REPO, issue_number: issue.number, state: "open" });
+                    }
+                    totalSynced++;
+                  } catch (err) {
+                    console.log(`    Failed: ${err.message}`);
+                  }
+                }
+
+                else if (projectStatus === "Done" && issue.state === "open") {
+                  console.log(`  #${issue.number}: project="Done" but issue open, closing`);
+                  try {
+                    await github.rest.issues.update({ owner: OWNER, repo: REPO, issue_number: issue.number, state: "closed" });
+                    if (!hasDone) {
+                      await github.rest.issues.addLabels({ owner: OWNER, repo: REPO, issue_number: issue.number, labels: ["status:done"] });
+                    }
+                    if (hasInProgress) {
+                      await github.rest.issues.removeLabel({ owner: OWNER, repo: REPO, issue_number: issue.number, name: "status:in-progress" }).catch(() => {});
+                    }
+                    totalSynced++;
+                  } catch (err) {
+                    console.log(`    Failed: ${err.message}`);
+                  }
+                }
+              }
+            }
+
+            console.log(`\n=== Sync complete: ${totalSynced} issues updated ===`);
