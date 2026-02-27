@@ -93,7 +93,7 @@ const CampaignHistory = () => {
         budget: c.budget,
         status: c.status,
         date_created: c.createdAt.toISOString(),
-        selected_creators: [], // Will be loaded separately if needed
+        selected_creators: c.selectedCreators || [],
         totals: {
           totalSpend: c.totalSpend,
           remaining: c.remaining

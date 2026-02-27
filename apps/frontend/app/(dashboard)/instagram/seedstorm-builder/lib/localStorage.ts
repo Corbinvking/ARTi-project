@@ -267,7 +267,6 @@ export const saveCampaign = async (campaign: UICampaign): Promise<SaveCampaignRe
     sound_url: '',
     tracker: '',
     report_notes: buildCampaignSummary(campaign),
-    selected_creators: campaign.selected_creators ?? [],
   };
 
   console.log('📝 Saving to instagram_campaigns:', payload.campaign);
