@@ -28,6 +28,7 @@ import { calculateHealthScore } from "../../lib/healthScore";
 import { MultiServiceTypeSelector } from "./MultiServiceTypeSelector";
 import { CommentsCSVUpload } from "./CommentsCSVUpload";
 import { FinalReportModal } from "./FinalReportModal";
+import { RatioFixerPerformanceChart } from "./RatioFixerPerformanceChart";
 import { OverrideField, OverrideDateField, OverrideSelectField } from "@/components/overrides";
 import { saveOverride, revertOverride } from "@/lib/overrides";
 import { SERVICE_TYPES, GENRE_OPTIONS, LIKE_SERVER_OPTIONS, COMMENT_SERVER_OPTIONS, SHEET_TIER_OPTIONS } from "../../lib/constants";
@@ -1434,6 +1435,11 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                 )}
               </CardContent>
             </Card>
+
+            {/* Ratio Fixer Performance Charts */}
+            {(campaign.ratio_fixer_started_at || campaign.in_fixer) && (
+              <RatioFixerPerformanceChart campaign={campaign} />
+            )}
 
             {/* Progress Information */}
             <Card>

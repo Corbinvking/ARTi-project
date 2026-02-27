@@ -12,7 +12,7 @@ const navItems = [
   { title: "Planner", href: "/soundcloud/dashboard/planner", icon: Calendar },
   { title: "Campaigns", href: "/soundcloud/dashboard/campaigns", icon: PlayCircle },
   { title: "Queue", href: "/soundcloud/dashboard/queue", icon: Music },
-  { title: "Clients", href: "/soundcloud/dashboard/members", icon: Users },
+  { title: "Members", href: "/soundcloud/dashboard/members", icon: Users },
   { title: "Analytics", href: "/soundcloud/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", href: "/soundcloud/dashboard/settings", icon: Settings },
 ];

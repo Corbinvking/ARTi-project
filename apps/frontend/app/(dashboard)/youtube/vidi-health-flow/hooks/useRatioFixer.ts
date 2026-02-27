@@ -138,6 +138,7 @@ export function useRatioFixer() {
           headers: {
             'Content-Type': 'application/json',
           },
+          body: '{}',
         }
       );
 

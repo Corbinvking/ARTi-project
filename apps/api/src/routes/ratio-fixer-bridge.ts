@@ -6,6 +6,10 @@ import { supabase } from '@/lib/supabase';
 const RATIO_FIXER_URL = process.env.RATIO_FIXER_URL || 'http://localhost:5001';
 const RATIO_FIXER_API_KEY = process.env.RATIO_FIXER_API_KEY || '';
 
+// Throttle snapshot inserts to once every 5 minutes per campaign
+const SNAPSHOT_INTERVAL_MS = 5 * 60 * 1000;
+const lastSnapshotTime = new Map<string, number>();
+
 interface StartRatioFixerRequest {
   campaignId: string;
   videoUrl: string;
@@ -128,6 +132,27 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
         }
       }
 
+      // Insert baseline snapshot so the chart starts at time zero
+      if (body.campaignId) {
+        const { data: curr } = await supabase
+          .from('youtube_campaigns')
+          .select('current_views, current_likes, current_comments')
+          .eq('id', body.campaignId)
+          .single();
+
+        await supabase.from('ratio_fixer_snapshots').insert({
+          campaign_id: body.campaignId,
+          views: curr?.current_views ?? 0,
+          likes: curr?.current_likes ?? 0,
+          comments: curr?.current_comments ?? 0,
+          ordered_likes: 0,
+          ordered_comments: 0,
+          desired_likes: 0,
+          desired_comments: 0,
+          flask_status: 'started',
+        });
+      }
+
       return reply.send({
         success: true,
         ratioFixerCampaignId: flaskData.campaign_id,
@@ -197,6 +222,40 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
 
       if (syncErr) {
         logger.warn('Failed to sync ratio fixer stats to youtube_campaigns:', syncErr);
+      }
+
+      // Insert a time-series snapshot (throttled to every 5 minutes)
+      const now = Date.now();
+      const lastSnap = lastSnapshotTime.get(ratioFixerCampaignId) ?? 0;
+      if (now - lastSnap >= SNAPSHOT_INTERVAL_MS) {
+        // Look up the Supabase campaign UUID for this Flask campaign
+        const { data: row } = await supabase
+          .from('youtube_campaigns')
+          .select('id')
+          .eq('ratio_fixer_campaign_id', ratioFixerCampaignId)
+          .single();
+
+        if (row?.id) {
+          const { error: snapErr } = await supabase
+            .from('ratio_fixer_snapshots')
+            .insert({
+              campaign_id: row.id,
+              views: statusData.views ?? 0,
+              likes: statusData.likes ?? 0,
+              comments: statusData.comments ?? 0,
+              ordered_likes: statusData.ordered_likes ?? 0,
+              ordered_comments: statusData.ordered_comments ?? 0,
+              desired_likes: statusData.desired_likes ?? 0,
+              desired_comments: statusData.desired_comments ?? 0,
+              flask_status: statusData.status ?? null,
+            });
+
+          if (snapErr) {
+            logger.warn('Failed to insert ratio fixer snapshot:', snapErr);
+          } else {
+            lastSnapshotTime.set(ratioFixerCampaignId, now);
+          }
+        }
       }
       
       return reply.send(statusData);
@@ -269,6 +328,28 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
       const responseData = await flaskResponse.json();
       
       logger.info('Ratio fixer stopped successfully');
+
+      // Insert final snapshot before marking stopped
+      const { data: stoppedRow } = await supabase
+        .from('youtube_campaigns')
+        .select('id, ordered_likes, ordered_comments, desired_likes, desired_comments, current_views, current_likes, current_comments')
+        .eq('ratio_fixer_campaign_id', ratioFixerCampaignId)
+        .single();
+
+      if (stoppedRow?.id) {
+        await supabase.from('ratio_fixer_snapshots').insert({
+          campaign_id: stoppedRow.id,
+          views: stoppedRow.current_views ?? 0,
+          likes: stoppedRow.current_likes ?? 0,
+          comments: stoppedRow.current_comments ?? 0,
+          ordered_likes: stoppedRow.ordered_likes ?? 0,
+          ordered_comments: stoppedRow.ordered_comments ?? 0,
+          desired_likes: stoppedRow.desired_likes ?? 0,
+          desired_comments: stoppedRow.desired_comments ?? 0,
+          flask_status: 'stopped',
+        });
+        lastSnapshotTime.delete(ratioFixerCampaignId);
+      }
 
       // Sync status back to the youtube_campaigns table
       const { error: updateErr } = await supabase

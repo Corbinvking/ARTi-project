@@ -160,10 +160,10 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
 
     try {
       if (inFixer) {
-        if (!campaign.video_id || !campaign.genre) {
+        if (!campaign.video_id) {
           toast({
             title: "Missing campaign data",
-            description: "Campaign needs a video ID and genre before the ratio fixer can start. Open campaign settings to configure.",
+            description: "Campaign needs a video ID before the ratio fixer can start. Open campaign settings to configure.",
             variant: "destructive",
           });
           return;
@@ -176,7 +176,7 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
             campaignId: campaign.id,
             videoUrl: campaign.youtube_url,
             videoId: campaign.video_id,
-            genre: campaign.genre,
+            genre: campaign.genre || 'General',
             commentsSheetUrl: campaign.comments_sheet_url || '',
             waitTime: campaign.wait_time_seconds || 36,
             minimumEngagement: campaign.minimum_engagement || 500,
@@ -211,6 +211,7 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
             const response = await fetch(`${apiUrl}/api/ratio-fixer/stop/${ratioFixerCampaignId}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              body: '{}',
             });
 
             const data = await response.json();
