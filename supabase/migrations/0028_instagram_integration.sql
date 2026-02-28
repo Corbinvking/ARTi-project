@@ -1,6 +1,9 @@
 -- Instagram Integration Schema
 -- Adds Instagram-specific campaign management tables
 
+-- Drop legacy instagram_campaigns table (created in 011 with SERIAL id) so we can recreate with UUID
+DROP TABLE IF EXISTS public.instagram_campaigns CASCADE;
+
 -- Create instagram_campaigns table (separate from stream_strategist_campaigns)
 CREATE TABLE IF NOT EXISTS public.instagram_campaigns (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -137,7 +140,7 @@ ALTER TABLE public.instagram_ab_tests ENABLE ROW LEVEL SECURITY;
 -- Create RLS policies for instagram_campaigns
 CREATE POLICY "Users can view campaigns in their org"
 ON public.instagram_campaigns FOR SELECT
-USING (org_id = auth.jwt() -> 'app_metadata' ->> 'org_id'::text);
+USING (org_id = (auth.jwt() -> 'app_metadata' ->> 'org_id')::uuid);
 
 CREATE POLICY "Admin/manager can manage campaigns"
 ON public.instagram_campaigns FOR ALL
@@ -150,7 +153,7 @@ USING (public_access_enabled = true AND public_token IS NOT NULL);
 -- Create RLS policies for instagram_campaign_creators
 CREATE POLICY "Users can view campaign creators in their org"
 ON public.instagram_campaign_creators FOR SELECT
-USING (org_id = auth.jwt() -> 'app_metadata' ->> 'org_id'::text);
+USING (org_id = (auth.jwt() -> 'app_metadata' ->> 'org_id')::uuid);
 
 CREATE POLICY "Admin/manager can manage campaign creators"
 ON public.instagram_campaign_creators FOR ALL
@@ -159,7 +162,7 @@ USING (is_vendor_manager());
 -- Create RLS policies for instagram_campaign_posts
 CREATE POLICY "Users can view posts in their org"
 ON public.instagram_campaign_posts FOR SELECT
-USING (org_id = auth.jwt() -> 'app_metadata' ->> 'org_id'::text);
+USING (org_id = (auth.jwt() -> 'app_metadata' ->> 'org_id')::uuid);
 
 CREATE POLICY "Admin/manager can manage posts"
 ON public.instagram_campaign_posts FOR ALL
@@ -179,7 +182,7 @@ USING (
 -- Create RLS policies for instagram_post_analytics
 CREATE POLICY "Users can view analytics in their org"
 ON public.instagram_post_analytics FOR SELECT
-USING (org_id = auth.jwt() -> 'app_metadata' ->> 'org_id'::text);
+USING (org_id = (auth.jwt() -> 'app_metadata' ->> 'org_id')::uuid);
 
 CREATE POLICY "Admin/manager can manage analytics"
 ON public.instagram_post_analytics FOR ALL
@@ -188,7 +191,7 @@ USING (is_vendor_manager());
 -- Create RLS policies for instagram_tags
 CREATE POLICY "Users can view tags in their org"
 ON public.instagram_tags FOR SELECT
-USING (org_id = auth.jwt() -> 'app_metadata' ->> 'org_id'::text);
+USING (org_id = (auth.jwt() -> 'app_metadata' ->> 'org_id')::uuid);
 
 CREATE POLICY "Admin/manager can manage tags"
 ON public.instagram_tags FOR ALL
@@ -256,7 +259,7 @@ EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Insert default Instagram tags
 INSERT INTO public.instagram_tags (name, type, org_id) 
-SELECT name, type::text, org_id
+SELECT tags.name, tags.type::text, o.id
 FROM (
   SELECT 'Pop' as name, 'music_genre' as type
   UNION ALL SELECT 'Rock', 'music_genre'
@@ -289,7 +292,7 @@ FROM (
   UNION ALL SELECT 'Brazil', 'territory'
   UNION ALL SELECT 'Mexico', 'territory'
 ) tags
-CROSS JOIN public.orgs
+CROSS JOIN public.orgs o
 ON CONFLICT (org_id, name, type) DO NOTHING;
 
 -- Create helper function to get Instagram campaign summary
