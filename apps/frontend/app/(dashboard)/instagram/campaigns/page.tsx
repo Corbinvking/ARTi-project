@@ -127,7 +127,7 @@ export default function InstagramCampaignsPage() {
 
   // Quick Create Campaign
   const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
-  const [quickCreateForm, setQuickCreateForm] = useState({ campaign: '', clients: '', price: '', status: 'pending' });
+  const [quickCreateForm, setQuickCreateForm] = useState({ campaign: '', clients: '', budget: '', status: 'pending' });
   const [quickCreating, setQuickCreating] = useState(false);
 
   // Add Creator inside campaign
@@ -393,7 +393,7 @@ export default function InstagramCampaignsPage() {
         const totalCommitted = campaignCreators
           .reduce((sum: number, c: any) => sum + ((c.rate || 0) * (c.posts_count || 1)), 0);
         
-        const budgetNum = parseFloat(campaign.price?.replace(/[^0-9.]/g, '') || '0');
+        const budgetNum = Number(campaign.budget) || 0;
         const calculatedRemaining = Math.max(0, budgetNum - totalCommitted);
         const hasCreatorData = campaignCreators.length > 0;
         
@@ -518,6 +518,19 @@ export default function InstagramCampaignsPage() {
         .filter((p: string) => p.length > 0);
     }
 
+    // Ensure budget is stored as a number
+    if (updates.budget !== undefined) {
+      updates.budget = parseFloat(updates.budget) || 0;
+    }
+
+    // Remove computed/non-DB fields before saving
+    delete updates.id;
+    delete updates.created_at;
+    delete updates.calculated_spend;
+    delete updates.calculated_committed;
+    delete updates.calculated_remaining;
+    delete updates.has_creator_data;
+
     await updateCampaignAsync({
       id: selectedCampaign.id,
       updates
@@ -617,15 +630,16 @@ export default function InstagramCampaignsPage() {
       const { error } = await supabase
         .from('instagram_campaigns')
         .insert({
-          campaign: quickCreateForm.campaign.trim(),
-          clients: quickCreateForm.clients.trim() || null,
-          price: quickCreateForm.price.trim() || '$0',
+          name: quickCreateForm.campaign.trim(),
+          brand_name: quickCreateForm.clients.trim() || 'Unknown',
+          budget: parseFloat(quickCreateForm.budget) || 0,
           status: quickCreateForm.status,
+          org_id: user?.tenantId || '00000000-0000-0000-0000-000000000001',
         });
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['instagram-campaigns'] });
       setIsQuickCreateOpen(false);
-      setQuickCreateForm({ campaign: '', clients: '', price: '', status: 'pending' });
+      setQuickCreateForm({ campaign: '', clients: '', budget: '', status: 'pending' });
       toast({ title: "Campaign Created", description: `"${quickCreateForm.campaign}" has been created` });
     } catch (error) {
       toast({ title: "Error", description: "Failed to create campaign", variant: "destructive" });
@@ -781,8 +795,7 @@ export default function InstagramCampaignsPage() {
     completeCampaigns: campaigns.filter((c: any) => normalizeStatus(c.status) === 'complete').length,
     onHoldCampaigns: campaigns.filter((c: any) => normalizeStatus(c.status) === 'on_hold').length,
     totalBudget: campaigns.reduce((sum: number, c: any) => {
-      const price = parseFloat(c.price?.replace(/[^0-9.]/g, '') || '0');
-      return sum + price;
+      return sum + (Number(c.budget) || 0);
     }, 0),
     // Use calculated spend from creator payments when available
     totalSpend: campaigns.reduce((sum: number, c: any) => {
@@ -860,16 +873,16 @@ export default function InstagramCampaignsPage() {
           bVal = b.status?.toLowerCase() || '';
           break;
         case 'progress':
-          const aPriceNum = parseFloat(a.price?.replace(/[^0-9.]/g, '') || '0');
-          const aCommitted = a.calculated_committed ?? parseFloat(a.spend?.replace(/[^0-9.]/g, '') || '0');
+          const aPriceNum = Number(a.budget) || 0;
+          const aCommitted = a.calculated_committed ?? 0;
           aVal = aPriceNum > 0 ? (aCommitted / aPriceNum) * 100 : 0;
-          const bPriceNum = parseFloat(b.price?.replace(/[^0-9.]/g, '') || '0');
-          const bCommitted = b.calculated_committed ?? parseFloat(b.spend?.replace(/[^0-9.]/g, '') || '0');
+          const bPriceNum = Number(b.budget) || 0;
+          const bCommitted = b.calculated_committed ?? 0;
           bVal = bPriceNum > 0 ? (bCommitted / bPriceNum) * 100 : 0;
           break;
         case 'budget':
-          aVal = parseFloat(a.price?.replace(/[^0-9.]/g, '') || '0');
-          bVal = parseFloat(b.price?.replace(/[^0-9.]/g, '') || '0');
+          aVal = Number(a.budget) || 0;
+          bVal = Number(b.budget) || 0;
           break;
         case 'spend':
           aVal = a.calculated_spend ?? parseFloat(a.spend?.replace(/[^0-9.]/g, '') || '0');
@@ -1213,7 +1226,7 @@ export default function InstagramCampaignsPage() {
               <TableBody>
                 {filteredCampaigns.map((campaign: any) => {
                   // Calculate budget progress using calculated values when available
-                  const priceNum = parseFloat(campaign.price?.replace(/[^0-9.]/g, '') || '0');
+                  const priceNum = Number(campaign.budget) || 0;
                   const spendNum = campaign.calculated_spend ?? parseFloat(campaign.spend?.replace(/[^0-9.]/g, '') || '0');
                   const committedNum = campaign.calculated_committed ?? spendNum;
                   const remainingNum = campaign.calculated_remaining ?? parseFloat(campaign.remaining?.replace(/[^0-9.]/g, '') || '0');
@@ -1284,12 +1297,12 @@ export default function InstagramCampaignsPage() {
                       </TableCell>
                       <TableCell className="text-right py-2 px-2">
                         <span className="font-semibold text-xs">
-                          {campaign.price || '$0'}
+                          ${(Number(campaign.budget) || 0).toLocaleString()}
                         </span>
                       </TableCell>
                       <TableCell className="text-right py-2 px-2">
                         <span className="font-semibold text-xs text-green-600">
-                          {campaign.spend || '$0'}
+                          ${(campaign.calculated_spend || 0).toLocaleString()}
                         </span>
                       </TableCell>
                       <TableCell className="text-right py-2 px-2">
@@ -1398,7 +1411,7 @@ export default function InstagramCampaignsPage() {
           </DialogHeader>
 
           {selectedCampaign && (() => {
-            const budgetNum = parseFloat(selectedCampaign.price?.replace(/[^0-9.]/g, '') || '0');
+            const budgetNum = Number(selectedCampaign.budget) || 0;
             const isPaid = (c: CampaignCreator) => c.page_status === 'paid' || c.page_status === 'posted' || c.payment_status === 'paid';
             const isPosted = (c: CampaignCreator) => c.page_status === 'posted' || c.post_status === 'posted';
             const totalPaid = campaignCreators
@@ -1451,15 +1464,17 @@ export default function InstagramCampaignsPage() {
                 </CardHeader>
                 <CardContent className="grid grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Price (Budget)</p>
+                    <p className="text-sm text-muted-foreground mb-1">Budget</p>
                     {isEditMode ? (
                       <Input
-                        value={editForm.price || ''}
-                        onChange={(e) => updateField('price', e.target.value)}
-                        placeholder="$0"
+                        type="number"
+                        step="0.01"
+                        value={editForm.budget ?? ''}
+                        onChange={(e) => updateField('budget', e.target.value)}
+                        placeholder="0.00"
                       />
                     ) : (
-                      <p className="text-xl font-bold">{selectedCampaign.price || '$0'}</p>
+                      <p className="text-xl font-bold">${(Number(selectedCampaign.budget) || 0).toLocaleString()}</p>
                     )}
                   </div>
                   <div>
@@ -2151,9 +2166,11 @@ export default function InstagramCampaignsPage() {
             <div className="space-y-2">
               <Label>Budget</Label>
               <Input
-                value={quickCreateForm.price}
-                onChange={(e) => setQuickCreateForm(p => ({ ...p, price: e.target.value }))}
-                placeholder="$5,000"
+                type="number"
+                step="0.01"
+                value={quickCreateForm.budget}
+                onChange={(e) => setQuickCreateForm(p => ({ ...p, budget: e.target.value }))}
+                placeholder="5000"
               />
             </div>
             <div className="space-y-2">
