@@ -498,6 +498,7 @@ export default function InstagramCampaignsPage() {
   };
 
   const handleSaveEdit = async () => {
+    try {
     const internalChanged =
       (editForm?.report_notes || '').trim() !== (selectedCampaign?.report_notes || '').trim();
     const clientChanged =
@@ -619,6 +620,14 @@ export default function InstagramCampaignsPage() {
 
     setIsEditMode(false);
     setIsDetailsOpen(false);
+    } catch (error: any) {
+      console.error('❌ Save edit failed:', error);
+      toast({
+        title: "Error Saving",
+        description: error?.message || "Failed to save changes. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDelete = () => {
@@ -854,8 +863,8 @@ export default function InstagramCampaignsPage() {
   const filteredCampaigns = campaigns
     .filter((campaign: any) => {
     const matchesSearch = 
-      campaign.campaign?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.clients?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (campaign.campaign || campaign.name || '')?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (campaign.clients || campaign.brand_name || '')?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       campaign.salespeople?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || normalizeStatus(campaign.status) === statusFilter.toLowerCase();
@@ -1254,12 +1263,12 @@ export default function InstagramCampaignsPage() {
                         <div className="flex items-center gap-1.5 overflow-hidden">
                           {campaign.sound_url && <Music className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
                           <span className="font-semibold text-xs truncate">
-                            {campaign.campaign || 'Untitled'}
+                            {campaign.campaign || campaign.name || 'Untitled'}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="py-2 px-2">
-                        <span className="text-xs truncate block">{campaign.clients || 'N/A'}</span>
+                        <span className="text-xs truncate block">{campaign.clients || campaign.brand_name || 'N/A'}</span>
                       </TableCell>
                       <TableCell className="py-2 px-2" onClick={(e) => e.stopPropagation()}>
                         <Select
