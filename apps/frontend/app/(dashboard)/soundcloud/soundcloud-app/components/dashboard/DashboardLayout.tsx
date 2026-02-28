@@ -54,7 +54,7 @@ const navigation: NavItem[] = [
   { name: "Planner", href: "/dashboard/planner", icon: CalendarDays, description: "Calendar/list unified view" },
   { name: "Campaigns (Paid)", href: "/dashboard/campaigns", icon: DollarSign, description: "Pipeline management" },
   { name: "Queue (Free)", href: "/dashboard/queue", icon: Inbox, description: "Submissions inbox" },
-  { name: "Members", href: "/dashboard/members", icon: Users, description: "Directory with credits & connections" },
+  { name: "Clients", href: "/dashboard/members", icon: Users, description: "Directory with credits & connections" },
   { name: "Health", href: "/dashboard/health", icon: Activity, description: "Connection status & warnings" },
   { name: "Automation", href: "/dashboard/automation", icon: Zap, description: "Email templates & logs" },
   { name: "Genres", href: "/dashboard/genres", icon: Tags, description: "Family/subgenre management" },

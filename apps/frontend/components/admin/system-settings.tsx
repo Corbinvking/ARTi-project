@@ -12,8 +12,8 @@ import { Settings, Save, RefreshCw, Loader2, CheckCircle, AlertTriangle } from "
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://placeholder.invalid'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 interface SystemSettingsData {

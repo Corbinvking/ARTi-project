@@ -3,7 +3,8 @@ import { logger } from './logger';
 
 // Apify configuration - API token must be set in environment
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN || '';
-const INSTAGRAM_PROFILE_SCRAPER_ID = 'nH2AHrwxeTRJoN5hX';
+const INSTAGRAM_POST_SCRAPER_ID = 'nH2AHrwxeTRJoN5hX';
+const INSTAGRAM_PROFILE_INFO_SCRAPER_ID = 'dSCLg0C3YEZ83HzYX';
 const INSTAGRAM_REEL_SCRAPER_ID = 'xMc5Ga1oCONPmWJIa';
 
 if (!APIFY_API_TOKEN) {
@@ -87,7 +88,7 @@ export async function scrapeInstagramPosts(
     }
 
     // Run the Actor and wait for it to finish
-    const run = await client.actor(INSTAGRAM_PROFILE_SCRAPER_ID).call(input);
+    const run = await client.actor(INSTAGRAM_POST_SCRAPER_ID).call(input);
 
     logger.info({ runId: run.id, status: run.status }, '✅ Apify Actor run completed');
 
@@ -147,6 +148,49 @@ export async function scrapeInstagramPosts(
       error: error.message || 'Failed to scrape Instagram data',
     };
   }
+}
+
+/**
+ * Scrape Instagram profile info (followers, bio, etc.) using apify/instagram-profile-scraper.
+ * This is the correct actor for follower counts -- the post scraper does NOT return them.
+ */
+export async function scrapeInstagramProfiles(
+  usernames: string[]
+): Promise<Map<string, InstagramProfile>> {
+  const profileMap = new Map<string, InstagramProfile>();
+  try {
+    logger.info({ usernames, count: usernames.length }, '🔄 Starting Instagram profile scraper');
+
+    const input = { usernames };
+    const run = await client.actor(INSTAGRAM_PROFILE_INFO_SCRAPER_ID).call(input);
+
+    logger.info({ runId: run.id, status: run.status }, '✅ Profile scraper run completed');
+
+    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+
+    for (const item of items as any[]) {
+      const username = (item.username || '').toLowerCase();
+      if (!username) continue;
+
+      profileMap.set(username, {
+        id: item.id || item.pk || '',
+        username,
+        fullName: item.fullName || item.full_name || '',
+        biography: item.biography || item.bio || '',
+        followersCount: Number(item.followersCount ?? item.followers ?? 0),
+        followsCount: Number(item.followsCount ?? item.following ?? 0),
+        postsCount: Number(item.postsCount ?? item.mediaCount ?? 0),
+        profilePicUrl: item.profilePicUrl || item.profilePicUrlHd || '',
+        isVerified: item.isVerified ?? item.verified ?? false,
+        isPrivate: item.isPrivate ?? item.is_private ?? false,
+      });
+    }
+
+    logger.info({ profiles: profileMap.size }, '👤 Extracted profile data');
+  } catch (error: any) {
+    logger.error({ error: error.message }, '❌ Instagram profile scraper error');
+  }
+  return profileMap;
 }
 
 /**

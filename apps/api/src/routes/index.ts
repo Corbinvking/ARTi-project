@@ -18,6 +18,8 @@ import { scraperNotifyRoutes } from './scraper-notify';
 import { invoiceCampaignRoutes } from './invoice-campaign';
 import { soundcloudMemberRoutes } from './soundcloud-members';
 import { quickbooksRoutes } from './quickbooks';
+import { slackNotifyRoutes } from './slack-notify';
+import { githubIssuesRoutes } from './github-issues';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -77,6 +79,12 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // QuickBooks Online integration routes (OAuth, sync, webhooks, metrics)
   await server.register(quickbooksRoutes, { prefix: '/api' });
+
+  // Slack notification routes (webhook integration)
+  await server.register(slackNotifyRoutes, { prefix: '/api' });
+
+  // GitHub Issues routes (in-app report → GitHub issue bridge)
+  await server.register(githubIssuesRoutes, { prefix: '/api' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {

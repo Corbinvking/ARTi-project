@@ -1,0 +1,86 @@
+name: "Agent Manual Dispatch"
+
+# =============================================================================
+# Manually trigger the agent pipeline for a specific issue.
+# Useful when you want to re-run an agent on a failed issue or dispatch
+# an issue that wasn't auto-triaged.
+# =============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number to dispatch"
+        required: true
+        type: number
+      app_domain:
+        description: "App domain override (leave empty to detect from labels)"
+        required: false
+        type: choice
+        options:
+          - ""
+          - spotify
+          - instagram
+          - youtube
+          - soundcloud
+          - dashboard
+          - operator
+          - admin
+          - api
+          - scraper
+          - shared
+          - infra
+          - database
+
+permissions:
+  issues: write
+  contents: write
+
+jobs:
+  manual-dispatch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch issue and dispatch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = ${{ inputs.issue_number }};
+            const appOverride = '${{ inputs.app_domain }}';
+
+            // Fetch the issue
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+            });
+
+            if (issue.state === 'closed') {
+              core.setFailed(`Issue #${issueNumber} is already closed`);
+              return;
+            }
+
+            // Determine app domain
+            let app = appOverride;
+            if (!app) {
+              const appLabel = issue.labels
+                .map(l => l.name)
+                .find(l => l.startsWith('app:'));
+              if (appLabel) {
+                app = appLabel.replace('app:', '');
+              } else {
+                core.setFailed('No app domain specified or found in labels');
+                return;
+              }
+            }
+
+            // Add agent:ready label to trigger the dispatcher
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: ['agent:ready', `app:${app}`],
+            });
+
+            console.log(`Dispatched issue #${issueNumber} to app: ${app}`);

@@ -29,6 +29,8 @@ class SpotifyArtistsPage:
         base_url = re.sub(r'/(stats|playlists|source-of-stream|location)$', '', url)
         if target_tab == 'playlists':
             url = base_url + '/playlists'
+        elif target_tab == 'location':
+            url = base_url + '/location'
         else:
             url = base_url + '/stats'
         
@@ -225,6 +227,50 @@ class SpotifyArtistsPage:
             print(f"Error extracting all-time streams: {e}")
             return 0
 
+    async def get_period_streams(self, range_type: str) -> int:
+        """Read total streams from the Overview (/stats) page for a specific time range.
+
+        Clicks the chip filter for the requested period, then reads the hero
+        stats button which shows the true total streams (not just playlist streams).
+
+        Must be called while on the /stats page.
+        """
+        chip_labels = {
+            '7day':     '7 days',
+            '28day':    '28 days',
+            '12months': '12 months',
+        }
+        label = chip_labels.get(range_type)
+        if not label:
+            print(f"  Unknown range type for period streams: {range_type}")
+            return 0
+
+        try:
+            chip = self.page.locator(f'[data-encore-id="chipFilter"]:has-text("{label}")').first
+            if await chip.count() == 0:
+                print(f"  Chip filter '{label}' not found on page")
+                return 0
+
+            await chip.click(force=True, timeout=5000)
+            await asyncio.sleep(2)
+
+            hero_btn = await self.page.query_selector('[data-testid="hero-stats-button-streams"]')
+            if hero_btn:
+                text = await hero_btn.text_content()
+                numbers = re.findall(r'[\d,]+', text or '')
+                if numbers:
+                    stream_values = [int(n.replace(',', '')) for n in numbers]
+                    result = max(stream_values)
+                    print(f"  {label} total streams (overview): {result:,}")
+                    return result
+
+            print(f"  Could not read hero streams for {label}")
+            return 0
+
+        except Exception as e:
+            print(f"  Error reading period streams for {label}: {e}")
+            return 0
+
     async def navigate_to_playlists_tab(self) -> None:
         """Navigate to the Playlists tab if not already there"""
         try:
@@ -409,6 +455,111 @@ class SpotifyArtistsPage:
         
         return stats
     
+    async def get_location_data(self) -> list:
+        """Extract the 'Top countries for this song' table from the S4A Location tab.
+
+        Returns a list of dicts: [{rank, country, streams}, ...]
+        Must be called while on the /location page.
+        """
+        countries = []
+
+        try:
+            current_url = self.page.url
+            if 'accounts.spotify.com' in current_url or 'login' in current_url:
+                print(f"  WARNING: Page redirected to login: {current_url}")
+                return countries
+
+            # Ensure 28-day view is selected via dropdown if present
+            try:
+                dropdown = self.page.locator('button[aria-haspopup="listbox"]').first
+                if await dropdown.count() > 0:
+                    current_text = (await dropdown.text_content() or '').strip()
+                    if '28' not in current_text:
+                        await dropdown.click(force=True, timeout=3000)
+                        await asyncio.sleep(1)
+                        opt = self.page.locator('[role="option"]:has-text("Last 28 Days")').first
+                        if await opt.count() > 0:
+                            await opt.click(force=True, timeout=3000)
+                            await asyncio.sleep(2)
+                        else:
+                            await self.page.keyboard.press('Escape')
+                            await asyncio.sleep(0.5)
+            except Exception as e:
+                print(f"  Could not switch location dropdown to 28 days: {e}")
+
+            # Scroll down to reveal the "Top countries" table
+            await self.page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
+            await asyncio.sleep(1)
+
+            await asyncio.sleep(2)
+
+            rows = await self.page.query_selector_all('[data-testid="sort-table-body-row"]')
+            if not rows:
+                rows = await self.page.query_selector_all('tbody tr')
+
+            if not rows:
+                print("  No country table rows found on Location tab")
+                return countries
+
+            print(f"  Found {len(rows)} country rows")
+
+            # Diagnostic: log first row structure
+            if rows:
+                first_cells = await rows[0].query_selector_all('td')
+                if not first_cells:
+                    first_cells = await rows[0].query_selector_all('[role="cell"], > div')
+                cell_texts = []
+                for c in (first_cells or []):
+                    cell_texts.append((await c.text_content() or '').strip())
+                print(f"  First row cells ({len(first_cells or [])}): {cell_texts}")
+
+            for row in rows:
+                try:
+                    cells = await row.query_selector_all('td')
+                    if not cells or len(cells) < 2:
+                        cells = await row.query_selector_all('[role="cell"], > div')
+
+                    cell_values = []
+                    for c in (cells or []):
+                        cell_values.append((await c.text_content() or '').strip())
+
+                    # Determine which cells are rank, country, and streams
+                    # by analyzing content: numbers-only = rank or streams, text = country
+                    rank_val = len(countries) + 1
+                    country_val = ''
+                    streams_val = 0
+
+                    if len(cell_values) >= 3:
+                        rank_val = int(cell_values[0]) if cell_values[0].isdigit() else len(countries) + 1
+                        country_val = cell_values[1]
+                        streams_val = int(re.sub(r'[^\d]', '', cell_values[2]) or '0')
+                    elif len(cell_values) == 2:
+                        # Two-column layout: country and streams
+                        country_val = cell_values[0]
+                        streams_val = int(re.sub(r'[^\d]', '', cell_values[1]) or '0')
+
+                    # Skip if country looks like a number (wrong data) or is empty
+                    if not country_val or country_val == '\u2014':
+                        continue
+                    # If country is purely numeric, it's not a country name
+                    if re.match(r'^[\d,. ]+$', country_val):
+                        continue
+
+                    countries.append({
+                        'rank': rank_val,
+                        'country': country_val,
+                        'streams': streams_val,
+                    })
+                except Exception as e:
+                    print(f"  Error extracting country row: {e}")
+                    continue
+
+        except Exception as e:
+            print(f"  Error reading location data: {e}")
+
+        print(f"  Extracted {len(countries)} countries from Location tab")
+        return countries
+
     async def _try_switch_dropdown(self, target_label: str) -> bool:
         """Attempt to switch the playlists page dropdown to the target time range.
         Returns True if the switch was confirmed, False otherwise."""

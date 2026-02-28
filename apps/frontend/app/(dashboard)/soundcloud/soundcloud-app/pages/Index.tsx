@@ -144,19 +144,19 @@ const Index = () => {
             >
               <div className="text-center">
                 <div className="text-3xl font-bold text-white">
-                  {500.toLocaleString()}+
+                  {(500).toLocaleString()}+
                 </div>
                 <div className="text-white/70 text-sm">Active Artists</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-white">
-                  {10000.toLocaleString()}+
+                  {(10000).toLocaleString()}+
                 </div>
                 <div className="text-white/70 text-sm">Tracks Supported</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-white">
-                  {50.toLocaleString()}+
+                  {(50).toLocaleString()}+
                 </div>
                 <div className="text-white/70 text-sm">Genres Covered</div>
               </div>

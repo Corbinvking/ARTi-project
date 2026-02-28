@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from "../contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings as SettingsIcon, DollarSign, Bell, Shield, Youtube, AlertTriangle, Download, Activity, Palette } from 'lucide-react';
+import { Settings as SettingsIcon, DollarSign, Bell, Shield, Youtube, AlertTriangle, Download, Activity, Palette, Send, Loader2 } from 'lucide-react';
 import { PricingManagement } from "../components/settings/PricingManagement";
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -13,11 +13,105 @@ import { TestYouTubeAPI } from "../components/TestYouTubeAPI";
 import { SystemHealthDashboard } from "../components/admin/SystemHealthDashboard";
 import { useSettings } from "../hooks/useSettings";
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from "../integrations/supabase/client";
+import { testSlackConnection } from "@/lib/slack-notify";
 
 const Settings = () => {
   const { isAdmin, isManager } = useAuth();
   const { toast } = useToast();
   const { settings: stallingSettings, loading: settingsLoading, updateSettings, testStallingDetection } = useSettings();
+
+  const [slackSettings, setSlackSettings] = React.useState({
+    slack_enabled: false,
+    slack_channel: "#youtube",
+    slack_webhook: "",
+  });
+  const [slackLoading, setSlackLoading] = React.useState(true);
+  const [slackSaving, setSlackSaving] = React.useState(false);
+  const [testingSlack, setTestingSlack] = React.useState(false);
+
+  React.useEffect(() => {
+    const fetchSlackSettings = async () => {
+      try {
+        const { data } = await supabase
+          .from("platform_notification_settings")
+          .select("slack_enabled, slack_channel, slack_webhook")
+          .eq("platform", "youtube")
+          .limit(1);
+
+        const row = Array.isArray(data) ? data[0] : null;
+        if (row) {
+          setSlackSettings({
+            slack_enabled: row.slack_enabled || false,
+            slack_channel: row.slack_channel || "#youtube",
+            slack_webhook: row.slack_webhook || "",
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load Slack settings:", err);
+      } finally {
+        setSlackLoading(false);
+      }
+    };
+    fetchSlackSettings();
+  }, []);
+
+  const handleSaveSlack = async () => {
+    setSlackSaving(true);
+    try {
+      const { error } = await supabase
+        .from("platform_notification_settings")
+        .upsert({
+          platform: "youtube",
+          slack_enabled: slackSettings.slack_enabled,
+          slack_channel: slackSettings.slack_channel,
+          slack_webhook: slackSettings.slack_webhook || null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "org_id,platform" });
+
+      if (error) throw error;
+
+      toast({
+        title: "Slack settings saved",
+        description: "Your YouTube Slack integration settings have been updated.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err.message || "Failed to save Slack settings.",
+        variant: "destructive",
+      });
+    } finally {
+      setSlackSaving(false);
+    }
+  };
+
+  const handleTestSlack = async () => {
+    setTestingSlack(true);
+    try {
+      const result = await testSlackConnection("youtube");
+      if (result.ok) {
+        toast({
+          title: "Slack test sent",
+          description: "Check your Slack channel for the test message.",
+        });
+      } else {
+        toast({
+          title: "Slack test failed",
+          description: result.message || "Could not send test message.",
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Slack test failed",
+        description: err.message || "Unable to reach the server.",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingSlack(false);
+    }
+  };
 
   const [settings, setSettings] = React.useState({
     notifications: {
@@ -226,6 +320,80 @@ const Settings = () => {
               <div className="pt-4 border-t">
                 <Button onClick={handleSave}>Save Notification Settings</Button>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Slack Integration</CardTitle>
+              <CardDescription>
+                Send YouTube campaign notifications to a Slack channel
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {slackLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading Slack settings...
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Enable Slack Notifications</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Send campaign updates to your Slack channel
+                      </p>
+                    </div>
+                    <Switch
+                      checked={slackSettings.slack_enabled}
+                      onCheckedChange={(checked) => setSlackSettings(prev => ({ ...prev, slack_enabled: checked }))}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Slack Channel</Label>
+                      <Input
+                        value={slackSettings.slack_channel}
+                        onChange={(e) => setSlackSettings(prev => ({ ...prev, slack_channel: e.target.value }))}
+                        placeholder="#youtube"
+                      />
+                      <p className="text-sm text-muted-foreground">Channel for YouTube notifications</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Slack Webhook URL</Label>
+                      <Input
+                        value={slackSettings.slack_webhook}
+                        onChange={(e) => setSlackSettings(prev => ({ ...prev, slack_webhook: e.target.value }))}
+                        placeholder="https://hooks.slack.com/..."
+                        type="url"
+                      />
+                      <p className="text-sm text-muted-foreground">Webhook URL for Slack integration</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <Button onClick={handleSaveSlack} disabled={slackSaving}>
+                      {slackSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Save Slack Settings
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleTestSlack}
+                      disabled={testingSlack}
+                    >
+                      {testingSlack ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="mr-2 h-4 w-4" />
+                      )}
+                      Test Connection
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

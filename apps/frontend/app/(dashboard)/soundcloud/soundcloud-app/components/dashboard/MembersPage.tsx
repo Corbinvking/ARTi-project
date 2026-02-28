@@ -653,8 +653,8 @@ export const MembersPage = () => {
       {/* Import Members Button and Existing Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Members</h1>
-          <p className="text-muted-foreground">Manage member accounts and permissions</p>
+          <h1 className="text-3xl font-bold text-foreground">Free Members</h1>
+          <p className="text-muted-foreground">Manage free member accounts and permissions</p>
         </div>
         <div className="flex items-center gap-4">
           {selectedMembers.length > 0 && (
@@ -703,7 +703,7 @@ export const MembersPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Free Members</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -712,7 +712,7 @@ export const MembersPage = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Members</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Free Members</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -855,9 +855,9 @@ export const MembersPage = () => {
       {/* Members Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Members</CardTitle>
+          <CardTitle>All Free Members</CardTitle>
           <CardDescription>
-            Manage member accounts, tiers, and permissions
+            Manage free member accounts, tiers, and permissions
           </CardDescription>
         </CardHeader>
         <CardContent>

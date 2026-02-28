@@ -16,6 +16,7 @@ import {
   Circle,
   Crosshair,
   MapPin,
+  ExternalLink,
 } from "lucide-react"
 
 type Report = {
@@ -41,6 +42,7 @@ type Report = {
     boundingRect: { top: number; left: number; width: number; height: number }
     timestamp: string
   } | null
+  github_issue_url: string | null
 }
 
 const formatDate = (value: string) => {
@@ -279,6 +281,17 @@ export function PlatformDevelopment() {
                           <span>
                             Completed {formatDate(report.completed_at)}
                           </span>
+                        )}
+                        {report.github_issue_url && (
+                          <a
+                            href={report.github_issue_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            GitHub Issue
+                          </a>
                         )}
                       </div>
                     </div>

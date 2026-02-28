@@ -28,6 +28,7 @@ import {
   Filter,
   Crosshair,
   MapPin,
+  ExternalLink,
 } from "lucide-react"
 
 type Report = {
@@ -53,6 +54,7 @@ type Report = {
     boundingRect: { top: number; left: number; width: number; height: number }
     timestamp: string
   } | null
+  github_issue_url: string | null
 }
 
 const formatDate = (value: string) => {
@@ -85,7 +87,15 @@ export function PlatformDevelopmentAdmin() {
   })
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({
+      id,
+      status,
+      githubIssueUrl,
+    }: {
+      id: string
+      status: string
+      githubIssueUrl?: string | null
+    }) => {
       const updateData: Record<string, any> = { status }
 
       if (status === "complete") {
@@ -104,9 +114,20 @@ export function PlatformDevelopmentAdmin() {
 
       if (error) throw error
 
-      // Supabase returns empty array if RLS blocked the update
       if (!data || data.length === 0) {
         throw new Error("Update was blocked. You may not have permission to modify this report.")
+      }
+
+      if (githubIssueUrl) {
+        try {
+          await fetch("/api/github-issues/sync-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ issueUrl: githubIssueUrl, status }),
+          })
+        } catch (ghErr) {
+          console.error("GitHub sync failed (report still updated):", ghErr)
+        }
       }
     },
     onSuccess: (_data, variables) => {
@@ -189,6 +210,7 @@ export function PlatformDevelopmentAdmin() {
                   <TableHead className="min-w-[200px]">Title</TableHead>
                   <TableHead>Submitted By</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>GitHub</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -263,6 +285,21 @@ export function PlatformDevelopmentAdmin() {
                       {formatDate(report.created_at)}
                     </TableCell>
                     <TableCell>
+                      {report.github_issue_url ? (
+                        <a
+                          href={report.github_issue_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Issue
+                        </a>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       {report.status === "open" && (
                         <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10 text-xs">
                           <Circle className="h-3 w-3 mr-1" />
@@ -291,7 +328,7 @@ export function PlatformDevelopmentAdmin() {
                               variant="outline"
                               className="text-xs h-7"
                               onClick={() =>
-                                updateStatus.mutate({ id: report.id, status: "in_progress" })
+                                updateStatus.mutate({ id: report.id, status: "in_progress", githubIssueUrl: report.github_issue_url })
                               }
                               disabled={updateStatus.isPending}
                             >
@@ -302,7 +339,7 @@ export function PlatformDevelopmentAdmin() {
                               variant="default"
                               className="text-xs h-7"
                               onClick={() =>
-                                updateStatus.mutate({ id: report.id, status: "complete" })
+                                updateStatus.mutate({ id: report.id, status: "complete", githubIssueUrl: report.github_issue_url })
                               }
                               disabled={updateStatus.isPending}
                             >
@@ -316,7 +353,7 @@ export function PlatformDevelopmentAdmin() {
                             variant="default"
                             className="text-xs h-7 bg-green-600 hover:bg-green-700"
                             onClick={() =>
-                              updateStatus.mutate({ id: report.id, status: "complete" })
+                              updateStatus.mutate({ id: report.id, status: "complete", githubIssueUrl: report.github_issue_url })
                             }
                             disabled={updateStatus.isPending}
                           >
@@ -330,7 +367,7 @@ export function PlatformDevelopmentAdmin() {
                             variant="ghost"
                             className="text-xs h-7"
                             onClick={() =>
-                              updateStatus.mutate({ id: report.id, status: "open" })
+                              updateStatus.mutate({ id: report.id, status: "open", githubIssueUrl: report.github_issue_url })
                             }
                             disabled={updateStatus.isPending}
                           >

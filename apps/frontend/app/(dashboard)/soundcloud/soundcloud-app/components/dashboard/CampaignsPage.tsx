@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,9 @@ import {
   Eye,
   ChevronUp,
   ChevronDown,
-  Upload
+  Upload,
+  Rocket,
+  Zap,
 } from "lucide-react";
 import { CampaignImportModal } from "./CampaignImportModal";
 import { 
@@ -47,8 +49,9 @@ import {
 import { CampaignForm } from "./CampaignForm";
 import { CampaignDetailModal } from "./CampaignDetailModal";
 import { useCampaignReachData } from "../../hooks/useCampaignReachData";
-import { formatReachPerformance, calculateReachProgress } from "../../utils/numberFormatting";
+import { formatReachPerformance, calculateReachProgress, formatNumberWithSuffix } from "../../utils/numberFormatting";
 import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { useAuth } from "@/hooks/use-auth";
 
 interface Campaign {
@@ -91,6 +94,7 @@ export default function CampaignsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { getTotalReach, loading: reachLoading } = useCampaignReachData();
+  const autoCompletedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     fetchCampaigns();
@@ -99,6 +103,44 @@ export default function CampaignsPage() {
   useEffect(() => {
     filterCampaigns();
   }, [campaigns, searchTerm, statusFilter, sortBy, sortDirection]);
+
+  // Feature 1: Auto-complete campaigns when reach >= goal
+  useEffect(() => {
+    if (reachLoading || campaigns.length === 0) return;
+
+    campaigns.forEach((campaign) => {
+      if (campaign.status !== 'Active') return;
+      if (campaign.goals <= 0) return;
+      if (autoCompletedRef.current.has(campaign.id)) return;
+
+      const totalReach = getTotalReach(campaign.id);
+      if (totalReach >= campaign.goals) {
+        autoCompletedRef.current.add(campaign.id);
+        (async () => {
+          try {
+            const { error } = await supabase
+              .from('soundcloud_campaigns')
+              .update({
+                status: 'Complete',
+                completed_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', campaign.id);
+
+            if (error) throw error;
+
+            toast({
+              title: "Campaign Auto-Completed",
+              description: `"${campaign.track_name}" reached 100% — marked as Complete`,
+            });
+            fetchCampaigns();
+          } catch (err) {
+            console.error('Auto-complete failed for campaign', campaign.id, err);
+          }
+        })();
+      }
+    });
+  }, [campaigns, reachLoading]);
 
   /** Parse "Artist - Track" from track_info string */
   const parseTrackInfo = (trackInfo: string): { artist: string; track: string } => {
@@ -320,6 +362,12 @@ export default function CampaignsPage() {
         status: dbStatus,
         actorEmail: user?.email || null,
       });
+      notifySlack("soundcloud", "campaign_status_change", {
+        campaignId,
+        campaignName: campaigns.find(c => c.id === campaignId)?.track_name || campaignId,
+        status: dbStatus,
+        actorEmail: user?.email || null,
+      });
 
       // Auto-send tracking link email when campaign is activated
       if (dbStatus === 'Active') {
@@ -399,6 +447,37 @@ export default function CampaignsPage() {
     if (!goals) return 0;
     return Math.max(0, Math.min(100, ((goals - remaining) / goals) * 100));
   };
+
+  /** Parse flexible start_date formats (M/D/YYYY, MM/DD/YYYY, YYYY-MM-DD) to midnight local */
+  const parseStartDate = (dateStr: string): Date | null => {
+    if (!dateStr) return null;
+    // ISO format
+    if (dateStr.includes('-') && dateStr.length >= 10) {
+      const d = new Date(dateStr + 'T00:00:00');
+      return isNaN(d.getTime()) ? null : d;
+    }
+    // M/D/YYYY or MM/DD/YYYY
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const [m, d, y] = parts.map(Number);
+      const date = new Date(y, m - 1, d);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
+  };
+
+  const isToday = (dateStr: string): boolean => {
+    const d = parseStartDate(dateStr);
+    if (!d) return false;
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear()
+      && d.getMonth() === now.getMonth()
+      && d.getDate() === now.getDate();
+  };
+
+  const todaysCampaigns = campaigns.filter(
+    (c) => isToday(c.start_date) && c.sales_price > 0 && c.status !== 'Complete'
+  );
 
   if (loading) {
     return <div className="animate-pulse">Loading campaigns...</div>;
@@ -482,6 +561,58 @@ export default function CampaignsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Ready to Push Today Banner */}
+          {todaysCampaigns.length > 0 && (
+            <Card className="border-primary/50 bg-primary/5">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Rocket className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">Ready to Push Today</CardTitle>
+                  <Badge variant="default" className="ml-1">{todaysCampaigns.length}</Badge>
+                </div>
+                <CardDescription>Paid campaigns scheduled to start today</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-2">
+                  {todaysCampaigns.map((c) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center justify-between rounded-md border bg-background px-4 py-2"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{c.track_name}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {c.artist_name} &middot; {c.client.name}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="shrink-0">
+                          Goal: {formatNumberWithSuffix(c.goals)}
+                        </Badge>
+                        <Badge variant="secondary" className="shrink-0">
+                          ${c.sales_price.toLocaleString()}
+                        </Badge>
+                      </div>
+                      {(c.status === 'Ready' || c.status === 'Pending') && (
+                        <Button
+                          size="sm"
+                          className="ml-4 shrink-0 gap-1"
+                          onClick={() => updateCampaignStatus(c.id, 'Active')}
+                        >
+                          <Zap className="h-3 w-3" />
+                          Activate
+                        </Button>
+                      )}
+                      {c.status === 'Active' && (
+                        <Badge className="ml-4 bg-green-500 text-white shrink-0">Live</Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Campaigns Table */}
           <Card>

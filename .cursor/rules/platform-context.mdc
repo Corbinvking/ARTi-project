@@ -1,0 +1,89 @@
+---
+description: ARTi platform structure, app modules, routing, and file locations. Apply when working on any part of the ARTi platform, navigating the codebase, or answering questions about the platform architecture.
+globs:
+alwaysApply: false
+---
+
+# ARTi Platform Context
+
+## Platform Structure
+
+Multi-platform music promotion management system for Artist Influence with 7 apps:
+
+| App | Route | Purpose | Frontend Location |
+|-----|-------|---------|-------------------|
+| Dashboard | `/dashboard` | Cross-platform overview | `apps/frontend/app/(dashboard)/dashboard/` |
+| Spotify | `/spotify` | Playlist campaign management (Stream Strategist) | `apps/frontend/app/(dashboard)/spotify/` |
+| Instagram | `/instagram` | Creator promotion campaigns (Seedstorm) | `apps/frontend/app/(dashboard)/instagram/` |
+| YouTube | `/youtube` | Video promotion campaigns (Vidi Health Flow) | `apps/frontend/app/(dashboard)/youtube/` |
+| SoundCloud | `/soundcloud` | Repost network management | `apps/frontend/app/(dashboard)/soundcloud/` |
+| Operator | `/operator` | Internal ops tools | `apps/frontend/app/(dashboard)/operator/` |
+| Admin | `/admin` | System administration | `apps/frontend/app/(dashboard)/admin/` |
+
+## Tech Stack
+
+- Frontend: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, shadcn/ui
+- Backend API: Node.js, Fastify (`apps/api/`)
+- Database: PostgreSQL 15 (Supabase) with Row Level Security
+- Auth: Supabase Auth with JWT (metadata-only pattern — no DB queries for auth)
+- State: React Query (TanStack Query)
+- Deployment: Vercel (frontend), Docker on DigitalOcean (backend)
+
+## Production URLs
+
+- Frontend: https://app.artistinfluence.com
+- Backend API: https://api.artistinfluence.com
+- Database Admin: https://db.artistinfluence.com
+
+## User Roles
+
+| Role | Access |
+|------|--------|
+| admin | Everything |
+| manager | Dashboard, Spotify, Instagram, YouTube, SoundCloud |
+| operator | Dashboard, Spotify, Instagram, YouTube, SoundCloud, Operator panel |
+| sales | Dashboard, Spotify, YouTube, Instagram, SoundCloud (campaign intake) |
+| vendor | Spotify vendor portal, SoundCloud (limited) |
+| member | SoundCloud portal only |
+
+## Key References
+
+- Quick start: `docs/AGENT-QUICK-START.md`
+- Branching: `docs/BRANCHING-STRATEGY.md`
+- Agentic pipeline: `docs/AGENTIC-INFRASTRUCTURE.md`
+- Knowledge base: `docs/knowledge-base/INDEX.md`
+- Branch naming: `{type}/{app}/{description}` (e.g., `feature/spotify/playlist-filter`)
+
+## Cross-App Development Patterns
+
+### Authentication (ALL apps)
+Auth uses metadata only — NEVER query the database in auth context:
+```typescript
+const { data: userData } = await supabase.auth.getUser();
+const role = userData.user?.user_metadata?.role || 'admin';
+```
+
+### Safe Array Rendering (ALL apps)
+Always check arrays before `.map()` — PostgreSQL arrays can be null:
+```typescript
+{(items && Array.isArray(items) && items.length > 0) ? (
+  items.map(...)
+) : (
+  <span>-</span>
+)}
+```
+
+### Query Invalidation (ALL apps)
+Always invalidate related queries after mutations:
+```typescript
+queryClient.invalidateQueries({ queryKey: ["relevant-key"] });
+```
+
+### Migration Best Practices
+Always use idempotent migrations:
+```sql
+DROP POLICY IF EXISTS "policy_name" ON table_name;
+CREATE POLICY "policy_name" ON table_name ...;
+CREATE INDEX IF NOT EXISTS idx_name ON table_name(column);
+ALTER TABLE table_name ADD COLUMN IF NOT EXISTS column_name type;
+```

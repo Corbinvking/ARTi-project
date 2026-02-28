@@ -15,6 +15,7 @@ import { APP_CAMPAIGN_SOURCE, APP_CAMPAIGN_SOURCE_INTAKE, APP_CAMPAIGN_TYPE } fr
 import { StatusBadge } from "../components/ui/status-badge";
 import { InteractiveStatusBadge } from "../components/ui/interactive-status-badge";
 import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Table,
@@ -212,15 +213,16 @@ function calculateScheduleStatus(campaign: Campaign): {
   const expectedProgress = Math.min(100, (daysElapsed / durationDays) * 100);
   const remainingDays = Math.max(1, durationDays - daysElapsed);
   const delivered = totalGoal - totalRemaining;
-  const avgDailyRate = daysElapsed > 0 ? delivered / daysElapsed : 0;
-  const projectedAtEnd = delivered + avgDailyRate * remainingDays;
+  const vendorStreams7d = (campaign as any).vendor_streams_7d || 0;
+  const dailyRate = vendorStreams7d > 0 ? vendorStreams7d / 7 : (daysElapsed > 0 ? delivered / daysElapsed : 0);
+  const projectedAtEnd = delivered + dailyRate * remainingDays;
   const dailyRequired = totalRemaining / remainingDays;
   const progressDiff = currentProgress - expectedProgress;
 
   let status: 'ahead' | 'on_track' | 'behind';
   if (projectedAtEnd >= totalGoal * 1.1) {
     status = 'ahead';
-  } else if (projectedAtEnd >= totalGoal) {
+  } else if (projectedAtEnd >= totalGoal * 0.85) {
     status = 'on_track';
   } else {
     status = 'behind';
@@ -354,10 +356,34 @@ export default function CampaignHistory() {
                 streams_24h_trend = curr_24h - prev_24h;
                 streams_7d_trend = curr_7d - prev_7d;
               }
-          
-          const progress_percentage = group.total_goal > 0 
-            ? Math.round(((group.total_goal - total_remaining) / group.total_goal) * 100)
-            : 0;
+
+              // Fetch vendor playlist streams for accurate progress tracking
+              const songIds = (songs || []).map((s: any) => s.id);
+              let vendor_playlist_streams = 0;
+              let vendor_playlist_streams_7d = 0;
+              if (songIds.length > 0) {
+                const { data: vendorPlaylists } = await supabase
+                  .from('campaign_playlists')
+                  .select('streams_12m, streams_7d, is_algorithmic, is_organic')
+                  .in('campaign_id', songIds)
+                  .or('is_algorithmic.is.null,is_algorithmic.eq.false');
+                
+                if (vendorPlaylists) {
+                  const vendorOnly = vendorPlaylists.filter((p: any) => !p.is_organic);
+                  vendor_playlist_streams = vendorOnly
+                    .reduce((sum: number, p: any) => sum + (p.streams_12m || 0), 0);
+                  vendor_playlist_streams_7d = vendorOnly
+                    .reduce((sum: number, p: any) => sum + (p.streams_7d || 0), 0);
+                }
+              }
+
+              const streamGoal = group.total_goal > 0 ? group.total_goal : 0;
+              const vendor_remaining = Math.max(0, streamGoal - vendor_playlist_streams);
+              const progress_percentage = streamGoal > 0
+                ? (vendor_playlist_streams >= streamGoal
+                    ? Math.round((vendor_playlist_streams / streamGoal) * 100)
+                    : Math.min(99, Math.floor((vendor_playlist_streams / streamGoal) * 100)))
+                : 0;
 
               // Map to Campaign interface expected by the UI
               return {
@@ -370,11 +396,16 @@ export default function CampaignHistory() {
                 track_url: (songs && songs[0]?.url) || '',
                 track_name: group.name,
                 stream_goal: group.total_goal,
-                remaining_streams: total_remaining,
+                remaining_streams: vendor_remaining,
                 budget: group.total_budget,
                 sub_genre: '',
                 start_date: group.start_date,
-                duration_days: 90,
+                duration_days: (() => {
+                  if (group.start_date && group.end_date) {
+                    return Math.ceil((new Date(group.end_date).getTime() - new Date(group.start_date).getTime()) / (1000 * 60 * 60 * 24));
+                  }
+                  return group.duration_days || 90;
+                })(),
                 status: group.status,
                 created_at: group.created_at,
                 updated_at: group.updated_at,
@@ -389,6 +420,7 @@ export default function CampaignHistory() {
                 playlists_7d_count: total_playlists_7d,
                 streams_24h_trend,
                 streams_7d_trend,
+                vendor_streams_7d: vendor_playlist_streams_7d,
                 // Legacy metrics (backward compatibility)
                 plays_last_7d: real_plays_7d,
                 plays_last_3m: real_plays_3m,
@@ -586,9 +618,10 @@ export default function CampaignHistory() {
     }
   };
 
-  const getEnhancedPerformanceStatus = (campaign: Campaign): 'underperforming' | 'on_track' | 'overperforming' | 'pending' => {
+  const getEnhancedPerformanceStatus = (campaign: Campaign): 'underperforming' | 'on_track' | 'overperforming' | 'pending' | 'completed' => {
     // Case-insensitive status check
     const campaignStatus = (campaign.status || '').toLowerCase();
+    if (campaignStatus === 'complete' || campaignStatus === 'completed') return 'completed' as any;
     if (campaignStatus !== 'active') return 'pending';
     if (!campaign.start_date) return 'pending';
     
@@ -614,10 +647,8 @@ export default function CampaignHistory() {
 
   // Status aliases for filtering
   const statusAliases: Record<string, string[]> = {
-    pending: ['pending', 'pending_approval', 'draft', 'new'],
-    ready: ['ready', 'approved'],
+    pending: ['pending', 'pending_approval', 'draft', 'new', 'ready', 'approved'],
     active: ['active', 'in_progress', 'running'],
-    on_hold: ['on_hold', 'paused', 'rejected', 'cancelled'],
     complete: ['complete', 'completed', 'done', 'finished'],
   };
 
@@ -645,9 +676,9 @@ export default function CampaignHistory() {
       // Playlist Status filtering
       const matchesPlaylist = playlistFilter === "all" || getPlaylistStatus(campaign) === playlistFilter;
       
-      // Enhanced Performance filtering
+      // Schedule filtering (uses same calculateScheduleStatus as the column display)
       const matchesEnhancedPerformance = enhancedPerformanceFilter === "all" || 
-                                       getEnhancedPerformanceStatus(campaign) === enhancedPerformanceFilter;
+                                       calculateScheduleStatus(campaign).status === enhancedPerformanceFilter;
       
       // Legacy Performance filtering (keeping for backward compatibility)
       let matchesPerformance = true;
@@ -678,6 +709,12 @@ export default function CampaignHistory() {
              matchesEnhancedPerformance && matchesPerformance;
     }) || [];
 
+    // Pre-compute schedule status for sort performance
+    const scheduleStatusCache = new Map<string, string>();
+    if (sortField === 'schedule_status') {
+      filtered.forEach(c => scheduleStatusCache.set(c.id, calculateScheduleStatus(c).status));
+    }
+
     // Sort campaigns
     return filtered.sort((a, b) => {
       let aValue: any = a[sortField];
@@ -688,16 +725,15 @@ export default function CampaignHistory() {
         aValue = a.progress_percentage || 0;
         bValue = b.progress_percentage || 0;
       } else if (sortField === 'remaining_streams') {
-        aValue = a.remaining_streams || 0;
-        bValue = b.remaining_streams || 0;
+        aValue = a.remaining_streams ?? 0;
+        bValue = b.remaining_streams ?? 0;
       } else if (sortField === 'start_date') {
         aValue = a.start_date ? new Date(a.start_date).getTime() : 0;
         bValue = b.start_date ? new Date(b.start_date).getTime() : 0;
       } else if (sortField === 'schedule_status') {
-        // Sort by behind first (worst), then on_track, then ahead (best)
-        const statusOrder = { 'behind': 0, 'on_track': 1, 'ahead': 2, 'not_started': 3, 'completed': 4 };
-        aValue = statusOrder[calculateScheduleStatus(a).status] || 0;
-        bValue = statusOrder[calculateScheduleStatus(b).status] || 0;
+        const statusOrder: Record<string, number> = { 'behind': 0, 'on_track': 1, 'ahead': 2, 'not_started': 3, 'completed': 4 };
+        aValue = statusOrder[scheduleStatusCache.get(a.id) || ''] ?? 0;
+        bValue = statusOrder[scheduleStatusCache.get(b.id) || ''] ?? 0;
       }
 
       // Handle null/undefined values
@@ -723,10 +759,8 @@ export default function CampaignHistory() {
     
     // Map common status variations to match database values
     const statusAliases: Record<string, string[]> = {
-      pending: ['pending', 'pending_approval', 'draft', 'new'],
-      ready: ['ready', 'approved'],
+      pending: ['pending', 'pending_approval', 'draft', 'new', 'ready', 'approved'],
       active: ['active', 'in_progress', 'running'],
-      on_hold: ['on_hold', 'paused', 'rejected', 'cancelled'],
       complete: ['complete', 'completed', 'done', 'finished'],
     };
     
@@ -750,13 +784,12 @@ export default function CampaignHistory() {
     return campaigns.filter(c => getPlaylistStatus(c) === status).length;
   };
 
-  const getEnhancedPerformanceCount = (status: string) => {
+  const getScheduleStatusCount = (status: string) => {
     if (!campaigns || !Array.isArray(campaigns)) return 0;
-    // Case-insensitive check for active campaigns
     if (status === 'all') return campaigns.filter(c => 
       (c.status || '').toLowerCase() === 'active'
     ).length;
-    return campaigns.filter(c => getEnhancedPerformanceStatus(c) === status).length;
+    return campaigns.filter(c => calculateScheduleStatus(c).status === status).length;
   };
 
   const handleStatusChange = (campaignId: string, newStatus: Campaign['status']) => {
@@ -772,6 +805,11 @@ export default function CampaignHistory() {
 
     notifyOpsStatusChange({
       service: "spotify",
+      campaignId,
+      status: newStatus,
+      actorEmail: user?.email || null,
+    });
+    notifySlack("spotify", "campaign_status_change", {
       campaignId,
       status: newStatus,
       actorEmail: user?.email || null,
@@ -954,21 +992,17 @@ export default function CampaignHistory() {
   const getStatusVariant = (status: Campaign['status']) => {
     switch (status) {
       case 'active': return 'default';
-      case 'complete': return 'secondary';
-      case 'on_hold': return 'destructive';
+      case 'complete': return 'default';
       case 'pending': return 'outline';
-      case 'ready': return 'outline';
       default: return 'outline';
     }
   };
 
   const getStatusColor = (status: Campaign['status']) => {
     switch (status) {
-      case 'active': return 'text-accent';
-      case 'complete': return 'text-muted-foreground';
-      case 'on_hold': return 'text-destructive';
-      case 'pending': return 'text-muted-foreground';
-      case 'ready': return 'text-blue-400';
+      case 'active': return 'text-blue-400';
+      case 'complete': return 'text-green-400';
+      case 'pending': return 'text-yellow-400';
       default: return 'text-muted-foreground';
     }
   };
@@ -1115,27 +1149,15 @@ export default function CampaignHistory() {
                           Pending ({getStatusCount('pending')})
                         </span>
                       </SelectItem>
-                      <SelectItem value="ready|all|all">
-                        <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-blue-500" />
-                          Ready ({getStatusCount('ready')})
-                        </span>
-                      </SelectItem>
                       <SelectItem value="active|all|all">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-green-500" />
+                          <span className="w-2 h-2 rounded-full bg-blue-500" />
                           Active ({getStatusCount('active')})
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="on_hold|all|all">
-                        <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-red-500" />
-                          On Hold ({getStatusCount('on_hold')})
                         </span>
                       </SelectItem>
                       <SelectItem value="complete|all|all">
                         <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="w-2 h-2 rounded-full bg-green-500" />
                           Complete ({getStatusCount('complete')})
                         </span>
                       </SelectItem>
@@ -1157,22 +1179,22 @@ export default function CampaignHistory() {
 
                       {/* By Schedule/Performance */}
                       <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-2">Schedule</div>
-                      <SelectItem value="active|all|overperforming">
+                      <SelectItem value="active|all|ahead">
                         <span className="flex items-center gap-2">
                           <TrendingUp className="w-3 h-3 text-green-500" />
-                          Ahead of Schedule ({getEnhancedPerformanceCount('overperforming')})
+                          Ahead of Schedule ({getScheduleStatusCount('ahead')})
                         </span>
                       </SelectItem>
                       <SelectItem value="active|all|on_track">
                         <span className="flex items-center gap-2">
                           <Activity className="w-3 h-3 text-blue-500" />
-                          On Track ({getEnhancedPerformanceCount('on_track')})
+                          On Track ({getScheduleStatusCount('on_track')})
                         </span>
                       </SelectItem>
-                      <SelectItem value="active|all|underperforming">
+                      <SelectItem value="active|all|behind">
                         <span className="flex items-center gap-2">
                           <TrendingDown className="w-3 h-3 text-red-500" />
-                          Behind Schedule ({getEnhancedPerformanceCount('underperforming')})
+                          Behind Schedule ({getScheduleStatusCount('behind')})
                         </span>
                       </SelectItem>
 
@@ -1211,7 +1233,7 @@ export default function CampaignHistory() {
                     )}
                     {enhancedPerformanceFilter !== 'all' && (
                       <Badge variant="secondary" className="gap-1">
-                        Schedule: {enhancedPerformanceFilter}
+                        Schedule: {enhancedPerformanceFilter === 'ahead' ? 'Ahead' : enhancedPerformanceFilter === 'on_track' ? 'On Track' : enhancedPerformanceFilter === 'behind' ? 'Behind' : enhancedPerformanceFilter}
                         <X className="h-3 w-3 cursor-pointer" onClick={() => setEnhancedPerformanceFilter('all')} />
                       </Badge>
                     )}
@@ -1565,7 +1587,7 @@ export default function CampaignHistory() {
                           <TableCell>
                             {(() => {
                               const pct = Math.round(campaign.progress_percentage || 0);
-                              const delivered = campaign.stream_goal - (campaign.remaining_streams || campaign.stream_goal);
+                              const delivered = campaign.stream_goal - (campaign.remaining_streams ?? campaign.stream_goal);
                               const barColor = pct >= 100
                                 ? 'bg-emerald-500'
                                 : pct >= 75

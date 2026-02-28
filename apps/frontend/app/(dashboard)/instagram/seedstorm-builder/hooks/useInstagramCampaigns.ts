@@ -42,6 +42,7 @@ export interface FormattedCampaign {
   notes: string;
   salesperson: string;
   createdAt: Date;
+  selectedCreators: any[];
 }
 
 export function useInstagramCampaigns() {
@@ -142,7 +143,8 @@ export function useInstagramCampaigns() {
           tracker: row.tracker || '',
           notes: row.client_notes || row.report_notes || '',
           salesperson: row.salespeople || '',
-          createdAt: new Date(row.created_at)
+          createdAt: new Date(row.created_at),
+          selectedCreators: Array.isArray(row.selected_creators) ? row.selected_creators : [],
         };
       });
 

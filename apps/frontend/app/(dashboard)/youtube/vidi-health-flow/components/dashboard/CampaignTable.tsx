@@ -26,10 +26,12 @@ import {
 } from "lucide-react";
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { useAuth } from "../../contexts/AuthContext";
 import { RatioFixerModal } from "../campaigns/RatioFixerModal";
 import { CampaignSettingsModal } from "../campaigns/CampaignSettingsModal";
 import { getCanonicalYouTubeUrl } from "../../lib/youtube";
+import { calculateHealthScore } from "../../lib/healthScore";
 import type { Database } from "../../integrations/supabase/types";
 
 type Campaign = Database['public']['Tables']['campaigns']['Row'] & {
@@ -68,18 +70,7 @@ const formatNumber = (num: number) => {
   return num.toLocaleString();
 };
 
-const calculateHealthScore = (campaign: Campaign): number => {
-  let score = 50; // Base score
-  
-  const viewsProgress = campaign.goal_views > 0 ? (campaign.current_views || 0) / campaign.goal_views : 0;
-  score += viewsProgress * 30; // Up to 30 points for view progress
-  
-  if (campaign.status === 'active') score += 10;
-  if (!campaign.views_stalled) score += 10;
-  if (!campaign.in_fixer) score += 5;
-  
-  return Math.min(100, Math.max(0, Math.round(score)));
-};
+// Health score calculation imported from ../../lib/healthScore
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -109,6 +100,13 @@ export const CampaignTable = ({ onConfigureTable }: CampaignTableProps) => {
     await notifyOpsStatusChange({
       service: "youtube",
       campaignId,
+      status: newStatus,
+      previousStatus: previousStatus || null,
+      actorEmail: user?.email || null,
+    });
+    notifySlack("youtube", "campaign_status_change", {
+      campaignId,
+      campaignName: campaigns.find(c => c.id === campaignId)?.campaign_name || campaignId,
       status: newStatus,
       previousStatus: previousStatus || null,
       actorEmail: user?.email || null,
@@ -182,11 +180,17 @@ export const CampaignTable = ({ onConfigureTable }: CampaignTableProps) => {
                         {getTrendIcon(campaign.views_7_days || 0, campaign.current_views || 0)}
                       </div>
                       <div className="text-sm text-muted-foreground">{campaign.genre || 'No genre'}</div>
-                      {(campaign.views_stalled || campaign.in_fixer) && (
+                      {campaign.views_stalled && (
                         <div className="flex items-center gap-1">
                           <AlertTriangle className="h-3 w-3 text-warning" />
-                          <span className="text-xs text-warning">
-                            {campaign.views_stalled ? 'Stalled' : ''} {campaign.in_fixer ? 'In Fixer' : ''}
+                          <span className="text-xs text-warning">Stalled</span>
+                        </div>
+                      )}
+                      {campaign.in_fixer && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-purple-400" />
+                          <span className="text-xs text-purple-400">
+                            {(campaign as any).ratio_fixer_status === 'running' ? 'Fixer Running' : 'In Fixer'}
                           </span>
                         </div>
                       )}

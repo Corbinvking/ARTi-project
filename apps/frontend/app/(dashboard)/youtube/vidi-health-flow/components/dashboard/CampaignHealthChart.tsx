@@ -1,6 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCampaigns } from "../../hooks/useCampaigns";
+import { calculateHealthScore } from "../../lib/healthScore";
 
 interface CampaignHealthChartProps {
   onHealthFilterChange?: (filter: 'healthy' | 'at-risk' | 'critical' | null) => void;
@@ -10,17 +11,7 @@ interface CampaignHealthChartProps {
 export const CampaignHealthChart = ({ onHealthFilterChange, activeHealthFilter }: CampaignHealthChartProps = {}) => {
   const { campaigns } = useCampaigns();
 
-  const calculateHealthScore = (campaign: any): number => {
-    let score = 50;
-    const viewsProgress = campaign.goal_views > 0 ? (campaign.current_views || 0) / campaign.goal_views : 0;
-    score += viewsProgress * 30;
-    if (campaign.status === 'active') score += 10;
-    if (!campaign.views_stalled) score += 10;
-    if (!campaign.in_fixer) score += 5;
-    return Math.min(100, Math.max(0, Math.round(score)));
-  };
-
-  const scores = campaigns.map(calculateHealthScore);
+  const scores = campaigns.map((c) => calculateHealthScore(c));
   const healthy = scores.filter((s) => s >= 75).length;
   const atRisk = scores.filter((s) => s >= 60 && s < 75).length;
   const critical = scores.filter((s) => s < 60).length;

@@ -37,6 +37,7 @@ import {
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { SalespersonCampaignDetailsModal } from "./SalespersonCampaignDetailsModal";
 import { YouTubePlayerDialog } from "../youtube/YouTubePlayerDialog";
+import { calculateHealthScore } from "../../lib/healthScore";
 import { useRouter } from 'next/navigation';
 
 import type { Database } from "../../integrations/supabase/types";
@@ -79,32 +80,7 @@ const formatNumber = (num: number) => {
   return num.toLocaleString();
 };
 
-const calculateHealthScore = (campaign: Campaign): number => {
-  let score = 50; // Base score
-  
-  // Get service types from new structure or fallback to legacy single service type
-  const serviceTypes = (campaign as any).service_types ? 
-    (typeof (campaign as any).service_types === 'string' ? 
-      JSON.parse((campaign as any).service_types) : 
-      (campaign as any).service_types) : 
-    [{
-      service_type: campaign.service_type,
-      custom_service_type: (campaign as any).custom_service_type,
-      goal_views: campaign.goal_views || 0
-    }];
-  
-  // Calculate total goal views from all service types
-  const totalGoalViews = serviceTypes.reduce((sum: number, st: any) => sum + (st.goal_views || 0), 0);
-  
-  const viewsProgress = totalGoalViews > 0 ? (campaign.current_views || 0) / totalGoalViews : 0;
-  score += viewsProgress * 30; // Up to 30 points for view progress
-  
-  if (campaign.status === 'active') score += 10;
-  if (!campaign.views_stalled) score += 10;
-  if (!campaign.in_fixer) score += 5;
-  
-  return Math.min(100, Math.max(0, Math.round(score)));
-};
+// Health score calculation imported from ../../lib/healthScore
 
 const getStatusColor = (status: string) => {
   switch (status) {

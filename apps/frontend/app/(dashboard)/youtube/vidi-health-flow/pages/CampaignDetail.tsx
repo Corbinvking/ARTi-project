@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { SERVICE_TYPES } from "../lib/constants";
+import { calculateHealthScore, getHealthTextColor } from "../lib/healthScore";
 import { YouTubePlayerDialog } from "../components/youtube/YouTubePlayerDialog";
 
 import type { Database } from "../integrations/supabase/types";
@@ -99,23 +100,8 @@ const CampaignDetail = () => {
   const totalGoalViews = serviceTypes.reduce((sum: number, st: any) => sum + (st.goal_views || 0), 0);
   const viewsProgress = totalGoalViews > 0 ? (campaign.current_views || 0) / totalGoalViews * 100 : 0;
 
-  const calculateHealthScore = (): number => {
-    let score = 50;
-    score += viewsProgress * 0.3;
-    if (campaign.status === 'active') score += 10;
-    if (!campaign.views_stalled) score += 10;
-    if (!campaign.in_fixer) score += 5;
-    return Math.min(100, Math.max(0, Math.round(score)));
-  };
-
-  const healthScore = calculateHealthScore();
-  const getHealthColor = (score: number) => {
-    if (score >= 90) return "text-health-excellent";
-    if (score >= 75) return "text-health-good";
-    if (score >= 60) return "text-health-moderate";
-    if (score >= 40) return "text-health-poor";
-    return "text-health-critical";
-  };
+  const healthScore = calculateHealthScore(campaign);
+  const getHealthColor = getHealthTextColor;
 
   const handleSave = async () => {
     try {

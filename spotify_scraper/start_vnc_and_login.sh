@@ -134,16 +134,15 @@ export DISPLAY=:$DISPLAY_NUM
 export HEADLESS=false
 python3 manual_browser_login.py
 
+# Clear session_expired flag (keepalive will re-create it if session is still invalid)
+rm -f logs/session_expired.flag 2>/dev/null || true
+
 # Cleanup on exit
 echo ""
 echo "Cleaning up..."
 pkill -9 x11vnc 2>/dev/null || true
 pkill -9 Xvfb 2>/dev/null || true
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ SESSION SAVED!"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "🧪 Test the scraper:"
 echo "   bash run_production_scraper.sh"

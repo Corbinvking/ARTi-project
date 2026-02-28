@@ -3,19 +3,15 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "../../integrations/supabase/client";
 import { useToast } from "../../hooks/use-toast";
-import { useWeeklyCampaignReports } from "../../hooks/useWeeklyCampaignReports";
 import { ReceiptLinksManager } from "./ReceiptLinksManager";
 import { ScheduleSuggestionPanel } from "./ScheduleSuggestionPanel";
-import { Mail, TrendingUp, TrendingDown, ExternalLink, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { formatFollowerCount } from "../../utils/creditCalculations";
 import { useAuth } from "@/hooks/use-auth";
 import { OverrideField } from "@/components/overrides/OverrideField";
@@ -35,7 +31,6 @@ interface Campaign {
   source_invoice_id?: string;
   start_date: string;
   submission_date: string;
-  weekly_reporting_enabled?: boolean;
   notes: string;
   internal_notes?: string;
   client_notes?: string;
@@ -53,8 +48,6 @@ interface CampaignDetailModalProps {
 }
 
 export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdate }: CampaignDetailModalProps) {
-  const [weeklyReporting, setWeeklyReporting] = useState(campaign?.weekly_reporting_enabled || false);
-  const [sendingReport, setSendingReport] = useState(false);
   const [totalReceiptsReach, setTotalReceiptsReach] = useState(0);
   const [internalNotes, setInternalNotes] = useState(campaign?.internal_notes || campaign?.notes || '');
   const [clientNotes, setClientNotes] = useState(campaign?.client_notes || '');
@@ -62,7 +55,6 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
   const [suggestedInternalNotes, setSuggestedInternalNotes] = useState(campaign?.internal_notes || campaign?.notes || '');
   const [suggestedClientNotes, setSuggestedClientNotes] = useState(campaign?.client_notes || '');
   const { toast } = useToast();
-  const { fetchCampaignWeeklyReport } = useWeeklyCampaignReports();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -180,59 +172,6 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
     }
   };
 
-  const handleToggleWeeklyReporting = async (enabled: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('soundcloud_campaigns')
-        .update({ weekly_reporting_enabled: enabled })
-        .eq('id', campaign.id);
-
-      if (error) throw error;
-
-      setWeeklyReporting(enabled);
-      onCampaignUpdate();
-      
-      toast({
-        title: "Success",
-        description: `Weekly reporting ${enabled ? 'enabled' : 'disabled'} for ${campaign.track_name}`,
-      });
-    } catch (error) {
-      console.error('Error updating weekly reporting:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update weekly reporting setting",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSendWeeklyReport = async () => {
-    setSendingReport(true);
-    try {
-      // Get the current week's report data
-      const currentWeek = new Date();
-      const reportData = await fetchCampaignWeeklyReport(campaign.id, currentWeek);
-      
-      // Here you would implement the actual email sending logic
-      // For now, we'll simulate sending
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Report Sent",
-        description: `Weekly report sent to ${campaign.client.email}`,
-      });
-    } catch (error) {
-      console.error('Error sending report:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send weekly report",
-        variant: "destructive",
-      });
-    } finally {
-      setSendingReport(false);
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-500 text-white';
@@ -253,13 +192,52 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
     setTotalReceiptsReach(newTotalReach);
   };
 
-  // Mock streaming data for visualization
+  const handleReachChanged = async (newTotalReach: number) => {
+    if (!campaign || !campaign.goals || campaign.goals <= 0) return;
+
+    const newRemaining = Math.max(0, campaign.goals - newTotalReach);
+    const remainingStr = String(newRemaining);
+
+    try {
+      await supabase
+        .from('soundcloud_campaigns')
+        .update({
+          remaining: remainingStr,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', campaign.id);
+    } catch (err) {
+      console.error('Failed to auto-update remaining:', err);
+    }
+  };
+
   const mockStreamingData = [
-    { week: 'W1', plays: 1250, likes: 85, reposts: 12, comments: 8 },
-    { week: 'W2', plays: 1890, likes: 134, reposts: 23, comments: 15 },
-    { week: 'W3', plays: 2340, likes: 178, reposts: 31, comments: 22 },
-    { week: 'W4', plays: 2850, likes: 215, reposts: 38, comments: 28 },
+    { week: 'W1', plays: 1250, likes: 85, reposts: 12 },
+    { week: 'W2', plays: 1890, likes: 134, reposts: 23 },
+    { week: 'W3', plays: 2340, likes: 178, reposts: 31 },
+    { week: 'W4', plays: 2850, likes: 215, reposts: 38 },
   ];
+
+  const streamingMetrics = [
+    { key: 'plays' as const, label: 'Plays', color: '#22c55e' },
+    { key: 'likes' as const, label: 'Likes', color: '#3b82f6' },
+    { key: 'reposts' as const, label: 'Reposts', color: '#f97316' },
+  ].map((cfg) => {
+    const values = mockStreamingData.map((d) => d[cfg.key]);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min;
+    const padding = range > 0 ? range * 0.15 : Math.max(1, Math.abs(max) * 0.1 || 1);
+    const current = values[values.length - 1];
+    const previous = values.length > 1 ? values[values.length - 2] : current;
+    const change = current - previous;
+    return {
+      ...cfg,
+      current,
+      change,
+      domain: [Math.max(0, Math.floor(min - padding)), Math.ceil(max + padding)] as [number, number],
+    };
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -326,6 +304,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
           <ReceiptLinksManager 
             campaignId={campaign.id}
             onReachUpdate={handleReachUpdate}
+            onReachChanged={handleReachChanged}
           />
 
           {/* Influence Planner Scheduling - only show for paid campaigns that aren't yet complete */}
@@ -378,7 +357,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
           </CardContent>
         </Card>
 
-          {/* Streaming Metrics Chart */}
+          {/* Streaming Metrics */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -387,109 +366,77 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={mockStreamingData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="plays" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2} 
-                    name="Plays"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="likes" 
-                    stroke="hsl(var(--secondary))" 
-                    strokeWidth={2} 
-                    name="Likes"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="reposts" 
-                    stroke="hsl(var(--accent))" 
-                    strokeWidth={2} 
-                    name="Reposts"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <div className="grid grid-cols-3 gap-4 mt-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">2,850</p>
-                  <p className="text-sm text-muted-foreground">Total Plays</p>
-                  <div className="flex items-center justify-center gap-1 mt-1">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span className="text-xs text-green-500">+22% vs last week</span>
+              <div className="grid grid-cols-3 gap-4">
+                {streamingMetrics.map((metric) => (
+                  <div key={metric.key} className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium" style={{ color: metric.color }}>
+                        {metric.label}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold tabular-nums">
+                          {metric.current.toLocaleString()}
+                        </span>
+                        {metric.change !== 0 && (
+                          <span className={`text-xs flex items-center gap-0.5 ${metric.change > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {metric.change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            {metric.change > 0 ? '+' : ''}{metric.change.toLocaleString()}
+                          </span>
+                        )}
+                        {metric.change === 0 && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                            <Minus className="w-3 h-3" />
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="h-36">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={mockStreamingData} margin={{ top: 4, right: 4, left: 0, bottom: 4 }}>
+                          <defs>
+                            <linearGradient id={`gradient-sc-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={metric.color} stopOpacity={0.3} />
+                              <stop offset="95%" stopColor={metric.color} stopOpacity={0.02} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                          <XAxis
+                            dataKey="week"
+                            tick={{ fontSize: 9 }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <YAxis
+                            domain={metric.domain}
+                            tick={{ fontSize: 9 }}
+                            tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : String(v)}
+                            axisLine={false}
+                            tickLine={false}
+                            width={45}
+                          />
+                          <Tooltip
+                            formatter={(value: number) => [value.toLocaleString(), metric.label]}
+                            contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', fontSize: 12 }}
+                            labelStyle={{ color: 'hsl(var(--card-foreground))' }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey={metric.key}
+                            stroke={metric.color}
+                            strokeWidth={2}
+                            fill={`url(#gradient-sc-${metric.key})`}
+                            dot={{ r: 2, fill: metric.color }}
+                            activeDot={{ r: 4, fill: metric.color }}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-secondary">215</p>
-                  <p className="text-sm text-muted-foreground">Total Likes</p>
-                  <div className="flex items-center justify-center gap-1 mt-1">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span className="text-xs text-green-500">+21% vs last week</span>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-accent">38</p>
-                  <p className="text-sm text-muted-foreground">Total Reposts</p>
-                  <div className="flex items-center justify-center gap-1 mt-1">
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                    <span className="text-xs text-green-500">+23% vs last week</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
 
-          {/* Weekly Reporting Controls */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                Weekly Reporting
-              </CardTitle>
-              <CardDescription>
-                Automatically generate and send weekly reports to the client
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="font-medium">Enable Weekly Reports</p>
-                  <p className="text-sm text-muted-foreground">
-                    Reports will be sent to {campaign.client.email}
-                  </p>
-                </div>
-                <Switch
-                  checked={weeklyReporting}
-                  onCheckedChange={handleToggleWeeklyReporting}
-                />
-              </div>
-              
-              {weeklyReporting && (
-                <div className="mt-6 pt-4 border-t">
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" />
-                      Report Preview - What will be sent to client:
-                    </h4>
-                  </div>
-                  <Button 
-                    onClick={handleSendWeeklyReport}
-                    disabled={sendingReport}
-                    className="w-full"
-                  >
-                    {sendingReport ? "Sending Report..." : "Send Weekly Report Now"}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </DialogContent>
     </Dialog>

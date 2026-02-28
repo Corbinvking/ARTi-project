@@ -788,5 +788,139 @@ export async function youtubeDataApiRoutes(server: FastifyInstance) {
       return reply.status(500).send({ error: 'Internal server error', message: error.message });
     }
   });
+
+  /**
+   * POST /youtube-data-api/detect-stalling
+   * 
+   * Scans active campaigns for stalling indicators:
+   * 1. View growth: views grew less than threshold over the lookback window
+   * 2. Ratio fixer: fixer is running but ordered engagement isn't being delivered
+   * 
+   * Reads thresholds from the `settings` table (stalling_view_threshold,
+   * stalling_day_threshold). Updates views_stalled, stalling_detected_at,
+   * and last_stalling_check on each evaluated campaign.
+   */
+  server.post('/youtube-data-api/detect-stalling', async (_request, reply) => {
+    try {
+      const { data: settingsRow } = await supabase
+        .from('settings')
+        .select('stalling_view_threshold, stalling_day_threshold, stalling_detection_enabled')
+        .maybeSingle();
+
+      const viewThreshold = settingsRow?.stalling_view_threshold ?? 5000;
+      const dayThreshold  = settingsRow?.stalling_day_threshold  ?? 3;
+      const enabled       = settingsRow?.stalling_detection_enabled ?? true;
+
+      if (!enabled) {
+        return reply.send({ checked: 0, stalled: 0, recovered: 0, message: 'Stalling detection is disabled in settings' });
+      }
+
+      const { data: campaigns, error: campErr } = await supabase
+        .from('youtube_campaigns')
+        .select('id, current_views, current_likes, current_comments, views_stalled, stalling_detected_at, ratio_fixer_status, ratio_fixer_campaign_id, ordered_likes, ordered_comments')
+        .in('status', ['active', 'pending']);
+
+      if (campErr) {
+        logger.error('detect-stalling: failed to fetch campaigns', campErr);
+        return reply.status(500).send({ error: 'Failed to fetch campaigns', details: campErr.message });
+      }
+
+      if (!campaigns || campaigns.length === 0) {
+        return reply.send({ checked: 0, stalled: 0, recovered: 0, message: 'No active campaigns' });
+      }
+
+      const lookbackDate = new Date();
+      lookbackDate.setDate(lookbackDate.getDate() - dayThreshold);
+      const lookbackStr = lookbackDate.toISOString().split('T')[0];
+      const now = new Date().toISOString();
+
+      let stalledCount = 0;
+      let recoveredCount = 0;
+
+      for (const campaign of campaigns) {
+        const { data: statsRows } = await supabase
+          .from('campaign_stats_daily')
+          .select('views, likes, comments, date, time_of_day')
+          .eq('campaign_id', campaign.id)
+          .gte('date', lookbackStr)
+          .order('date', { ascending: true })
+          .order('collected_at', { ascending: true });
+
+        let viewStalled = false;
+
+        if (statsRows && statsRows.length >= 2) {
+          const oldestViews = statsRows[0].views;
+          const newestViews = statsRows[statsRows.length - 1].views;
+          viewStalled = (newestViews - oldestViews) < viewThreshold;
+        } else if (!statsRows || statsRows.length === 0) {
+          await supabase
+            .from('youtube_campaigns')
+            .update({ last_stalling_check: now })
+            .eq('id', campaign.id);
+          continue;
+        }
+
+        // Ratio fixer fulfillment check: if fixer is running and orders
+        // were placed, verify that the actual engagement is growing.
+        let fixerStalled = false;
+        if ((campaign as any).ratio_fixer_status === 'running') {
+          const orderedLikes    = (campaign as any).ordered_likes    ?? 0;
+          const orderedComments = (campaign as any).ordered_comments ?? 0;
+
+          if (orderedLikes > 0 || orderedComments > 0) {
+            const { data: baselineStats } = await supabase
+              .from('campaign_stats_daily')
+              .select('likes, comments')
+              .eq('campaign_id', campaign.id)
+              .lte('date', lookbackStr)
+              .order('date', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (baselineStats) {
+              const likesGrowth    = (campaign.current_likes    ?? 0) - baselineStats.likes;
+              const commentsGrowth = (campaign.current_comments ?? 0) - baselineStats.comments;
+              const likeFulfill    = orderedLikes    > 0 ? likesGrowth    / orderedLikes    : 1;
+              const commentFulfill = orderedComments > 0 ? commentsGrowth / orderedComments : 1;
+              fixerStalled = likeFulfill < 0.3 && commentFulfill < 0.3;
+            }
+          }
+        }
+
+        const isStalling = viewStalled || fixerStalled;
+        const wasStalling = !!campaign.views_stalled;
+
+        if (isStalling && !wasStalling) {
+          await supabase
+            .from('youtube_campaigns')
+            .update({ views_stalled: true, stalling_detected_at: now, last_stalling_check: now })
+            .eq('id', campaign.id);
+          stalledCount++;
+        } else if (!isStalling && wasStalling) {
+          await supabase
+            .from('youtube_campaigns')
+            .update({ views_stalled: false, stalling_detected_at: null, last_stalling_check: now })
+            .eq('id', campaign.id);
+          recoveredCount++;
+        } else {
+          await supabase
+            .from('youtube_campaigns')
+            .update({ last_stalling_check: now })
+            .eq('id', campaign.id);
+        }
+      }
+
+      logger.info({ checked: campaigns.length, stalled: stalledCount, recovered: recoveredCount }, 'Stalling detection complete');
+
+      return reply.send({
+        checked: campaigns.length,
+        stalled: stalledCount,
+        recovered: recoveredCount,
+      });
+    } catch (error: any) {
+      logger.error({ error: error.message }, 'Error in /detect-stalling');
+      return reply.status(500).send({ error: 'Internal server error', message: error.message });
+    }
+  });
 }
 

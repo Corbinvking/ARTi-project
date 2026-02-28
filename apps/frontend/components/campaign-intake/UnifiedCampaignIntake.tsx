@@ -25,6 +25,7 @@ import type { Database } from "@/app/(dashboard)/youtube/vidi-health-flow/integr
 import { useInstagramCampaignMutations } from "@/app/(dashboard)/instagram/seedstorm-builder/hooks/useInstagramCampaignMutations"
 import { supabase as coreSupabase } from "@/lib/auth"
 import { notifyOpsStatusChange } from "@/lib/status-notify"
+import { notifySlack } from "@/lib/slack-notify"
 import { UNIFIED_GENRES } from "@/app/(dashboard)/spotify/stream-strategist/lib/constants"
 
 type ServiceKey = "spotify" | "soundcloud" | "youtube" | "instagram"
@@ -687,6 +688,11 @@ export function UnifiedCampaignIntake({ mode = "standard" }: { mode?: "standard"
               campaignId: String(campaign.id),
               status: "new",
               previousStatus: null,
+              campaignName: shared.campaignName,
+              actorEmail: user?.email || opsOwner,
+            })
+            notifySlack("instagram", "campaign_created", {
+              campaignId: String(campaign.id),
               campaignName: shared.campaignName,
               actorEmail: user?.email || opsOwner,
             })

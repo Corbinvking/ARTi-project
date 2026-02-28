@@ -39,7 +39,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Plus, X, Trash2, Calendar, DollarSign, RefreshCw, Eye, Pencil, Check, Loader2 } from 'lucide-react';
+import { Plus, X, Trash2, Calendar, DollarSign, RefreshCw, Eye, Pencil, Check, Loader2, TrendingUp, TrendingDown, Minus, Clock, CheckCircle } from 'lucide-react';
 import { useUpdateClient, useClientCredits, useAddClientCredit, useUpdateClientCredit, useDeleteClientCredit, useClient } from '../hooks/useClients';
 import { useAllCampaigns, useAssignCampaignToClient, useUnassignCampaignFromClient } from '../hooks/useCampaigns';
 import { clearBrowserCache } from '../utils/debugUtils';
@@ -88,6 +88,50 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
   // Extract campaigns from client data
   const clientCampaigns = clientData?.campaigns || [];
   const clientWithCampaigns = clientData;
+
+  const getCampaignScheduleStatus = (campaign: any): { status: string; label: string; icon: any; badgeClass: string } => {
+    const campaignStatus = (campaign.status || '').toLowerCase();
+    if (campaignStatus === 'complete' || campaignStatus === 'completed') {
+      return { status: 'completed', label: 'Complete', icon: <CheckCircle className="h-3.5 w-3.5" />, badgeClass: 'bg-green-500/10 text-green-400 border-green-500/30' };
+    }
+    if (campaignStatus !== 'active') {
+      return { status: 'pending', label: 'Pending', icon: <Clock className="h-3.5 w-3.5" />, badgeClass: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' };
+    }
+
+    const startDate = campaign.start_date ? new Date(campaign.start_date) : null;
+    if (!startDate) {
+      return { status: 'pending', label: 'Pending', icon: <Clock className="h-3.5 w-3.5" />, badgeClass: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' };
+    }
+
+    const now = new Date();
+    if (startDate > now) {
+      return { status: 'not_started', label: 'Not Started', icon: <Clock className="h-3.5 w-3.5" />, badgeClass: 'bg-gray-500/10 text-gray-400 border-gray-500/30' };
+    }
+
+    const totalGoal = campaign.total_goal || campaign.stream_goal || 0;
+    if (totalGoal <= 0) {
+      return { status: 'active', label: 'Active', icon: <Minus className="h-3.5 w-3.5" />, badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/30' };
+    }
+
+    const remaining = campaign.remaining_streams ?? totalGoal;
+    const delivered = Math.max(0, totalGoal - remaining);
+    const daysElapsed = Math.max(1, Math.ceil((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+    const durationDays = campaign.duration_days || 90;
+    const daysRemaining = Math.max(1, durationDays - daysElapsed);
+    const dailyRate = delivered / daysElapsed;
+    const projectedAtEnd = delivered + dailyRate * daysRemaining;
+
+    if (delivered >= totalGoal) {
+      return { status: 'completed', label: 'Complete', icon: <CheckCircle className="h-3.5 w-3.5" />, badgeClass: 'bg-green-500/10 text-green-400 border-green-500/30' };
+    }
+    if (projectedAtEnd >= totalGoal * 1.1) {
+      return { status: 'ahead', label: 'Ahead', icon: <TrendingUp className="h-3.5 w-3.5" />, badgeClass: 'bg-green-500/10 text-green-400 border-green-500/30' };
+    }
+    if (projectedAtEnd >= totalGoal * 0.85) {
+      return { status: 'on_track', label: 'On Track', icon: <Minus className="h-3.5 w-3.5" />, badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/30' };
+    }
+    return { status: 'behind', label: 'Behind', icon: <TrendingDown className="h-3.5 w-3.5" />, badgeClass: 'bg-red-500/10 text-red-400 border-red-500/30' };
+  };
 
   // Debug logging when modal opens
   useEffect(() => {
@@ -695,7 +739,7 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                   <TableHeader>
                     <TableRow>
                       <TableHead>Campaign</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>Schedule</TableHead>
                       <TableHead>Start Date</TableHead>
                       <TableHead>Budget</TableHead>
                       <TableHead>Actions</TableHead>
@@ -724,9 +768,15 @@ export function ClientDetailsModal({ client, isOpen, onClose }: ClientDetailsMod
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={campaign.status?.toLowerCase() === 'active' ? 'default' : 'secondary'}>
-                            {campaign.status}
-                          </Badge>
+                          {(() => {
+                            const info = getCampaignScheduleStatus(campaign);
+                            return (
+                              <Badge className={`flex items-center gap-1 border w-fit ${info.badgeClass}`}>
+                                {info.icon}
+                                {info.label}
+                              </Badge>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">

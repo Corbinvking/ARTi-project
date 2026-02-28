@@ -70,9 +70,11 @@ import {
 } from "@/components/ui/tooltip";
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { notifyOpsStatusChange } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { useAuth } from "../../contexts/AuthContext";
 import { CampaignSettingsModal } from "../campaigns/CampaignSettingsModal";
 import { getApiUrl } from "../../lib/getApiUrl";
+import { calculateHealthScore, getHealthBadgeColor } from "../../lib/healthScore";
 
 import type { Database } from "../../integrations/supabase/types";
 type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'] & {
@@ -82,21 +84,6 @@ type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'] & {
 
 type SortField = 'campaign_name' | 'client' | 'health' | 'status' | 'service_types' | 'views' | 'wow_change' | 'likes_comments' | 'start_date';
 type SortDirection = 'asc' | 'desc';
-
-const getHealthColor = (score: number) => {
-  if (score >= 90) return "text-health-excellent";
-  if (score >= 75) return "text-health-good";
-  if (score >= 60) return "text-health-moderate";
-  if (score >= 40) return "text-health-poor";
-  return "text-health-critical";
-};
-
-const getHealthBadgeColor = (score: number) => {
-  if (score >= 90) return "bg-green-500/10 text-green-400 border border-green-500/30";
-  if (score >= 75) return "bg-blue-500/10 text-blue-400 border border-blue-500/30";
-  if (score >= 60) return "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30";
-  return "bg-red-500/10 text-red-400 border border-red-500/30";
-};
 
 const getTrendIcon = (views7Days: number, currentViews: number) => {
   const trend = views7Days > (currentViews * 0.1) ? "up" : views7Days < (currentViews * 0.05) ? "down" : "stable";
@@ -114,60 +101,7 @@ const formatNumber = (num: number) => {
   return num.toLocaleString();
 };
 
-const calculateHealthScore = (campaign: Campaign, manualOverride?: number): number => {
-  // Parse service types (new or legacy) to get total goal views
-  const serviceTypes = (campaign as any).service_types ? 
-    (typeof (campaign as any).service_types === 'string' ? 
-      JSON.parse((campaign as any).service_types) : 
-      (campaign as any).service_types) : 
-    [{
-      service_type: campaign.service_type,
-      custom_service_type: (campaign as any).custom_service_type,
-      goal_views: campaign.goal_views || 0
-    }];
-
-  const totalGoalViews = serviceTypes.reduce((sum: number, st: any) => sum + (st.goal_views || 0), 0);
-
-  const effectiveManual = manualOverride ?? ((campaign as any).manual_progress || 0);
-  const effectiveViews = effectiveManual > 0 ? effectiveManual : (campaign.current_views || 0);
-
-  // Determine timeline for pacing
-  const today = new Date();
-  const startDate = campaign.start_date ? new Date(campaign.start_date) : null;
-  const endDate = campaign.end_date ? new Date(campaign.end_date) : null;
-
-  let totalDays = 30; // fallback
-  if (startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime()) && endDate >= startDate) {
-    totalDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-  } else if ((campaign as any).desired_daily && (campaign as any).desired_daily > 0 && totalGoalViews > 0) {
-    totalDays = Math.ceil(totalGoalViews / ((campaign as any).desired_daily || 1));
-  }
-
-  let daysElapsed = 1; // at least 1 day
-  if (startDate && !isNaN(startDate.getTime())) {
-    daysElapsed = Math.max(1, Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
-  }
-  daysElapsed = Math.min(daysElapsed, totalDays);
-
-  const expectedByNow = totalGoalViews > 0 ? (totalGoalViews / totalDays) * daysElapsed : 0;
-
-  // Scoring weights
-  // - Pacing vs plan: up to 70 points
-  // - Ratio Fixer active (while campaign is active): +15 points
-  // - Stalling penalty: -25 points
-  let paceScore = 0;
-  if (expectedByNow > 0) {
-    const paceRatio = effectiveViews / expectedByNow;
-    paceScore = Math.max(0, Math.min(70, Math.round(70 * Math.min(paceRatio, 1))))
-  }
-
-  const fixerScore = (campaign.in_fixer && campaign.status === 'active') ? 15 : 0;
-  const isStalling = !!campaign.views_stalled || !!campaign.stalling_detected_at;
-  const stallingPenalty = isStalling ? -25 : 0;
-
-  const total = paceScore + fixerScore + stallingPenalty;
-  return Math.min(100, Math.max(0, Math.round(total)));
-};
+// Health score calculation imported from ../../lib/healthScore
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -196,7 +130,7 @@ interface CampaignTableEnhancedProps {
 }
 
 export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter }: CampaignTableEnhancedProps = {}) => {
-  const { campaigns, loading, updateCampaign, deleteCampaign } = useCampaigns();
+  const { campaigns, loading, updateCampaign, deleteCampaign, refreshData } = useCampaigns();
   const { toast } = useToast();
   const { user } = useAuth();
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
@@ -215,9 +149,109 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
   const [youtubeDialogOpen, setYoutubeDialogOpen] = useState(false);
   const [selectedYoutubeUrl, setSelectedYoutubeUrl] = useState<string>("");
   const [selectedVideoTitle, setSelectedVideoTitle] = useState<string>("");
+  const [fixerToggleLoading, setFixerToggleLoading] = useState<string | null>(null);
 
   const handleRatioFixerToggle = async (campaignId: string, inFixer: boolean) => {
-    await updateCampaign(campaignId, { in_fixer: inFixer });
+    const campaign = campaigns.find(c => c.id === campaignId);
+    if (!campaign) return;
+
+    const apiUrl = getApiUrl();
+    setFixerToggleLoading(campaignId);
+
+    try {
+      if (inFixer) {
+        if (!campaign.video_id) {
+          toast({
+            title: "Missing campaign data",
+            description: "Campaign needs a video ID before the ratio fixer can start. Open campaign settings to configure.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const response = await fetch(`${apiUrl}/api/ratio-fixer/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            campaignId: campaign.id,
+            videoUrl: campaign.youtube_url,
+            videoId: campaign.video_id,
+            genre: campaign.genre || 'General',
+            commentsSheetUrl: campaign.comments_sheet_url || '',
+            waitTime: campaign.wait_time_seconds || 36,
+            minimumEngagement: campaign.minimum_engagement || 500,
+            commentServerId: campaign.comment_server ? parseInt(campaign.comment_server) : undefined,
+            likeServerId: campaign.like_server ? parseInt(campaign.like_server) : undefined,
+            sheetTier: campaign.sheet_tier || undefined,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          toast({
+            title: "Failed to start ratio fixer",
+            description: data.error || data.message || 'Unknown error',
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "Ratio Fixer Started",
+          description: `Fixer is now running for "${campaign.campaign_name}"`,
+        });
+
+        await refreshData();
+      } else {
+        const ratioFixerCampaignId = (campaign as any).ratio_fixer_campaign_id;
+
+        if (ratioFixerCampaignId) {
+          try {
+            const response = await fetch(`${apiUrl}/api/ratio-fixer/stop/${ratioFixerCampaignId}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: '{}',
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+              toast({
+                title: "Warning",
+                description: "Could not stop remote fixer — it may already be stopped. Local state updated.",
+                variant: "destructive",
+              });
+            } else {
+              toast({
+                title: "Ratio Fixer Stopped",
+                description: `Fixer stopped for "${campaign.campaign_name}"`,
+              });
+            }
+          } catch {
+            toast({
+              title: "Warning",
+              description: "Could not reach ratio fixer service. Local state updated.",
+              variant: "destructive",
+            });
+          }
+        }
+
+        await updateCampaign(campaignId, {
+          in_fixer: false,
+          ratio_fixer_status: 'stopped',
+          ratio_fixer_stopped_at: new Date().toISOString(),
+        } as any);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to toggle ratio fixer',
+        variant: "destructive",
+      });
+    } finally {
+      setFixerToggleLoading(null);
+    }
   };
 
   const handleWeeklyUpdatesToggle = async (campaignId: string, enabled: boolean) => {
@@ -787,11 +821,17 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                           {getTrendIcon(campaign.views_7_days || 0, campaign.current_views || 0)}
                         </div>
                         <div className="text-sm text-muted-foreground">{campaign.genre || 'No genre'}</div>
-                        {(campaign.views_stalled || campaign.in_fixer) && (
+                        {campaign.views_stalled && (
                           <div className="flex items-center gap-1">
                             <AlertTriangle className="h-3 w-3 text-warning" />
-                            <span className="text-xs text-warning">
-                              {campaign.views_stalled ? 'Stalled' : ''} {campaign.in_fixer ? 'In Fixer' : ''}
+                            <span className="text-xs text-warning">Stalled</span>
+                          </div>
+                        )}
+                        {campaign.in_fixer && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-purple-400" />
+                            <span className="text-xs text-purple-400">
+                              {(campaign as any).ratio_fixer_status === 'running' ? 'Fixer Running' : 'In Fixer'}
                             </span>
                           </div>
                         )}
@@ -814,9 +854,9 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                           {healthScore}%
                         </Badge>
                         {campaign.in_fixer && (
-                          <Badge className="text-xs bg-purple-500/10 text-purple-400 border border-purple-500/30">
+                          <Badge className={`text-xs border ${(campaign as any).ratio_fixer_status === 'running' ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-purple-500/10 text-purple-400 border-purple-500/30'}`}>
                             <Clock className="h-3 w-3 mr-1" />
-                            Fixing
+                            {(campaign as any).ratio_fixer_status === 'running' ? 'Fixer Active' : 'In Fixer'}
                           </Badge>
                         )}
                       </div>
@@ -831,6 +871,13 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                             await notifyOpsStatusChange({
                               service: "youtube",
                               campaignId: campaign.id,
+                              status: value,
+                              previousStatus,
+                              actorEmail: user?.email || null,
+                            });
+                            notifySlack("youtube", "campaign_status_change", {
+                              campaignId: campaign.id,
+                              campaignName: campaign.campaign_name,
                               status: value,
                               previousStatus,
                               actorEmail: user?.email || null,
@@ -876,7 +923,7 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                          </Select>
                            {campaign.views_stalled && (
                              <div className="flex items-center gap-1">
-                               <Badge className="text-xs bg-red-500/10 text-red-400 border border-red-500/30">
+                               <Badge className="text-xs bg-red-500/10 text-red-400 border border-red-500/30" title={campaign.stalling_detected_at ? `Detected ${new Date(campaign.stalling_detected_at).toLocaleDateString()}` : 'Views growth below threshold'}>
                                  <AlertTriangle className="w-3 h-3 mr-1" />
                                  Stalling
                                </Badge>
@@ -913,10 +960,19 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
                        </div>
                      </TableCell>
                      <TableCell>
-                       <Switch
-                         checked={campaign.in_fixer || false}
-                         onCheckedChange={(checked) => handleRatioFixerToggle(campaign.id, checked)}
-                       />
+                       <div className="flex items-center gap-2">
+                         <Switch
+                           checked={campaign.in_fixer || false}
+                           disabled={fixerToggleLoading === campaign.id}
+                           onCheckedChange={(checked) => handleRatioFixerToggle(campaign.id, checked)}
+                         />
+                         {fixerToggleLoading === campaign.id && (
+                           <span className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" title="Starting/stopping ratio fixer..." />
+                         )}
+                         {fixerToggleLoading !== campaign.id && (campaign as any).ratio_fixer_status === 'running' && (
+                           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" title="Ratio fixer is actively running" />
+                         )}
+                       </div>
                      </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">

@@ -1,0 +1,173 @@
+name: "Agent Dispatcher: Route to App Workers"
+
+# =============================================================================
+# When an issue is labeled `agent:ready`, this workflow:
+#   1. Determines the app domain from labels
+#   2. Creates a working branch for the agent
+#   3. Dispatches the correct per-app agent workflow via repository_dispatch
+#   4. Updates issue labels to track progress
+#
+# This enables PARALLEL agent workflows — multiple issues across different
+# app domains can be worked on simultaneously without conflicts.
+# =============================================================================
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+  contents: write
+
+jobs:
+  dispatch:
+    if: github.event.label.name == 'agent:ready'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine app domain and create branch
+        id: route
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue = context.payload.issue;
+            const labels = issue.labels.map(l => l.name);
+
+            // Find the app:* label
+            const appLabel = labels.find(l => l.startsWith('app:'));
+            if (!appLabel) {
+              core.setFailed('No app:* label found. Add an app label before marking agent:ready.');
+              return;
+            }
+
+            const app = appLabel.replace('app:', '');
+
+            // Determine issue type for branch prefix
+            const typeLabel = labels.find(l => l.startsWith('type:'));
+            let branchType = 'fix';
+            if (typeLabel) {
+              const type = typeLabel.replace('type:', '');
+              if (type === 'feature') branchType = 'feature';
+              else if (type === 'refactor') branchType = 'refactor';
+              else if (type === 'chore') branchType = 'chore';
+              else branchType = 'fix';
+            }
+
+            // Sanitize issue title for branch name
+            const sanitized = issue.title
+              .toLowerCase()
+              .replace(/[^a-z0-9\s-]/g, '')
+              .replace(/\s+/g, '-')
+              .substring(0, 50)
+              .replace(/-$/, '');
+
+            const branch = `agent/${branchType}/${app}/${sanitized}-${issue.number}`;
+
+            // Map app domain to scope directories (for scoped agent context)
+            const scopeMap = {
+              'spotify':     'apps/frontend/app/(dashboard)/spotify/',
+              'instagram':   'apps/frontend/app/(dashboard)/instagram/',
+              'youtube':     'apps/frontend/app/(dashboard)/youtube/',
+              'soundcloud':  'apps/frontend/app/(dashboard)/soundcloud/',
+              'dashboard':   'apps/frontend/app/(dashboard)/dashboard/',
+              'operator':    'apps/frontend/app/(dashboard)/operator/',
+              'admin':       'apps/frontend/app/(dashboard)/admin/',
+              'api':         'apps/api/',
+              'scraper':     'scripts/,spotify_scraper/,instagram_scraper/,roster_scraper/',
+              'shared':      'apps/frontend/components/,apps/frontend/hooks/,apps/frontend/lib/',
+              'infra':       '.github/,docker-compose.yml',
+              'database':    'supabase/',
+            };
+
+            const scope = scopeMap[app] || '';
+
+            core.setOutput('app', app);
+            core.setOutput('branch', branch);
+            core.setOutput('branch_type', branchType);
+            core.setOutput('scope', scope);
+            core.setOutput('issue_number', issue.number);
+            core.setOutput('issue_title', issue.title);
+            core.setOutput('issue_body', issue.body || '');
+
+            console.log(`Routing issue #${issue.number} to app: ${app}`);
+            console.log(`Branch: ${branch}`);
+            console.log(`Scope: ${scope}`);
+
+      - name: Create agent working branch
+        run: |
+          git config user.name "arti-agent[bot]"
+          git config user.email "arti-agent[bot]@users.noreply.github.com"
+          git checkout -b "${{ steps.route.outputs.branch }}"
+          git push origin "${{ steps.route.outputs.branch }}"
+
+      - name: Update issue labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue_number = ${{ steps.route.outputs.issue_number }};
+
+            // Remove agent:ready, add agent:in-progress
+            try {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                name: 'agent:ready',
+              });
+            } catch (e) {
+              // Label may not exist
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+              labels: ['agent:in-progress'],
+            });
+
+      - name: Post dispatch comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = '${{ steps.route.outputs.branch }}';
+            const app = '${{ steps.route.outputs.app }}';
+            const scope = '${{ steps.route.outputs.scope }}';
+            const runId = '${{ github.run_id }}';
+
+            let comment = `### 🤖 Agent Dispatched\n\n`;
+            comment += `| Field | Value |\n|-------|-------|\n`;
+            comment += `| **App Domain** | \`${app}\` |\n`;
+            comment += `| **Working Branch** | [\`${branch}\`](https://github.com/${{ github.repository }}/tree/${branch}) |\n`;
+            comment += `| **Scoped To** | \`${scope}\` |\n`;
+            comment += `| **Dispatch Run** | [#${runId}](https://github.com/${{ github.repository }}/actions/runs/${runId}) |\n`;
+            comment += `\n`;
+            comment += `The agent will work on branch \`${branch}\` and open a PR when complete.\n`;
+            comment += `\n`;
+            comment += `**To cancel:** Remove the \`agent:in-progress\` label and delete the branch.`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.route.outputs.issue_number }},
+              body: comment,
+            });
+
+      - name: Dispatch per-app agent workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          event-type: agent-work-${{ steps.route.outputs.app }}
+          client-payload: |
+            {
+              "issue_number": ${{ steps.route.outputs.issue_number }},
+              "issue_title": "${{ steps.route.outputs.issue_title }}",
+              "branch": "${{ steps.route.outputs.branch }}",
+              "branch_type": "${{ steps.route.outputs.branch_type }}",
+              "app": "${{ steps.route.outputs.app }}",
+              "scope": "${{ steps.route.outputs.scope }}"
+            }

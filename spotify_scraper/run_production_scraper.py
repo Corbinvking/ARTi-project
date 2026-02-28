@@ -180,6 +180,186 @@ def send_alert_email(subject, body):
         return False
 
 
+def parse_goal_string(goal):
+    """Convert TEXT goal values like '10K', '500K', '1M', '10000' to integers."""
+    if not goal:
+        return 0
+    goal_str = str(goal).strip().upper().replace(',', '')
+    try:
+        return int(goal_str)
+    except ValueError:
+        pass
+    if goal_str.endswith('K'):
+        try:
+            return int(float(goal_str[:-1]) * 1_000)
+        except ValueError:
+            return 0
+    if goal_str.endswith('M'):
+        try:
+            return int(float(goal_str[:-1]) * 1_000_000)
+        except ValueError:
+            return 0
+    return 0
+
+
+def send_campaign_complete_email(campaign_name, streams_delivered, goal, client_emails):
+    """Send email to client notifying them their campaign reached its stream goal."""
+    if not client_emails:
+        return False
+    try:
+        import smtplib
+        from email.message import EmailMessage
+
+        recipients = [e for e in client_emails if e and '@' in e]
+        if not recipients:
+            return False
+
+        body = (
+            f"Great news! Your campaign \"{campaign_name}\" has reached its stream goal.\n\n"
+            f"  Streams delivered: {streams_delivered:,}\n"
+            f"  Campaign goal:     {goal:,}\n\n"
+            f"The campaign has been marked as complete. Thank you for choosing ARTi!\n\n"
+            f"— The ARTi Team\n"
+        )
+
+        msg = EmailMessage()
+        msg['Subject'] = f"Your campaign \"{campaign_name}\" has reached its stream goal!"
+        msg['From'] = 'campaigns@artistinfluence.com'
+        msg['To'] = ', '.join(recipients)
+        msg.set_content(body)
+
+        with smtplib.SMTP('localhost') as smtp:
+            smtp.send_message(msg)
+
+        logger.info(f"✅ Campaign completion email sent to {recipients}")
+        return True
+    except Exception as e:
+        logger.warning(f"Could not send campaign completion email: {e}")
+        return False
+
+
+async def check_and_complete_campaign(campaign, scrape_result):
+    """Check if a campaign has reached its stream goal using vendor playlist streams."""
+    try:
+        goal_raw = campaign.get('goal')
+        goal = parse_goal_string(goal_raw)
+        if goal <= 0:
+            return
+
+        campaign_id = campaign['id']
+        campaign_name = campaign.get('campaign', f'Campaign {campaign_id}')
+
+        headers = {
+            'apikey': SUPABASE_SERVICE_ROLE_KEY,
+            'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
+            'Content-Type': 'application/json'
+        }
+
+        # Fetch vendor playlist streams (exclude algorithmic and organic)
+        pl_url = f"{SUPABASE_URL}/rest/v1/campaign_playlists"
+        pl_params = {
+            'campaign_id': f'eq.{campaign_id}',
+            'select': 'streams_12m,is_algorithmic,is_organic',
+            'or': '(is_algorithmic.is.null,is_algorithmic.eq.false)',
+        }
+        pl_resp = requests.get(pl_url, headers=headers, params=pl_params)
+        if pl_resp.status_code != 200:
+            return
+
+        playlists = pl_resp.json()
+        vendor_streams = sum(
+            (p.get('streams_12m') or 0)
+            for p in playlists
+            if not p.get('is_organic', False)
+        )
+
+        if vendor_streams < goal:
+            return
+
+        logger.info(f"[{campaign_id}] 🎯 Goal reached! Vendor streams: {vendor_streams:,} / {goal:,} — marking Complete")
+
+        url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
+        params = {'id': f'eq.{campaign_id}'}
+        update_data = {
+            'status': 'complete',
+            'completed_at': datetime.now(timezone.utc).isoformat(),
+        }
+        response = requests.patch(url, headers=headers, params=params, json=update_data)
+        if response.status_code not in [200, 204]:
+            if 'completed_at' in (response.text or ''):
+                update_data.pop('completed_at', None)
+                response = requests.patch(url, headers=headers, params=params, json=update_data)
+
+        if response.status_code in [200, 204]:
+            logger.info(f"[{campaign_id}] ✓ Song status updated to Complete")
+        else:
+            logger.warning(f"[{campaign_id}] Could not update status: {response.status_code}")
+            return
+
+        # Also update campaign_groups status if all songs in the group are complete
+        group_id = campaign.get('campaign_group_id')
+        if group_id:
+            try:
+                # Fetch all songs in this group
+                songs_resp = requests.get(
+                    f"{SUPABASE_URL}/rest/v1/spotify_campaigns",
+                    headers=headers,
+                    params={'campaign_group_id': f'eq.{group_id}', 'select': 'id,goal,status'}
+                )
+                if songs_resp.status_code == 200:
+                    group_songs = songs_resp.json()
+                    # Check each song: fetch vendor playlist streams and compare to goal
+                    all_songs_complete = True
+                    songs_with_goals = 0
+                    for song in group_songs:
+                        song_goal = parse_goal_string(song.get('goal'))
+                        if song_goal <= 0:
+                            continue
+                        songs_with_goals += 1
+                        s_pl_resp = requests.get(pl_url, headers=headers, params={
+                            'campaign_id': f'eq.{song["id"]}',
+                            'select': 'streams_12m,is_algorithmic,is_organic',
+                            'or': '(is_algorithmic.is.null,is_algorithmic.eq.false)',
+                        })
+                        if s_pl_resp.status_code == 200:
+                            s_vendor = sum(
+                                (p.get('streams_12m') or 0)
+                                for p in s_pl_resp.json()
+                                if not p.get('is_organic', False)
+                            )
+                            if s_vendor < song_goal:
+                                all_songs_complete = False
+                                break
+                        else:
+                            all_songs_complete = False
+                            break
+
+                    if all_songs_complete and songs_with_goals > 0:
+                        grp_resp = requests.patch(
+                            f"{SUPABASE_URL}/rest/v1/campaign_groups",
+                            headers=headers,
+                            params={'id': f'eq.{group_id}'},
+                            json={'status': 'complete'}
+                        )
+                        if grp_resp.status_code in [200, 204]:
+                            logger.info(f"[{campaign_id}] ✓ Campaign group {group_id} also marked Complete")
+            except Exception as grp_err:
+                logger.warning(f"[{campaign_id}] Could not check/update group status: {grp_err}")
+
+        # Fetch client email
+        client_id = campaign.get('client_id')
+        if client_id:
+            client_url = f"{SUPABASE_URL}/rest/v1/clients"
+            client_params = {'id': f'eq.{client_id}', 'select': 'emails'}
+            client_resp = requests.get(client_url, headers=headers, params=client_params)
+            if client_resp.status_code == 200 and client_resp.json():
+                client_emails = client_resp.json()[0].get('emails') or []
+                send_campaign_complete_email(campaign_name, vendor_streams, goal, client_emails)
+
+    except Exception as e:
+        logger.warning(f"[{campaign.get('id', '?')}] Error in auto-complete check: {e}")
+
+
 def log_scraper_run(status, campaigns_total=0, campaigns_success=0, campaigns_failed=0, error_message=None):
     """Log scraper run status to a dedicated status file"""
     import json
@@ -671,8 +851,9 @@ async def fetch_campaigns_from_database(limit=None):
     
     url = f"{SUPABASE_URL}/rest/v1/spotify_campaigns"
     params = {
-        'select': 'id,campaign,sfa,track_name,artist_name',
+        'select': 'id,campaign,sfa,track_name,artist_name,goal,status,client_id,campaign_group_id',
         'sfa': 'like.https://artists.spotify.com%',
+        'status': 'eq.active',
         'order': 'id.asc'
     }
     
@@ -690,7 +871,7 @@ async def fetch_campaigns_from_database(limit=None):
     if len(campaigns) == 0:
         logger.warning("⚠️  No campaigns found with valid SFA URLs")
     else:
-        logger.info(f"✅ Found {len(campaigns)} campaigns with SFA URLs")
+        logger.info(f"✅ Found {len(campaigns)} active campaigns with SFA URLs")
     
     return campaigns
 
@@ -700,8 +881,9 @@ async def scrape_campaign(page, spotify_page, campaign):
     
     Flow (2026 S4A UI):
       1. Navigate to /stats (Overview) page -> extract all-time streams from hero
-      2. Navigate to /playlists page
-      3. For each time range (7d, 28d, 12m): switch dropdown, extract playlist table
+      2. Stay on /stats -> click chip filters to read total streams per time range
+      3. Navigate to /playlists page -> scrape playlist table per time range
+      4. Combine: use overview totals for stream counts, playlists for breakdown
     """
     campaign_id = campaign['id']
     campaign_name = campaign['campaign']
@@ -722,58 +904,64 @@ async def scrape_campaign(page, spotify_page, campaign):
         alltime_streams = await spotify_page.get_alltime_streams()
         logger.info(f"  All-time streams: {alltime_streams:,}")
         
-        # --- Step 2: Navigate to Playlists page (full page.goto, not tab click) ---
+        # --- Step 2: Read total streams per time range from Overview page ---
+        overview_streams = {}
+        for time_range in ['7day', '28day', '12months']:
+            streams = await spotify_page.get_period_streams(time_range)
+            overview_streams[time_range] = streams
+            logger.info(f"  {time_range} total streams (overview): {streams:,}")
+        
+        # --- Step 3: Navigate to Playlists page for playlist breakdown ---
         await spotify_page.navigate_to_song(sfa_url, target_tab='playlists')
         await asyncio.sleep(2)
         
-        # --- Step 3: Scrape each available time range ---
-        # S4A playlists page offers: 7 days, 28 days, 12 months (no 24-hour option)
         song_data = {'time_ranges': {}, 'alltime_streams': alltime_streams}
         
         for time_range in ['7day', '28day', '12months']:
-            logger.info(f"  Extracting {time_range} data...")
+            logger.info(f"  Extracting {time_range} playlist data...")
             
-            # Switch time range via dropdown
             await spotify_page.switch_time_range(time_range)
             await asyncio.sleep(2)
             
-            # Get stats from the playlist table
             stats = await spotify_page.get_song_stats()
             
-            # If 0 playlists found, the dropdown switch likely failed -- retry
             if len(stats.get('playlists', [])) == 0:
                 logger.warning(f"    {time_range}: 0 playlists -- dropdown switch may have failed, retrying...")
-                # Re-navigate to playlists page and try again
                 await spotify_page.navigate_to_song(sfa_url, target_tab='playlists')
                 await asyncio.sleep(3)
                 await spotify_page.switch_time_range(time_range)
                 await asyncio.sleep(2)
                 stats = await spotify_page.get_song_stats()
             
+            # Use accurate total from overview; keep playlist detail for breakdown
+            stats['streams'] = overview_streams.get(time_range, stats.get('streams', 0))
             song_data['time_ranges'][time_range] = {'stats': stats}
             
-            streams = stats.get('streams', 0)
             playlists_count = len(stats.get('playlists', []))
-            logger.info(f"    {time_range}: {streams:,} streams, {playlists_count} playlists")
+            logger.info(f"    {time_range}: {stats['streams']:,} streams (overview), {playlists_count} playlists")
         
-        # Extract data for database update
-        # Map to existing DB fields for backward compatibility:
-        #   streams_24h  <- 7-day data (finest granularity available; S4A no longer offers 24h)
-        #   streams_7d   <- 28-day data  
-        #   streams_12m  <- 12-month data
-        #   streams_alltime <- all-time from hero stats (NEW)
+        # --- Step 4: Navigate to Location page for regional data ---
+        try:
+            await spotify_page.navigate_to_song(sfa_url, target_tab='location')
+            await asyncio.sleep(2)
+            region_data = await spotify_page.get_location_data()
+            song_data['regions'] = region_data
+            logger.info(f"  Regions: {len(region_data)} countries")
+        except Exception as e:
+            logger.warning(f"  Could not scrape location data: {e}")
+            song_data['regions'] = []
+        
         stats_7d = song_data['time_ranges']['7day']['stats']
         stats_28d = song_data['time_ranges']['28day']['stats']
         stats_12m = song_data['time_ranges']['12months']['stats']
         
-        # Store alltime_streams in the scrape_data JSON (no schema change needed)
         song_data['alltime_streams'] = alltime_streams
         
         now_iso = datetime.now(timezone.utc).isoformat()
         result = {
-            'streams_24h': stats_7d.get('streams', 0),        # Actually 7-day (finest available)
-            'streams_7d': stats_28d.get('streams', 0),         # Actually 28-day
-            'streams_12m': stats_12m.get('streams', 0),        # 12-month
+            'streams_24h': overview_streams.get('7day', 0),
+            'streams_7d': overview_streams.get('28day', 0),
+            'streams_12m': overview_streams.get('12months', 0),
             'playlists_24h_count': len(stats_7d.get('playlists', [])),
             'playlists_7d_count': len(stats_28d.get('playlists', [])),
             'playlists_12m_count': len(stats_12m.get('playlists', [])),
@@ -782,8 +970,6 @@ async def scrape_campaign(page, spotify_page, campaign):
             'scrape_data': song_data
         }
         
-        # Add streams_alltime as a top-level DB field if the column exists
-        # (will be stripped by update_campaign_in_database if column is missing)
         result['streams_alltime'] = alltime_streams
         
         return result
@@ -1275,6 +1461,103 @@ async def save_performance_entries(campaign_id, playlist_records, headers):
         logger.warning(f"[{campaign_id}] Error saving performance entries: {e}")
 
 
+async def sync_campaign_regions(campaign_id, scrape_data):
+    """Sync scraped location/region data to the campaign_regions table."""
+    headers = {
+        'apikey': SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': f'Bearer {SUPABASE_SERVICE_ROLE_KEY}',
+        'Content-Type': 'application/json'
+    }
+
+    try:
+        regions = scrape_data.get('regions', [])
+        if not regions:
+            return True
+
+        # Delete existing region records for this campaign
+        delete_url = f"{SUPABASE_URL}/rest/v1/campaign_regions"
+        delete_params = {'campaign_id': f'eq.{campaign_id}'}
+        delete_response = requests.delete(delete_url, headers=headers, params=delete_params)
+        if delete_response.status_code not in [200, 204]:
+            logger.warning(f"[{campaign_id}] Could not delete old regions: {delete_response.status_code}")
+
+        # Build records
+        region_records = []
+        for r in regions:
+            region_records.append({
+                'campaign_id': campaign_id,
+                'country': r.get('country', 'Unknown'),
+                'streams_28d': r.get('streams', 0),
+                'rank': r.get('rank'),
+            })
+
+        # Batch insert
+        insert_url = f"{SUPABASE_URL}/rest/v1/campaign_regions"
+        insert_response = requests.post(insert_url, headers=headers, json=region_records)
+
+        if insert_response.status_code not in [200, 201]:
+            logger.error(f"[{campaign_id}] Failed to sync regions: {insert_response.status_code} - {insert_response.text}")
+            return False
+
+        logger.info(f"[{campaign_id}] ✓ Synced {len(region_records)} regions")
+
+        # Save daily history snapshot
+        await save_regions_history(campaign_id, region_records, headers)
+
+        return True
+
+    except Exception as e:
+        logger.error(f"[{campaign_id}] Error syncing regions: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
+async def save_regions_history(campaign_id, region_records, headers):
+    """Save daily region snapshots to campaign_regions_history for trend tracking."""
+    try:
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+
+        history_entries = []
+        for r in region_records:
+            if r.get('streams_28d', 0) > 0:
+                history_entries.append({
+                    'campaign_id': campaign_id,
+                    'country': r['country'],
+                    'streams_28d': r['streams_28d'],
+                    'date_recorded': today,
+                })
+
+        if not history_entries:
+            return
+
+        upsert_url = f"{SUPABASE_URL}/rest/v1/campaign_regions_history"
+        upsert_headers = {
+            **headers,
+            'Prefer': 'resolution=merge-duplicates',
+        }
+        upsert_params = {
+            'on_conflict': 'campaign_id,country,date_recorded',
+        }
+
+        # Batch in chunks to avoid oversized payloads
+        batch_size = 50
+        saved = 0
+        for i in range(0, len(history_entries), batch_size):
+            batch = history_entries[i:i + batch_size]
+            response = requests.post(upsert_url, headers=upsert_headers, json=batch, params=upsert_params)
+            if response.status_code in [200, 201]:
+                saved += len(batch)
+            else:
+                logger.warning(f"[{campaign_id}] Region history batch failed: {response.status_code} - {response.text[:200]}")
+
+        if saved > 0:
+            logger.info(f"[{campaign_id}] ✓ Saved {saved} region history entries for {today}")
+
+    except Exception as e:
+        logger.warning(f"[{campaign_id}] Error saving region history: {e}")
+
+
 def get_directory_size(path):
     """Get total size of directory in bytes"""
     import shutil
@@ -1491,7 +1774,7 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
             logger.error("Automated login is DISABLED because it triggers bot detection.")
             logger.error("Please log in manually via VNC and run the scraper again:")
             logger.error("  1. Connect to VNC: artistinfluence:99")
-            logger.error("  2. Run: cd /root/arti-marketing-ops/spotify_scraper && python3 manual_login_prod.py")
+            logger.error("  2. Run: cd /root/arti-marketing-ops/spotify_scraper && python3 manual_browser_login.py")
             logger.error("  3. Complete the login manually (including CAPTCHA if needed)")
             logger.error("  4. Run the scraper again")
             logger.error("="*60)
@@ -1619,6 +1902,8 @@ async def process_batch(campaigns, batch_num, total_batches, user_data_dir, head
                         success_count += 1
                     else:
                         success_count += 1  # Still count as success
+                    await sync_campaign_regions(campaign['id'], scrape_data)
+                    await check_and_complete_campaign(campaign, data)
                 else:
                     failure_count += 1
             else:

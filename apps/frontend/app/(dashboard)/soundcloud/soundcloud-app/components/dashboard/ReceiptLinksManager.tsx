@@ -16,9 +16,10 @@ interface ReceiptLinksManagerProps {
   campaignId?: string;
   submissionId?: string;
   onReachUpdate?: (totalReach: number) => void;
+  onReachChanged?: (newTotalReach: number) => void;
 }
 
-export const ReceiptLinksManager = ({ campaignId, submissionId, onReachUpdate }: ReceiptLinksManagerProps) => {
+export const ReceiptLinksManager = ({ campaignId, submissionId, onReachUpdate, onReachChanged }: ReceiptLinksManagerProps) => {
   const [editingLink, setEditingLink] = useState<CampaignReceiptLink | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -37,7 +38,8 @@ export const ReceiptLinksManager = ({ campaignId, submissionId, onReachUpdate }:
   // Update parent when total reach changes
   React.useEffect(() => {
     onReachUpdate?.(totalReach);
-  }, [totalReach, onReachUpdate]);
+    onReachChanged?.(totalReach);
+  }, [totalReach, onReachUpdate, onReachChanged]);
 
   const handleAddSuccess = () => {
     setIsAddDialogOpen(false);

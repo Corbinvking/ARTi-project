@@ -13,7 +13,7 @@ import {
 import { 
   TrendingUp, TrendingDown, Users, DollarSign, Target, 
   Calendar, Download, RefreshCw, BarChart3, PieChart as PieChartIcon,
-  Activity, AlertCircle, CheckCircle, Clock
+  Activity, AlertCircle, CheckCircle, Clock, UserX, Zap
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../integrations/supabase/client';
@@ -42,10 +42,17 @@ interface TrendData {
 
 interface PlatformHealth {
   status: 'healthy' | 'warning' | 'critical';
-  uptime: number;
-  avgLatency: number;
-  errorRate: number;
-  lastIncident: string;
+  repostSuccessRate: number;
+  repostAttempts24h: number;
+  connectedAccountsHealthy: number;
+  connectedAccountsTotal: number;
+  needsReconnectCount: number;
+  disconnectedIPCount: number;
+  inactiveMembers72h: number;
+  totalActiveMembers: number;
+  queueProcessingStatus: 'normal' | 'delayed' | 'behind_target';
+  overdueAssignments: number;
+  failedAutomationJobs24h: number;
 }
 
 export const AnalyticsDashboard: React.FC = () => {
@@ -67,10 +74,17 @@ export const AnalyticsDashboard: React.FC = () => {
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [platformHealth, setPlatformHealth] = useState<PlatformHealth>({
     status: 'healthy',
-    uptime: 99.9,
-    avgLatency: 120,
-    errorRate: 0.1,
-    lastIncident: '7 days ago'
+    repostSuccessRate: 100,
+    repostAttempts24h: 0,
+    connectedAccountsHealthy: 0,
+    connectedAccountsTotal: 0,
+    needsReconnectCount: 0,
+    disconnectedIPCount: 0,
+    inactiveMembers72h: 0,
+    totalActiveMembers: 0,
+    queueProcessingStatus: 'normal',
+    overdueAssignments: 0,
+    failedAutomationJobs24h: 0,
   });
 
   useEffect(() => {
@@ -81,44 +95,61 @@ export const AnalyticsDashboard: React.FC = () => {
     try {
       setLoading(true);
 
-      // Fetch real data from Supabase
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
       const [
         membersResult,
         campaignsResult,
         queuesResult,
         submissionsResult,
-        memberTrendsResult
+        memberTrendsResult,
+        queueAssignments24hResult,
+        overdueAssignmentsResult,
+        automationLogsResult
       ] = await Promise.all([
-        // Get member counts and stats
         supabase
           .from('members')
-          .select('status, created_at')
+          .select('status, created_at, influence_planner_status, last_activity_at')
           .order('created_at', { ascending: true }),
         
-        // Get campaign data for revenue calculations
         supabase
           .from('campaigns')
           .select('price_usd, status, created_at')
           .not('price_usd', 'is', null),
         
-        // Get queue fill rates
         supabase
           .from('queues')
           .select('total_slots, filled_slots, date')
           .order('date', { ascending: false })
           .limit(30),
         
-        // Get submissions for success rate
         supabase
           .from('submissions')
           .select('status, created_at')
           .order('created_at', { ascending: true }),
         
-        // Get member trends over last 6 months
         supabase
           .from('members')
           .select('created_at')
-          .gte('created_at', new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000).toISOString()),
+
+        supabase
+          .from('queue_assignments')
+          .select('status, created_at, completed_at')
+          .gte('created_at', twentyFourHoursAgo),
+
+        supabase
+          .from('queue_assignments')
+          .select('id', { count: 'exact', head: true })
+          .lt('created_at', fortyEightHoursAgo)
+          .is('completed_at', null),
+
+        supabase
+          .from('automation_logs')
+          .select('id', { count: 'exact', head: true })
+          .in('status', ['failed', 'bounced'])
+          .gte('created_at', twentyFourHoursAgo),
       ]);
 
       // Calculate metrics from real data
@@ -221,6 +252,73 @@ export const AnalyticsDashboard: React.FC = () => {
       setMetrics(calculatedMetrics);
       setTrendData(trendData);
 
+      // --- Platform Health: repost system reliability signals ---
+      const queueAssignments24h = queueAssignments24hResult.data || [];
+      const completedAssignments24h = queueAssignments24h.filter(a => a.status === 'complete').length;
+      const repostAttempts24h = queueAssignments24h.length;
+      const repostSuccessRate = repostAttempts24h > 0
+        ? Math.round((completedAssignments24h / repostAttempts24h) * 1000) / 10
+        : 100;
+
+      const connectedAccountsHealthy = members.filter(m => m.status === 'active').length;
+      const connectedAccountsTotal = members.length;
+      const needsReconnectCount = members.filter(m => m.status === 'needs_reconnect').length;
+      const disconnectedIPCount = members.filter(
+        m => m.influence_planner_status === 'disconnected'
+      ).length;
+
+      const seventyTwoHoursAgo = new Date(Date.now() - 72 * 60 * 60 * 1000);
+      const inactiveMembers72h = members.filter(m =>
+        m.status === 'active' &&
+        (!m.last_activity_at || new Date(m.last_activity_at) < seventyTwoHoursAgo)
+      ).length;
+      const totalActiveMembers = connectedAccountsHealthy;
+
+      const overdueCount = overdueAssignmentsResult.count ?? 0;
+      let queueProcessingStatus: PlatformHealth['queueProcessingStatus'];
+      if (overdueCount > 10) {
+        queueProcessingStatus = 'behind_target';
+      } else if (overdueCount > 0) {
+        queueProcessingStatus = 'delayed';
+      } else {
+        queueProcessingStatus = 'normal';
+      }
+
+      const failedAutomationJobs24h = automationLogsResult.count ?? 0;
+
+      let healthStatus: PlatformHealth['status'];
+      if (
+        repostSuccessRate < 80 ||
+        needsReconnectCount > 10 ||
+        queueProcessingStatus === 'behind_target'
+      ) {
+        healthStatus = 'critical';
+      } else if (
+        repostSuccessRate < 95 ||
+        needsReconnectCount > 0 ||
+        disconnectedIPCount > 0 ||
+        queueProcessingStatus === 'delayed'
+      ) {
+        healthStatus = 'warning';
+      } else {
+        healthStatus = 'healthy';
+      }
+
+      setPlatformHealth({
+        status: healthStatus,
+        repostSuccessRate,
+        repostAttempts24h,
+        connectedAccountsHealthy,
+        connectedAccountsTotal,
+        needsReconnectCount,
+        disconnectedIPCount,
+        inactiveMembers72h,
+        totalActiveMembers,
+        queueProcessingStatus,
+        overdueAssignments: overdueCount,
+        failedAutomationJobs24h,
+      });
+
     } catch (error: any) {
       console.error('Error fetching analytics data:', error);
       toast({
@@ -292,7 +390,7 @@ export const AnalyticsDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Platform Health Status */}
+      {/* Platform Health -- Repost System Reliability */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
@@ -302,24 +400,119 @@ export const AnalyticsDashboard: React.FC = () => {
               {platformHealth.status.toUpperCase()}
             </Badge>
           </CardTitle>
+          <CardDescription>
+            Repost system reliability signals
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-500">{platformHealth.uptime}%</p>
-              <p className="text-sm text-muted-foreground">Uptime</p>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {/* Repost Success Rate (24h) */}
+            <div className="text-center space-y-1">
+              <div className="flex items-center justify-center gap-1.5">
+                <Target className={`h-4 w-4 ${
+                  platformHealth.repostSuccessRate >= 95 ? 'text-green-500' :
+                  platformHealth.repostSuccessRate >= 80 ? 'text-yellow-500' : 'text-red-500'
+                }`} />
+                <p className={`text-2xl font-bold ${
+                  platformHealth.repostSuccessRate >= 95 ? 'text-green-500' :
+                  platformHealth.repostSuccessRate >= 80 ? 'text-yellow-500' : 'text-red-500'
+                }`}>
+                  {platformHealth.repostSuccessRate}%
+                </p>
+              </div>
+              <p className="text-sm font-medium">Repost Success</p>
+              <p className="text-xs text-muted-foreground">
+                {platformHealth.repostAttempts24h} attempts (24h)
+              </p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{platformHealth.avgLatency}ms</p>
-              <p className="text-sm text-muted-foreground">Avg Latency</p>
+
+            {/* Connected Account Health */}
+            <div className="text-center space-y-1">
+              <div className="flex items-center justify-center gap-1.5">
+                <Users className={`h-4 w-4 ${
+                  platformHealth.needsReconnectCount === 0 ? 'text-green-500' :
+                  platformHealth.needsReconnectCount <= 5 ? 'text-yellow-500' : 'text-red-500'
+                }`} />
+                <p className={`text-2xl font-bold ${
+                  platformHealth.needsReconnectCount === 0 ? 'text-green-500' :
+                  platformHealth.needsReconnectCount <= 5 ? 'text-yellow-500' : 'text-red-500'
+                }`}>
+                  {platformHealth.connectedAccountsHealthy}/{platformHealth.connectedAccountsTotal}
+                </p>
+              </div>
+              <p className="text-sm font-medium">Account Health</p>
+              <p className="text-xs text-muted-foreground">
+                {platformHealth.needsReconnectCount > 0
+                  ? `${platformHealth.needsReconnectCount} need reconnect`
+                  : 'All connected'}
+                {platformHealth.disconnectedIPCount > 0 &&
+                  ` · ${platformHealth.disconnectedIPCount} IP disconnected`}
+              </p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-500">{platformHealth.errorRate}%</p>
-              <p className="text-sm text-muted-foreground">Error Rate</p>
+
+            {/* Inactive Accounts (72h) */}
+            <div className="text-center space-y-1">
+              <div className="flex items-center justify-center gap-1.5">
+                <UserX className={`h-4 w-4 ${
+                  platformHealth.inactiveMembers72h === 0 ? 'text-green-500' :
+                  platformHealth.inactiveMembers72h <= 5 ? 'text-yellow-500' : 'text-red-500'
+                }`} />
+                <p className={`text-2xl font-bold ${
+                  platformHealth.inactiveMembers72h === 0 ? 'text-green-500' :
+                  platformHealth.inactiveMembers72h <= 5 ? 'text-yellow-500' : 'text-red-500'
+                }`}>
+                  {platformHealth.inactiveMembers72h}
+                </p>
+              </div>
+              <p className="text-sm font-medium">Inactive (72h)</p>
+              <p className="text-xs text-muted-foreground">
+                of {platformHealth.totalActiveMembers} active members
+              </p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{platformHealth.lastIncident}</p>
-              <p className="text-sm text-muted-foreground">Last Incident</p>
+
+            {/* Queue Processing Status */}
+            <div className="text-center space-y-1">
+              <div className="flex items-center justify-center gap-1.5">
+                <Activity className={`h-4 w-4 ${
+                  platformHealth.queueProcessingStatus === 'normal' ? 'text-green-500' :
+                  platformHealth.queueProcessingStatus === 'delayed' ? 'text-yellow-500' : 'text-red-500'
+                }`} />
+                <Badge variant={
+                  platformHealth.queueProcessingStatus === 'normal' ? 'default' :
+                  'destructive'
+                } className="text-sm">
+                  {platformHealth.queueProcessingStatus === 'normal' ? 'Normal' :
+                   platformHealth.queueProcessingStatus === 'delayed' ? 'Delayed' : 'Behind Target'}
+                </Badge>
+              </div>
+              <p className="text-sm font-medium">Queue Processing</p>
+              <p className="text-xs text-muted-foreground">
+                {platformHealth.overdueAssignments > 0
+                  ? `${platformHealth.overdueAssignments} overdue`
+                  : 'On schedule'}
+              </p>
+            </div>
+
+            {/* Automation Status */}
+            <div className="text-center space-y-1">
+              <div className="flex items-center justify-center gap-1.5">
+                <Zap className={`h-4 w-4 ${
+                  platformHealth.failedAutomationJobs24h === 0 ? 'text-green-500' : 'text-red-500'
+                }`} />
+                <p className={`text-2xl font-bold ${
+                  platformHealth.failedAutomationJobs24h === 0 ? 'text-green-500' : 'text-red-500'
+                }`}>
+                  {platformHealth.failedAutomationJobs24h === 0
+                    ? 'All clear'
+                    : platformHealth.failedAutomationJobs24h}
+                </p>
+              </div>
+              <p className="text-sm font-medium">Automation</p>
+              <p className="text-xs text-muted-foreground">
+                {platformHealth.failedAutomationJobs24h === 0
+                  ? '0 failed (24h)'
+                  : `${platformHealth.failedAutomationJobs24h} failed (24h)`}
+              </p>
             </div>
           </div>
         </CardContent>

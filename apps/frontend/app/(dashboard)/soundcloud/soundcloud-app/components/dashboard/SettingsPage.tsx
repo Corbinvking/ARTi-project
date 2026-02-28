@@ -14,8 +14,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "../../hooks/use-toast";
-import { Loader2, Save, Settings2, Clock, Users, Bell, Plus, Trash2 } from "lucide-react";
+import { Loader2, Save, Settings2, Clock, Users, Bell, Plus, Trash2, Send } from "lucide-react";
 import { RepostChannelGenresCard } from "./RepostChannelGenresCard";
+import { testSlackConnection } from "@/lib/slack-notify";
 
 const tierSchema = z.object({
   name: z.string().min(1, "Tier name is required"),
@@ -55,6 +56,7 @@ export const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
+  const [testingSlack, setTestingSlack] = useState(false);
   const [ipKeyConfigured, setIpKeyConfigured] = useState(false);
   const [ipKeyLocked, setIpKeyLocked] = useState(true);
   const [revealedApiKey, setRevealedApiKey] = useState<string | null>(null);
@@ -165,33 +167,32 @@ export const SettingsPage = () => {
 
   const fetchSettings = async () => {
     try {
-      const { data, error } = await supabase
-        .from("soundcloud_settings")
-        .select([
-          "slack_enabled",
-          "slack_channel",
-          "slack_webhook",
-          "preview_cache_days",
-          "inactivity_days",
-          "proof_sla_hours",
-          "decision_sla_hours",
-          "size_tier_thresholds",
-        ])
-        .order("updated_at", { ascending: false })
-        .limit(1);
+      const [settingsResult, slackResult] = await Promise.all([
+        supabase
+          .from("soundcloud_settings")
+          .select("preview_cache_days, inactivity_days, proof_sla_hours, decision_sla_hours, size_tier_thresholds")
+          .order("updated_at", { ascending: false })
+          .limit(1),
+        supabase
+          .from("platform_notification_settings")
+          .select("slack_enabled, slack_channel, slack_webhook")
+          .eq("platform", "soundcloud")
+          .limit(1),
+      ]);
 
-      if (error && error.code !== "PGRST116") {
-        throw error;
+      if (settingsResult.error && settingsResult.error.code !== "PGRST116") {
+        throw settingsResult.error;
       }
 
-      const row = Array.isArray(data) ? data[0] : null;
+      const row = Array.isArray(settingsResult.data) ? settingsResult.data[0] : null;
+      const slackRow = Array.isArray(slackResult.data) ? slackResult.data[0] : null;
+
+      // Handle both old format (T1-T4 object) and new format (array)
+      let sizeTiers;
       if (row) {
-        // Handle both old format (T1-T4 object) and new format (array)
-        let sizeTiers;
         if (Array.isArray(row.size_tier_thresholds)) {
           sizeTiers = row.size_tier_thresholds;
         } else if (row.size_tier_thresholds) {
-          // Convert old format to new format
           const oldFormat = row.size_tier_thresholds as any;
           sizeTiers = [
             { name: "Nano", min: oldFormat.T1?.min || 0, max: oldFormat.T1?.max || 1000 },
@@ -199,29 +200,30 @@ export const SettingsPage = () => {
             { name: "Mid", min: oldFormat.T3?.min || 10000, max: oldFormat.T3?.max || 100000 },
             { name: "Macro", min: oldFormat.T4?.min || 100000, max: oldFormat.T4?.max || 999999999 },
           ];
-        } else {
-          sizeTiers = [
-            { name: "Nano", min: 0, max: 1000 },
-            { name: "Micro", min: 1000, max: 10000 },
-            { name: "Mid", min: 10000, max: 100000 },
-            { name: "Macro", min: 100000, max: 999999999 },
-          ];
         }
-        
-        form.reset({
-          slack_enabled: row.slack_enabled || false,
-          slack_channel: row.slack_channel || "#soundcloud-groups",
-          slack_webhook: row.slack_webhook || "",
-          preview_cache_days: row.preview_cache_days || 30,
-          inactivity_days: row.inactivity_days || 90,
-          proof_sla_hours: row.proof_sla_hours || 24,
-          decision_sla_hours: row.decision_sla_hours || 24,
-          size_tiers: sizeTiers,
-          ip_base_url: form.getValues("ip_base_url"),
-          ip_username: form.getValues("ip_username"),
-          ip_api_key: "",
-        });
       }
+      if (!sizeTiers) {
+        sizeTiers = [
+          { name: "Nano", min: 0, max: 1000 },
+          { name: "Micro", min: 1000, max: 10000 },
+          { name: "Mid", min: 10000, max: 100000 },
+          { name: "Macro", min: 100000, max: 999999999 },
+        ];
+      }
+
+      form.reset({
+        slack_enabled: slackRow?.slack_enabled || false,
+        slack_channel: slackRow?.slack_channel || "#soundcloud-groups",
+        slack_webhook: slackRow?.slack_webhook || "",
+        preview_cache_days: row?.preview_cache_days || 30,
+        inactivity_days: row?.inactivity_days || 90,
+        proof_sla_hours: row?.proof_sla_hours || 24,
+        decision_sla_hours: row?.decision_sla_hours || 24,
+        size_tiers: sizeTiers,
+        ip_base_url: form.getValues("ip_base_url"),
+        ip_username: form.getValues("ip_username"),
+        ip_api_key: "",
+      });
     } catch (error) {
       console.error("Error fetching settings:", error);
       toast({
@@ -240,9 +242,6 @@ export const SettingsPage = () => {
       await saveInfluencePlannerSettings(data);
 
       const settingsData = {
-        slack_enabled: data.slack_enabled,
-        slack_channel: data.slack_channel,
-        slack_webhook: data.slack_webhook || null,
         preview_cache_days: data.preview_cache_days,
         inactivity_days: data.inactivity_days,
         proof_sla_hours: data.proof_sla_hours,
@@ -251,14 +250,25 @@ export const SettingsPage = () => {
         updated_at: new Date().toISOString(),
       };
 
-      // Try to update existing settings, if none exist, insert new ones
-      const { error: upsertError } = await supabase
-        .from("soundcloud_settings")
-        .upsert(settingsData, { onConflict: "id" });
+      const slackData = {
+        platform: "soundcloud" as const,
+        slack_enabled: data.slack_enabled,
+        slack_channel: data.slack_channel,
+        slack_webhook: data.slack_webhook || null,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (upsertError) {
-        throw upsertError;
-      }
+      const [settingsResult, slackResult] = await Promise.all([
+        supabase
+          .from("soundcloud_settings")
+          .upsert(settingsData, { onConflict: "id" }),
+        supabase
+          .from("platform_notification_settings")
+          .upsert(slackData, { onConflict: "org_id,platform" }),
+      ]);
+
+      if (settingsResult.error) throw settingsResult.error;
+      if (slackResult.error) throw slackResult.error;
 
       toast({
         title: "Success",
@@ -392,6 +402,33 @@ export const SettingsPage = () => {
       });
     } finally {
       setTestingConnection(false);
+    }
+  };
+
+  const handleTestSlack = async () => {
+    setTestingSlack(true);
+    try {
+      const result = await testSlackConnection("soundcloud");
+      if (result.ok) {
+        toast({
+          title: "Slack test sent",
+          description: "Check your Slack channel for the test message.",
+        });
+      } else {
+        toast({
+          title: "Slack test failed",
+          description: result.message || "Could not send test message. Make sure Slack is enabled and the webhook URL is saved.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Slack test failed",
+        description: error.message || "Unable to reach the server.",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingSlack(false);
     }
   };
 
@@ -636,6 +673,21 @@ export const SettingsPage = () => {
                   )}
                 />
               </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleTestSlack}
+                disabled={testingSlack}
+              >
+                {testingSlack ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="mr-2 h-4 w-4" />
+                )}
+                Test Connection
+              </Button>
             </CardContent>
           </Card>
 

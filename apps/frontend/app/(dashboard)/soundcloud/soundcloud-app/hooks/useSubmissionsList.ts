@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { notifyOpsStatusChange } from '@/lib/status-notify';
+import { notifySlack } from '@/lib/slack-notify';
 
 export interface SubmissionWithMember {
   id: string;
@@ -60,7 +61,6 @@ export const useSubmissionsList = (status?: string | 'all') => {
           expected_reach_min,
           expected_reach_max,
           support_date,
-          scheduled_date,
           notes,
           qa_reason,
           need_live_link,
@@ -116,6 +116,7 @@ export const useSubmissionsList = (status?: string | 'all') => {
       // Step 3: Merge submissions with member data
       const merged: SubmissionWithMember[] = submissionsData.map((sub: any) => ({
         ...sub,
+        scheduled_date: sub.scheduled_date ?? sub.support_date ?? null,
         members: sub.member_id ? (membersMap[sub.member_id] || null) : null,
       }));
 
@@ -160,6 +161,10 @@ export const useSubmissionsList = (status?: string | 'all') => {
         campaignId: submissionId,
         status: newStatus,
       });
+      notifySlack("soundcloud", "submission_status_change", {
+        submissionId,
+        status: newStatus,
+      });
 
       return { success: true };
     } catch (error: any) {
@@ -175,6 +180,17 @@ export const useSubmissionsList = (status?: string | 'all') => {
 
   useEffect(() => {
     fetchSubmissions();
+
+    const channel = supabase
+      .channel(`submissions-list-${status || 'all'}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'soundcloud_submissions' },
+        () => { fetchSubmissions(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [status]);
 
   return {

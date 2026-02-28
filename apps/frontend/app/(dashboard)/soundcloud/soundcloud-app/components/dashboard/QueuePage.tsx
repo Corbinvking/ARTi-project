@@ -1,32 +1,53 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Inbox, CheckCircle, XCircle, Clock, Filter, Search, ExternalLink, Eye } from 'lucide-react';
+import { Inbox, CheckCircle, XCircle, Clock, Filter, Search, ExternalLink, Eye, Plus, RefreshCw, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useSubmissions } from '../../hooks/useSubmissions';
 import { useSubmissionsList } from '../../hooks/useSubmissionsList';
 import { SubmissionDetailModal } from './SubmissionDetailModal';
 import { ArtistAssignmentModal } from './ArtistAssignmentModal';
+import { MemberSubmissionForm } from './MemberSubmissionForm';
 import { formatDistanceToNow } from 'date-fns';
 import { estimateReach } from '../ui/soundcloud-reach-estimator';
 
 export const QueuePage = () => {
-  const { stats } = useSubmissions();
+  const { stats, loading: statsLoading, refetch: refetchStats } = useSubmissions();
   const [activeTab, setActiveTab] = useState('pending');
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
   const [submissionForAssignment, setSubmissionForAssignment] = useState(null);
+  const [newSubmissionOpen, setNewSubmissionOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Fetch submissions based on active tab
   const { submissions, loading, refetch, updateSubmissionStatus } = useSubmissionsList(
     activeTab === 'all' ? undefined : activeTab
   );
+
+  const filteredSubmissions = useMemo(() => {
+    if (!searchQuery.trim()) return submissions;
+    const q = searchQuery.toLowerCase();
+    return submissions.filter((s) =>
+      (s.track_name || '').toLowerCase().includes(q) ||
+      (s.artist_name || '').toLowerCase().includes(q) ||
+      (s.members?.name || '').toLowerCase().includes(q) ||
+      (s.family || '').toLowerCase().includes(q)
+    );
+  }, [submissions, searchQuery]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([refetch(), refetchStats()]);
+    setIsRefreshing(false);
+  };
 
   const handleApprove = (submission: any) => {
     setSubmissionForAssignment(submission);
@@ -60,8 +81,24 @@ export const QueuePage = () => {
 
     if (submissionsList.length === 0) {
       return (
-        <div className="text-center py-8">
-          <div className="text-muted-foreground">No submissions found</div>
+        <div className="text-center py-12 space-y-4">
+          <Inbox className="h-12 w-12 text-muted-foreground/40 mx-auto" />
+          <div>
+            <p className="text-muted-foreground font-medium">No submissions found</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              {searchQuery ? 'Try a different search term' : 'Create a new submission to get started'}
+            </p>
+          </div>
+          {!searchQuery && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setNewSubmissionOpen(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Submission
+            </Button>
+          )}
         </div>
       );
     }
@@ -225,68 +262,101 @@ export const QueuePage = () => {
         <div className="flex items-center gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search submissions..." className="pl-9 w-64" />
+            <Input
+              placeholder="Search submissions..."
+              className="pl-9 w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button size="sm" onClick={() => setNewSubmissionOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Submission
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Inbox className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting review
-            </p>
-          </CardContent>
-        </Card>
+        {statsLoading ? (
+          <>
+            {[...Array(4)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-4 rounded-full" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-12 mb-1" />
+                  <Skeleton className="h-3 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </>
+        ) : (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                <Inbox className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pending}</div>
+                <p className="text-xs text-muted-foreground">
+                  Awaiting review
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ready</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.ready}</div>
-            <p className="text-xs text-muted-foreground">
-              Ready to schedule
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Ready</CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.ready}</div>
+                <p className="text-xs text-muted-foreground">
+                  Ready to schedule
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting scheduling
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active</CardTitle>
+                <Clock className="h-4 w-4 text-yellow-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.active}</div>
+                <p className="text-xs text-muted-foreground">
+                  Currently in progress
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">On Hold</CardTitle>
-            <XCircle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.on_hold}</div>
-            <p className="text-xs text-muted-foreground">
-              Total on hold
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">On Hold</CardTitle>
+                <XCircle className="h-4 w-4 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.on_hold}</div>
+                <p className="text-xs text-muted-foreground">
+                  Total on hold
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Submissions Tabs */}
@@ -319,7 +389,7 @@ export const QueuePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {renderSubmissionsTable(submissions)}
+              {renderSubmissionsTable(filteredSubmissions)}
             </CardContent>
           </Card>
         </TabsContent>
@@ -333,7 +403,7 @@ export const QueuePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {renderSubmissionsTable(submissions)}
+              {renderSubmissionsTable(filteredSubmissions)}
             </CardContent>
           </Card>
         </TabsContent>
@@ -347,7 +417,7 @@ export const QueuePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {renderSubmissionsTable(submissions)}
+              {renderSubmissionsTable(filteredSubmissions)}
             </CardContent>
           </Card>
         </TabsContent>
@@ -361,7 +431,7 @@ export const QueuePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {renderSubmissionsTable(submissions)}
+              {renderSubmissionsTable(filteredSubmissions)}
             </CardContent>
           </Card>
         </TabsContent>
@@ -380,6 +450,12 @@ export const QueuePage = () => {
         onClose={() => setAssignmentModalOpen(false)}
         onConfirm={handleArtistAssignmentConfirm}
         submission={submissionForAssignment}
+      />
+
+      <MemberSubmissionForm
+        open={newSubmissionOpen}
+        onOpenChange={setNewSubmissionOpen}
+        onSuccess={handleRefresh}
       />
     </div>
   );

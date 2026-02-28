@@ -1,0 +1,74 @@
+name: "Feature Request"
+description: "Request a new feature or enhancement"
+labels: ["type:feature", "status:triage"]
+body:
+  - type: dropdown
+    id: app
+    attributes:
+      label: "App Module"
+      description: "Which app does this feature belong to?"
+      options:
+        - "Spotify (playlist campaigns, vendors, stream strategist)"
+        - "Instagram (creator campaigns, seedstorm builder)"
+        - "YouTube (video campaigns, vidi health flow)"
+        - "SoundCloud (repost network, member portal)"
+        - "Dashboard (cross-platform overview)"
+        - "Operator (internal ops tools)"
+        - "Admin (user management, settings)"
+        - "API / Backend"
+        - "Scrapers (Spotify, Instagram, Roster)"
+        - "Shared (components, hooks, utilities)"
+        - "Infrastructure (CI/CD, deployment)"
+        - "Database (schema, migrations)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Feature Description"
+      description: "Describe the feature you'd like."
+      placeholder: "As a user, I want to... so that..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Acceptance Criteria"
+      description: "How do we know this feature is complete?"
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: design
+    attributes:
+      label: "Design / Mockups"
+      description: "Any design references, screenshots, or mockups."
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: "Estimated Complexity"
+      options:
+        - "Low - Simple, isolated change (< 1 hour)"
+        - "Medium - Moderate scope, multiple files (1-4 hours)"
+        - "High - Complex, architectural impact (> 4 hours)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: agent_assignable
+    attributes:
+      label: "Agent Assignable?"
+      description: "Can an AI agent build this? (Set 'Yes' for well-defined, scoped features)"
+      options:
+        - "Yes - Well-defined with clear acceptance criteria"
+        - "Needs Triage - Not sure yet"
+        - "No - Requires human design decisions"
+    validations:
+      required: true

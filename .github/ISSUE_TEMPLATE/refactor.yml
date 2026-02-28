@@ -1,0 +1,60 @@
+name: "Refactor / Tech Debt"
+description: "Code improvement without behavior change"
+labels: ["type:refactor", "status:triage"]
+body:
+  - type: dropdown
+    id: app
+    attributes:
+      label: "App Module"
+      description: "Which app does this refactor affect?"
+      options:
+        - "Spotify (playlist campaigns, vendors, stream strategist)"
+        - "Instagram (creator campaigns, seedstorm builder)"
+        - "YouTube (video campaigns, vidi health flow)"
+        - "SoundCloud (repost network, member portal)"
+        - "Dashboard (cross-platform overview)"
+        - "Operator (internal ops tools)"
+        - "Admin (user management, settings)"
+        - "API / Backend"
+        - "Scrapers (Spotify, Instagram, Roster)"
+        - "Shared (components, hooks, utilities)"
+        - "Infrastructure (CI/CD, deployment)"
+        - "Database (schema, migrations)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "What needs refactoring?"
+      description: "Describe the current state and what should change."
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Why is this needed?"
+      description: "What problems does the current code cause?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: "Files / Areas Affected"
+      description: "List the specific files or areas that need changes."
+      placeholder: |
+        - apps/frontend/app/(dashboard)/spotify/...
+        - apps/api/src/routes/...
+
+  - type: dropdown
+    id: agent_assignable
+    attributes:
+      label: "Agent Assignable?"
+      options:
+        - "Yes - Clear refactoring scope"
+        - "Needs Triage"
+        - "No - Requires architectural decisions"
+    validations:
+      required: true

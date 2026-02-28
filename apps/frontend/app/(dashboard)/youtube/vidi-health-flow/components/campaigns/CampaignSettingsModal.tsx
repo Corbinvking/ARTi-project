@@ -18,14 +18,17 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCampaigns } from "../../hooks/useCampaigns";
 import { notifyOpsStatusChange, notifyScraperCommentsNeeded } from "@/lib/status-notify";
+import { notifySlack } from "@/lib/slack-notify";
 import { supabase } from "../../integrations/supabase/client";
 import { useAuth } from "../../contexts/AuthContext";
 import { RatioFixerContent } from "./RatioFixerContent";
 import { sanitizeYouTubeUrl } from "../../lib/youtube";
 import { getApiUrl } from "../../lib/getApiUrl";
+import { calculateHealthScore } from "../../lib/healthScore";
 import { MultiServiceTypeSelector } from "./MultiServiceTypeSelector";
 import { CommentsCSVUpload } from "./CommentsCSVUpload";
 import { FinalReportModal } from "./FinalReportModal";
+import { RatioFixerPerformanceChart } from "./RatioFixerPerformanceChart";
 import { OverrideField, OverrideDateField, OverrideSelectField } from "@/components/overrides";
 import { saveOverride, revertOverride } from "@/lib/overrides";
 import { SERVICE_TYPES, GENRE_OPTIONS, LIKE_SERVER_OPTIONS, COMMENT_SERVER_OPTIONS, SHEET_TIER_OPTIONS } from "../../lib/constants";
@@ -405,18 +408,7 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
     return num.toString();
   };
 
-  const calculateHealthScore = (campaign: any): number => {
-    let score = 50; // Base score
-    
-    const viewsProgress = campaign.goal_views > 0 ? (campaign.current_views || 0) / campaign.goal_views : 0;
-    score += viewsProgress * 30; // Up to 30 points for view progress
-    
-    if (campaign.status === 'active') score += 10;
-    if (!campaign.views_stalled) score += 10;
-    if (!campaign.in_fixer) score += 5;
-    
-    return Math.min(100, Math.max(0, Math.round(score)));
-  };
+  // Health score calculation imported from ../../lib/healthScore
 
   const handleInputChange = (field: string, value: string | Date | boolean) => {
     const newData = { ...formData, [field]: value };
@@ -605,6 +597,13 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
           previousStatus: previousStatus || null,
           actorEmail: user?.email || null,
         });
+        notifySlack("youtube", "campaign_status_change", {
+          campaignId: campaign.id,
+          campaignName: formData.campaign_name,
+          status: updateData.status,
+          previousStatus: previousStatus || null,
+          actorEmail: user?.email || null,
+        });
         
         // Notify comment scraper when campaign is marked as ready and needs comments
         if (updateData.status === 'ready' && !formData.comments_sheet_url && !formData.comments_csv_file_path) {
@@ -703,6 +702,13 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
       await notifyOpsStatusChange({
         service: "youtube",
         campaignId: campaign.id,
+        status: updateData.status,
+        previousStatus: previousStatus || null,
+        actorEmail: user?.email || null,
+      });
+      notifySlack("youtube", "campaign_status_change", {
+        campaignId: campaign.id,
+        campaignName: formData.campaign_name,
         status: updateData.status,
         previousStatus: previousStatus || null,
         actorEmail: user?.email || null,
@@ -1429,6 +1435,11 @@ export const CampaignSettingsModal = ({ isOpen, onClose, campaignId, initialTab 
                 )}
               </CardContent>
             </Card>
+
+            {/* Ratio Fixer Performance Charts */}
+            {(campaign.ratio_fixer_started_at || campaign.in_fixer) && (
+              <RatioFixerPerformanceChart campaign={campaign} />
+            )}
 
             {/* Progress Information */}
             <Card>

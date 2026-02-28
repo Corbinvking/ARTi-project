@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { 
   scrapeInstagramPosts, 
   scrapeInstagramPost,
+  scrapeInstagramProfiles,
   calculateEngagementMetrics,
   generateTimeSeriesData,
   InstagramPost 
@@ -706,6 +707,7 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
   /**
    * POST /api/instagram-scraper/creator-refresh
    * Scrape one or more creator handles to update followers, engagement, and geo.
+   * Uses the Profile Scraper actor for follower counts, then Post Scraper for engagement.
    */
   fastify.post('/creator-refresh', async (
     request: FastifyRequest<{ Body: { handles: string[] } }>,
@@ -724,26 +726,20 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
 
       logger.info({ count: cleanHandles.length }, '🔄 Starting creator-refresh scrape');
 
+      // Step 1: Batch-fetch profile data (followers) via the Profile Scraper
+      const profileMap = await scrapeInstagramProfiles(cleanHandles);
+      logger.info({ profilesFound: profileMap.size }, '👤 Profile scrape complete');
+
       const results: any[] = [];
 
       for (const handle of cleanHandles) {
         try {
+          const profile = profileMap.get(handle);
+          const scrapedFollowers = profile?.followersCount ?? 0;
+
+          // Step 2: Scrape posts for engagement metrics
           const scrapeResult = await scrapeInstagramPosts([handle], 12);
           const posts = scrapeResult.posts || [];
-
-          if (posts.length === 0) {
-            await supabase
-              .from('creators')
-              .update({ scrape_status: 'error' })
-              .ilike('instagram_handle', handle);
-            results.push({ handle, success: false, reason: 'no posts returned' });
-            continue;
-          }
-
-          const totalLikes = posts.reduce((s, p) => s + p.likesCount, 0);
-          const totalComments = posts.reduce((s, p) => s + p.commentsCount, 0);
-
-          const scrapedFollowers = scrapeResult.profile?.followersCount;
 
           const { data: existing } = await supabase
             .from('creators')
@@ -751,15 +747,24 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
             .ilike('instagram_handle', handle)
             .single();
 
-          const followers = scrapedFollowers ?? existing?.followers ?? 0;
-          const engagementRate = followers > 0
-            ? ((totalLikes + totalComments) / posts.length) / followers
-            : 0;
+          const followers = scrapedFollowers > 0 ? scrapedFollowers : (existing?.followers ?? 0);
 
-          const locationNames = posts
-            .map(p => p.locationName)
-            .filter(Boolean) as string[];
-          const captions = posts.map(p => p.caption || '').join(' ');
+          let engagementRate = 0;
+          let locationNames: string[] = [];
+          let captions = '';
+
+          if (posts.length > 0) {
+            const totalLikes = posts.reduce((s, p) => s + p.likesCount, 0);
+            const totalComments = posts.reduce((s, p) => s + p.commentsCount, 0);
+            engagementRate = followers > 0
+              ? ((totalLikes + totalComments) / posts.length) / followers
+              : 0;
+
+            locationNames = posts
+              .map(p => p.locationName)
+              .filter(Boolean) as string[];
+            captions = posts.map(p => p.caption || '').join(' ');
+          }
 
           const accountTerritory = inferTerritory(locationNames, captions);
           const audienceTerritory = { territory: 'Unknown', confidence: 'Low' };
@@ -776,8 +781,8 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
             scrape_status: 'complete',
           };
 
-          if (scrapedFollowers != null && scrapedFollowers > 0) {
-            updates.followers = scrapedFollowers;
+          if (followers > 0) {
+            updates.followers = followers;
           }
 
           const { error: updateError } = await supabase
@@ -789,7 +794,13 @@ export default async function instagramScraperRoutes(fastify: FastifyInstance) {
             logger.error({ handle, error: updateError }, '❌ Error updating creator');
             results.push({ handle, success: false, reason: updateError.message });
           } else {
-            results.push({ handle, success: true, engagement_rate: updates.engagement_rate, territory: accountTerritory.territory });
+            results.push({
+              handle,
+              success: true,
+              followers: updates.followers,
+              engagement_rate: updates.engagement_rate,
+              territory: accountTerritory.territory,
+            });
           }
         } catch (err: any) {
           logger.error({ handle, error: err.message }, '❌ Error scraping creator');
