@@ -509,27 +509,38 @@ export default function InstagramCampaignsPage() {
     const previousStatus = normalizeStatus(selectedCampaign?.status);
     const nextStatus = normalizeStatus(editForm?.status);
 
-    // Prepare updates, converting preferred_pages from string to array if needed
-    const updates = { ...editForm };
-    if (typeof updates.preferred_pages === 'string') {
-      updates.preferred_pages = updates.preferred_pages
+    // Only send fields that exist in the instagram_campaigns DB table
+    let preferredPages = editForm.preferred_pages;
+    if (typeof preferredPages === 'string') {
+      preferredPages = preferredPages
         .split(',')
         .map((p: string) => p.trim().replace(/^@/, ''))
         .filter((p: string) => p.length > 0);
     }
 
-    // Ensure budget is stored as a number
-    if (updates.budget !== undefined) {
-      updates.budget = parseFloat(updates.budget) || 0;
-    }
+    const updates: Record<string, any> = {
+      status: editForm.status,
+      budget: parseFloat(editForm.budget) || 0,
+      client_instagram_handle: editForm.client_instagram_handle,
+      ig_sound_url: editForm.ig_sound_url,
+      seeding_type: editForm.seeding_type,
+      preferred_pages: preferredPages,
+      client_notes: editForm.client_notes,
+      admin_notes: editForm.admin_notes,
+      issues_notes: editForm.issues_notes,
+      description: editForm.description,
+      name: editForm.name,
+      brand_name: editForm.brand_name,
+      brief: editForm.brief,
+      do_not_use_pages: editForm.do_not_use_pages,
+      posting_window_start: editForm.posting_window_start,
+      posting_window_end: editForm.posting_window_end,
+    };
 
-    // Remove computed/non-DB fields before saving
-    delete updates.id;
-    delete updates.created_at;
-    delete updates.calculated_spend;
-    delete updates.calculated_committed;
-    delete updates.calculated_remaining;
-    delete updates.has_creator_data;
+    // Remove undefined values so we don't overwrite with nulls
+    Object.keys(updates).forEach(key => {
+      if (updates[key] === undefined) delete updates[key];
+    });
 
     await updateCampaignAsync({
       id: selectedCampaign.id,
