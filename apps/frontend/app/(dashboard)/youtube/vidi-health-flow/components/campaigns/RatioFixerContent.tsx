@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TrendingUp, TrendingDown, AlertTriangle, Target, Clock, Play, Square, Loader2, CheckCircle2, XCircle, Wifi, WifiOff, Timer, ThumbsUp, MessageCircle, BarChart3 } from "lucide-react";
 import { LIKE_SERVER_OPTIONS, COMMENT_SERVER_OPTIONS, SHEET_TIER_OPTIONS } from "../../lib/constants";
 import { useRatioFixer } from "../../hooks/useRatioFixer";
+import { extractYouTubeVideoId } from "../../lib/youtube";
 import type { Database } from "../../integrations/supabase/types";
 
 type Campaign = Database['public']['Tables']['youtube_campaigns']['Row'] & {
@@ -62,6 +63,8 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
   }, [ratioFixerStatus, campaign?.ratio_fixer_started_at]);
 
   if (!campaign) return null;
+
+  const resolvedVideoId = campaign.video_id || extractYouTubeVideoId(campaign.youtube_url) || '';
 
   // Calculate expected engagement based on industry standards
   const calculateExpectedEngagement = () => {
@@ -617,6 +620,14 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
                 <div className="text-sm font-medium">Prerequisites:</div>
                 <div className="space-y-1 text-sm">
                   <div className="flex items-center gap-2">
+                    {resolvedVideoId ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive" />
+                    )}
+                    <span>Video ID available {!resolvedVideoId && '(check YouTube URL is valid)'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     {formData.comments_sheet_url ? (
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                     ) : (
@@ -654,6 +665,10 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
               {/* Start Button */}
               <Button
                 onClick={async () => {
+                  if (!resolvedVideoId) {
+                    alert('Could not determine Video ID. Please ensure the YouTube URL is valid.');
+                    return;
+                  }
                   if (!formData.comments_sheet_url) {
                     alert('Please configure Comments Sheet URL first');
                     return;
@@ -666,7 +681,7 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
                   await startRatioFixer({
                     campaignId: campaign.id,
                     videoUrl: campaign.youtube_url,
-                    videoId: campaign.video_id || '',
+                    videoId: resolvedVideoId,
                     genre: campaign.genre || 'General',
                     commentsSheetUrl: formData.comments_sheet_url,
                     waitTime: formData.wait_time_seconds || 36,
@@ -678,6 +693,7 @@ export const RatioFixerContent = ({ campaign, formData, onInputChange }: RatioFi
                 }}
                 disabled={
                   !isAvailable || 
+                  !resolvedVideoId ||
                   !formData.comments_sheet_url || 
                   !formData.like_server || 
                   !formData.comment_server ||
