@@ -135,9 +135,14 @@ export async function disconnect(connectionId: string): Promise<void> {
   logger.info({ connectionId }, 'QBO connection disconnected');
 }
 
+const MAX_REFRESH_RETRIES = 3;
+const REFRESH_RETRY_DELAY_MS = 2000;
+
 /**
  * Get a valid access token for a connection (auto-refreshes if expired).
  * Uses single-flight locking to prevent concurrent refreshes.
+ * Retries transient failures before marking the connection as errored.
+ * On success, automatically restores an 'error' connection to 'active'.
  */
 export async function getValidAccessToken(connectionId: string): Promise<string> {
   const tokens = await getTokens(connectionId);
@@ -151,7 +156,7 @@ export async function getValidAccessToken(connectionId: string): Promise<string>
   const lockAcquired = await acquireRefreshLock(connectionId);
   if (!lockAcquired) {
     // Another process is refreshing; wait a bit and retry
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 3000));
     const retryTokens = await getTokens(connectionId);
     if (retryTokens && !isTokenExpired(retryTokens.accessExpiresAt)) {
       return retryTokens.accessToken;
@@ -159,33 +164,53 @@ export async function getValidAccessToken(connectionId: string): Promise<string>
     throw new Error('Token refresh lock contention — retry later');
   }
 
+  let lastError: any;
+
   try {
-    const client = getOAuthClient();
-    client.setToken({
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
-    });
+    for (let attempt = 1; attempt <= MAX_REFRESH_RETRIES; attempt++) {
+      try {
+        const client = getOAuthClient();
+        client.setToken({
+          access_token: tokens.accessToken,
+          refresh_token: tokens.refreshToken,
+        });
 
-    const refreshResponse = await client.refresh();
-    const newToken = refreshResponse.getJson();
+        const refreshResponse = await client.refresh();
+        const newToken = refreshResponse.getJson();
 
-    await storeTokens(
-      connectionId,
-      newToken.access_token,
-      newToken.refresh_token,
-      newToken.expires_in ?? 3600
-    );
+        await storeTokens(
+          connectionId,
+          newToken.access_token,
+          newToken.refresh_token,
+          newToken.expires_in ?? 3600
+        );
 
-    logger.info({ connectionId }, 'QBO access token refreshed');
-    return newToken.access_token;
-  } catch (err: any) {
-    logger.error({ err, connectionId }, 'QBO token refresh failed');
-    // Mark connection as errored
+        // Restore connection to active if it was in error state
+        await supabase
+          .from('qbo_connections')
+          .update({ status: 'active' })
+          .eq('id', connectionId)
+          .in('status', ['error', 'active']);
+
+        logger.info({ connectionId, attempt }, 'QBO access token refreshed');
+        return newToken.access_token;
+      } catch (err: any) {
+        lastError = err;
+        logger.warn({ err, connectionId, attempt, maxRetries: MAX_REFRESH_RETRIES }, 'QBO token refresh attempt failed');
+
+        if (attempt < MAX_REFRESH_RETRIES) {
+          await new Promise((r) => setTimeout(r, REFRESH_RETRY_DELAY_MS * attempt));
+        }
+      }
+    }
+
+    // All retries exhausted
+    logger.error({ err: lastError, connectionId }, 'QBO token refresh failed after all retries');
     await supabase
       .from('qbo_connections')
       .update({ status: 'error' })
       .eq('id', connectionId);
-    throw err;
+    throw lastError;
   } finally {
     await releaseRefreshLock(connectionId);
   }

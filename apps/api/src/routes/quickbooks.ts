@@ -141,6 +141,18 @@ export async function quickbooksRoutes(server: FastifyInstance) {
         });
       }
 
+      // Auto-recovery: if connection is in error state, attempt a token refresh
+      if (conn.status === 'error') {
+        try {
+          await getValidAccessToken(conn.id);
+          // getValidAccessToken restores status to 'active' on success
+          conn.status = 'active';
+          logger.info({ connectionId: conn.id }, 'QBO connection auto-recovered from error state');
+        } catch (err) {
+          logger.warn({ err }, 'Auto-recovery token refresh failed (connection remains in error state)');
+        }
+      }
+
       // Auto-fetch company name if missing
       if (!conn.company_name) {
         try {
@@ -346,16 +358,16 @@ export async function quickbooksRoutes(server: FastifyInstance) {
 
             if (!signatureValid) continue;
 
-            // Find connection for this realm
+            // Find connection for this realm (active or error — not disconnected)
             const { data: conn } = await supabase
               .from('qbo_connections')
               .select('id, realm_id')
               .eq('realm_id', realmId)
-              .eq('status', 'active')
+              .in('status', ['active', 'error'])
               .single();
 
             if (!conn) {
-              logger.warn({ realmId }, 'Webhook for unknown/inactive realm');
+              logger.warn({ realmId }, 'Webhook for unknown/disconnected realm');
               continue;
             }
 

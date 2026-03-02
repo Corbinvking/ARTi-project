@@ -299,13 +299,19 @@ export async function fetchAndUpsertEntity(
 
 // ---- Helpers ----
 
-/** Get the active QBO connection for an org */
+/**
+ * Get the current QBO connection for an org.
+ * Returns any connection that hasn't been explicitly disconnected —
+ * both 'active' and 'error' (transient failure) connections qualify.
+ * This ensures the platform maintains its QBO link even when a token
+ * refresh fails temporarily (the refresh token stays valid for 100 days).
+ */
 export async function getActiveConnection(orgId: string): Promise<QBOConnection | null> {
   const { data, error } = await supabase
     .from('qbo_connections')
     .select('*')
     .eq('org_id', orgId)
-    .eq('status', 'active')
+    .in('status', ['active', 'error'])
     .order('connected_at', { ascending: false })
     .limit(1)
     .single();

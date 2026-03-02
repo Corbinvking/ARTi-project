@@ -4,6 +4,7 @@ import { logger } from './lib/logger.js'
 import { supabase } from './lib/supabase.js'
 import { redis } from './lib/redis.js'
 import { incrementalSync, getActiveConnection } from './lib/quickbooks/sync.js'
+import { getValidAccessToken } from './lib/quickbooks/oauth.js'
 
 // Only initialize BullMQ if Redis is available
 let metricsQueue: Queue | null = null
@@ -42,9 +43,11 @@ if (redis) {
         case 'qbo-cdc-sync':
           await runQBOCDCSync()
           break
+        case 'qbo-token-refresh':
+          await runQBOProactiveTokenRefresh()
+          break
         case 'health-check':
           logger.info('Performing hourly health check...')
-          // TODO: Implement actual health check logic
           break
         default:
           logger.warn(`Unknown job type: ${job.name}`)
@@ -395,6 +398,28 @@ async function syncInstagramMetrics(data: any) {
   // TODO: Implement Instagram metrics fetching
 }
 
+// QuickBooks proactive token refresh — keeps the access token fresh so API calls never stall
+async function runQBOProactiveTokenRefresh() {
+  logger.info('Starting proactive QBO token refresh...')
+  
+  try {
+    const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
+    const conn = await getActiveConnection(DEFAULT_ORG_ID)
+    
+    if (!conn) {
+      logger.info('No QBO connection found, skipping proactive token refresh')
+      return
+    }
+
+    // getValidAccessToken handles refresh logic, retries, and status recovery
+    await getValidAccessToken(conn.id)
+    logger.info({ connectionId: conn.id, status: conn.status }, 'Proactive QBO token refresh completed')
+  } catch (error) {
+    logger.error('Proactive QBO token refresh failed:', error)
+    // Don't throw — this is a best-effort background job
+  }
+}
+
 // QuickBooks CDC reconciliation job
 async function runQBOCDCSync() {
   logger.info('📒 Starting QuickBooks CDC reconciliation sync...')
@@ -504,7 +529,20 @@ async function setupCronSchedules() {
       }
     )
 
-    logger.info('✅ Cron schedules configured successfully (including 3x daily YouTube sync, QBO CDC every 15min)')
+    // QuickBooks proactive token refresh — every 30 minutes
+    // Access tokens expire after 1 hour; this ensures tokens are always fresh
+    // and auto-recovers connections from 'error' state
+    await metricsQueue!.add(
+      'qbo-token-refresh',
+      {},
+      {
+        repeat: { pattern: '*/30 * * * *' },
+        removeOnComplete: 10,
+        removeOnFail: 5,
+      }
+    )
+
+    logger.info('✅ Cron schedules configured successfully (including 3x daily YouTube sync, QBO CDC every 15min, QBO token refresh every 30min)')
 
   } catch (error) {
     logger.error('❌ Failed to setup cron schedules:', error)

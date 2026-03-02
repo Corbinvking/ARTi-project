@@ -80,6 +80,7 @@ export function QuickBooksStatusCard() {
 
   const isConnected = status?.connected ?? false
   const conn = status?.connection
+  const isErrorState = isConnected && conn?.status === 'error'
 
   // ---- Alert conditions ----
   const tokenExpiresSoon = (status?.token_health?.expires_in_minutes ?? 999) < 10
@@ -87,7 +88,7 @@ export function QuickBooksStatusCard() {
   const highThrottleRate = metrics?.api_calls_24h && parseFloat(metrics.api_calls_24h.throttle_rate) > 2
   const webhookLagHigh = metrics?.webhooks_24h?.lag_p95_ms != null && metrics.webhooks_24h.lag_p95_ms > 600000
   const tokenRefreshFailures = (metrics?.token_refresh_24h?.failed ?? 0) > 5
-  const hasAlerts = tokenExpired || tokenExpiresSoon || highThrottleRate || webhookLagHigh || tokenRefreshFailures
+  const hasAlerts = isErrorState || tokenExpired || tokenExpiresSoon || highThrottleRate || webhookLagHigh || tokenRefreshFailures
 
   // ---- Handlers ----
   const handleConnect = async () => {
@@ -178,9 +179,11 @@ export function QuickBooksStatusCard() {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <BookOpen className="h-5 w-5 text-green-600" />
+            <BookOpen className={`h-5 w-5 ${isErrorState ? 'text-yellow-500' : isConnected ? 'text-green-600' : 'text-muted-foreground'}`} />
             <span>QuickBooks Integration</span>
-            {isConnected ? (
+            {isErrorState ? (
+              <Badge className="bg-yellow-500">Reconnecting</Badge>
+            ) : isConnected ? (
               <Badge className="bg-green-500">Connected</Badge>
             ) : (
               <Badge variant="secondary">Disconnected</Badge>
@@ -217,6 +220,17 @@ export function QuickBooksStatusCard() {
         {/* ---- Alert Banners ---- */}
         {hasAlerts && (
           <div className="space-y-2">
+            {isErrorState && !tokenExpired && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span>QuickBooks connection is recovering from a temporary error. Auto-refresh is running in the background.</span>
+                  <Button size="sm" variant="outline" onClick={handleRefreshToken} disabled={refreshToken.isPending}>
+                    {refreshToken.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Retry Now"}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
             {tokenExpired && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
