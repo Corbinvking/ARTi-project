@@ -6,6 +6,21 @@ import { supabase } from '@/lib/supabase';
 const RATIO_FIXER_URL = process.env.RATIO_FIXER_URL || 'http://localhost:5001';
 const RATIO_FIXER_API_KEY = process.env.RATIO_FIXER_API_KEY || '';
 
+function extractVideoIdFromUrl(url: string): string | null {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([^&\n?#]+)/,
+    /(?:youtu\.be\/)([^&\n?#]+)/,
+    /(?:youtube\.com\/embed\/)([^&\n?#]+)/,
+    /(?:youtube\.com\/v\/)([^&\n?#]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.trim().match(pattern);
+    if (match?.[1]) return match[1];
+  }
+  return null;
+}
+
 // Throttle snapshot inserts to once every 5 minutes per campaign
 const SNAPSHOT_INTERVAL_MS = 5 * 60 * 1000;
 const lastSnapshotTime = new Map<string, number>();
@@ -60,11 +75,17 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
       
       logger.info('Starting ratio fixer for campaign:', body.campaignId);
       
-      // Validate required fields
-      if (!body.videoUrl || !body.videoId || !body.genre) {
+      // Auto-extract videoId from the URL when not provided
+      const videoId = body.videoId || extractVideoIdFromUrl(body.videoUrl || '');
+
+      if (!body.videoUrl || !videoId || !body.genre) {
+        const missing: string[] = [];
+        if (!body.videoUrl) missing.push('videoUrl');
+        if (!videoId) missing.push('videoId (could not extract from URL)');
+        if (!body.genre) missing.push('genre');
         return reply.status(400).send({
           success: false,
-          error: 'Missing required fields: videoUrl, videoId, or genre'
+          error: `Missing required fields: ${missing.join(', ')}`
         });
       }
       
@@ -77,7 +98,7 @@ export async function ratioFixerBridgeRoutes(server: FastifyInstance) {
         },
         body: JSON.stringify({
           youtube_url: body.videoUrl,
-          video_id: body.videoId,
+          video_id: videoId,
           genre: body.genre,
           comments_sheet: body.commentsSheetUrl,
           wait_time: body.waitTime || 36,

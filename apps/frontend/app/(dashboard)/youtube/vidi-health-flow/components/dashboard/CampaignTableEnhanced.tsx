@@ -26,7 +26,7 @@ import { SERVICE_TYPES } from "../../lib/constants";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "../../integrations/supabase/client";
-import { getCanonicalYouTubeUrl } from "../../lib/youtube";
+import { getCanonicalYouTubeUrl, extractYouTubeVideoId } from "../../lib/youtube";
 import { YouTubePlayerDialog } from "../youtube/YouTubePlayerDialog";
 import { 
   Table, 
@@ -160,10 +160,11 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
 
     try {
       if (inFixer) {
-        if (!campaign.video_id) {
+        const resolvedVideoId = campaign.video_id || extractYouTubeVideoId(campaign.youtube_url);
+        if (!resolvedVideoId) {
           toast({
-            title: "Missing campaign data",
-            description: "Campaign needs a video ID before the ratio fixer can start. Open campaign settings to configure.",
+            title: "Missing Video ID",
+            description: "Could not determine Video ID from the YouTube URL. Please open campaign settings and ensure the YouTube URL is valid.",
             variant: "destructive",
           });
           return;
@@ -175,7 +176,7 @@ export const CampaignTableEnhanced = ({ filterType: propFilterType, healthFilter
           body: JSON.stringify({
             campaignId: campaign.id,
             videoUrl: campaign.youtube_url,
-            videoId: campaign.video_id,
+            videoId: resolvedVideoId,
             genre: campaign.genre || 'General',
             commentsSheetUrl: campaign.comments_sheet_url || '',
             waitTime: campaign.wait_time_seconds || 36,
