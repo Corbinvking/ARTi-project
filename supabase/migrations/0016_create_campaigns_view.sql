@@ -3,8 +3,8 @@
 -- This view provides the necessary mapping
 
 -- Drop existing campaigns view or table if it exists
-DROP VIEW IF EXISTS public.campaigns CASCADE;
 DROP TABLE IF EXISTS public.campaigns CASCADE;
+DROP VIEW IF EXISTS public.campaigns CASCADE;
 
 -- Create view that maps campaigns to stream_strategist_campaigns
 CREATE VIEW public.campaigns AS 

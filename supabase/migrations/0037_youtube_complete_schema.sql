@@ -71,6 +71,9 @@ END $$;
 -- YOUTUBE-SPECIFIC TABLES (Prefixed with youtube_)
 -- ============================================================================
 
+-- Drop legacy youtube_campaigns (SERIAL id from migration 011) to recreate with UUID
+DROP TABLE IF EXISTS public.youtube_campaigns CASCADE;
+
 -- YouTube Campaigns Table
 CREATE TABLE IF NOT EXISTS public.youtube_campaigns (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
