@@ -142,7 +142,7 @@ export function useYouTubeStats() {
   const extractVideoId = async (url: string): Promise<string | null> => {
     try {
       const response = await fetch(
-        `${API_URL}/api/youtube-data-api/extract-video-id?${new URLSearchParams({ url })}`,
+        `${getApiUrl()}/api/youtube-data-api/extract-video-id?${new URLSearchParams({ url })}`,
         {
           method: 'GET',
         }
