@@ -148,7 +148,6 @@ export function generateCampaignV2(
     finalEligible: 0,
   };
 
-  // Build ALL creators with genre match scoring
   const withPredictions: CreatorWithPredictions[] = allCreators.map(c => {
     const gMatch = genreMatchScore(c.music_genres, selectedGenres);
     const mv = (c.median_views != null && c.median_views > 0) ? c.median_views : 0;
