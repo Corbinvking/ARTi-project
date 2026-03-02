@@ -265,3 +265,28 @@ export function useQBORefreshToken() {
     },
   });
 }
+
+// ---- Financial Summary ----
+
+export interface FinancialSummaryResponse {
+  connected: boolean;
+  unpaid_invoices: { count: number; total: number };
+  overdue_invoices: { count: number; total: number };
+  paid_this_week: { count: number; total: number };
+  outstanding_receivables: number;
+  vendor_payouts_owed: { count: number; total: number };
+  commissions_owed: { count: number; total: number };
+}
+
+/** Aggregated financial data from QBO mirror tables */
+export function useFinancialSummary() {
+  return useQuery<FinancialSummaryResponse>({
+    queryKey: ['qbo-financial-summary'],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE_URL}/api/quickbooks/financial-summary`);
+      if (!res.ok) throw new Error('Failed to fetch financial summary');
+      return res.json();
+    },
+    refetchInterval: 60000, // Every 60s
+  });
+}

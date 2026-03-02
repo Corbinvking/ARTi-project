@@ -6,6 +6,7 @@ import { supabase } from '../supabase.js';
 import { logger } from '../logger.js';
 import { qboRequest } from './api-client.js';
 import { getMapper } from './mappers/index.js';
+import { autoMatchInvoices, processAllPaidInvoices, processInvoicePayment } from './payment-engine.js';
 import type { QBOEntityType, QBOConnection } from './types.js';
 import { QBO_TABLE_MAP, QBO_ENTITY_TYPES } from './types.js';
 
@@ -83,6 +84,7 @@ export async function fullSyncEntity(
 
 /**
  * Full sync for all entity types for a connection.
+ * After sync completes, runs auto-matching and payment detection.
  */
 export async function fullSyncAll(connectionId: string, realmId: string): Promise<Record<string, number>> {
   const results: Record<string, number> = {};
@@ -92,8 +94,19 @@ export async function fullSyncAll(connectionId: string, realmId: string): Promis
       results[entityType] = await fullSyncEntity(connectionId, realmId, entityType);
     } catch (err: any) {
       logger.error({ err, entityType }, `Full sync failed for ${entityType}`);
-      results[entityType] = -1; // Indicate failure
+      results[entityType] = -1;
     }
+  }
+
+  // Post-sync: auto-match invoices and process payments
+  try {
+    const matched = await autoMatchInvoices(connectionId);
+    const paid = await processAllPaidInvoices(connectionId, 'qbo_full_sync');
+    if (matched > 0 || paid > 0) {
+      logger.info({ connectionId, matched, paid }, 'Post-sync automation completed');
+    }
+  } catch (err) {
+    logger.error({ err }, 'Post-sync automation failed (non-fatal)');
   }
 
   return results;
@@ -217,6 +230,17 @@ export async function incrementalSync(
     }, { onConflict: 'connection_id,entity_type' });
   }
 
+  // Post-CDC: auto-match and process payments
+  try {
+    const matched = await autoMatchInvoices(connectionId);
+    const paid = await processAllPaidInvoices(connectionId, 'qbo_cdc');
+    if (matched > 0 || paid > 0) {
+      logger.info({ connectionId, matched, paid }, 'Post-CDC automation completed');
+    }
+  } catch (err) {
+    logger.error({ err }, 'Post-CDC automation failed (non-fatal)');
+  }
+
   logger.info({ connectionId, results }, 'CDC incremental sync complete');
   return results;
 }
@@ -261,6 +285,15 @@ export async function fetchAndUpsertEntity(
   if (error) {
     logger.error({ error, entityType, entityId }, 'Single entity upsert failed');
     throw error;
+  }
+
+  // If this is an Invoice or Payment, trigger payment detection
+  if (entityType === 'Invoice') {
+    try {
+      await processInvoicePayment(connectionId, entityId, 'qbo_webhook');
+    } catch (err) {
+      logger.warn({ err, entityId }, 'Post-webhook payment detection failed (non-fatal)');
+    }
   }
 }
 

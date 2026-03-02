@@ -8,3 +8,4 @@ export * from './oauth.js';
 export * from './api-client.js';
 export * from './sync.js';
 export * from './writeback.js';
+export * from './payment-engine.js';

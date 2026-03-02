@@ -37,7 +37,15 @@ import {
   useQBODisconnect,
   useQBOTestConnection,
   useQBORefreshToken,
+  useFinancialSummary,
 } from "@/hooks/useQuickBooks"
+import {
+  DollarSign,
+  Receipt,
+  TrendingUp,
+  Users,
+  Wallet,
+} from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 
 function formatRelativeTime(dateStr: string | null): string {
@@ -61,6 +69,8 @@ export function QuickBooksStatusCard() {
   const connectQBO = useQBOConnect()
   const disconnectQBO = useQBODisconnect()
   const refreshToken = useQBORefreshToken()
+
+  const { data: financial } = useFinancialSummary()
 
   const [showSyncTable, setShowSyncTable] = useState(true)
   const [showApiHealth, setShowApiHealth] = useState(false)
@@ -316,6 +326,81 @@ export function QuickBooksStatusCard() {
                 </p>
               </div>
             </div>
+
+            {/* ---- Financial Summary ---- */}
+            {financial?.connected && (
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Financial Summary</span>
+                  {(financial.overdue_invoices?.count ?? 0) > 0 && (
+                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">
+                      {financial.overdue_invoices.count} overdue
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                  <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Receipt className="h-3.5 w-3.5" />
+                      <span className="text-xs">Unpaid Invoices</span>
+                    </div>
+                    <p className="text-xl font-bold text-yellow-600">
+                      ${(financial.unpaid_invoices?.total ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {financial.unpaid_invoices?.count ?? 0} invoice{(financial.unpaid_invoices?.count ?? 0) !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <TrendingUp className="h-3.5 w-3.5" />
+                      <span className="text-xs">Paid This Week</span>
+                    </div>
+                    <p className="text-xl font-bold text-green-600">
+                      ${(financial.paid_this_week?.total ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {financial.paid_this_week?.count ?? 0} payment{(financial.paid_this_week?.count ?? 0) !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <DollarSign className="h-3.5 w-3.5" />
+                      <span className="text-xs">Outstanding</span>
+                    </div>
+                    <p className="text-xl font-bold">
+                      ${(financial.outstanding_receivables ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">receivables</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Users className="h-3.5 w-3.5" />
+                      <span className="text-xs">Vendor Payouts</span>
+                    </div>
+                    <p className="text-xl font-bold text-yellow-600">
+                      ${(financial.vendor_payouts_owed?.total ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {financial.vendor_payouts_owed?.count ?? 0} owed
+                    </p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 space-y-1">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Wallet className="h-3.5 w-3.5" />
+                      <span className="text-xs">Commissions</span>
+                    </div>
+                    <p className="text-xl font-bold text-yellow-600">
+                      ${(financial.commissions_owed?.total ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {financial.commissions_owed?.count ?? 0} campaign{(financial.commissions_owed?.count ?? 0) !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* ---- Sync Status Table ---- */}
             <div className="border border-border rounded-lg">

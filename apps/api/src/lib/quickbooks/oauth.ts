@@ -12,6 +12,7 @@ import {
   acquireRefreshLock,
   releaseRefreshLock,
 } from './token-store.js';
+import { qboRequest } from './api-client.js';
 
 // Singleton OAuthClient (one per process, environment-wide)
 let _oauthClient: any | null = null;
@@ -54,7 +55,7 @@ export function getAuthorizationUrl(state: string): string {
 export async function handleCallback(
   redirectUrl: string,
   orgId: string,
-  userId: string
+  userId: string | null
 ): Promise<{ connectionId: string; realmId: string }> {
   const client = getOAuthClient();
   const authResponse = await client.createToken(redirectUrl);
@@ -98,7 +99,7 @@ export async function handleCallback(
 
   // Fetch company name for display
   try {
-    await fetchAndStoreCompanyName(conn.id, realmId, tokenJson.access_token);
+    await fetchAndStoreCompanyName(conn.id, realmId);
   } catch (err) {
     logger.warn({ err }, 'Could not fetch company name on connect (non-fatal)');
   }
@@ -192,21 +193,17 @@ export async function getValidAccessToken(connectionId: string): Promise<string>
 /** Fetch CompanyInfo and store the name on the connection row */
 async function fetchAndStoreCompanyName(
   connectionId: string,
-  realmId: string,
-  accessToken: string
+  realmId: string
 ): Promise<void> {
-  const baseUrl = process.env.INTUIT_ENVIRONMENT === 'production'
-    ? 'https://quickbooks.api.intuit.com'
-    : 'https://sandbox-quickbooks.api.intuit.com';
-
-  const res = await fetch(
-    `${baseUrl}/v3/company/${realmId}/companyinfo/${realmId}`,
-    { headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' } }
-  );
+  const res = await qboRequest({
+    connectionId,
+    realmId,
+    method: 'GET',
+    path: `/companyinfo/${realmId}`,
+  });
 
   if (res.ok) {
-    const data = await res.json();
-    const companyName = data?.CompanyInfo?.CompanyName;
+    const companyName = res.data?.CompanyInfo?.CompanyName;
     if (companyName) {
       await supabase
         .from('qbo_connections')

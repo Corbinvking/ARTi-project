@@ -25,6 +25,11 @@ import {
 import type { QBOEntityType, QBOWebhookPayload } from '../lib/quickbooks/types.js';
 import { QBO_ENTITY_TYPES } from '../lib/quickbooks/types.js';
 import { pushInvoiceToQBO, pushAllPendingInvoices } from '../lib/quickbooks/writeback.js';
+import {
+  autoMatchInvoices,
+  manualMatchInvoice,
+  getFinancialSummary,
+} from '../lib/quickbooks/payment-engine.js';
 
 // Default org for single-tenant (matches existing pattern in the codebase)
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
@@ -69,9 +74,19 @@ export async function quickbooksRoutes(server: FastifyInstance) {
 
       // TODO: validate `state` against stored value for CSRF protection
       const orgId = DEFAULT_ORG_ID; // In multi-tenant, extract from state
-      const userId = query.state || 'system'; // Would come from session in production
+      const userId: string | null = null; // No authenticated session on callback; column allows NULL
 
       const result = await handleCallback(fullUrl, orgId, userId);
+
+      // Kick off initial full sync in the background (non-blocking)
+      setImmediate(async () => {
+        try {
+          await fullSyncAll(result.connectionId, result.realmId);
+          logger.info({ connectionId: result.connectionId }, 'Auto full sync after connect completed');
+        } catch (syncErr) {
+          logger.error({ syncErr }, 'Auto full sync after connect failed (non-fatal)');
+        }
+      });
 
       // Redirect to admin panel with success indicator
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -124,6 +139,28 @@ export async function quickbooksRoutes(server: FastifyInstance) {
           token_health: null,
           sync_status: [],
         });
+      }
+
+      // Auto-fetch company name if missing
+      if (!conn.company_name) {
+        try {
+          const infoRes = await qboRequest({
+            connectionId: conn.id,
+            realmId: conn.realm_id,
+            method: 'GET',
+            path: `/companyinfo/${conn.realm_id}`,
+          });
+          const name = infoRes.data?.CompanyInfo?.CompanyName;
+          if (name) {
+            await supabase
+              .from('qbo_connections')
+              .update({ company_name: name })
+              .eq('id', conn.id);
+            conn.company_name = name;
+          }
+        } catch (err) {
+          logger.warn({ err }, 'Auto-fetch company name failed (non-fatal)');
+        }
       }
 
       // Token health
@@ -609,6 +646,100 @@ export async function quickbooksRoutes(server: FastifyInstance) {
 
       if (error) throw error;
       return reply.send({ invoices: data || [] });
+    } catch (err: any) {
+      return reply.code(500).send({ error: err.message });
+    }
+  });
+
+  // ========================================================================
+  // Financial Summary — Aggregated dashboard data from QBO mirror
+  // ========================================================================
+
+  server.get('/quickbooks/financial-summary', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const conn = await getActiveConnection(DEFAULT_ORG_ID);
+      if (!conn) {
+        return reply.send({
+          connected: false,
+          unpaid_invoices: { count: 0, total: 0 },
+          overdue_invoices: { count: 0, total: 0 },
+          paid_this_week: { count: 0, total: 0 },
+          outstanding_receivables: 0,
+          vendor_payouts_owed: { count: 0, total: 0 },
+          commissions_owed: { count: 0, total: 0 },
+        });
+      }
+
+      const summary = await getFinancialSummary(conn.id);
+      return reply.send({ connected: true, ...summary });
+    } catch (err: any) {
+      logger.error({ err }, 'Financial summary fetch failed');
+      return reply.code(500).send({ error: err.message });
+    }
+  });
+
+  // ========================================================================
+  // Invoice Matching — Manual link between QBO and campaign invoices
+  // ========================================================================
+
+  server.post('/quickbooks/invoices/match', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const conn = await getActiveConnection(DEFAULT_ORG_ID);
+      if (!conn) return reply.code(404).send({ error: 'No active QBO connection' });
+
+      const body = request.body as {
+        qbo_invoice_id: string;
+        campaign_invoice_id: string;
+      };
+
+      if (!body?.qbo_invoice_id || !body?.campaign_invoice_id) {
+        return reply.code(400).send({ error: 'Missing qbo_invoice_id or campaign_invoice_id' });
+      }
+
+      await manualMatchInvoice(conn.id, body.qbo_invoice_id, body.campaign_invoice_id);
+      return reply.send({ ok: true, message: 'Invoice matched and payment cascade triggered' });
+    } catch (err: any) {
+      logger.error({ err }, 'Manual invoice match failed');
+      return reply.code(500).send({ error: err.message });
+    }
+  });
+
+  /** Trigger auto-matching for all unlinked QBO invoices */
+  server.post('/quickbooks/invoices/auto-match', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const conn = await getActiveConnection(DEFAULT_ORG_ID);
+      if (!conn) return reply.code(404).send({ error: 'No active QBO connection' });
+
+      const matched = await autoMatchInvoices(conn.id);
+      return reply.send({ ok: true, matched });
+    } catch (err: any) {
+      logger.error({ err }, 'Auto-match invoices failed');
+      return reply.code(500).send({ error: err.message });
+    }
+  });
+
+  // ========================================================================
+  // Automation Log — Recent automation events
+  // ========================================================================
+
+  server.get('/quickbooks/automation-log', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const query = request.query as { limit?: string; event_type?: string };
+      const limit = Math.min(parseInt(query.limit || '50', 10), 200);
+
+      let dbQuery = supabase
+        .from('qbo_automation_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (query.event_type) {
+        dbQuery = dbQuery.eq('event_type', query.event_type);
+      }
+
+      const { data, error } = await dbQuery;
+      if (error) throw error;
+      return reply.send({ events: data || [] });
     } catch (err: any) {
       return reply.code(500).send({ error: err.message });
     }

@@ -6,12 +6,14 @@ import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { useUnifiedDashboard } from "@/hooks/useUnifiedDashboard"
 import { useInvoiceHealth } from "@/hooks/useInvoiceHealth"
+import { useFinancialSummary } from "@/hooks/useQuickBooks"
 import { usePlatformDeliveryHealth } from "@/hooks/usePlatformDeliveryHealth"
 import { useAlertsFeed } from "@/hooks/useAlertsFeed"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ActiveRevenueCard } from "@/components/dashboard/ActiveRevenueCard"
 import { InvoiceHealthCard } from "@/components/dashboard/InvoiceHealthCard"
+import { FinancialDashboardCard } from "@/components/dashboard/FinancialDashboardCard"
 import { CampaignRiskCard } from "@/components/dashboard/CampaignRiskCard"
 import { OpsQueueCard } from "@/components/dashboard/OpsQueueCard"
 import { CampaignFunnelCard } from "@/components/dashboard/CampaignFunnelCard"
@@ -54,6 +56,7 @@ export default function DashboardPage() {
   const invoices = useInvoiceHealth()
   const platforms = usePlatformDeliveryHealth()
   const alerts = useAlertsFeed()
+  const financial = useFinancialSummary()
 
   useEffect(() => {
     if (user?.role === "vendor") {
@@ -79,6 +82,7 @@ export default function DashboardPage() {
     invoices.refetch()
     platforms.refetch()
     alerts.refetch()
+    financial.refetch()
   }
 
   return (
@@ -154,6 +158,9 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      {/* ROW 1.5 — QBO Financial Overview */}
+      <FinancialDashboardCard />
 
       {/* ROW 2 — Campaign Flow + Deadlines */}
       <div className="grid gap-4 md:grid-cols-2">

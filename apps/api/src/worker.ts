@@ -493,18 +493,18 @@ async function setupCronSchedules() {
       }
     )
 
-    // QuickBooks CDC reconciliation — daily at 3:00 AM UTC
+    // QuickBooks CDC reconciliation — every 15 minutes for near-real-time payment detection
     await metricsQueue!.add(
       'qbo-cdc-sync',
       {},
       {
-        repeat: { pattern: '0 3 * * *' }, // Daily at 3:00 AM UTC
+        repeat: { pattern: '*/15 * * * *' },
         removeOnComplete: 10,
         removeOnFail: 5,
       }
     )
 
-    logger.info('✅ Cron schedules configured successfully (including 3x daily YouTube sync, daily QBO CDC)')
+    logger.info('✅ Cron schedules configured successfully (including 3x daily YouTube sync, QBO CDC every 15min)')
 
   } catch (error) {
     logger.error('❌ Failed to setup cron schedules:', error)
