@@ -396,7 +396,18 @@ export function RepostChannelGenresCard({ sessionToken }: RepostChannelGenresCar
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{member.name}</p>
+                  {member.profile_url ? (
+                    <a
+                      href={member.profile_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium truncate hover:underline text-primary"
+                    >
+                      {member.name}
+                    </a>
+                  ) : (
+                    <p className="font-medium truncate">{member.name}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     {member.followers.toLocaleString()} followers
                   </p>

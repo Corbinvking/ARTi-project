@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, ExternalLink, Music, DollarSign, Calendar, Edit, Trash2, Search, ArrowUpDown, TrendingUp, TrendingDown, BarChart3, Share, Check, Instagram, Loader2, Users, CheckCircle, Clock, AlertCircle, Upload } from "lucide-react";
 import { CampaignImportModal } from "./components/CampaignImportModal";
+import { CreatorRateImportModal } from "./components/CreatorRateImportModal";
 import { ReportingScheduleCard } from "./components/ReportingScheduleCard";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
@@ -29,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CREATOR_CONTENT_TYPES } from "../seedstorm-builder/lib/genreSystem";
+import { extractHandleFromUrl } from "../seedstorm-builder/lib/instagramUtils";
 
 // Creator status types
 type PaymentStatus = 'unpaid' | 'pending' | 'paid';
@@ -112,6 +114,27 @@ const PageStatusIndicator = ({ status }: { status: string }) => {
   );
 };
 
+function parsePastedUrls(text: string): { valid: string[]; invalidCount: number } {
+  const parts = text.split(/[\n\r,]+/).flatMap(s => s.trim().split(/\s+/));
+  const seen = new Set<string>();
+  const valid: string[] = [];
+  let invalidCount = 0;
+  for (const raw of parts) {
+    const url = raw.trim();
+    if (!url) continue;
+    if (/instagram\.com\//.test(url) && /\/(reel|p)\//i.test(url)) {
+      const normalized = url.split('?')[0].replace(/\/+$/, '');
+      if (!seen.has(normalized)) {
+        seen.add(normalized);
+        valid.push(normalized);
+      }
+    } else {
+      invalidCount++;
+    }
+  }
+  return { valid, invalidCount };
+}
+
 export default function InstagramCampaignsPage() {
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -124,6 +147,9 @@ export default function InstagramCampaignsPage() {
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [selectedCreators, setSelectedCreators] = useState<string[]>([]);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [rateImportModalOpen, setRateImportModalOpen] = useState(false);
+  const [editingRateId, setEditingRateId] = useState<string | null>(null);
+  const [editingRateValue, setEditingRateValue] = useState("");
 
   // Quick Create Campaign
   const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
@@ -273,65 +299,71 @@ export default function InstagramCampaignsPage() {
     enabled: !!selectedCampaign?.id && isDetailsOpen
   });
 
-  // Add a new post URL
-  const addPostUrl = async () => {
+  // Add one or more post URLs (supports pasting multiple links at once)
+  const addPostUrls = async () => {
     if (!newPostUrl.trim() || !selectedCampaign?.id) return;
+
+    const { valid: urls, invalidCount } = parsePastedUrls(newPostUrl);
+    if (urls.length === 0) {
+      toast({ title: "No valid URLs", description: "Paste Instagram post or reel URLs (e.g. instagram.com/reel/...)", variant: "destructive" });
+      return;
+    }
+
     setAddingPost(true);
     try {
-      const postType = newPostUrl.includes('/reel/') ? 'reel' : newPostUrl.includes('/p/') ? 'post' : 'other';
-      
-      // Find the selected creator to get their handle (optional)
-      const linkedCreator = selectedCreatorForPost 
+      const linkedCreator = selectedCreatorForPost
         ? campaignCreators.find(c => c.id === selectedCreatorForPost)
           || allCreators.find(c => c.id === selectedCreatorForPost)
         : null;
 
-      const resolvedHandle = linkedCreator?.instagram_handle || manualPostHandle.replace(/^@/, '').trim() || 'unknown';
-      
-      const { data: insertedPost, error } = await supabase
-        .from('campaign_posts')
-        .insert({
+      const manualHandle = manualPostHandle.replace(/^@/, '').trim();
+
+      const rows = urls.map(url => {
+        const handleFromUrl = extractHandleFromUrl(url);
+        const resolvedHandle = linkedCreator?.instagram_handle || manualHandle || handleFromUrl || 'unknown';
+        return {
           campaign_id: String(selectedCampaign.id),
           creator_id: selectedCreatorForPost || null,
           org_id: user?.tenantId || '00000000-0000-0000-0000-000000000001',
-          post_url: newPostUrl.trim(),
-          post_type: postType,
+          post_url: url,
+          post_type: url.includes('/reel/') ? 'reel' : url.includes('/p/') ? 'post' : 'other',
           instagram_handle: resolvedHandle,
           status: 'live'
-        })
-        .select('id')
-        .single();
+        };
+      });
+
+      const { data: insertedPosts, error } = await supabase
+        .from('campaign_posts')
+        .insert(rows)
+        .select('id');
       if (error) throw error;
+
       setNewPostUrl("");
       setSelectedCreatorForPost("");
       setManualPostHandle("");
       refetchPosts();
-      
-      // Update placement page_status to posted if creator is a campaign placement
+
       const isPlacement = campaignCreators.some((c: CampaignCreator) => c.id === selectedCreatorForPost);
       if (selectedCreatorForPost && isPlacement) {
         await updateCreatorStatus(selectedCreatorForPost, { page_status: 'posted' as PageStatus });
       }
 
-      // Fire background scrape to immediately fetch post metrics
-      if (insertedPost?.id) {
+      const newIds = (insertedPosts || []).map((p: any) => p.id);
+      if (newIds.length > 0) {
         fetch('/api/instagram-scraper/track-campaign-posts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ postIds: [insertedPost.id] }),
+          body: JSON.stringify({ postIds: newIds }),
         })
           .then(() => { setTimeout(() => refetchPosts(), 5000); })
           .catch(() => {});
       }
-      
-      toast({ 
-        title: "Post Added", 
-        description: linkedCreator 
-          ? `Instagram post linked to @${linkedCreator.instagram_handle} — tracking will start shortly` 
-          : `Instagram post added (${resolvedHandle !== 'unknown' ? '@' + resolvedHandle : 'no creator linked'}) — tracking will start shortly`
-      });
+
+      const msgParts: string[] = [`Added ${urls.length} post${urls.length > 1 ? 's' : ''}`];
+      if (invalidCount > 0) msgParts.push(`${invalidCount} invalid URL${invalidCount > 1 ? 's' : ''} skipped`);
+      toast({ title: "Posts Added", description: msgParts.join(' — ') + ' — tracking will start shortly' });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to add post URL", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to add post URLs", variant: "destructive" });
     } finally {
       setAddingPost(false);
     }
@@ -1059,7 +1091,7 @@ export default function InstagramCampaignsPage() {
                 className="flex items-center gap-2"
               >
                 <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                Complete
+                Completed
                 <Badge variant="secondary" className="ml-1">
                   {kpis.completeCampaigns}
                 </Badge>
@@ -1127,7 +1159,7 @@ export default function InstagramCampaignsPage() {
               </CardTitle>
               <CardDescription>
                 {filterParam === "attention" && "Needs attention • "}
-                {statusFilter !== 'all' && `Filtered by: ${statusFilter}`}
+                {statusFilter !== 'all' && `Filtered by: ${formatStatusLabel(statusFilter)}`}
                 {searchTerm && ` • Search: "${searchTerm}"`}
               </CardDescription>
             </div>
@@ -1227,12 +1259,15 @@ export default function InstagramCampaignsPage() {
                       onClick={() => handleViewDetails(campaign)}
                     >
                       <TableCell className="font-medium py-2 px-3">
-                        <div className="flex items-center gap-1.5 overflow-hidden">
+                        <Button
+                          variant="ghost"
+                          className="h-auto p-0 font-semibold text-xs hover:bg-transparent flex items-center gap-1.5 overflow-hidden max-w-full"
+                          onClick={(e) => { e.stopPropagation(); handleViewDetails(campaign); }}
+                          aria-label={`Open campaign ${campaign.campaign || 'Untitled'}`}
+                        >
                           {campaign.sound_url && <Music className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
-                          <span className="font-semibold text-xs truncate">
-                            {campaign.campaign || 'Untitled'}
-                          </span>
-                        </div>
+                          <span className="truncate">{campaign.campaign || 'Untitled'}</span>
+                        </Button>
                       </TableCell>
                       <TableCell className="py-2 px-2">
                         <span className="text-xs truncate block">{campaign.clients || 'N/A'}</span>
@@ -1259,7 +1294,7 @@ export default function InstagramCampaignsPage() {
                             <SelectItem value="ready">Ready</SelectItem>
                             <SelectItem value="active">Active</SelectItem>
                             <SelectItem value="on_hold">On Hold</SelectItem>
-                            <SelectItem value="complete">Complete</SelectItem>
+                            <SelectItem value="complete">Completed</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -1641,10 +1676,22 @@ export default function InstagramCampaignsPage() {
                       Agreements and statuses for campaign creators
                     </CardDescription>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => setIsAddCreatorOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Creator
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setRateImportModalOpen(true)}
+                      disabled={campaignCreators.length === 0}
+                      title={campaignCreators.length === 0 ? "Add creators first" : "Import rates from CSV"}
+                    >
+                      <Upload className="h-4 w-4 mr-1" />
+                      Import Rates
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsAddCreatorOpen(true)}>
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Creator
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {loadingCreators ? (
@@ -1742,7 +1789,47 @@ export default function InstagramCampaignsPage() {
                                   <Badge variant="outline" className="text-xs">{creator.post_type || 'Reel'}</Badge>
                                 </TableCell>
                                 <TableCell className="text-right font-medium">
-                                  ${creator.rate?.toLocaleString() || 0}
+                                  {editingRateId === creator.id ? (
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={999999}
+                                      className="w-24 h-7 text-right text-sm ml-auto"
+                                      autoFocus
+                                      value={editingRateValue}
+                                      onChange={(e) => setEditingRateValue(e.target.value)}
+                                      onBlur={() => {
+                                        const val = Math.max(0, parseInt(editingRateValue, 10) || 0);
+                                        if (val !== (creator.rate || 0)) {
+                                          updateCreatorStatus(creator.id, { rate: val } as any);
+                                        }
+                                        setEditingRateId(null);
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                                        if (e.key === "Escape") setEditingRateId(null);
+                                      }}
+                                    />
+                                  ) : (
+                                    <span
+                                      role="button"
+                                      tabIndex={0}
+                                      className="cursor-pointer hover:underline hover:text-primary"
+                                      onClick={() => {
+                                        setEditingRateId(creator.id);
+                                        setEditingRateValue(String(creator.rate || 0));
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                          setEditingRateId(creator.id);
+                                          setEditingRateValue(String(creator.rate || 0));
+                                        }
+                                      }}
+                                      title="Click to edit rate"
+                                    >
+                                      ${creator.rate?.toLocaleString() || 0}
+                                    </span>
+                                  )}
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <Button
@@ -1886,14 +1973,40 @@ export default function InstagramCampaignsPage() {
                 <CardContent>
                   <div className="space-y-2 mb-4">
                     <div className="flex gap-2">
-                      <Input
-                        placeholder="Paste Instagram post URL (e.g., https://instagram.com/reel/...)"
+                      <Textarea
+                        placeholder="Paste one or more Instagram post URLs (one per line, or separated by commas)"
                         value={newPostUrl}
-                        onChange={(e) => setNewPostUrl(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && addPostUrl()}
-                        className="flex-1"
+                        onChange={(e) => {
+                          setNewPostUrl(e.target.value);
+                          const lines = e.target.value.trim().split(/[\n\r,]+/).flatMap(s => s.trim().split(/\s+/));
+                          const firstUrl = lines.find(l => /instagram\.com\//.test(l) && /\/(reel|p)\//.test(l));
+                          if (firstUrl && !selectedCreatorForPost) {
+                            const detected = extractHandleFromUrl(firstUrl);
+                            if (detected) {
+                              const matchInCampaign = campaignCreators.find((c: CampaignCreator) => c.instagram_handle === detected);
+                              const matchInAll = allCreators.find(c => c.instagram_handle === detected);
+                              if (matchInCampaign) {
+                                setSelectedCreatorForPost(matchInCampaign.id);
+                                setManualPostHandle("");
+                              } else if (matchInAll) {
+                                setSelectedCreatorForPost(matchInAll.id);
+                                setManualPostHandle("");
+                              } else {
+                                setManualPostHandle(detected);
+                              }
+                            }
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            addPostUrls();
+                          }
+                        }}
+                        rows={2}
+                        className="flex-1 min-h-[2.5rem] resize-y"
                       />
-                      <Button onClick={addPostUrl} disabled={addingPost || !newPostUrl.trim()}>
+                      <Button onClick={addPostUrls} disabled={addingPost || !newPostUrl.trim()} className="self-end">
                         {addingPost ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                       </Button>
                     </div>
@@ -2122,6 +2235,13 @@ export default function InstagramCampaignsPage() {
       <CampaignImportModal
         open={importModalOpen}
         onOpenChange={setImportModalOpen}
+      />
+
+      <CreatorRateImportModal
+        open={rateImportModalOpen}
+        onOpenChange={setRateImportModalOpen}
+        campaignCreators={campaignCreators}
+        onImportComplete={() => refetchCreators()}
       />
 
       {/* Quick Create Campaign Modal */}
