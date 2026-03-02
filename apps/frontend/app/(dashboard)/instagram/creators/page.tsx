@@ -281,10 +281,8 @@ export default function InstagramCreatorsPage() {
     const extractHandle = (raw: string): string => {
       if (!raw) return "";
       let val = raw.trim();
-      // Strip spreadsheet HYPERLINK formulas: =HYPERLINK("url","label")
       const hMatch = val.match(/=HYPERLINK\([^,]+,\s*"?([^")\s]+)"?\)/i);
       if (hMatch) val = hMatch[1];
-      // Strip URLs — keep only the last path segment
       if (val.startsWith("http")) {
         const parts = val.replace(/\/+$/, "").split("/");
         val = parts[parts.length - 1] || "";
@@ -320,7 +318,6 @@ export default function InstagramCreatorsPage() {
         try {
           const rawRows = results.data as string[][];
 
-          // Find the header row: first row with >=2 non-empty cells
           let headerIdx = -1;
           for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
             const nonEmpty = rawRows[i].filter((c) => c && c.trim()).length;
@@ -348,7 +345,6 @@ export default function InstagramCreatorsPage() {
           const validRows = dataRows.filter((row) => {
             const raw = pick(row, HANDLE_KEYS);
             const handle = extractHandle(raw);
-            // Skip footer/total rows
             if (!handle || /^total/i.test(handle)) return false;
             return true;
           });

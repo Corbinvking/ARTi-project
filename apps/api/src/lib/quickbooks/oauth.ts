@@ -2,6 +2,7 @@
 // QuickBooks Online — OAuth 2.0 wrapper (using official intuit-oauth)
 // ============================================================================
 
+// @ts-ignore -- intuit-oauth has no type declarations
 import OAuthClient from 'intuit-oauth';
 import { supabase } from '../supabase.js';
 import { logger } from '../logger.js';

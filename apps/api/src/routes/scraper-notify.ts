@@ -53,7 +53,7 @@ export async function scraperNotifyRoutes(server: FastifyInstance) {
           })
           .eq('id', campaignId);
       } catch (err) {
-        request.log.warn('Failed to update scraper notification status:', err);
+        request.log.warn({ err }, 'Failed to update scraper notification status');
         // Continue with sending the notification
       }
     }
@@ -108,7 +108,7 @@ export async function scraperNotifyRoutes(server: FastifyInstance) {
       request.log.info(`Scraper notification sent for campaign ${campaignId}`);
       return reply.code(200).send({ ok: true, recipients: recipients.length });
     } catch (error) {
-      request.log.error('Failed to send scraper notification email:', error);
+      request.log.error({ err: error }, 'Failed to send scraper notification email');
       return reply.code(500).send({ ok: false, message: 'Failed to send notification' });
     }
   });
@@ -132,13 +132,13 @@ export async function scraperNotifyRoutes(server: FastifyInstance) {
         .or('scraper_notification_sent.is.null,scraper_notification_sent.eq.false');
 
       if (error) {
-        request.log.error('Failed to fetch pending campaigns:', error);
+        request.log.error({ err: error }, 'Failed to fetch pending campaigns');
         return reply.code(500).send({ ok: false, message: 'Failed to fetch campaigns' });
       }
 
       return reply.code(200).send({ ok: true, campaigns: campaigns || [] });
     } catch (error) {
-      request.log.error('Error checking pending scraper notifications:', error);
+      request.log.error({ err: error }, 'Error checking pending scraper notifications');
       return reply.code(500).send({ ok: false, message: 'Server error' });
     }
   });

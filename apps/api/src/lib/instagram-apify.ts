@@ -140,7 +140,7 @@ export async function scrapeInstagramPosts(
       }
     }
 
-    return { posts, profile };
+    return { posts, ...(profile ? { profile } : {}) };
   } catch (error: any) {
     logger.error({ error: error.message }, '❌ Instagram scraper error');
     return {

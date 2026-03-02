@@ -34,7 +34,10 @@ export function encrypt(plaintext: string): string {
 /** Decrypt an "iv:authTag:ciphertext" string back to plaintext */
 export function decrypt(cipherString: string): string {
   const key = getEncryptionKey();
-  const [ivHex, authTagHex, ciphertext] = cipherString.split(':');
+  const parts = cipherString.split(':');
+  const ivHex = parts[0] ?? '';
+  const authTagHex = parts[1] ?? '';
+  const ciphertext = parts[2] ?? '';
   const iv = Buffer.from(ivHex, 'hex');
   const authTag = Buffer.from(authTagHex, 'hex');
   const decipher = createDecipheriv(ALGORITHM, key, iv);
