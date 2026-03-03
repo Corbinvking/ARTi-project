@@ -141,15 +141,27 @@ export async function quickbooksRoutes(server: FastifyInstance) {
         });
       }
 
-      // Auto-recovery: if connection is in error state, attempt a token refresh
-      if (conn.status === 'error') {
+      // Auto-recovery: if connection is in error state, or token is expired / near expiry,
+      // attempt a proactive refresh so the caller gets a healthy status.
+      const { data: preCheckToken } = await supabase
+        .from('qbo_tokens')
+        .select('access_expires_at')
+        .eq('connection_id', conn.id)
+        .single();
+
+      const tokenExpired = preCheckToken && new Date(preCheckToken.access_expires_at) < new Date();
+      const tokenNearExpiry = preCheckToken && !tokenExpired &&
+        (new Date(preCheckToken.access_expires_at).getTime() - Date.now()) < 15 * 60 * 1000;
+      const needsRefresh = conn.status === 'error' || tokenExpired || tokenNearExpiry;
+
+      if (needsRefresh) {
         try {
           await getValidAccessToken(conn.id);
-          // getValidAccessToken restores status to 'active' on success
           conn.status = 'active';
-          logger.info({ connectionId: conn.id }, 'QBO connection auto-recovered from error state');
+          logger.info({ connectionId: conn.id, reason: conn.status === 'error' ? 'error-recovery' : 'near-expiry' },
+            'QBO token proactively refreshed via status endpoint');
         } catch (err) {
-          logger.warn({ err }, 'Auto-recovery token refresh failed (connection remains in error state)');
+          logger.warn({ err }, 'Status endpoint proactive refresh failed');
         }
       }
 
@@ -248,6 +260,19 @@ export async function quickbooksRoutes(server: FastifyInstance) {
       return reply.send({ ok: true, message: 'Token refreshed' });
     } catch (err: any) {
       logger.error({ err }, 'Manual token refresh failed');
+
+      const msg = (err.message || '').toLowerCase();
+      const reauthRequired = msg.includes('refresh token is invalid')
+        || msg.includes('authorize again')
+        || msg.includes('token has been revoked');
+
+      if (reauthRequired) {
+        return reply.code(422).send({
+          error: 'QuickBooks authorization has expired. Please reconnect.',
+          reauth_required: true,
+        });
+      }
+
       return reply.code(500).send({ error: err.message });
     }
   });

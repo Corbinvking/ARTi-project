@@ -38,6 +38,7 @@ import {
   useQBOTestConnection,
   useQBORefreshToken,
   useFinancialSummary,
+  QBOReauthError,
 } from "@/hooks/useQuickBooks"
 import {
   DollarSign,
@@ -77,6 +78,7 @@ export function QuickBooksStatusCard() {
   const [showWebhooks, setShowWebhooks] = useState(false)
   const [showRequestLog, setShowRequestLog] = useState(false)
   const [syncingEntity, setSyncingEntity] = useState<string | null>(null)
+  const [reauthRequired, setReauthRequired] = useState(false)
 
   const isConnected = status?.connected ?? false
   const conn = status?.connection
@@ -88,7 +90,7 @@ export function QuickBooksStatusCard() {
   const highThrottleRate = metrics?.api_calls_24h && parseFloat(metrics.api_calls_24h.throttle_rate) > 2
   const webhookLagHigh = metrics?.webhooks_24h?.lag_p95_ms != null && metrics.webhooks_24h.lag_p95_ms > 600000
   const tokenRefreshFailures = (metrics?.token_refresh_24h?.failed ?? 0) > 5
-  const hasAlerts = isErrorState || tokenExpired || tokenExpiresSoon || highThrottleRate || webhookLagHigh || tokenRefreshFailures
+  const hasAlerts = reauthRequired || isErrorState || tokenExpired || tokenExpiresSoon || highThrottleRate || webhookLagHigh || tokenRefreshFailures
 
   // ---- Handlers ----
   const handleConnect = async () => {
@@ -151,10 +153,20 @@ export function QuickBooksStatusCard() {
   const handleRefreshToken = async () => {
     try {
       await refreshToken.mutateAsync()
+      setReauthRequired(false)
       toast({ title: "Token Refreshed", description: "Access token has been refreshed." })
       refetchStatus()
     } catch (err: any) {
-      toast({ title: "Refresh Failed", description: err.message, variant: "destructive" })
+      if (err instanceof QBOReauthError) {
+        setReauthRequired(true)
+        toast({
+          title: "Re-authorization Required",
+          description: "QuickBooks authorization has expired. Please reconnect.",
+          variant: "destructive",
+        })
+      } else {
+        toast({ title: "Refresh Failed", description: err.message, variant: "destructive" })
+      }
     }
   }
 
@@ -220,7 +232,19 @@ export function QuickBooksStatusCard() {
         {/* ---- Alert Banners ---- */}
         {hasAlerts && (
           <div className="space-y-2">
-            {isErrorState && !tokenExpired && (
+            {reauthRequired && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="flex items-center justify-between">
+                  <span>QuickBooks authorization has expired. Please reconnect to restore access.</span>
+                  <Button size="sm" onClick={handleConnect} disabled={connectQBO.isPending}>
+                    <Link2 className="h-3 w-3 mr-1" />
+                    {connectQBO.isPending ? "Connecting..." : "Reconnect QuickBooks"}
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            {isErrorState && !tokenExpired && !reauthRequired && (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription className="flex items-center justify-between">
@@ -231,14 +255,20 @@ export function QuickBooksStatusCard() {
                 </AlertDescription>
               </Alert>
             )}
-            {tokenExpired && (
+            {tokenExpired && !reauthRequired && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="flex items-center justify-between">
                   <span>Access token is expired! API calls will fail.</span>
-                  <Button size="sm" variant="outline" onClick={handleRefreshToken} disabled={refreshToken.isPending}>
-                    {refreshToken.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Refresh Now"}
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button size="sm" variant="outline" onClick={handleRefreshToken} disabled={refreshToken.isPending}>
+                      {refreshToken.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Refresh Now"}
+                    </Button>
+                    <Button size="sm" onClick={handleConnect} disabled={connectQBO.isPending}>
+                      <Link2 className="h-3 w-3 mr-1" />
+                      Reconnect
+                    </Button>
+                  </div>
                 </AlertDescription>
               </Alert>
             )}

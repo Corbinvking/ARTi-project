@@ -46,6 +46,9 @@ if (redis) {
         case 'qbo-token-refresh':
           await runQBOProactiveTokenRefresh()
           break
+        case 'qbo-connection-validate':
+          await runQBOConnectionValidation()
+          break
         case 'health-check':
           logger.info('Performing hourly health check...')
           break
@@ -400,7 +403,8 @@ async function syncInstagramMetrics(data: any) {
 
 // QuickBooks proactive token refresh — keeps the access token fresh so API calls never stall
 async function runQBOProactiveTokenRefresh() {
-  logger.info('Starting proactive QBO token refresh...')
+  const env = process.env.INTUIT_ENVIRONMENT || 'sandbox'
+  logger.info({ env }, 'Starting proactive QBO token refresh...')
   
   try {
     const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
@@ -411,12 +415,43 @@ async function runQBOProactiveTokenRefresh() {
       return
     }
 
-    // getValidAccessToken handles refresh logic, retries, and status recovery
     await getValidAccessToken(conn.id)
-    logger.info({ connectionId: conn.id, status: conn.status }, 'Proactive QBO token refresh completed')
+    logger.info({ connectionId: conn.id, status: conn.status, env }, 'Proactive QBO token refresh completed')
+  } catch (error: any) {
+    const isReauthRequired = error?.message?.toLowerCase().includes('refresh token is invalid')
+      || error?.message?.toLowerCase().includes('authorize again')
+    logger.error({ err: error, isReauthRequired }, 'Proactive QBO token refresh failed')
+  }
+}
+
+// QuickBooks connection validation — periodic probe to confirm API access
+async function runQBOConnectionValidation() {
+  logger.info('Starting QBO connection validation...')
+  
+  try {
+    const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
+    const conn = await getActiveConnection(DEFAULT_ORG_ID)
+    
+    if (!conn) {
+      logger.info('No QBO connection found, skipping validation')
+      return
+    }
+
+    const { qboRequest } = await import('./lib/quickbooks/api-client.js')
+    const res = await qboRequest({
+      connectionId: conn.id,
+      realmId: conn.realm_id,
+      method: 'GET',
+      path: `/companyinfo/${conn.realm_id}`,
+    })
+
+    if (res.ok) {
+      logger.info({ connectionId: conn.id, latencyMs: res.durationMs }, 'QBO connection validation passed')
+    } else {
+      logger.warn({ connectionId: conn.id, status: res.status }, 'QBO connection validation returned non-OK status')
+    }
   } catch (error) {
-    logger.error('Proactive QBO token refresh failed:', error)
-    // Don't throw — this is a best-effort background job
+    logger.error({ err: error }, 'QBO connection validation failed')
   }
 }
 
@@ -529,23 +564,76 @@ async function setupCronSchedules() {
       }
     )
 
-    // QuickBooks proactive token refresh — every 30 minutes
-    // Access tokens expire after 1 hour; this ensures tokens are always fresh
-    // and auto-recovers connections from 'error' state
+    // QuickBooks proactive token refresh — environment-aware intervals
+    // Sandbox: refresh tokens expire in ~24h, so we refresh every 10 min
+    // Production: refresh tokens last 100 days, 30 min is sufficient
+    const intuitEnv = process.env.INTUIT_ENVIRONMENT || 'sandbox'
+    const isSandbox = intuitEnv === 'sandbox'
+    const refreshPattern = isSandbox ? '*/10 * * * *' : '*/30 * * * *'
+
     await metricsQueue!.add(
       'qbo-token-refresh',
       {},
       {
-        repeat: { pattern: '*/30 * * * *' },
+        repeat: { pattern: refreshPattern },
         removeOnComplete: 10,
         removeOnFail: 5,
       }
     )
 
-    logger.info('✅ Cron schedules configured successfully (including 3x daily YouTube sync, QBO CDC every 15min, QBO token refresh every 30min)')
+    // Sandbox only: backup token refresh every 6 hours as a safety net
+    if (isSandbox) {
+      await metricsQueue!.add(
+        'qbo-token-refresh',
+        { backup: true },
+        {
+          repeat: { pattern: '0 */6 * * *' },
+          removeOnComplete: 5,
+          removeOnFail: 3,
+        }
+      )
+    }
+
+    // QBO connection validation — probe the API to confirm the connection works
+    await metricsQueue!.add(
+      'qbo-connection-validate',
+      {},
+      {
+        repeat: { pattern: isSandbox ? '0 */2 * * *' : '0 */6 * * *' },
+        removeOnComplete: 5,
+        removeOnFail: 3,
+      }
+    )
+
+    logger.info({
+      intuitEnv,
+      refreshPattern,
+      validationPattern: isSandbox ? '0 */2 * * *' : '0 */6 * * *',
+    }, '✅ QBO cron schedules configured')
 
   } catch (error) {
     logger.error('❌ Failed to setup cron schedules:', error)
+  }
+}
+
+// Verify critical cron jobs are registered after setup
+async function verifyCronJobs() {
+  if (!metricsQueue) return
+
+  try {
+    const repeatableJobs = await metricsQueue.getRepeatableJobs()
+    const jobNames = repeatableJobs.map((j: any) => j.name)
+    
+    const requiredJobs = ['qbo-token-refresh', 'qbo-cdc-sync', 'qbo-connection-validate']
+    const missingJobs = requiredJobs.filter(name => !jobNames.includes(name))
+    
+    if (missingJobs.length > 0) {
+      logger.warn({ missingJobs, registeredJobs: jobNames }, 'Some required QBO cron jobs are NOT registered')
+    } else {
+      logger.info({ registeredQBOJobs: requiredJobs, totalRepeatableJobs: repeatableJobs.length }, 'All required QBO cron jobs verified')
+    }
+  } catch (error) {
+    logger.warn({ err: error }, 'Could not verify cron jobs (non-fatal)')
   }
 }
 
@@ -559,10 +647,10 @@ export async function startWorker() {
 
     logger.info('🚀 Starting metrics worker...')
     await setupCronSchedules()
+    await verifyCronJobs()
     logger.info('✅ Metrics worker started successfully')
   } catch (error) {
     logger.error('Failed to start worker:', error)
-    // Don't process.exit here - let the server keep running even if worker fails
     logger.error('Worker startup failed, cron jobs will not run')
   }
 }

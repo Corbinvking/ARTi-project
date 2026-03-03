@@ -250,6 +250,14 @@ export function useQBOTestConnection() {
   });
 }
 
+export class QBOReauthError extends Error {
+  reauth_required = true;
+  constructor(message: string) {
+    super(message);
+    this.name = 'QBOReauthError';
+  }
+}
+
 /** Manual token refresh */
 export function useQBORefreshToken() {
   const queryClient = useQueryClient();
@@ -257,7 +265,13 @@ export function useQBORefreshToken() {
   return useMutation({
     mutationFn: async () => {
       const res = await fetch(`${API_BASE_URL}/api/quickbooks/refresh`, { method: 'POST' });
-      if (!res.ok) throw new Error('Token refresh failed');
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        if (body.reauth_required) {
+          throw new QBOReauthError(body.error || 'QuickBooks authorization expired');
+        }
+        throw new Error(body.error || 'Token refresh failed');
+      }
       return res.json();
     },
     onSuccess: () => {
