@@ -694,7 +694,7 @@ export default function InstagramCampaignsPage() {
     if (!campaignToDelete?.id) return;
 
     try {
-      await deleteCampaignAsync(Number(campaignToDelete.id));
+      await deleteCampaignAsync(campaignToDelete.id);
       sonnerToast.success("Campaign Deleted", {
         description: `"${campaignToDelete.campaign || campaignToDelete.name || "Campaign"}" has been deleted.`,
       });
