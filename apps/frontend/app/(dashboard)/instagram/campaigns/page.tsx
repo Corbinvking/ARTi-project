@@ -31,6 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CREATOR_CONTENT_TYPES } from "../seedstorm-builder/lib/genreSystem";
 import { extractHandleFromUrl } from "../seedstorm-builder/lib/instagramUtils";
+import { toast as sonnerToast } from "sonner";
 
 // Creator status types
 type PaymentStatus = 'unpaid' | 'pending' | 'paid';
@@ -137,6 +138,7 @@ function parsePastedUrls(text: string): { valid: string[]; invalidCount: number 
 
 export default function InstagramCampaignsPage() {
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+  const [campaignToDelete, setCampaignToDelete] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -175,7 +177,7 @@ export default function InstagramCampaignsPage() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { updateCampaignAsync, deleteCampaign, isUpdating, isDeleting } = useInstagramCampaignMutations();
+  const { updateCampaignAsync, deleteCampaignAsync, isUpdating, isDeleting } = useInstagramCampaignMutations();
   const { user } = useAuth();
   // Fetch campaign creators when a campaign is selected
   const { data: campaignCreators = [], isLoading: loadingCreators, refetch: refetchCreators } = useQuery({
@@ -683,14 +685,30 @@ export default function InstagramCampaignsPage() {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = (campaign: any) => {
+    setCampaignToDelete(campaign);
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    deleteCampaign(selectedCampaign.id);
-    setIsDeleteDialogOpen(false);
-    setIsDetailsOpen(false);
+  const confirmDelete = async () => {
+    if (!campaignToDelete?.id) return;
+
+    try {
+      await deleteCampaignAsync(Number(campaignToDelete.id));
+      sonnerToast.success("Campaign Deleted", {
+        description: `"${campaignToDelete.campaign || campaignToDelete.name || "Campaign"}" has been deleted.`,
+      });
+
+      if (String(selectedCampaign?.id) === String(campaignToDelete.id)) {
+        setIsDetailsOpen(false);
+      }
+      setIsDeleteDialogOpen(false);
+      setCampaignToDelete(null);
+    } catch (error: any) {
+      sonnerToast.error("Delete Failed", {
+        description: error?.message || "Failed to delete campaign. Please try again.",
+      });
+    }
   };
 
   const handleQuickCreate = async () => {
@@ -1294,6 +1312,7 @@ export default function InstagramCampaignsPage() {
                       Date {getSortIndicator('date')}
                     </div>
                   </TableHead>
+                  <TableHead className="w-[6%] px-2 text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1392,6 +1411,18 @@ export default function InstagramCampaignsPage() {
                       <TableCell className="py-2 px-2">
                         <span className="text-[10px]">{campaign.start_date || '-'}</span>
                       </TableCell>
+                      <TableCell className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(campaign)}
+                          disabled={isDeleting}
+                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          aria-label={`Delete campaign ${campaign.campaign || campaign.name || 'Untitled'}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -1456,12 +1487,12 @@ export default function InstagramCampaignsPage() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={handleDelete}
-                    disabled={isDeleting}
+                    onClick={() => handleDelete(selectedCampaign)}
+                    disabled={isDeleting && String(campaignToDelete?.id) === String(selectedCampaign?.id)}
                     className="flex items-center gap-2"
                   >
                     <Trash2 className="h-4 w-4" />
-                    {isDeleting ? 'Deleting...' : 'Delete'}
+                    {isDeleting && String(campaignToDelete?.id) === String(selectedCampaign?.id) ? 'Deleting...' : 'Delete'}
                   </Button>
                 </div>
               )}
@@ -2265,23 +2296,31 @@ export default function InstagramCampaignsPage() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (isDeleting) return;
+          setIsDeleteDialogOpen(open);
+          if (!open) setCampaignToDelete(null);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Campaign?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedCampaign?.campaign}"? 
+              Are you sure you want to delete "{campaignToDelete?.campaign || campaignToDelete?.name || 'this campaign'}"? 
               This action cannot be undone and will permanently remove the campaign 
               and all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
+              disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete Campaign
+              {isDeleting ? 'Deleting...' : 'Delete Campaign'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
