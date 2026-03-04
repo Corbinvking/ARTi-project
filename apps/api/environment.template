@@ -63,6 +63,30 @@ APIFY_API_TOKEN=your-apify-api-token
 OPENAI_API_KEY=your-openai-api-key
 
 # =============================================================================
+# SendGrid (transactional email)
+# =============================================================================
+SENDGRID_API_KEY=your-sendgrid-api-key
+SENDGRID_FROM_EMAIL=noreply@artistinfluence.com
+SENDGRID_WEBHOOK_VERIFICATION_KEY=your-sendgrid-webhook-verification-key
+
+# SendGrid Dynamic Template IDs
+SENDGRID_TEMPLATE_WELCOME=d-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+SENDGRID_TEMPLATE_PASSWORD_RESET=d-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+SENDGRID_TEMPLATE_CAMPAIGN_UPDATE=d-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# =============================================================================
+# Twilio (WhatsApp messaging)
+# =============================================================================
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
+
+# =============================================================================
+# Webhooks
+# =============================================================================
+PUBLIC_WEBHOOK_BASE_URL=http://localhost:3001
+
+# =============================================================================
 # Security
 # =============================================================================
 JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long

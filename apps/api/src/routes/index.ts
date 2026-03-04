@@ -20,6 +20,7 @@ import { soundcloudMemberRoutes } from './soundcloud-members';
 import { quickbooksRoutes } from './quickbooks';
 import { slackNotifyRoutes } from './slack-notify';
 import { githubIssuesRoutes } from './github-issues';
+import { notifyRoutes } from './notify';
 
 export async function setupRoutes(server: FastifyInstance) {
   // Health check routes (no auth required) - available at both / and /api
@@ -85,6 +86,9 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // GitHub Issues routes (in-app report → GitHub issue bridge)
   await server.register(githubIssuesRoutes, { prefix: '/api' });
+
+  // Notification routes (SendGrid email + Twilio WhatsApp)
+  await server.register(notifyRoutes, { prefix: '/api' });
 
   // API routes (auth required)
   await server.register(async function protectedRoutes(server) {

@@ -22,6 +22,7 @@
     "@fastify/helmet": "^11.1.1",
     "@fastify/jwt": "^7.2.0",
     "@fastify/rate-limit": "^9.1.0",
+    "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.38.0",
     "apify-client": "^2.20.0",
     "bullmq": "^4.12.2",
@@ -34,6 +35,7 @@
     "jose": "^5.1.0",
     "nodemailer": "^6.9.13",
     "pino": "^8.15.1",
+    "twilio": "^5.12.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {

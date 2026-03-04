@@ -1,7 +1,34 @@
 import { FastifyInstance } from 'fastify';
-import { createHmac, timingSafeEqual, randomUUID } from 'crypto';
+import { createHmac, createVerify, timingSafeEqual, randomUUID } from 'crypto';
+import { createClient } from '@supabase/supabase-js';
+import { validateRequest } from 'twilio';
 
 const crypto = { randomUUID };
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
+
+// Maps provider status strings to our canonical status enum
+const SENDGRID_STATUS_MAP: Record<string, string> = {
+  processed: 'sent',
+  delivered: 'delivered',
+  open: 'opened',
+  bounce: 'bounced',
+  dropped: 'failed',
+  deferred: 'queued',
+  spamreport: 'failed',
+};
+
+const TWILIO_STATUS_MAP: Record<string, string> = {
+  queued: 'queued',
+  sent: 'sent',
+  delivered: 'delivered',
+  read: 'delivered',
+  failed: 'failed',
+  undelivered: 'failed',
+};
 
 export async function webhookRoutes(server: FastifyInstance) {
   // n8n test webhook endpoint
@@ -106,5 +133,122 @@ export async function webhookRoutes(server: FastifyInstance) {
         message: err instanceof Error ? err.message : 'Unknown error',
       });
     }
+  });
+
+  // ---------------------------------------------------------------------------
+  // SendGrid Event Webhook — delivery status updates
+  // ---------------------------------------------------------------------------
+  server.post('/sendgrid', {
+    config: { rawBody: true },
+  }, async (request, reply) => {
+    const verificationKey = process.env.SENDGRID_WEBHOOK_VERIFICATION_KEY;
+
+    if (verificationKey) {
+      const signature = request.headers['x-twilio-email-event-webhook-signature'] as string;
+      const timestamp = request.headers['x-twilio-email-event-webhook-timestamp'] as string;
+
+      if (!signature || !timestamp) {
+        return reply.status(401).send({ error: 'Missing webhook signature headers' });
+      }
+
+      try {
+        const payload = timestamp + (typeof request.body === 'string'
+          ? request.body
+          : JSON.stringify(request.body));
+
+        const decodedKey = Buffer.from(verificationKey, 'base64');
+
+        const verifier = createVerify('sha256');
+        verifier.update(payload);
+        verifier.end();
+
+        const valid = verifier.verify(
+          { key: decodedKey, format: 'der', type: 'spki' },
+          signature,
+          'base64',
+        );
+
+        if (!valid) {
+          request.log.warn('SendGrid webhook signature verification failed');
+          return reply.status(401).send({ error: 'Invalid webhook signature' });
+        }
+      } catch (err) {
+        request.log.error({ err }, 'SendGrid signature verification error');
+        return reply.status(401).send({ error: 'Signature verification error' });
+      }
+    }
+
+    const events = Array.isArray(request.body) ? request.body : [request.body];
+    let updated = 0;
+
+    for (const event of events) {
+      const sgMessageId = event.sg_message_id?.split('.')[0];
+      const mappedStatus = SENDGRID_STATUS_MAP[event.event];
+
+      if (!sgMessageId || !mappedStatus) continue;
+
+      const { error } = await supabase
+        .from('outbound_messages')
+        .update({ status: mappedStatus })
+        .eq('provider_message_id', sgMessageId);
+
+      if (!error) updated++;
+    }
+
+    request.log.info({ eventCount: events.length, updated }, 'SendGrid webhook processed');
+    return { received: events.length, updated };
+  });
+
+  // ---------------------------------------------------------------------------
+  // Twilio Status Callback — WhatsApp delivery status updates
+  // ---------------------------------------------------------------------------
+  server.post('/twilio', async (request, reply) => {
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+
+    if (authToken) {
+      const twilioSignature = request.headers['x-twilio-signature'] as string;
+      if (!twilioSignature) {
+        return reply.status(401).send({ error: 'Missing Twilio signature' });
+      }
+
+      const webhookBase = process.env.PUBLIC_WEBHOOK_BASE_URL || 'http://localhost:3001';
+      const url = `${webhookBase}/webhooks/twilio`;
+
+      const params = (request.body && typeof request.body === 'object')
+        ? request.body as Record<string, string>
+        : {};
+
+      const valid = validateRequest(authToken, twilioSignature, url, params);
+      if (!valid) {
+        request.log.warn('Twilio webhook signature verification failed');
+        return reply.status(401).send({ error: 'Invalid Twilio signature' });
+      }
+    }
+
+    const body = request.body as Record<string, string>;
+    const messageSid = body.MessageSid;
+    const messageStatus = body.MessageStatus;
+
+    if (!messageSid || !messageStatus) {
+      return reply.status(400).send({ error: 'Missing MessageSid or MessageStatus' });
+    }
+
+    const mappedStatus = TWILIO_STATUS_MAP[messageStatus];
+    if (!mappedStatus) {
+      request.log.warn({ messageStatus }, 'Unknown Twilio status');
+      return { received: true, mapped: false };
+    }
+
+    const { error } = await supabase
+      .from('outbound_messages')
+      .update({ status: mappedStatus })
+      .eq('provider_message_id', messageSid);
+
+    if (error) {
+      request.log.error({ error, messageSid }, 'Failed to update outbound message');
+    }
+
+    request.log.info({ messageSid, messageStatus, mappedStatus }, 'Twilio webhook processed');
+    return { received: true, updated: !error };
   });
 }
