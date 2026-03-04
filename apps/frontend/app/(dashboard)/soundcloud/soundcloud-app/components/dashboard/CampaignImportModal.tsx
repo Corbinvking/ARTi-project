@@ -36,6 +36,7 @@ import {
   type ImportProgress,
   type ColumnPattern,
 } from "@/lib/csv-import";
+import { validateSoundCloudUrl } from "@/lib/soundcloud-utils";
 
 interface CampaignImportModalProps {
   open: boolean;
@@ -277,7 +278,7 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
       setImportProgress({ current: 0, total: csvData!.rows.length, phase: 'Importing campaigns...', phaseNum: 2, totalPhases: 3 });
       setImportStatus('Phase 2/3: Preparing campaign data...');
 
-      const campaignRows = csvData!.rows.map(row => {
+      const allMappedRows = csvData!.rows.map((row, idx) => {
         // Build track_info from either track_info column or artist + track
         let trackInfo = '';
         if (columnMappings.track_info && columnMappings.track_info !== '__SKIP__') {
@@ -295,6 +296,7 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
           : '';
 
         return {
+          _rowIndex: idx + 1,
           track_info: trackInfo || null,
           client: clientName,
           url: row[columnMappings.track_url] || '',
@@ -308,7 +310,21 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
           notes: row[columnMappings.notes] || '',
           internal_notes: row[columnMappings.notes] || null,
         };
-      }).filter(row => row.url);
+      });
+
+      // Validate SoundCloud URLs and separate valid from invalid
+      const campaignRows: typeof allMappedRows = [];
+      for (const row of allMappedRows) {
+        if (!row.url) {
+          errors.push(`Row ${row._rowIndex}: missing track URL — skipped`);
+          continue;
+        }
+        if (!validateSoundCloudUrl(row.url)) {
+          errors.push(`Row ${row._rowIndex}: invalid SoundCloud URL "${row.url}" — skipped`);
+          continue;
+        }
+        campaignRows.push(row);
+      }
 
       // Batch insert
       let createdCount = 0;
@@ -317,7 +333,7 @@ export function CampaignImportModal({ open, onOpenChange, onImportComplete }: Ca
       for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
         const start = batchIdx * BATCH_SIZE;
         const end = Math.min(start + BATCH_SIZE, campaignRows.length);
-        const batch = campaignRows.slice(start, end);
+        const batch = campaignRows.slice(start, end).map(({ _rowIndex, ...row }) => row);
 
         setImportProgress({
           current: end,

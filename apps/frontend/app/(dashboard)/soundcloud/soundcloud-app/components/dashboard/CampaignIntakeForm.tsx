@@ -25,11 +25,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Plus, DollarSign } from "lucide-react";
+import { CalendarIcon, Plus, DollarSign, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import { supabase } from "../../integrations/supabase/client";
 import { useToast } from "../../hooks/use-toast";
+import { validateSoundCloudUrl } from "@/lib/soundcloud-utils";
 
 interface Client {
   id: string;
@@ -48,6 +49,7 @@ export function CampaignIntakeForm({ open, onOpenChange, onSuccess }: CampaignIn
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
   const [showNewClientForm, setShowNewClientForm] = useState(false);
+  const [urlValid, setUrlValid] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -95,6 +97,10 @@ export function CampaignIntakeForm({ open, onOpenChange, onSuccess }: CampaignIn
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'track_url') {
+      const url = String(value);
+      setUrlValid(url.length > 10 ? validateSoundCloudUrl(url) : null);
+    }
   };
 
   const createClient = async () => {
@@ -136,6 +142,15 @@ export function CampaignIntakeForm({ open, onOpenChange, onSuccess }: CampaignIn
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateSoundCloudUrl(formData.track_url)) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid SoundCloud track URL (e.g. https://soundcloud.com/artist/track)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -225,14 +240,26 @@ export function CampaignIntakeForm({ open, onOpenChange, onSuccess }: CampaignIn
 
             <div>
               <Label htmlFor="track_url">Streaming URL</Label>
-              <Input
-                id="track_url"
-                type="url"
-                value={formData.track_url}
-                onChange={(e) => handleInputChange("track_url", e.target.value)}
-                placeholder="https://soundcloud.com/artist/track"
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="track_url"
+                  type="url"
+                  value={formData.track_url}
+                  onChange={(e) => handleInputChange("track_url", e.target.value)}
+                  placeholder="https://soundcloud.com/artist/track"
+                  required
+                  className={urlValid === false ? "border-red-500 pr-9" : urlValid === true ? "border-green-500 pr-9" : "pr-9"}
+                />
+                {urlValid === true && (
+                  <CheckCircle2 className="absolute right-2.5 top-2.5 h-4 w-4 text-green-500" />
+                )}
+                {urlValid === false && (
+                  <XCircle className="absolute right-2.5 top-2.5 h-4 w-4 text-red-500" />
+                )}
+              </div>
+              {urlValid === false && (
+                <p className="text-xs text-red-500 mt-1">Must be a valid SoundCloud track URL</p>
+              )}
             </div>
           </div>
 

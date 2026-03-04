@@ -17,6 +17,7 @@ import { weeklyUpdatesRoutes } from './weekly-updates';
 import { scraperNotifyRoutes } from './scraper-notify';
 import { invoiceCampaignRoutes } from './invoice-campaign';
 import { soundcloudMemberRoutes } from './soundcloud-members';
+import { soundcloudScraperRoutes } from './soundcloud-scraper';
 import { quickbooksRoutes } from './quickbooks';
 import { slackNotifyRoutes } from './slack-notify';
 import { githubIssuesRoutes } from './github-issues';
@@ -77,6 +78,9 @@ export async function setupRoutes(server: FastifyInstance) {
 
   // SoundCloud member auth lifecycle routes (provision/deprovision)
   await server.register(soundcloudMemberRoutes, { prefix: '/api' });
+
+  // SoundCloud scraper routes (Apify track stats)
+  await server.register(soundcloudScraperRoutes, { prefix: '/api' });
 
   // QuickBooks Online integration routes (OAuth, sync, webhooks, metrics)
   await server.register(quickbooksRoutes, { prefix: '/api' });

@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "../../integrations/supabase/client";
 import { useToast } from "../../hooks/use-toast";
 import { ReceiptLinksManager } from "./ReceiptLinksManager";
 import { ScheduleSuggestionPanel } from "./ScheduleSuggestionPanel";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, RefreshCw, Play, Heart, Repeat2, MessageCircle, ExternalLink } from "lucide-react";
 import { formatFollowerCount } from "../../utils/creditCalculations";
 import { useAuth } from "@/hooks/use-auth";
 import { OverrideField } from "@/components/overrides/OverrideField";
@@ -34,6 +33,15 @@ interface Campaign {
   notes: string;
   internal_notes?: string;
   client_notes?: string;
+  playback_count?: number;
+  likes_count?: number;
+  reposts_count?: number;
+  comment_count?: number;
+  genre?: string;
+  artwork_url?: string;
+  artist_username?: string;
+  artist_followers?: number;
+  last_scraped_at?: string;
   client: {
     name: string;
     email: string;
@@ -54,6 +62,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
   const [savingNotes, setSavingNotes] = useState(false);
   const [suggestedInternalNotes, setSuggestedInternalNotes] = useState(campaign?.internal_notes || campaign?.notes || '');
   const [suggestedClientNotes, setSuggestedClientNotes] = useState(campaign?.client_notes || '');
+  const [refreshingStats, setRefreshingStats] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -172,6 +181,25 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
     }
   };
 
+  const refreshTrackStats = async () => {
+    if (!campaign?.id) return;
+    setRefreshingStats(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const res = await fetch(`${apiBase}/api/soundcloud/scrape/${campaign.id}`);
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        throw new Error(json.message || 'Scrape failed');
+      }
+      toast({ title: "Stats Refreshed", description: `Updated stats for "${campaign.track_name}"` });
+      onCampaignUpdate();
+    } catch (err: any) {
+      toast({ title: "Refresh Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setRefreshingStats(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-500 text-white';
@@ -211,33 +239,14 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
     }
   };
 
-  const mockStreamingData = [
-    { week: 'W1', plays: 1250, likes: 85, reposts: 12 },
-    { week: 'W2', plays: 1890, likes: 134, reposts: 23 },
-    { week: 'W3', plays: 2340, likes: 178, reposts: 31 },
-    { week: 'W4', plays: 2850, likes: 215, reposts: 38 },
-  ];
+  const hasTrackStats = (campaign.playback_count ?? 0) > 0 || (campaign.likes_count ?? 0) > 0;
 
-  const streamingMetrics = [
-    { key: 'plays' as const, label: 'Plays', color: '#22c55e' },
-    { key: 'likes' as const, label: 'Likes', color: '#3b82f6' },
-    { key: 'reposts' as const, label: 'Reposts', color: '#f97316' },
-  ].map((cfg) => {
-    const values = mockStreamingData.map((d) => d[cfg.key]);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min;
-    const padding = range > 0 ? range * 0.15 : Math.max(1, Math.abs(max) * 0.1 || 1);
-    const current = values[values.length - 1];
-    const previous = values.length > 1 ? values[values.length - 2] : current;
-    const change = current - previous;
-    return {
-      ...cfg,
-      current,
-      change,
-      domain: [Math.max(0, Math.floor(min - padding)), Math.ceil(max + padding)] as [number, number],
-    };
-  });
+  const trackStatCards = [
+    { label: 'Plays', value: campaign.playback_count ?? 0, icon: Play, color: 'text-green-500' },
+    { label: 'Likes', value: campaign.likes_count ?? 0, icon: Heart, color: 'text-blue-500' },
+    { label: 'Reposts', value: campaign.reposts_count ?? 0, icon: Repeat2, color: 'text-orange-500' },
+    { label: 'Comments', value: campaign.comment_count ?? 0, icon: MessageCircle, color: 'text-purple-500' },
+  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -253,7 +262,21 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle>{campaign.track_name}</CardTitle>
-                  <CardDescription>by {campaign.artist_name}</CardDescription>
+                  <CardDescription className="flex items-center gap-2">
+                    by {campaign.artist_name}
+                    {campaign.track_url && (
+                      <a
+                        href={campaign.track_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Visit Track
+                      </a>
+                    )}
+                  </CardDescription>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <Badge className={getStatusColor(campaign.status)}>
@@ -357,83 +380,66 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
           </CardContent>
         </Card>
 
-          {/* Streaming Metrics */}
+          {/* SoundCloud Track Stats */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Week-over-Week Streaming Performance
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  SoundCloud Track Stats
+                </CardTitle>
+                <div className="flex items-center gap-3">
+                  {campaign.last_scraped_at && (
+                    <span className="text-xs text-muted-foreground">
+                      Last updated: {new Date(campaign.last_scraped_at).toLocaleDateString()} {new Date(campaign.last_scraped_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refreshTrackStats}
+                    disabled={refreshingStats}
+                    className="gap-1.5"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${refreshingStats ? 'animate-spin' : ''}`} />
+                    {refreshingStats ? 'Refreshing...' : 'Refresh Stats'}
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                {streamingMetrics.map((metric) => (
-                  <div key={metric.key} className="border rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium" style={{ color: metric.color }}>
-                        {metric.label}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold tabular-nums">
-                          {metric.current.toLocaleString()}
-                        </span>
-                        {metric.change !== 0 && (
-                          <span className={`text-xs flex items-center gap-0.5 ${metric.change > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {metric.change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                            {metric.change > 0 ? '+' : ''}{metric.change.toLocaleString()}
-                          </span>
-                        )}
-                        {metric.change === 0 && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-0.5">
-                            <Minus className="w-3 h-3" />
-                          </span>
-                        )}
+              {hasTrackStats ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {trackStatCards.map((stat) => {
+                    const Icon = stat.icon;
+                    return (
+                      <div key={stat.label} className="border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Icon className={`h-4 w-4 ${stat.color}`} />
+                          <span className="text-sm text-muted-foreground">{stat.label}</span>
+                        </div>
+                        <p className="text-2xl font-bold tabular-nums">
+                          {stat.value.toLocaleString()}
+                        </p>
                       </div>
-                    </div>
-                    <div className="h-36">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={mockStreamingData} margin={{ top: 4, right: 4, left: 0, bottom: 4 }}>
-                          <defs>
-                            <linearGradient id={`gradient-sc-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={metric.color} stopOpacity={0.3} />
-                              <stop offset="95%" stopColor={metric.color} stopOpacity={0.02} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                          <XAxis
-                            dataKey="week"
-                            tick={{ fontSize: 9 }}
-                            axisLine={false}
-                            tickLine={false}
-                          />
-                          <YAxis
-                            domain={metric.domain}
-                            tick={{ fontSize: 9 }}
-                            tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : String(v)}
-                            axisLine={false}
-                            tickLine={false}
-                            width={45}
-                          />
-                          <Tooltip
-                            formatter={(value: number) => [value.toLocaleString(), metric.label]}
-                            contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', fontSize: 12 }}
-                            labelStyle={{ color: 'hsl(var(--card-foreground))' }}
-                          />
-                          <Area
-                            type="monotone"
-                            dataKey={metric.key}
-                            stroke={metric.color}
-                            strokeWidth={2}
-                            fill={`url(#gradient-sc-${metric.key})`}
-                            dot={{ r: 2, fill: metric.color }}
-                            activeDot={{ r: 4, fill: metric.color }}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <p>No track stats available yet.</p>
+                  <p className="text-sm mt-1">Click "Refresh Stats" to fetch live data from SoundCloud.</p>
+                </div>
+              )}
+              {campaign.genre && (
+                <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+                  {campaign.genre && <span>Genre: <strong>{campaign.genre}</strong></span>}
+                  {campaign.artist_username && <span>Artist: <strong>{campaign.artist_username}</strong></span>}
+                  {campaign.artist_followers != null && campaign.artist_followers > 0 && (
+                    <span>Artist Followers: <strong>{campaign.artist_followers.toLocaleString()}</strong></span>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 

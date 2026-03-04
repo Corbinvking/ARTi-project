@@ -165,8 +165,92 @@ async function processSpotifyAccount(account: any) {
 }
 
 async function syncSoundCloudMetrics(data: any) {
-  logger.info('Syncing SoundCloud metrics...', data)
-  // TODO: Implement SoundCloud metrics fetching
+  logger.info('🎵 Syncing SoundCloud metrics...', data)
+
+  try {
+    const { scrapeSoundCloudTrack } = await import('./lib/soundcloud-apify.js')
+
+    const { data: campaigns, error: fetchError } = await supabase
+      .from('soundcloud_campaigns')
+      .select('id, url, status')
+      .in('status', ['Active', 'Pending'])
+      .not('url', 'is', null)
+
+    if (fetchError) {
+      logger.error('Error fetching SoundCloud campaigns:', fetchError)
+      throw fetchError
+    }
+
+    if (!campaigns || campaigns.length === 0) {
+      logger.info('No active SoundCloud campaigns to sync')
+      return { synced: 0 }
+    }
+
+    const scUrlPattern = /^https?:\/\/(www\.)?soundcloud\.com\/[\w-]+\/[\w-]+/
+    const eligible = campaigns.filter((c: any) => c.url && scUrlPattern.test(c.url))
+
+    logger.info(`📊 Found ${eligible.length} SoundCloud campaigns with valid URLs (of ${campaigns.length} total)`)
+
+    let successCount = 0
+    let errorCount = 0
+    const BATCH_SIZE = 5
+    const DELAY_BETWEEN_BATCHES_MS = 3000
+
+    for (let i = 0; i < eligible.length; i += BATCH_SIZE) {
+      const batch = eligible.slice(i, i + BATCH_SIZE)
+
+      for (const campaign of batch) {
+        try {
+          const track = await scrapeSoundCloudTrack(campaign.url)
+
+          if (!track) {
+            logger.warn({ campaignId: campaign.id, url: campaign.url }, 'No data returned for campaign')
+            errorCount++
+            continue
+          }
+
+          const { error: updateError } = await supabase
+            .from('soundcloud_campaigns')
+            .update({
+              sc_track_id: track.id,
+              playback_count: track.playback_count,
+              likes_count: track.likes_count,
+              reposts_count: track.reposts_count,
+              comment_count: track.comment_count,
+              genre: track.genre || null,
+              duration_ms: track.duration || null,
+              artwork_url: track.artwork_url,
+              artist_username: track.user.username || null,
+              artist_followers: track.user.followers_count || null,
+              last_scraped_at: new Date().toISOString(),
+              scrape_data: track as any,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', campaign.id)
+
+          if (updateError) {
+            logger.error({ campaignId: campaign.id, error: updateError }, 'Failed to update campaign stats')
+            errorCount++
+          } else {
+            successCount++
+          }
+        } catch (err: any) {
+          logger.error({ campaignId: campaign.id, error: err.message }, 'Error scraping campaign')
+          errorCount++
+        }
+      }
+
+      if (i + BATCH_SIZE < eligible.length) {
+        await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_BATCHES_MS))
+      }
+    }
+
+    logger.info({ successCount, errorCount, total: eligible.length }, '✅ SoundCloud metrics sync completed')
+    return { synced: successCount, errors: errorCount }
+  } catch (error) {
+    logger.error('SoundCloud metrics sync failed:', error)
+    throw error
+  }
 }
 
 async function syncYouTubeMetrics(data: { timeOfDay?: string }) {
@@ -492,6 +576,27 @@ async function setupCronSchedules() {
       { org_id: '00000000-0000-0000-0000-000000000001' }, // Demo org
       {
         repeat: { pattern: '0 2 * * *' }, // Daily at 2:00 AM
+        removeOnComplete: 10,
+        removeOnFail: 5,
+      }
+    )
+
+    // SoundCloud metrics sync — twice daily (8 AM and 8 PM UTC)
+    await metricsQueue!.add(
+      'soundcloud-sync',
+      { timeOfDay: 'morning' },
+      {
+        repeat: { pattern: '0 8 * * *' },
+        removeOnComplete: 10,
+        removeOnFail: 5,
+      }
+    )
+
+    await metricsQueue!.add(
+      'soundcloud-sync',
+      { timeOfDay: 'evening' },
+      {
+        repeat: { pattern: '0 20 * * *' },
         removeOnComplete: 10,
         removeOnFail: 5,
       }

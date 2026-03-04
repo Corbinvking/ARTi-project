@@ -37,6 +37,9 @@ import {
   Upload,
   Rocket,
   Zap,
+  Play,
+  Heart,
+  Repeat2,
 } from "lucide-react";
 import { CampaignImportModal } from "./CampaignImportModal";
 import { 
@@ -57,22 +60,31 @@ import { useAuth } from "@/hooks/use-auth";
 interface Campaign {
   id: string;
   track_info: string;
-  track_name: string;   // parsed from track_info
-  artist_name: string;  // parsed from track_info
-  track_url: string;    // mapped from `url`
-  campaign_type: string; // mapped from `service_type`
+  track_name: string;
+  artist_name: string;
+  track_url: string;
+  campaign_type: string;
   status: string;
-  goals: number;         // parsed from `goal` text
-  remaining_metrics: number; // parsed from `remaining` text
-  sales_price: number;   // parsed from `sale_price` text
-  invoice_status: string; // mapped from `invoice`
+  goals: number;
+  remaining_metrics: number;
+  sales_price: number;
+  invoice_status: string;
   source_invoice_id?: string;
   start_date: string;
-  submission_date: string; // mapped from `submit_date`
+  submission_date: string;
   notes: string;
   internal_notes?: string;
   client_notes?: string;
   weekly_reporting_enabled?: boolean;
+  playback_count?: number;
+  likes_count?: number;
+  reposts_count?: number;
+  comment_count?: number;
+  genre?: string;
+  artwork_url?: string;
+  artist_username?: string;
+  artist_followers?: number;
+  last_scraped_at?: string;
   client: {
     name: string;
     email: string;
@@ -201,6 +213,15 @@ export default function CampaignsPage() {
           internal_notes: row.internal_notes || '',
           client_notes: row.client_notes || '',
           weekly_reporting_enabled: row.weekly_reporting_enabled || false,
+          playback_count: row.playback_count ?? 0,
+          likes_count: row.likes_count ?? 0,
+          reposts_count: row.reposts_count ?? 0,
+          comment_count: row.comment_count ?? 0,
+          genre: row.genre || '',
+          artwork_url: row.artwork_url || '',
+          artist_username: row.artist_username || '',
+          artist_followers: row.artist_followers ?? 0,
+          last_scraped_at: row.last_scraped_at || '',
           client: {
             name: row.client || 'Unknown',
             email: row.salesperson_email || '',
@@ -265,6 +286,10 @@ export default function CampaignsPage() {
           case 'reach':
             aVal = calculateReachProgress(getTotalReach(a.id), a.goals);
             bVal = calculateReachProgress(getTotalReach(b.id), b.goals);
+            break;
+          case 'plays':
+            aVal = a.playback_count || 0;
+            bVal = b.playback_count || 0;
             break;
           case 'price':
             aVal = a.sales_price || 0;
@@ -671,6 +696,15 @@ export default function CampaignsPage() {
                     </TableHead>
                     <TableHead 
                       className="cursor-pointer select-none hover:bg-muted/50"
+                      onClick={() => handleSort('plays')}
+                    >
+                      <div className="flex items-center gap-1">
+                        SC Stats
+                        {getSortIcon('plays')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-muted/50"
                       onClick={() => handleSort('price')}
                     >
                       <div className="flex items-center gap-1">
@@ -770,6 +804,26 @@ export default function CampaignsPage() {
                           </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {(campaign.playback_count ?? 0) > 0 ? (
+                          <div className="space-y-0.5 text-xs tabular-nums">
+                            <div className="flex items-center gap-1" title="Plays">
+                              <Play className="h-3 w-3 text-green-500" />
+                              {(campaign.playback_count ?? 0).toLocaleString()}
+                            </div>
+                            <div className="flex items-center gap-1" title="Likes">
+                              <Heart className="h-3 w-3 text-blue-500" />
+                              {(campaign.likes_count ?? 0).toLocaleString()}
+                            </div>
+                            <div className="flex items-center gap-1" title="Reposts">
+                              <Repeat2 className="h-3 w-3 text-orange-500" />
+                              {(campaign.reposts_count ?? 0).toLocaleString()}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
                         )}
                       </TableCell>
                       <TableCell className="font-medium">

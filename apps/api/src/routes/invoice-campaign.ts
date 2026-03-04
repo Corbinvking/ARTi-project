@@ -309,12 +309,12 @@ export async function invoiceCampaignRoutes(server: FastifyInstance) {
       });
     }
 
-    // Basic SoundCloud URL validation
-    const scUrlPattern = /^https?:\/\/(www\.)?soundcloud\.com\//;
-    if (!scUrlPattern.test(trackUrl)) {
+    const scUrlPattern = /^https?:\/\/(www\.)?soundcloud\.com\/[\w-]+\/[\w-]+/;
+    const scShortPattern = /^https?:\/\/on\.soundcloud\.com\/[\w]+/;
+    if (!scUrlPattern.test(trackUrl) && !scShortPattern.test(trackUrl)) {
       return reply.code(400).send({
         ok: false,
-        message: 'Invalid SoundCloud URL. Must start with https://soundcloud.com/',
+        message: 'Invalid SoundCloud track URL. Expected format: https://soundcloud.com/artist/track-name',
       });
     }
 
