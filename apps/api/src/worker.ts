@@ -232,6 +232,20 @@ async function syncSoundCloudMetrics(data: any) {
             logger.error({ campaignId: campaign.id, error: updateError }, 'Failed to update campaign stats')
             errorCount++
           } else {
+            const today = new Date().toISOString().slice(0, 10)
+            await supabase.from('sc_campaign_stats_daily').upsert(
+              {
+                campaign_id: Number(campaign.id),
+                date: today,
+                playback_count: track.playback_count,
+                likes_count: track.likes_count,
+                reposts_count: track.reposts_count,
+                comment_count: track.comment_count,
+                artist_followers: track.user.followers_count || null,
+                collected_at: new Date().toISOString(),
+              },
+              { onConflict: 'campaign_id,date' },
+            )
             successCount++
           }
         } catch (err: any) {

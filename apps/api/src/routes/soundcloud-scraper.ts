@@ -29,6 +29,23 @@ function buildCampaignUpdate(track: SoundCloudTrackData) {
   };
 }
 
+async function upsertDailyStats(campaignId: string | number, track: SoundCloudTrackData) {
+  const today = new Date().toISOString().slice(0, 10);
+  await supabase.from('sc_campaign_stats_daily').upsert(
+    {
+      campaign_id: Number(campaignId),
+      date: today,
+      playback_count: track.playback_count,
+      likes_count: track.likes_count,
+      reposts_count: track.reposts_count,
+      comment_count: track.comment_count,
+      artist_followers: track.user.followers_count || null,
+      collected_at: new Date().toISOString(),
+    },
+    { onConflict: 'campaign_id,date' },
+  );
+}
+
 export async function soundcloudScraperRoutes(fastify: FastifyInstance) {
   fastify.log.info('Registering SoundCloud scraper routes...');
 
@@ -100,6 +117,8 @@ export async function soundcloudScraperRoutes(fastify: FastifyInstance) {
           logger.error({ error: updateError, campaignId }, 'Failed to update campaign with scraped data');
           return reply.code(500).send({ ok: false, message: 'Failed to save scraped data' });
         }
+
+        await upsertDailyStats(campaignId, track);
 
         return reply.send({ ok: true, track, campaignId });
       } catch (error: any) {
