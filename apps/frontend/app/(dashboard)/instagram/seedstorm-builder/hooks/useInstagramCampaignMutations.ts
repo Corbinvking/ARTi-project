@@ -113,7 +113,7 @@ export function useInstagramCampaignMutations() {
 
   // Delete Campaign
   const deleteCampaign = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string | number) => {
       console.log('🗑️ Deleting campaign:', id);
       
       const { error } = await supabase
