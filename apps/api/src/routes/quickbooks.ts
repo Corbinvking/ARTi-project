@@ -698,6 +698,7 @@ export async function quickbooksRoutes(server: FastifyInstance) {
       if (!conn) {
         return reply.send({
           connected: false,
+          connection_healthy: false,
           unpaid_invoices: { count: 0, total: 0 },
           overdue_invoices: { count: 0, total: 0 },
           paid_this_week: { count: 0, total: 0 },
@@ -707,8 +708,33 @@ export async function quickbooksRoutes(server: FastifyInstance) {
         });
       }
 
+      // Always query the local mirror tables for financial data,
+      // regardless of whether the live QBO connection is healthy.
+      // The mirror data remains valid even when the token is expired.
       const summary = await getFinancialSummary(conn.id);
-      return reply.send({ connected: true, ...summary });
+
+      const connectionHealthy = conn.status === 'active';
+
+      // Determine data freshness from the most recent sync cursor
+      const syncStatus = await getSyncStatus(conn.id);
+      let lastSyncedAt: string | null = null;
+      for (const cursor of syncStatus) {
+        const ts = cursor.last_full_sync_at || cursor.last_cdc_since;
+        if (ts && (!lastSyncedAt || ts > lastSyncedAt)) {
+          lastSyncedAt = ts;
+        }
+      }
+
+      return reply.send({
+        connected: true,
+        connection_healthy: connectionHealthy,
+        data_freshness: {
+          last_synced_at: lastSyncedAt,
+          is_stale: !connectionHealthy,
+          connection_status: conn.status,
+        },
+        ...summary,
+      });
     } catch (err: any) {
       logger.error({ err }, 'Financial summary fetch failed');
       return reply.code(500).send({ error: err.message });

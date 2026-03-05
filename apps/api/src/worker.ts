@@ -584,6 +584,23 @@ async function setupCronSchedules() {
   logger.info('📅 Setting up cron schedules...')
 
   try {
+    // Clean stale repeatable jobs from previous container lifetimes to prevent
+    // BullMQ deduplication issues where old keys block new jobs from scheduling
+    try {
+      const existingMetrics = await metricsQueue!.getRepeatableJobs()
+      for (const job of existingMetrics) {
+        await metricsQueue!.removeRepeatableByKey(job.key)
+      }
+      const existingInsights = await insightsQueue!.getRepeatableJobs()
+      for (const job of existingInsights) {
+        await insightsQueue!.removeRepeatableByKey(job.key)
+      }
+      logger.info({ removedMetrics: existingMetrics.length, removedInsights: existingInsights.length },
+        'Cleaned stale repeatable jobs before re-registration')
+    } catch (cleanErr) {
+      logger.warn({ err: cleanErr }, 'Failed to clean stale repeatable jobs (non-fatal)')
+    }
+
     // Daily metrics sync at 2:00 AM UTC (per 4-day roadmap)
     await metricsQueue!.add(
       'spotify-sync',
@@ -761,13 +778,34 @@ export async function startWorker() {
   try {
     if (!redis) {
       logger.info('🚀 Skipping metrics worker - Redis not available')
-      return
+    } else {
+      logger.info('🚀 Starting metrics worker...')
+      await setupCronSchedules()
+      await verifyCronJobs()
+      logger.info('✅ Metrics worker started successfully')
     }
 
-    logger.info('🚀 Starting metrics worker...')
-    await setupCronSchedules()
-    await verifyCronJobs()
-    logger.info('✅ Metrics worker started successfully')
+    // Process-level setInterval for QBO token refresh — the primary guarantee.
+    // This runs regardless of Redis/BullMQ health. Even if Redis is down,
+    // the token will stay fresh as long as the Node.js process is alive.
+    const intuitEnv = process.env.INTUIT_ENVIRONMENT || 'sandbox'
+    const isSandbox = intuitEnv === 'sandbox'
+    const REFRESH_INTERVAL_MS = isSandbox ? 5 * 60 * 1000 : 15 * 60 * 1000
+
+    setInterval(async () => {
+      try {
+        await runQBOProactiveTokenRefresh()
+      } catch {
+        // Already logged inside runQBOProactiveTokenRefresh
+      }
+    }, REFRESH_INTERVAL_MS)
+
+    logger.info({
+      intuitEnv,
+      intervalMs: REFRESH_INTERVAL_MS,
+      intervalMinutes: REFRESH_INTERVAL_MS / 60000,
+    }, 'QBO process-level setInterval token refresh started (independent of BullMQ)')
+
   } catch (error) {
     logger.error('Failed to start worker:', error)
     logger.error('Worker startup failed, cron jobs will not run')

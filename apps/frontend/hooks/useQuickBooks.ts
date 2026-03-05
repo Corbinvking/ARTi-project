@@ -284,6 +284,12 @@ export function useQBORefreshToken() {
 
 export interface FinancialSummaryResponse {
   connected: boolean;
+  connection_healthy?: boolean;
+  data_freshness?: {
+    last_synced_at: string | null;
+    is_stale: boolean;
+    connection_status: string;
+  };
   unpaid_invoices: { count: number; total: number };
   overdue_invoices: { count: number; total: number };
   paid_this_week: { count: number; total: number };

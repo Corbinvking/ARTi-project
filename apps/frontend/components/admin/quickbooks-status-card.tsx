@@ -372,17 +372,37 @@ export function QuickBooksStatusCard() {
             </div>
 
             {/* ---- Financial Summary ---- */}
-            {financial?.connected && (
+            {financial && (financial.connected || financial.data_freshness) && (
               <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Financial Summary</span>
-                  {(financial.overdue_invoices?.count ?? 0) > 0 && (
-                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">
-                      {financial.overdue_invoices.count} overdue
-                    </Badge>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Financial Summary</span>
+                    {(financial.overdue_invoices?.count ?? 0) > 0 && (
+                      <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">
+                        {financial.overdue_invoices.count} overdue
+                      </Badge>
+                    )}
+                  </div>
+                  {financial.data_freshness?.is_stale && (
+                    <div className="flex items-center gap-1.5 text-yellow-600">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span className="text-xs font-medium">
+                        Data as of {financial.data_freshness.last_synced_at
+                          ? formatRelativeTime(financial.data_freshness.last_synced_at)
+                          : "unknown"}
+                      </span>
+                    </div>
                   )}
                 </div>
+                {financial.data_freshness?.is_stale && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="text-xs">
+                      Live QuickBooks connection is down. Showing cached data from local mirror. Financials will update automatically when the connection is restored.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                   <div className="bg-muted/50 rounded-lg p-3 space-y-1">
                     <div className="flex items-center gap-1.5 text-muted-foreground">
