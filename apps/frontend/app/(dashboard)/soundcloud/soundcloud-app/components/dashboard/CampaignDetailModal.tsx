@@ -1,8 +1,7 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -12,17 +11,19 @@ import { useToast } from "../../hooks/use-toast";
 import { ReceiptLinksManager } from "./ReceiptLinksManager";
 import { ScheduleSuggestionPanel } from "./ScheduleSuggestionPanel";
 import {
-  TrendingUp, TrendingDown, Minus, RefreshCw, Play, Heart, Repeat2,
-  MessageCircle, ExternalLink, Users, Music, Calendar, DollarSign,
+  TrendingUp, TrendingDown, Minus, Play, Heart, Repeat2,
+  MessageCircle, ExternalLink, Users, Music, Calendar, Activity,
+  Clock, Link, RotateCcw, CheckCircle2, Zap,
 } from "lucide-react";
 import { formatFollowerCount } from "../../utils/creditCalculations";
 import { useAuth } from "@/hooks/use-auth";
 import { OverrideField } from "@/components/overrides/OverrideField";
 import { saveOverride, revertOverride } from "@/lib/overrides";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
 interface Campaign {
@@ -51,6 +52,14 @@ interface Campaign {
   artist_username?: string;
   artist_followers?: number;
   last_scraped_at?: string;
+  ip_schedule_urls?: string[];
+  ip_schedule_id?: string;
+  ip_scheduled_at?: string;
+  ip_schedule_start_at?: string;
+  ip_schedule_end_at?: string;
+  ip_channels_count?: number;
+  ip_unrepost_after_hours?: number;
+  ip_spread_minutes?: number;
   client: {
     name: string;
     email: string;
@@ -74,6 +83,12 @@ interface CampaignDetailModalProps {
   onCampaignUpdate: () => void;
 }
 
+function formatAxisValue(v: number): string {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
+  return v.toString();
+}
+
 export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdate }: CampaignDetailModalProps) {
   const [totalReceiptsReach, setTotalReceiptsReach] = useState(0);
   const [internalNotes, setInternalNotes] = useState(campaign?.internal_notes || campaign?.notes || '');
@@ -81,9 +96,10 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
   const [savingNotes, setSavingNotes] = useState(false);
   const [suggestedInternalNotes, setSuggestedInternalNotes] = useState(campaign?.internal_notes || campaign?.notes || '');
   const [suggestedClientNotes, setSuggestedClientNotes] = useState(campaign?.client_notes || '');
-  const [refreshingStats, setRefreshingStats] = useState(false);
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [loadingStats, setLoadingStats] = useState(false);
+  const [autoRefreshing, setAutoRefreshing] = useState(false);
+  const lastAutoRefreshId = useRef<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -115,13 +131,134 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
     }
   }, [campaign?.id]);
 
+  // Auto-refresh: scrape fresh data when the modal opens, then reload stats + campaign
   useEffect(() => {
-    if (isOpen && campaign) {
-      fetchDailyStats();
-    }
+    if (!isOpen || !campaign?.id) return;
+    if (lastAutoRefreshId.current === campaign.id) return;
+    lastAutoRefreshId.current = campaign.id;
+
+    const autoRefresh = async () => {
+      setAutoRefreshing(true);
+      try {
+        const res = await fetch(`/api/soundcloud/scrape/${campaign.id}`);
+        const json = await res.json();
+        if (res.ok && json.ok) {
+          onCampaignUpdate();
+        }
+      } catch {
+        // silent — auto-refresh is best-effort
+      } finally {
+        setAutoRefreshing(false);
+        fetchDailyStats();
+      }
+    };
+
+    fetchDailyStats();
+    autoRefresh();
   }, [isOpen, campaign?.id]);
 
+  // Reset the auto-refresh gate when modal closes so next open re-triggers
+  useEffect(() => {
+    if (!isOpen) {
+      lastAutoRefreshId.current = null;
+    }
+  }, [isOpen]);
+
+  // ── Performance chart data (must be before early return to keep hook order stable) ──
+  const chartData = useMemo(() => {
+    if (dailyStats.length < 2) return null;
+
+    const data = dailyStats.map((stat) => ({
+      date: format(new Date(stat.date), 'MMM dd'),
+      plays: stat.playback_count,
+      likes: stat.likes_count,
+      reposts: stat.reposts_count,
+      comments: stat.comment_count,
+    }));
+
+    const first = dailyStats[0];
+    const last = dailyStats[dailyStats.length - 1];
+
+    const metrics: {
+      key: 'plays' | 'likes' | 'reposts' | 'comments';
+      label: string;
+      color: string;
+      icon: JSX.Element;
+      current: number;
+      change: number;
+    }[] = [
+      {
+        key: 'plays',
+        label: 'Plays',
+        color: '#22c55e',
+        icon: <Play className="h-3.5 w-3.5" />,
+        current: last.playback_count,
+        change: last.playback_count - first.playback_count,
+      },
+      {
+        key: 'likes',
+        label: 'Likes',
+        color: '#ef4444',
+        icon: <Heart className="h-3.5 w-3.5" />,
+        current: last.likes_count,
+        change: last.likes_count - first.likes_count,
+      },
+      {
+        key: 'reposts',
+        label: 'Reposts',
+        color: '#f97316',
+        icon: <Repeat2 className="h-3.5 w-3.5" />,
+        current: last.reposts_count,
+        change: last.reposts_count - first.reposts_count,
+      },
+      {
+        key: 'comments',
+        label: 'Comments',
+        color: '#a855f7',
+        icon: <MessageCircle className="h-3.5 w-3.5" />,
+        current: last.comment_count,
+        change: last.comment_count - first.comment_count,
+      },
+    ];
+
+    return { data, metrics };
+  }, [dailyStats]);
+
+  const hasTrackStats = (campaign?.playback_count ?? 0) > 0 || (campaign?.likes_count ?? 0) > 0;
+
+  const [showReschedule, setShowReschedule] = useState(false);
+
+  // Reset reschedule toggle when campaign changes
+  useEffect(() => {
+    setShowReschedule(false);
+  }, [campaign?.id]);
+
   if (!campaign) return null;
+
+  const hasSchedule = (campaign.ip_schedule_urls?.length ?? 0) > 0;
+
+  const getSchedulePhase = () => {
+    if (!campaign.ip_schedule_start_at || !campaign.ip_schedule_end_at) return null;
+    const now = Date.now();
+    const start = new Date(campaign.ip_schedule_start_at).getTime();
+    const end = new Date(campaign.ip_schedule_end_at).getTime();
+    const spreadMs = (campaign.ip_spread_minutes ?? 60) * 60_000;
+    const channelCount = campaign.ip_channels_count ?? 1;
+    const lastRepost = start + (channelCount - 1) * spreadMs;
+
+    if (now < start) return { label: 'Scheduled', color: 'bg-blue-500', progress: 0 };
+    if (now < lastRepost) {
+      const p = ((now - start) / (lastRepost - start)) * 100;
+      return { label: 'Reposts Active', color: 'bg-green-500', progress: Math.round(p) };
+    }
+    if (now < end) {
+      const p = ((now - lastRepost) / (end - lastRepost)) * 100;
+      return { label: 'Unrepost Window', color: 'bg-amber-500', progress: Math.round(p) };
+    }
+    return { label: 'Complete', color: 'bg-blue-600', progress: 100 };
+  };
+
+  const schedulePhase = hasSchedule ? getSchedulePhase() : null;
 
   // ── Note helpers ──────────────────────────────────────────────────
   const addNoteHistory = async (noteType: 'internal' | 'client', content: string) => {
@@ -213,25 +350,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
     }
   };
 
-  // ── Stats helpers ─────────────────────────────────────────────────
-  const refreshTrackStats = async () => {
-    if (!campaign?.id) return;
-    setRefreshingStats(true);
-    try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const res = await fetch(`${apiBase}/api/soundcloud/scrape/${campaign.id}`);
-      const json = await res.json();
-      if (!res.ok || !json.ok) throw new Error(json.message || 'Scrape failed');
-      toast({ title: "Stats Refreshed", description: `Updated stats for "${campaign.track_name}"` });
-      onCampaignUpdate();
-      fetchDailyStats();
-    } catch (err: any) {
-      toast({ title: "Refresh Failed", description: err.message, variant: "destructive" });
-    } finally {
-      setRefreshingStats(false);
-    }
-  };
-
+  // ── Layout helpers ────────────────────────────────────────────────
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-500 text-white';
@@ -262,77 +381,6 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
       console.error('Failed to auto-update remaining:', err);
     }
   };
-
-  const formatNumber = (num: number) => {
-    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
-    if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
-    return num.toString();
-  };
-
-  const calculateTrend = (current: number, previous: number) => {
-    if (previous === 0) return 0;
-    return ((current - previous) / previous) * 100;
-  };
-
-  const getTrendIcon = (trend: number) => {
-    if (trend > 5) return <TrendingUp className="w-4 h-4 text-green-500" />;
-    if (trend < -5) return <TrendingDown className="w-4 h-4 text-red-500" />;
-    return <Minus className="w-4 h-4 text-gray-500" />;
-  };
-
-  const hasTrackStats = (campaign.playback_count ?? 0) > 0 || (campaign.likes_count ?? 0) > 0;
-
-  const latestStats = dailyStats[dailyStats.length - 1];
-  const previousStats = dailyStats.length >= 2 ? dailyStats[dailyStats.length - 2] : null;
-
-  const chartData = dailyStats.map((stat, index) => ({
-    date: format(new Date(stat.date), 'MMM dd'),
-    plays: stat.playback_count,
-    likes: stat.likes_count,
-    reposts: stat.reposts_count,
-    comments: stat.comment_count,
-    playsGrowth: index > 0 ? stat.playback_count - dailyStats[index - 1].playback_count : 0,
-    likesGrowth: index > 0 ? stat.likes_count - dailyStats[index - 1].likes_count : 0,
-  }));
-
-  const statCards = [
-    {
-      label: 'Total Plays',
-      value: campaign.playback_count ?? 0,
-      icon: Play,
-      color: 'text-green-500',
-      trendValue: previousStats && latestStats
-        ? calculateTrend(latestStats.playback_count, previousStats.playback_count)
-        : null,
-    },
-    {
-      label: 'Total Likes',
-      value: campaign.likes_count ?? 0,
-      icon: Heart,
-      color: 'text-red-500',
-      trendValue: previousStats && latestStats
-        ? calculateTrend(latestStats.likes_count, previousStats.likes_count)
-        : null,
-    },
-    {
-      label: 'Total Reposts',
-      value: campaign.reposts_count ?? 0,
-      icon: Repeat2,
-      color: 'text-orange-500',
-      trendValue: previousStats && latestStats
-        ? calculateTrend(latestStats.reposts_count, previousStats.reposts_count)
-        : null,
-    },
-    {
-      label: 'Total Comments',
-      value: campaign.comment_count ?? 0,
-      icon: MessageCircle,
-      color: 'text-purple-500',
-      trendValue: previousStats && latestStats
-        ? calculateTrend(latestStats.comment_count, previousStats.comment_count)
-        : null,
-    },
-  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -414,7 +462,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
                 </div>
 
                 {(campaign.genre || campaign.artist_username) && (
-                  <div className="mt-4 pt-4 border-t flex items-center gap-6 text-sm text-muted-foreground">
+                  <div className="mt-4 pt-4 border-t flex items-center gap-6 text-sm text-muted-foreground flex-wrap">
                     {campaign.genre && (
                       <span className="flex items-center gap-1">
                         <Music className="h-3.5 w-3.5" /> {campaign.genre}
@@ -478,7 +526,119 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
               onReachChanged={handleReachChanged}
             />
 
-            {campaign.campaign_type !== 'Free' && campaign.status !== 'Complete' && (
+            {/* Schedule Status Card -- shown when a schedule already exists */}
+            {hasSchedule && !showReschedule && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-primary" />
+                      Schedule Status
+                    </CardTitle>
+                    {schedulePhase && (
+                      <Badge className={`${schedulePhase.color} text-white`}>
+                        {schedulePhase.label}
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Timeline progress bar */}
+                  {schedulePhase && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{schedulePhase.label}</span>
+                        <span>{schedulePhase.progress}%</span>
+                      </div>
+                      <Progress value={schedulePhase.progress} className="h-2" />
+                    </div>
+                  )}
+
+                  {/* Schedule details grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    {campaign.ip_schedule_start_at && (
+                      <div>
+                        <p className="text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" /> Repost Start
+                        </p>
+                        <p className="font-medium">
+                          {format(new Date(campaign.ip_schedule_start_at), 'MMM d, yyyy h:mm a')}
+                        </p>
+                      </div>
+                    )}
+                    {campaign.ip_schedule_end_at && (
+                      <div>
+                        <p className="text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5" /> Unrepost End
+                        </p>
+                        <p className="font-medium">
+                          {format(new Date(campaign.ip_schedule_end_at), 'MMM d, yyyy h:mm a')}
+                        </p>
+                      </div>
+                    )}
+                    {campaign.ip_channels_count != null && (
+                      <div>
+                        <p className="text-muted-foreground flex items-center gap-1">
+                          <Users className="h-3.5 w-3.5" /> Channels
+                        </p>
+                        <p className="font-medium">{campaign.ip_channels_count}</p>
+                      </div>
+                    )}
+                    {campaign.ip_scheduled_at && (
+                      <div>
+                        <p className="text-muted-foreground flex items-center gap-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Booked On
+                        </p>
+                        <p className="font-medium">
+                          {format(new Date(campaign.ip_scheduled_at), 'MMM d, yyyy')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Schedule links */}
+                  {campaign.ip_schedule_urls && campaign.ip_schedule_urls.length > 0 && (
+                    <div className="pt-2 border-t">
+                      <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                        <Link className="h-3.5 w-3.5" /> Schedule Links
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {campaign.ip_schedule_urls.map((url, i) => (
+                          <a
+                            key={i}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline bg-primary/5 px-2 py-1 rounded"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Schedule {i + 1}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reschedule action */}
+                  {campaign.status !== 'Complete' && (
+                    <div className="pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowReschedule(true)}
+                        className="w-full"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Reschedule Campaign
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Schedule creation panel -- shown when no schedule exists, or user clicked Reschedule */}
+            {campaign.campaign_type !== 'Free' && (!hasSchedule || showReschedule) && (
               <ScheduleSuggestionPanel
                 submissionId={campaign.id}
                 trackUrl={campaign.track_url || ''}
@@ -486,6 +646,7 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
                 currentDate={campaign.start_date}
                 goalReposts={campaign.goals}
                 onScheduleCreated={(urls) => {
+                  setShowReschedule(false);
                   toast({
                     title: "Schedule Created",
                     description: `${urls.length} schedule(s) created via Influence Planner`,
@@ -499,141 +660,175 @@ export function CampaignDetailModal({ campaign, isOpen, onClose, onCampaignUpdat
 
           {/* ═══════════════ PERFORMANCE TAB ═══════════════ */}
           <TabsContent value="performance" className="space-y-6 mt-4">
-            {/* Stat cards row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {statCards.map((stat) => {
-                const Icon = stat.icon;
-                return (
-                  <Card key={stat.label}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
-                      <Icon className={`h-4 w-4 ${stat.color}`} />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold tabular-nums">{formatNumber(stat.value)}</div>
-                      {stat.trendValue !== null && (
-                        <div className="flex items-center text-xs text-muted-foreground mt-1">
-                          {getTrendIcon(stat.trendValue)}
-                          <span className="ml-1">
-                            {stat.trendValue > 0 ? '+' : ''}{stat.trendValue.toFixed(1)}% from prev day
-                          </span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+            {autoRefreshing && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Activity className="h-4 w-4 animate-pulse" />
+                Fetching latest stats from SoundCloud...
+              </div>
+            )}
 
-            {/* Chart */}
             {loadingStats ? (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
                   Loading historical data...
                 </CardContent>
               </Card>
-            ) : dailyStats.length > 1 ? (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
+            ) : chartData ? (
+              <>
+                {/* Last updated timestamp */}
+                {campaign.last_scraped_at && (
+                  <div className="text-xs text-muted-foreground text-right">
+                    Last updated: {new Date(campaign.last_scraped_at).toLocaleDateString()}{' '}
+                    {new Date(campaign.last_scraped_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                )}
+
+                {/* 2x2 metric cards with individual AreaCharts */}
+                <Card>
+                  <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <TrendingUp className="h-5 w-5" />
-                      Cumulative Performance
+                      Performance Over Time
                     </CardTitle>
-                    <div className="flex items-center gap-3">
-                      {campaign.last_scraped_at && (
-                        <span className="text-xs text-muted-foreground">
-                          Last updated: {new Date(campaign.last_scraped_at).toLocaleDateString()}{' '}
-                          {new Date(campaign.last_scraped_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={refreshTrackStats}
-                        disabled={refreshingStats}
-                        className="gap-1.5"
-                      >
-                        <RefreshCw className={`h-3.5 w-3.5 ${refreshingStats ? 'animate-spin' : ''}`} />
-                        {refreshingStats ? 'Refreshing...' : 'Refresh Stats'}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <RechartsTooltip
-                          formatter={(value: number) => [value.toLocaleString(), '']}
-                          labelFormatter={(label) => `Date: ${label}`}
-                        />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="plays"
-                          stroke="#22c55e"
-                          strokeWidth={2}
-                          name="Plays"
-                          dot={{ r: 3, fill: "#22c55e" }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="likes"
-                          stroke="#ef4444"
-                          strokeWidth={2}
-                          name="Likes"
-                          dot={{ r: 3, fill: "#ef4444" }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="reposts"
-                          stroke="#f97316"
-                          strokeWidth={2}
-                          name="Reposts"
-                          dot={{ r: 3, fill: "#f97316" }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="comments"
-                          stroke="#a855f7"
-                          strokeWidth={2}
-                          name="Comments"
-                          dot={{ r: 3, fill: "#a855f7" }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent>
+                    {(() => {
+                      const scheduleStartLabel = campaign.ip_schedule_start_at
+                        ? format(new Date(campaign.ip_schedule_start_at), 'MMM dd')
+                        : null;
+                      const scheduleEndLabel = campaign.ip_schedule_end_at
+                        ? format(new Date(campaign.ip_schedule_end_at), 'MMM dd')
+                        : null;
+
+                      return (
+                        <div className="grid grid-cols-2 gap-4">
+                          {chartData.metrics.map((metric, idx) => (
+                            <div key={metric.key} className="border rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-sm font-medium flex items-center gap-1.5" style={{ color: metric.color }}>
+                                  {metric.icon}
+                                  {metric.label}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg font-bold tabular-nums">
+                                    {formatAxisValue(metric.current)}
+                                  </span>
+                                  {metric.change !== 0 && (
+                                    <span className={`text-xs flex items-center gap-0.5 ${metric.change > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                      {metric.change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                                      {metric.change > 0 ? '+' : ''}{formatAxisValue(metric.change)}
+                                    </span>
+                                  )}
+                                  {metric.change === 0 && (
+                                    <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                                      <Minus className="w-3 h-3" />
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="h-36">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <AreaChart data={chartData.data} margin={{ top: 4, right: 4, left: 0, bottom: idx >= 2 ? 40 : 4 }}>
+                                    <defs>
+                                      <linearGradient id={`sc-gradient-${metric.key}`} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={metric.color} stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor={metric.color} stopOpacity={0.02} />
+                                      </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                                    <XAxis
+                                      dataKey="date"
+                                      tick={idx >= 2 ? { fontSize: 9 } : false}
+                                      axisLine={false}
+                                      tickLine={false}
+                                      angle={-45}
+                                      textAnchor="end"
+                                      height={idx >= 2 ? 40 : 4}
+                                      interval="preserveStartEnd"
+                                    />
+                                    <YAxis
+                                      domain={['auto', 'auto']}
+                                      tick={{ fontSize: 9 }}
+                                      tickFormatter={formatAxisValue}
+                                      axisLine={false}
+                                      tickLine={false}
+                                      width={45}
+                                    />
+                                    <RechartsTooltip
+                                      formatter={(value: number) => [value.toLocaleString(), metric.label]}
+                                      labelFormatter={(label) => `${label}`}
+                                      contentStyle={{
+                                        backgroundColor: 'hsl(var(--card))',
+                                        border: '1px solid hsl(var(--border))',
+                                        fontSize: 12,
+                                      }}
+                                      labelStyle={{ color: 'hsl(var(--card-foreground))' }}
+                                    />
+                                    {scheduleStartLabel && (
+                                      <ReferenceLine
+                                        x={scheduleStartLabel}
+                                        stroke="#22c55e"
+                                        strokeDasharray="4 4"
+                                        strokeWidth={1.5}
+                                        label={{ value: 'Reposts Start', position: 'top', fill: '#22c55e', fontSize: 8 }}
+                                      />
+                                    )}
+                                    {scheduleEndLabel && (
+                                      <ReferenceLine
+                                        x={scheduleEndLabel}
+                                        stroke="#ef4444"
+                                        strokeDasharray="4 4"
+                                        strokeWidth={1.5}
+                                        label={{ value: 'Unrepost End', position: 'top', fill: '#ef4444', fontSize: 8 }}
+                                      />
+                                    )}
+                                    <Area
+                                      type="monotone"
+                                      dataKey={metric.key}
+                                      stroke={metric.color}
+                                      strokeWidth={2}
+                                      fill={`url(#sc-gradient-${metric.key})`}
+                                      connectNulls={true}
+                                      dot={{ r: 2, fill: metric.color }}
+                                      activeDot={{ r: 4, fill: metric.color }}
+                                    />
+                                  </AreaChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+              </>
             ) : (
               <Card>
                 <CardContent className="py-12">
                   <div className="text-center text-muted-foreground space-y-2">
                     {hasTrackStats ? (
                       <>
-                        <p>Only one data point so far — charts will appear after the next scrape cycle.</p>
-                        <p className="text-sm">Stats are collected twice daily (8 AM & 8 PM UTC).</p>
+                        <Activity className="h-8 w-8 mx-auto mb-2 opacity-40" />
+                        <p className="font-medium">Collecting performance data...</p>
+                        <p className="text-sm">
+                          Only one data point so far. Charts will appear after the next scrape cycle
+                          (8 AM & 8 PM UTC daily).
+                        </p>
+                      </>
+                    ) : autoRefreshing ? (
+                      <>
+                        <Activity className="h-8 w-8 mx-auto mb-2 opacity-40 animate-pulse" />
+                        <p className="font-medium">Fetching stats from SoundCloud...</p>
+                        <p className="text-sm">This may take a moment.</p>
                       </>
                     ) : (
                       <>
+                        <Activity className="h-8 w-8 mx-auto mb-2 opacity-40" />
                         <p>No track stats available yet.</p>
-                        <p className="text-sm">Click "Refresh Stats" to fetch live data from SoundCloud.</p>
+                        <p className="text-sm">Stats will be fetched automatically when this campaign has a valid SoundCloud URL.</p>
                       </>
                     )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={refreshTrackStats}
-                      disabled={refreshingStats}
-                      className="gap-1.5 mt-4"
-                    >
-                      <RefreshCw className={`h-3.5 w-3.5 ${refreshingStats ? 'animate-spin' : ''}`} />
-                      {refreshingStats ? 'Refreshing...' : 'Refresh Stats'}
-                    </Button>
                   </div>
                 </CardContent>
               </Card>

@@ -1,0 +1,33 @@
+---
+description: Invoice data handling standard for the ARTi platform. Apply when creating, editing, or displaying invoices, adding new services, or working with campaign_invoices, qbo_invoices, invoice_status, source_invoice_id, or the payment engine.
+globs:
+alwaysApply: false
+---
+
+# Invoice Data Handling Standard
+
+See full specification: `docs/INVOICE-DATA-HANDLING.md`
+
+## Quick Reference
+
+### Invoice statuses (one-directional)
+`pending` → `sent` → `overdue` → `paid` → (terminal)
+Any status → `voided` (terminal, never delete)
+
+### Creating a campaign invoice
+1. INSERT `campaign_invoices` FIRST (status: `pending`, qbo_sync_status: `not_synced`)
+2. THEN create per-service campaigns with `source_invoice_id` pointing back
+3. Never create a service campaign without a `campaign_invoices` record
+
+### New service checklist
+1. Add `source_invoice_id UUID REFERENCES campaign_invoices(id)` to the table
+2. Add `invoice_status TEXT DEFAULT 'pending'` to the table
+3. Register table in `PLATFORM_TABLES` in `apps/api/src/lib/quickbooks/payment-engine.ts`
+4. Never write to `invoice_status` from service-specific code — only the payment engine does
+
+### Rules
+- Never hard-delete invoice records — void them instead
+- Never transition status backward (e.g. `paid` → `sent` is illegal)
+- `paid` status requires a `paid_date`
+- Invoices with status `paid` or `voided` cannot be edited
+- All payment cascades are logged to `qbo_automation_log`

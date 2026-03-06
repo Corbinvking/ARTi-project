@@ -5,6 +5,7 @@ import { supabase } from './lib/supabase.js'
 import { redis } from './lib/redis.js'
 import { incrementalSync, getActiveConnection } from './lib/quickbooks/sync.js'
 import { getValidAccessToken } from './lib/quickbooks/oauth.js'
+import { pushAllPendingInvoices } from './lib/quickbooks/writeback.js'
 
 // Only initialize BullMQ if Redis is available
 let metricsQueue: Queue | null = null
@@ -48,6 +49,9 @@ if (redis) {
           break
         case 'qbo-connection-validate':
           await runQBOConnectionValidation()
+          break
+        case 'qbo-invoice-push-retry':
+          await runQBOInvoicePushRetry()
           break
         case 'health-check':
           logger.info('Performing hourly health check...')
@@ -260,6 +264,29 @@ async function syncSoundCloudMetrics(data: any) {
     }
 
     logger.info({ successCount, errorCount, total: eligible.length }, '✅ SoundCloud metrics sync completed')
+
+    // Auto-complete campaigns whose schedule window has passed
+    try {
+      const { data: completable } = await supabase
+        .from('soundcloud_campaigns')
+        .select('id, ip_schedule_end_at')
+        .eq('status', 'Active')
+        .not('ip_schedule_end_at', 'is', null)
+        .lte('ip_schedule_end_at', new Date().toISOString())
+
+      if (completable && completable.length > 0) {
+        for (const c of completable) {
+          await supabase
+            .from('soundcloud_campaigns')
+            .update({ status: 'Complete', completed_at: c.ip_schedule_end_at, updated_at: new Date().toISOString() })
+            .eq('id', c.id)
+        }
+        logger.info(`✅ Auto-completed ${completable.length} SoundCloud campaigns past schedule end`)
+      }
+    } catch (completeErr) {
+      logger.error('Error auto-completing campaigns:', completeErr)
+    }
+
     return { synced: successCount, errors: errorCount }
   } catch (error) {
     logger.error('SoundCloud metrics sync failed:', error)
@@ -574,6 +601,30 @@ async function runQBOCDCSync() {
   }
 }
 
+// QuickBooks invoice push retry — when connection recovers, push any pending/failed invoices
+async function runQBOInvoicePushRetry() {
+  const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
+  try {
+    const conn = await getActiveConnection(DEFAULT_ORG_ID)
+    if (!conn) return
+
+    // Ensure we have a valid token before attempting push
+    try {
+      await getValidAccessToken(conn.id)
+    } catch {
+      logger.info('QBO token invalid, skipping invoice push retry (will retry when reconnected)')
+      return
+    }
+
+    const result = await pushAllPendingInvoices(conn)
+    if (result.synced > 0 || result.errors > 0) {
+      logger.info({ synced: result.synced, errors: result.errors }, 'QBO invoice push retry completed')
+    }
+  } catch (err) {
+    logger.warn({ err }, 'QBO invoice push retry failed (non-fatal)')
+  }
+}
+
 // Setup cron schedules - aligned with architecture diagram
 async function setupCronSchedules() {
   if (!redis) {
@@ -612,12 +663,12 @@ async function setupCronSchedules() {
       }
     )
 
-    // SoundCloud metrics sync — twice daily (8 AM and 8 PM UTC)
+    // SoundCloud metrics sync — twice daily (8 AM and 8 PM EST = 13:00 and 01:00 UTC)
     await metricsQueue!.add(
       'soundcloud-sync',
       { timeOfDay: 'morning' },
       {
-        repeat: { pattern: '0 8 * * *' },
+        repeat: { pattern: '0 13 * * *' },
         removeOnComplete: 10,
         removeOnFail: 5,
       }
@@ -627,7 +678,7 @@ async function setupCronSchedules() {
       'soundcloud-sync',
       { timeOfDay: 'evening' },
       {
-        repeat: { pattern: '0 20 * * *' },
+        repeat: { pattern: '0 1 * * *' },
         removeOnComplete: 10,
         removeOnFail: 5,
       }
@@ -741,6 +792,17 @@ async function setupCronSchedules() {
       }
     )
 
+    // QBO invoice push retry — when connection recovers, push pending/failed invoices to QBO
+    await metricsQueue!.add(
+      'qbo-invoice-push-retry',
+      {},
+      {
+        repeat: { pattern: '*/15 * * * *' },
+        removeOnComplete: 5,
+        removeOnFail: 3,
+      }
+    )
+
     logger.info({
       intuitEnv,
       refreshPattern,
@@ -760,7 +822,7 @@ async function verifyCronJobs() {
     const repeatableJobs = await metricsQueue.getRepeatableJobs()
     const jobNames = repeatableJobs.map((j: any) => j.name)
     
-    const requiredJobs = ['qbo-token-refresh', 'qbo-cdc-sync', 'qbo-connection-validate']
+    const requiredJobs = ['qbo-token-refresh', 'qbo-cdc-sync', 'qbo-connection-validate', 'qbo-invoice-push-retry']
     const missingJobs = requiredJobs.filter(name => !jobNames.includes(name))
     
     if (missingJobs.length > 0) {

@@ -370,6 +370,7 @@ export const ScheduleSuggestionPanel = ({
         removeDuplicates: true,
         shuffle: true,
         submissionId,
+        campaignId: submissionId,
       }
 
       const res = await fetch("/api/soundcloud/influenceplanner/schedule", {
@@ -389,10 +390,23 @@ export const ScheduleSuggestionPanel = ({
       const result = await res.json()
       const scheduleUrls: string[] = result.body?.data || []
 
+      const channelCount = selectedChannels.size
+      const spreadMinutes = 60
+      const unrepostHours = 24
+      const startAt = new Date(selectedSlot + "T12:00:00.000Z")
+      const lastRepostMs = startAt.getTime() + (channelCount - 1) * spreadMinutes * 60_000
+      const endAt = new Date(lastRepostMs + unrepostHours * 3_600_000)
+
       const updatePayload: Record<string, any> = {
         start_date: selectedSlot,
         ip_schedule_urls: scheduleUrls,
         ip_schedule_id: scheduleUrls[0]?.split("/").pop() || null,
+        ip_scheduled_at: new Date().toISOString(),
+        ip_schedule_start_at: startAt.toISOString(),
+        ip_schedule_end_at: endAt.toISOString(),
+        ip_channels_count: channelCount,
+        ip_unrepost_after_hours: unrepostHours,
+        ip_spread_minutes: spreadMinutes,
         status: "Active",
         updated_at: new Date().toISOString(),
       }

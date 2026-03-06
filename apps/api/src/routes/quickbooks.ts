@@ -78,13 +78,25 @@ export async function quickbooksRoutes(server: FastifyInstance) {
 
       const result = await handleCallback(fullUrl, orgId, userId);
 
-      // Kick off initial full sync in the background (non-blocking)
+      // Kick off initial full sync and push any pending invoices in the background (non-blocking)
       setImmediate(async () => {
         try {
           await fullSyncAll(result.connectionId, result.realmId);
           logger.info({ connectionId: result.connectionId }, 'Auto full sync after connect completed');
         } catch (syncErr) {
           logger.error({ syncErr }, 'Auto full sync after connect failed (non-fatal)');
+        }
+        try {
+          const conn = await getActiveConnection(DEFAULT_ORG_ID);
+          if (conn) {
+            const pushResult = await pushAllPendingInvoices(conn);
+            if (pushResult.synced > 0 || pushResult.errors > 0) {
+              logger.info({ synced: pushResult.synced, errors: pushResult.errors },
+                'Auto push pending invoices after reconnect completed');
+            }
+          }
+        } catch (pushErr) {
+          logger.error({ pushErr }, 'Auto push pending invoices after reconnect failed (non-fatal)');
         }
       });
 

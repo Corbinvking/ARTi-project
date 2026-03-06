@@ -25,8 +25,9 @@ export async function POST(request: Request) {
   const settings = body?.settings;
   const comment = body?.comment;
 
-  // Optional: submission ID to auto-update + auto-email
+  // Optional IDs to auto-update records after scheduling
   const submissionId = body?.submissionId;
+  const campaignId = body?.campaignId;
 
   if (!targets.length || !medias.length || !settings) {
     return NextResponse.json(
@@ -113,7 +114,38 @@ export async function POST(request: Request) {
         }
       } catch (dbErr) {
         console.error("Failed to update submission after scheduling:", dbErr);
-        // Don't fail the request -- schedule was created successfully
+      }
+    }
+
+    // Also update soundcloud_campaigns with schedule timeline if campaignId provided
+    if (campaignId && status >= 200 && status < 300 && scheduleUrls.length > 0) {
+      try {
+        const supabaseAdmin = createAdminClient(auth.token);
+        const channelCount = targets.length;
+        const spreadMinutes = settings.spreadBetweenAccountsMinutes || 60;
+        const unrepostHours = settings.unrepostAfterHours || 24;
+        const startAt = settings.date ? new Date(settings.date) : new Date();
+        const lastRepostMs = startAt.getTime() + (channelCount - 1) * spreadMinutes * 60_000;
+        const endAt = new Date(lastRepostMs + unrepostHours * 3_600_000);
+
+        await supabaseAdmin
+          .from("soundcloud_campaigns")
+          .update({
+            ip_schedule_urls: scheduleUrls,
+            ip_schedule_id: scheduleUrls[0]?.split("/").pop() || null,
+            ip_scheduled_at: new Date().toISOString(),
+            ip_schedule_start_at: startAt.toISOString(),
+            ip_schedule_end_at: endAt.toISOString(),
+            ip_channels_count: channelCount,
+            ip_unrepost_after_hours: unrepostHours,
+            ip_spread_minutes: spreadMinutes,
+            status: "Active",
+            start_date: startAt.toISOString().slice(0, 10),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", campaignId);
+      } catch (dbErr) {
+        console.error("Failed to update campaign after scheduling:", dbErr);
       }
     }
 
